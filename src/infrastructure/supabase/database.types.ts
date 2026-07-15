@@ -35,6 +35,7 @@ export type Database = {
       clinic_users: {
         Row: {
           id: string;
+          auth_user_id: string;
           tenant_id: string;
           full_name: string;
           role: string;
@@ -43,6 +44,7 @@ export type Database = {
         };
         Insert: {
           id?: string;
+          auth_user_id: string;
           tenant_id: string;
           full_name: string;
           role: string;
@@ -51,6 +53,7 @@ export type Database = {
         };
         Update: {
           id?: string;
+          auth_user_id?: string;
           tenant_id?: string;
           full_name?: string;
           role?: string;
@@ -191,7 +194,6 @@ export type Database = {
           subtotal_subunits: number;
           total_subunits: number;
           amount_paid_subunits?: number;
-          amount_due_subunits?: number;
           invoice_status?: string;
           invoice_date?: string;
           created_at?: string;
@@ -204,7 +206,6 @@ export type Database = {
           subtotal_subunits?: number;
           total_subunits?: number;
           amount_paid_subunits?: number;
-          amount_due_subunits?: number;
           invoice_status?: string;
           invoice_date?: string;
           created_at?: string;
