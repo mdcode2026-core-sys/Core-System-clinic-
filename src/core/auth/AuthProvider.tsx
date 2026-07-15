@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { createClient } from "@/infrastructure/supabase/client";
 import { AuthContext } from "./AuthContext";
 import type { User, Session } from "@supabase/supabase-js";
@@ -13,14 +13,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [tenantId, setTenantId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
 
   const fetchUserData = useCallback(async (userId: string) => {
     try {
       const { data, error } = await supabase
         .from("clinic_users")
         .select("role, tenant_id")
-        .eq("id", userId)
+        .eq("auth_user_id", userId)
         .single();
 
       if (error) {
