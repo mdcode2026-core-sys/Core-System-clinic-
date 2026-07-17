@@ -2,11 +2,16 @@
 
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { createClient } from "@/infrastructure/supabase/client";
+import { signIn } from "@/core/auth/actions";
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
+import { Stethoscope } from "lucide-react";
+
+export default function LoginPage() {
+  const [email, setEmail] = useState("");
+  const [password";
 import { Stethoscope } from "lucide-react";
 
 export default function LoginPage() {
@@ -17,24 +22,22 @@ export default function LoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectPath = searchParams.get("redirect") || "/dashboard";
-  const supabase = createClient();
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
+  async function handleSubmit(formData: FormData) {
     setLoading(true);
     setError(null);
 
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const result = await signIn(formData);
 
-    if (error) {
-      setError(error.message);
+    if (result?.error) {
+      setError(result.error);
       setLoading(false);
       return;
     }
 
     router.push(redirectPath);
     router.refresh();
-  };
+  }
 
   return (
     <Card className="w-full max-w-md border-slate-700 bg-slate-800/80 backdrop-blur">
@@ -45,7 +48,7 @@ export default function LoginPage() {
         <CardTitle className="text-2xl text-white">تسجيل الدخول</CardTitle>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleLogin} className="space-y-4">
+        <form action={handleSubmit} className="space-y-4">
           {error && (
             <div className="bg-destructive/10 text-destructive p-3 rounded-md text-sm text-center">
               {error}
@@ -55,6 +58,7 @@ export default function LoginPage() {
             <Label htmlFor="email" className="text-white">البريد الإلكتروني</Label>
             <Input
               id="email"
+              name="email"
               type="email"
               placeholder="admin@clinic.com"
               value={email}
@@ -67,6 +71,7 @@ export default function LoginPage() {
             <Label htmlFor="password" className="text-white">كلمة المرور</Label>
             <Input
               id="password"
+              name="password"
               type="password"
               placeholder="••••••••"
               value={password}
