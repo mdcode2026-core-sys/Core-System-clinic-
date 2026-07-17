@@ -27,7 +27,6 @@ export async function signUp(formData: FormData) {
 
   const supabase = await createClient();
 
-  // 1. إنشاء المستخدم في auth.users
   const { data: authData, error: authError } = await supabase.auth.signUp({
     email,
     password,
@@ -37,39 +36,44 @@ export async function signUp(formData: FormData) {
   });
 
   if (authError || !authData.user) {
-    return { error: authError?.message || "User creation failed" };
+    return { error: authError?.message ?? "فشل إنشاء المستخدم" };
   }
 
-  // 2. إنشاء العيادة (tenant)
   const { data: tenantData, error: tenantError } = await supabase
     .from("master_tenants")
     .insert({
       clinic_name: clinicName,
+      license_key: `LIC-${Date.now()}`,
       subscription_tier: "trial",
+      max_devices: 5,
+      timezone: "Asia/Amman",
+      currency: "JOD",
+      currency_subunit: 100,
       is_active: true,
     })
-    .select()
+    .select("id")
     .single();
 
   if (tenantError || !tenantData) {
-    return { error: "Failed to create clinic. Please try again or contact support." };
+    return { error: tenantError?.message ?? "فشل إنشاء العيادة" };
   }
 
-  // 3. إنشاء مدير العيادة في clinic_users
   const { error: userError } = await supabase.from("clinic_users").insert({
-    auth_user_id: authData.user.id,
     tenant_id: tenantData.id,
     full_name: fullName,
-    role: "manager",
+    auth_user_id: authData.user.id,
+    role: "clinic_owner",
+    employee_code: `EMP-${Date.now()}`,
+    pin_code: "0000",
     is_active: true,
   });
 
   if (userError) {
-    return { error: "Failed to create user profile. Please try again or contact support." };
+    return { error: userError.message ?? "فشل إنشاء المستخدم في العيادة" };
   }
 
   revalidatePath("/", "layout");
-  redirect("/dashboard");
+  redirect("/check-email");
 }
 
 export async function signOut() {
