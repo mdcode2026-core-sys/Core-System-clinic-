@@ -3,15 +3,18 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/infrastructure/supabase/server";
-import { createClient as createAdminClient } from "@supabase/supabase-js";
+import { createServerClient } from "@supabase/ssr";
 
 // Admin client باستخدام Service Role Key
 function getAdminClient() {
-  return createAdminClient(
+  return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!,
     {
-      auth: { autoRefreshToken: false, persistSession: false }
+      cookies: {
+        getAll: () => [],
+        setAll: () => {},
+      },
     }
   );
 }
@@ -63,7 +66,12 @@ export async function signUp(formData: FormData) {
   );
 
   if (dbError || !result) {
-    await admin.auth.admin.deleteUser(authData.user.id);
+    // محاولة حذف المستخدم من Auth
+    try {
+      await admin.auth.admin.deleteUser(authData.user.id);
+    } catch {
+      // ignore
+    }
     return { error: dbError?.message ?? "فشل إنشاء العيادة" };
   }
 
