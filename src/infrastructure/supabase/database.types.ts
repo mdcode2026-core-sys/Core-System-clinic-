@@ -35,30 +35,54 @@ export type Database = {
       clinic_users: {
         Row: {
           id: string;
-          auth_user_id: string;
           tenant_id: string;
+          auth_user_id: string | null;
           full_name: string;
+          full_name_ar: string | null;
           role: string;
+          specialization: string | null;
+          employee_code: string;
+          pin_code: string;
+          phone: string | null;
           is_active: boolean;
+          last_login_at: string | null;
           created_at: string;
+          updated_at: string;
+          deleted_at: string | null;
         };
         Insert: {
           id?: string;
-          auth_user_id: string;
           tenant_id: string;
+          auth_user_id?: string | null;
           full_name: string;
+          full_name_ar?: string | null;
           role: string;
+          specialization?: string | null;
+          employee_code: string;
+          pin_code: string;
+          phone?: string | null;
           is_active?: boolean;
+          last_login_at?: string | null;
           created_at?: string;
+          updated_at?: string;
+          deleted_at?: string | null;
         };
         Update: {
           id?: string;
-          auth_user_id?: string;
           tenant_id?: string;
+          auth_user_id?: string | null;
           full_name?: string;
+          full_name_ar?: string | null;
           role?: string;
+          specialization?: string | null;
+          employee_code?: string;
+          pin_code?: string;
+          phone?: string | null;
           is_active?: boolean;
+          last_login_at?: string | null;
           created_at?: string;
+          updated_at?: string;
+          deleted_at?: string | null;
         };
       };
       clinic_patients: {
@@ -206,6 +230,7 @@ export type Database = {
           subtotal_subunits?: number;
           total_subunits?: number;
           amount_paid_subunits?: number;
+          amount_due_subunits?: number;
           invoice_status?: string;
           invoice_date?: string;
           created_at?: string;
