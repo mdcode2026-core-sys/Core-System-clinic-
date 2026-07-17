@@ -8,6 +8,7 @@ import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { Stethoscope } from "lucide-react";
+import Link from "next/link";
 
 function LoginForm() {
   const [email, setEmail] = useState("");
@@ -79,6 +80,12 @@ function LoginForm() {
             {loading ? "جاري الدخول..." : "دخول"}
           </Button>
         </form>
+
+        <div className="mt-4 text-center">
+          <Link href="/register" className="text-sm text-blue-400 hover:text-blue-300 hover:underline">
+            ليس لديك حساب؟ سجل الآن
+          </Link>
+        </div>
       </CardContent>
     </Card>
   );
