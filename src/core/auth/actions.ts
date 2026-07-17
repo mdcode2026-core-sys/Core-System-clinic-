@@ -3,16 +3,28 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/infrastructure/supabase/server";
+import { createClient as createAdminClient } from "@supabase/supabase-js";
+
+// Admin client باستخدام Service Role Key
+function getAdminClient() {
+  return createAdminClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    {
+      auth: { autoRefreshToken: false, persistSession: false }
+    }
+  );
+}
 
 export async function signIn(formData: FormData) {
   const email = String(formData.get("email") ?? "");
   const password = String(formData.get("password") ?? "");
 
   const supabase = await createClient();
-  const { error } = await supabase.auth.signInWithPassword({ email, password });
+  const { data: authData, error: authError } = await supabase.auth.signInWithPassword({ email, password });
 
-  if (error) {
-    return { error: error.message };
+  if (authError || !authData.user) {
+    return { error: authError?.message ?? "فشل تسجيل الدخول" };
   }
 
   revalidatePath("/", "layout");
@@ -26,50 +38,33 @@ export async function signUp(formData: FormData) {
   const clinicName = String(formData.get("clinic_name") ?? "");
 
   const supabase = await createClient();
+  const admin = getAdminClient();
 
+  // 1. إنشاء مستخدم في Auth
   const { data: authData, error: authError } = await supabase.auth.signUp({
     email,
     password,
-    options: {
-      data: { full_name: fullName },
-    },
+    options: { data: { full_name: fullName } },
   });
 
   if (authError || !authData.user) {
     return { error: authError?.message ?? "فشل إنشاء المستخدم" };
   }
 
-  const { data: tenantData, error: tenantError } = await supabase
-    .from("master_tenants")
-    .insert({
-      clinic_name: clinicName,
-      license_key: `LIC-${Date.now()}`,
-      subscription_tier: "trial",
-      max_devices: 5,
-      timezone: "Asia/Amman",
-      currency: "JOD",
-      currency_subunit: 100,
-      is_active: true,
-    })
-    .select("id")
-    .single();
+  // 2. إنشاء Tenant + Subscription + User باستخدام Admin (يتجاوز RLS)
+  const { data: result, error: dbError } = await admin.rpc(
+    "create_tenant_with_subscription",
+    {
+      p_clinic_name: clinicName,
+      p_full_name: fullName,
+      p_email: email,
+      p_auth_user_id: authData.user.id,
+    }
+  );
 
-  if (tenantError || !tenantData) {
-    return { error: tenantError?.message ?? "فشل إنشاء العيادة" };
-  }
-
-  const { error: userError } = await supabase.from("clinic_users").insert({
-    tenant_id: tenantData.id,
-    full_name: fullName,
-    auth_user_id: authData.user.id,
-    role: "clinic_owner",
-    employee_code: `EMP-${Date.now()}`,
-    pin_code: "0000",
-    is_active: true,
-  });
-
-  if (userError) {
-    return { error: userError.message ?? "فشل إنشاء المستخدم في العيادة" };
+  if (dbError || !result) {
+    await admin.auth.admin.deleteUser(authData.user.id);
+    return { error: dbError?.message ?? "فشل إنشاء العيادة" };
   }
 
   revalidatePath("/", "layout");
