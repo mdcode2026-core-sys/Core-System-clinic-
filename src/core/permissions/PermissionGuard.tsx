@@ -1,8 +1,8 @@
 "use client";
 
 import { useAuth } from "@/core/auth/AuthContext";
-import { hasPermission } from "./permissions";
-import type { Permission } from "./permissions";
+import { hasPermission } from "./permissionMatrix";
+import type { Permission } from "./types";
 
 export function PermissionGuard({
   permission,
