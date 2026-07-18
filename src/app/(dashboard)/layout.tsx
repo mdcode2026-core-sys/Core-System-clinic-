@@ -14,5 +14,11 @@ export default async function DashboardLayout({
     redirect("/login");
   }
 
-  return <DashboardShell user={user}>{children}</DashboardShell>;
+  // TEST: إضافة نص بسيط للتحقق
+  return (
+    <div>
+      <p className="text-red-500 text-2xl text-center p-4">LAYOUT WORKS - User: {user.email}</p>
+      <DashboardShell user={user}>{children}</DashboardShell>
+    </div>
+  );
 }
