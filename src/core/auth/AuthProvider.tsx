@@ -14,18 +14,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const supabase = useMemo(() => createClient(), []);
 
-  const fetchUserData = useCallback(async (userId: string) => {
+  const fetchUserData = useCallback(async (userId: string, jwtTenantId?: string) => {
     try {
-      const { data, error } = await supabase
+      // استخدام tenant_id من JWT إذا متوفرة
+      let query = supabase
         .from("users")
         .select("tenant_id, role_id, roles(role_key)")
-        .eq("auth_user_id", userId)
-        .single();
+        .eq("auth_user_id", userId);
+
+      // إذا كان tenant_id متوفرة في JWT، نستخدمها لتجنب نتائج متعددة
+      if (jwtTenantId) {
+        query = query.eq("tenant_id", jwtTenantId);
+      }
+
+      const { data, error } = await query.maybeSingle();
 
       if (error || !data) {
         console.error("[Auth] Error fetching user data:", error);
         setRole(null);
-        setTenantId(null);
+        setTenantId(jwtTenantId ?? null);
         return;
       }
 
@@ -34,11 +41,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         : null;
 
       setRole(roleKey);
-      setTenantId(data.tenant_id ?? null);
+      setTenantId(data.tenant_id ?? jwtTenantId ?? null);
     } catch (err) {
       console.error("[Auth] Unexpected error:", err);
       setRole(null);
-      setTenantId(null);
+      setTenantId(jwtTenantId ?? null);
     }
   }, [supabase]);
 
@@ -55,7 +62,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(initialSession?.user ?? null);
 
         if (initialSession?.user) {
-          await fetchUserData(initialSession.user.id);
+          // قراءة tenant_id من JWT
+          const jwtTenantId = initialSession.user.user_metadata?.tenant_id as string | undefined;
+          await fetchUserData(initialSession.user.id, jwtTenantId);
         }
       } catch (err) {
         console.error("[Auth] Init error:", err);
@@ -74,7 +83,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(newSession?.user ?? null);
 
         if (newSession?.user) {
-          await fetchUserData(newSession.user.id);
+          // قراءة tenant_id من JWT
+          const jwtTenantId = newSession.user.user_metadata?.tenant_id as string | undefined;
+          await fetchUserData(newSession.user.id, jwtTenantId);
         } else {
           setRole(null);
           setTenantId(null);
