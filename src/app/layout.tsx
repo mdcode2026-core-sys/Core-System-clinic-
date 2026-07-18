@@ -1,30 +1,18 @@
-import type { Metadata } from "next";
-import { AuthProvider } from "@/core/auth/AuthProvider";
-import { RealtimeProvider } from "@/core/realtime/RealtimeProvider";
-import { QueryClientProvider } from "@/shared/components/QueryClientProvider";
-import "./globals.css";
+import { redirect } from "next/navigation";
+import { createClient } from "@/infrastructure/supabase/server";
+import { DashboardShell } from "@/features/dashboard/DashboardShell";
 
-export const metadata: Metadata = {
-  title: "ClinicSaaS™ — نظام إدارة العيادات",
-  description: "نظام إدارة عيادات متكامل متعدد المستأجرين",
-};
-
-export default function RootLayout({
+export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return (
-    <html lang="ar" dir="rtl">
-      <body className="min-h-screen bg-background font-sans antialiased">
-        <QueryClientProvider>
-          <AuthProvider>
-            <RealtimeProvider>
-              {children}
-            </RealtimeProvider>
-          </AuthProvider>
-        </QueryClientProvider>
-      </body>
-    </html>
-  );
+  const supabase = await createClient();
+  const { data: { session } } = await supabase.auth.getSession();
+
+  if (!session) {
+    redirect("/login");
+  }
+
+  return <DashboardShell user={session.user}>{children}</DashboardShell>;
 }
