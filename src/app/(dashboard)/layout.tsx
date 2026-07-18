@@ -1,15 +1,18 @@
 import { redirect } from "next/navigation";
+import { createClient } from "@/infrastructure/supabase/server";
+import { DashboardShell } from "@/features/dashboard/DashboardShell";
 
 export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  // TEST: بدون Supabase
-  return (
-    <div>
-      <p className="text-red-500 text-2xl text-center p-4">TEST LAYOUT</p>
-      {children}
-    </div>
-  );
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect("/login");
+  }
+
+  return <DashboardShell user={user}>{children}</DashboardShell>;
 }
