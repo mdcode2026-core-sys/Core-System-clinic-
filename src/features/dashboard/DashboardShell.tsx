@@ -15,12 +15,12 @@ import { useRouter } from "next/navigation";
 
 const navItems = [
   { href: "/dashboard", label: "لوحة التحكم", icon: LayoutDashboard },
-  { href: "/dashboard/patients", label: "المرضى", icon: Users },
-  { href: "/dashboard/agenda", label: "الأجندة", icon: CalendarDays },
-  { href: "/dashboard/queue", label: "الطابور", icon: ListOrdered },
-  { href: "/dashboard/invoices", label: "الفواتير", icon: FileText },
-  { href: "/dashboard/analytics", label: "التحليلات", icon: BarChart3 },
-  { href: "/dashboard/settings", label: "الإعدادات", icon: Settings },
+  { href: "/patients", label: "المرضى", icon: Users },
+  { href: "/agenda", label: "الأجندة", icon: CalendarDays },
+  { href: "/queue", label: "الطابور", icon: ListOrdered },
+  { href: "/invoices", label: "الفواتير", icon: FileText },
+  { href: "/analytics", label: "التحليلات", icon: BarChart3 },
+  { href: "/settings", label: "الإعدادات", icon: Settings },
 ];
 
 export function DashboardShell({ 
