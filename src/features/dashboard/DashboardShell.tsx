@@ -14,7 +14,7 @@ import { createClient } from "@/infrastructure/supabase/client";
 import { useRouter } from "next/navigation";
 
 const navItems = [
-  { href: "/dashboard", label: "لوحة التحكم", icon: LayoutDashboard },
+  { href: "/", label: "لوحة التحكم", icon: LayoutDashboard },
   { href: "/patients", label: "المرضى", icon: Users },
   { href: "/agenda", label: "الأجندة", icon: CalendarDays },
   { href: "/queue", label: "الطابور", icon: ListOrdered },
