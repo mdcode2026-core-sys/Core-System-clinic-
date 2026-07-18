@@ -1,13 +1,10 @@
-"use client";
-
 import { createContext, useContext } from "react";
 import type { User, Session } from "@supabase/supabase-js";
-import type { UserRole } from "@/core/permissions/types";
 
 export interface AuthContextType {
   user: User | null;
   session: Session | null;
-  role: UserRole | null;
+  role: string | null;
   tenantId: string | null;
   isLoading: boolean;
   isAuthenticated: boolean;
