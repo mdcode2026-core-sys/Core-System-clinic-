@@ -29,7 +29,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
-      // roles يُرجع مصفوفة
       const roleKey = Array.isArray(data.roles) && data.roles.length > 0 
         ? data.roles[0].role_key 
         : null;
