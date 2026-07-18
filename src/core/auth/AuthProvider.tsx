@@ -18,7 +18,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const { data, error } = await supabase
         .from("users")
-        .select("tenant_id, roles(role_key)")
+        .select("tenant_id, role_id, roles(role_key)")
         .eq("auth_user_id", userId)
         .single();
 
@@ -29,7 +29,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
-      setRole(data.roles?.role_key ?? null);
+      // roles يُرجع مصفوفة
+      const roleKey = Array.isArray(data.roles) && data.roles.length > 0 
+        ? data.roles[0].role_key 
+        : null;
+
+      setRole(roleKey);
       setTenantId(data.tenant_id ?? null);
     } catch (err) {
       console.error("[Auth] Unexpected error:", err);
