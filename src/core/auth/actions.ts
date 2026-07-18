@@ -66,7 +66,6 @@ export async function signUp(formData: FormData) {
   );
 
   if (dbError || !result) {
-    // محاولة حذف المستخدم من Auth
     try {
       await admin.auth.admin.deleteUser(authData.user.id);
     } catch {
@@ -76,7 +75,7 @@ export async function signUp(formData: FormData) {
   }
 
   revalidatePath("/", "layout");
-  redirect("/check-email");
+  redirect("/dashboard");
 }
 
 export async function signOut() {
