@@ -1,23 +1,35 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { updateSession } from "@/infrastructure/supabase/middleware";
 
-const protectedRoutes = ["/dashboard", "/patients", "/agenda", "/queue", "/invoices", "/analytics", "/settings"];
+const protectedRoutes = ["/patients", "/agenda", "/queue", "/invoices", "/analytics", "/settings"];
+const publicRoutes = ["/login", "/register", "/api"];
 
 export async function middleware(request: NextRequest) {
   const { supabaseResponse, user } = await updateSession(request);
 
-  const isProtected = protectedRoutes.some((route) =>
-    request.nextUrl.pathname.startsWith(route)
-  );
+  const path = request.nextUrl.pathname;
 
+  // إذا كان المسار عام، نسمح بالمرور دائماً
+  const isPublic = publicRoutes.some((route) => path.startsWith(route));
+  if (isPublic) {
+    return supabaseResponse;
+  }
+
+  // إذا كان المسار محمي ولا يوجد user، نُحوّل إلى login
+  const isProtected = protectedRoutes.some((route) => path.startsWith(route));
+  
   if (!user && isProtected) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
-    url.searchParams.set("redirect", request.nextUrl.pathname);
+    url.searchParams.set("redirect", path);
     return NextResponse.redirect(url);
   }
 
-  // IMPORTANT: You *must* return the supabaseResponse object as it is.
+  // إذا كان المستخدم مسجلاً ويذهب إلى login، نُحوّل إلى /
+  if (user && path === "/login") {
+    return NextResponse.redirect(new URL("/", request.url));
+  }
+
   return supabaseResponse;
 }
 
