@@ -1,34 +1,41 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
+"use client";
+
+import { useState } from "react";
+import { PatientList } from "@/features/patients/patient-list";
 import { Button } from "@/shared/components/ui/button";
-import { Input } from "@/shared/components/ui/input";
-import { Search, UserPlus } from "lucide-react";
+import { UserPlus } from "lucide-react";
 
 export default function PatientsPage() {
+  const [showForm, setShowForm] = useState(false);
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">المرضى</h1>
-        <Button>
-          <UserPlus className="w-4 h-4 ml-2" />
-          مريض جديد
-        </Button>
+        {!showForm && (
+          <Button onClick={() => setShowForm(true)}>
+            <UserPlus className="w-4 h-4 ml-2" />
+            مريض جديد
+          </Button>
+        )}
       </div>
 
-      <div className="relative">
-        <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-        <Input placeholder="البحث عن مريض..." className="pr-10" />
-      </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>قائمة المرضى</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center py-8 text-muted-foreground">
-            لا يوجد مرضى مسجلين بعد
-          </div>
-        </CardContent>
-      </Card>
+      {showForm ? (
+        <div className="p-8 text-center text-muted-foreground border rounded-lg">
+          <p>نموذج إضافة مريض جديد — قيد التطوير</p>
+          <Button variant="outline" onClick={() => setShowForm(false)} className="mt-4">
+            إلغاء
+          </Button>
+        </div>
+      ) : (
+        <PatientList
+          onEdit={(patientId) => {
+            console.log("تعديل مريض:", patientId);
+            // سيتم إضافة نموذج التعديل لاحقاً
+          }}
+          onAdd={() => setShowForm(true)}
+        />
+      )}
     </div>
   );
 }
