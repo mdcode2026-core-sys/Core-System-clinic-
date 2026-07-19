@@ -17,7 +17,7 @@ function LoginForm() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirectPath = searchParams.get("redirect") || "/dashboard";
+  const redirectPath = searchParams.get("redirect") || "/";
 
   async function handleSubmit(formData: FormData) {
     setLoading(true);
