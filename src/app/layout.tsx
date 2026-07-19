@@ -1,18 +1,22 @@
-import { redirect } from "next/navigation";
-import { createClient } from "@/infrastructure/supabase/server";
-import { DashboardShell } from "@/features/dashboard/DashboardShell";
+import type { Metadata } from "next";
+import { Inter } from "next/font/google";
+import "./globals.css";
 
-export default async function DashboardLayout({
+const inter = Inter({ subsets: ["latin"] });
+
+export const metadata: Metadata = {
+  title: "ClinicSaaS",
+  description: "Multi-Tenant Clinic Management",
+};
+
+export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const supabase = await createClient();
-  const { data: { session } } = await supabase.auth.getSession();
-
-  if (!session) {
-    redirect("/login");
-  }
-
-  return <DashboardShell user={session.user}>{children}</DashboardShell>;
+  return (
+    <html lang="ar" dir="rtl">
+      <body className={inter.className}>{children}</body>
+    </html>
+  );
 }
