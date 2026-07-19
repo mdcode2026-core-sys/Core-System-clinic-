@@ -7,8 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
 import { Badge } from "@/shared/components/ui/badge";
-import { Search, UserPlus, Pencil, Trash2, Phone, Mail } from "lucide-react";
-import Link from "next/link";
+import { Search, Pencil, Trash2, Phone, Mail } from "lucide-react";
 
 interface PatientListProps {
   onEdit?: (patientId: string) => void;
@@ -59,20 +58,14 @@ export function PatientList({ onEdit, onAdd }: PatientListProps) {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between gap-4">
-        <div className="relative flex-1">
-          <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input
-            placeholder="البحث بالاسم أو الهاتف أو البريد..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pr-10"
-          />
-        </div>
-        <Button onClick={onAdd}>
-          <UserPlus className="w-4 h-4 ml-2" />
-          مريض جديد
-        </Button>
+      <div className="relative">
+        <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+        <Input
+          placeholder="البحث بالاسم أو الهاتف أو البريد..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="pr-10"
+        />
       </div>
 
       <Card>
