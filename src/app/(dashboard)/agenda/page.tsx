@@ -2,7 +2,7 @@
  * Agenda Module — Main Page
  * Central Scheduling Engine
  * Integrates: Calendar, Form, Detail, Queries
- * Uses AuthContext for tenantId (not localStorage)
+ * Uses AuthContext for tenantId
  */
 
 "use client";
@@ -17,6 +17,9 @@ import { AgendaEventForm } from "@/features/agenda/agenda-event-form";
 import { AgendaEventDetail } from "@/features/agenda/agenda-event-detail";
 import {
   useAgendaEventsWithRelations,
+  useDoctors,
+  useRooms,
+  useProcedures,
   useInvalidateAgenda,
 } from "@/domain/agenda/agenda.queries";
 import { usePatients } from "@/domain/patients/patients.queries";
@@ -26,26 +29,6 @@ import type {
   CalendarRange,
 } from "@/domain/agenda/agenda.types";
 import type { Patient } from "@/domain/patients/patients.types";
-
-// ─────────────────────────────────────────
-// MOCK DATA (will be replaced with real queries)
-// TODO: Replace with useDoctors, useRooms, useProcedures queries
-// ─────────────────────────────────────────
-
-const MOCK_DOCTORS = [
-  { id: "doc-1", name: "د. أحمد محمد", specialization: "جلدية" },
-  { id: "doc-2", name: "د. سارة علي", specialization: "تجميل" },
-];
-
-const MOCK_ROOMS = [
-  { id: "room-1", name: "غرفة 1" },
-  { id: "room-2", name: "غرفة 2" },
-];
-
-const MOCK_PROCEDURES = [
-  { id: "proc-1", name: "تنظيف بشرة", duration: 30 },
-  { id: "proc-2", name: "ليزر", duration: 60 },
-];
 
 // ─────────────────────────────────────────
 // MAIN COMPONENT
@@ -104,14 +87,35 @@ export default function AgendaPage() {
   const { data: patientsData = [], isLoading: patientsLoading, error: patientsError } =
     usePatients(tenantId);
 
+  const { data: doctorsData = [], isLoading: doctorsLoading } = useDoctors(tenantId);
+  const { data: roomsData = [], isLoading: roomsLoading } = useRooms(tenantId);
+  const { data: proceduresData = [], isLoading: proceduresLoading } = useProcedures(tenantId);
+
   // ─────────────────────────────────────────
-  // FORMAT PATIENTS FOR FORM
+  // FORMAT OPTIONS FOR FORM
   // ─────────────────────────────────────────
 
   const patientOptions = (patientsData as Patient[]).map((p) => ({
     id: p.id,
     name: `${p.first_name} ${p.last_name}`,
     phone: p.phone_primary,
+  }));
+
+  const doctorOptions = doctorsData.map((d) => ({
+    id: d.id,
+    name: d.full_name,
+    specialization: d.specialization,
+  }));
+
+  const roomOptions = roomsData.map((r) => ({
+    id: r.id,
+    name: r.room_name,
+  }));
+
+  const procedureOptions = proceduresData.map((p) => ({
+    id: p.id,
+    name: p.procedure_name,
+    duration: p.standard_duration_minutes,
   }));
 
   // ─────────────────────────────────────────
@@ -144,7 +148,7 @@ export default function AgendaPage() {
   // RENDER
   // ─────────────────────────────────────────
 
-  const isLoading = eventsLoading || patientsLoading;
+  const isLoading = eventsLoading || patientsLoading || doctorsLoading || roomsLoading || proceduresLoading;
 
   return (
     <div className="space-y-6">
@@ -178,9 +182,12 @@ export default function AgendaPage() {
           <p><strong>user_id:</strong> {userId || "غير موجود"}</p>
           <p><strong>auth_loading:</strong> {auth?.isLoading ? "نعم" : "لا"}</p>
           <p><strong>عدد المرضى:</strong> {patientsData.length}</p>
+          <p><strong>عدد الأطباء:</strong> {doctorsData.length}</p>
+          <p><strong>عدد الغرف:</strong> {roomsData.length}</p>
+          <p><strong>عدد الإجراءات:</strong> {proceduresData.length}</p>
           <p><strong>خطأ المرضى:</strong> {patientsError ? patientsError.message : "لا يوجد"}</p>
-          <p><strong>عدد المواعيد:</strong> {events.length}</p>
           <p><strong>خطأ المواعيد:</strong> {eventsError ? eventsError.message : "لا يوجد"}</p>
+          <p><strong>عدد المواعيد:</strong> {events.length}</p>
         </CardContent>
       </Card>
 
@@ -251,9 +258,9 @@ export default function AgendaPage() {
         userId={userId}
         event={selectedEvent}
         patients={patientOptions}
-        doctors={MOCK_DOCTORS}
-        rooms={MOCK_ROOMS}
-        procedures={MOCK_PROCEDURES}
+        doctors={doctorOptions}
+        rooms={roomOptions}
+        procedures={procedureOptions}
         defaultDate={formDefaultDate || undefined}
       />
 
