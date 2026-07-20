@@ -224,8 +224,7 @@ export function AgendaEventForm({
             </Label>
             <Select 
               value={patientId || ""} 
-              onValueChange={(val) => setPatientId(val || null)} 
-              required
+              onValueChange={(val) => setPatientId(val || null)}
             >
               <SelectTrigger id="patient">
                 <SelectValue placeholder="اختر المريض" />
@@ -248,8 +247,7 @@ export function AgendaEventForm({
             </Label>
             <Select 
               value={doctorId || ""} 
-              onValueChange={(val) => setDoctorId(val || null)} 
-              required
+              onValueChange={(val) => setDoctorId(val || null)}
             >
               <SelectTrigger id="doctor">
                 <SelectValue placeholder="اختر الطبيب" />
