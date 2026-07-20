@@ -7,24 +7,30 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
 import { Badge } from "@/shared/components/ui/badge";
-import { Search, Pencil, Trash2, Phone, Mail } from "lucide-react";
+import { Search, Pencil, Trash2, Phone, Mail, Eye } from "lucide-react";
+import { PatientForm } from "./patient-form";
+import { PatientDetail } from "./patient-detail";
+import type { Patient } from "@/domain/patients/patients.types";
 
 interface PatientListProps {
-  onEdit?: (patientId: string) => void;
   onAdd?: () => void;
 }
 
-export function PatientList({ onEdit, onAdd }: PatientListProps) {
+export function PatientList({ onAdd }: PatientListProps) {
   const { tenantId } = useAuth();
   const { data: patients, isLoading } = usePatients(tenantId);
   const deletePatient = useDeletePatient();
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
+  const [detailPatientId, setDetailPatientId] = useState<string | null>(null);
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isDetailOpen, setIsDetailOpen] = useState(false);
 
   const filteredPatients = patients?.filter((patient) => {
     const query = searchQuery.toLowerCase();
+    const fullName = `${patient.first_name} ${patient.last_name}`.toLowerCase();
     return (
-      patient.first_name.toLowerCase().includes(query) ||
-      patient.last_name.toLowerCase().includes(query) ||
+      fullName.includes(query) ||
       patient.phone_primary.includes(query) ||
       (patient.email && patient.email.toLowerCase().includes(query))
     );
@@ -44,6 +50,22 @@ export function PatientList({ onEdit, onAdd }: PatientListProps) {
       blocked: "محظور",
     };
     return <Badge variant={variants[status] || "default"}>{labels[status] || status}</Badge>;
+  };
+
+  const handleEdit = (patient: Patient) => {
+    setSelectedPatient(patient);
+    setIsFormOpen(true);
+  };
+
+  const handleViewDetail = (patientId: string) => {
+    setDetailPatientId(patientId);
+    setIsDetailOpen(true);
+  };
+
+  const handleDelete = (patient: Patient) => {
+    if (confirm("هل أنت متأكد من حذف هذا المريض؟")) {
+      deletePatient.mutate({ id: patient.id, tenantId: patient.tenant_id });
+    }
   };
 
   if (isLoading) {
@@ -82,7 +104,8 @@ export function PatientList({ onEdit, onAdd }: PatientListProps) {
               {filteredPatients.map((patient) => (
                 <div
                   key={patient.id}
-                  className="flex items-center justify-between p-4 rounded-lg border hover:bg-muted/50 transition-colors"
+                  className="flex items-center justify-between p-4 rounded-lg border hover:bg-muted/50 transition-colors cursor-pointer"
+                  onClick={() => handleViewDetail(patient.id)}
                 >
                   <div className="flex items-center gap-4">
                     <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
@@ -113,7 +136,20 @@ export function PatientList({ onEdit, onAdd }: PatientListProps) {
                     <Button
                       variant="ghost"
                       size="icon"
-                      onClick={() => onEdit?.(patient.id)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleViewDetail(patient.id);
+                      }}
+                    >
+                      <Eye className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleEdit(patient);
+                      }}
                     >
                       <Pencil className="w-4 h-4" />
                     </Button>
@@ -121,10 +157,9 @@ export function PatientList({ onEdit, onAdd }: PatientListProps) {
                       variant="ghost"
                       size="icon"
                       className="text-destructive hover:text-destructive"
-                      onClick={() => {
-                        if (confirm("هل أنت متأكد من حذف هذا المريض؟")) {
-                          deletePatient.mutate({ id: patient.id, tenantId: patient.tenant_id });
-                        }
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDelete(patient);
                       }}
                     >
                       <Trash2 className="w-4 h-4" />
@@ -136,6 +171,30 @@ export function PatientList({ onEdit, onAdd }: PatientListProps) {
           )}
         </CardContent>
       </Card>
+
+      {/* Patient Form Modal */}
+      <PatientForm
+        patient={selectedPatient}
+        isOpen={isFormOpen}
+        onClose={() => {
+          setIsFormOpen(false);
+          setSelectedPatient(null);
+        }}
+        onSuccess={() => {
+          setIsFormOpen(false);
+          setSelectedPatient(null);
+        }}
+      />
+
+      {/* Patient Detail Modal */}
+      <PatientDetail
+        patientId={detailPatientId}
+        isOpen={isDetailOpen}
+        onClose={() => {
+          setIsDetailOpen(false);
+          setDetailPatientId(null);
+        }}
+      />
     </div>
   );
 }
