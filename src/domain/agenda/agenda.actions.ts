@@ -1,282 +1,40 @@
-/**
- * Agenda Module — Server Actions
- * Business logic lives here. No logic in UI.
- * Validates: Conflicts, State Transitions, Multi-Tenant.
- */
-
-"use server";
-
-import { revalidatePath } from "next/cache";
-import { createClient } from "@/infrastructure/supabase/server";
-import { checkConflicts, isValidTimeRange } from "./conflict.engine";
-import {
-  AgendaEventInsert,
-  AgendaEventUpdate,
-  AgendaEventStatusValue,
-  ValidStateTransitions,
-  AgendaEventStatus,
-} from "./agenda.types";
-
-// ─────────────────────────────────────────
-// 1. CREATE EVENT
-// ─────────────────────────────────────────
-
-export async function createAgendaEvent(formData: FormData) {
-  const supabase = await createClient();
-
-  const tenantId = String(formData.get("tenant_id"));
-  if (!tenantId) {
-    return { error: "لم يتم التعرف على العيادة" };
-  }
-
-  // Set tenant for RLS
-  await supabase.rpc("set_tenant_id", { tenant_id: tenantId });
-
-  // Extract form data
-  const patientId = String(formData.get("patient_id"));
-  const doctorId = String(formData.get("doctor_id"));
-  const roomId = formData.get("room_id")
-    ? String(formData.get("room_id"))
-    : null;
-  const procedureId = formData.get("procedure_id")
-    ? String(formData.get("procedure_id"))
-    : null;
-  const inquiryId = formData.get("inquiry_id")
-    ? String(formData.get("inquiry_id"))
-    : null;
-  const scheduledStart = String(formData.get("scheduled_start"));
-  const scheduledEnd = String(formData.get("scheduled_end"));
-  const notes = formData.get("notes")
-    ? String(formData.get("notes"))
-    : null;
-  const createdBy = String(formData.get("created_by"));
-
-  // Validate time range
-  const timeValidation = isValidTimeRange(scheduledStart, scheduledEnd);
-  if (!timeValidation.valid) {
-    return { error: timeValidation.message };
-  }
-
-  // Check conflicts
-  const conflictResult = await checkConflicts({
-    tenantId,
-    doctorId,
-    roomId,
-    patientId,
-    scheduledStart,
-    scheduledEnd,
-  });
-
-  if (conflictResult.hasConflict) {
-    return { error: conflictResult.message };
-  }
-
-  // Build insert object
-  const event: AgendaEventInsert = {
-    tenant_id: tenantId,
-    patient_id: patientId,
-    doctor_id: doctorId,
-    room_id: roomId,
-    procedure_id: procedureId,
-    inquiry_id: inquiryId,
-    created_by: createdBy,
-    scheduled_start: scheduledStart,
-    scheduled_end: scheduledEnd,
-    status: AgendaEventStatus.SCHEDULED,
-    notes,
-  };
-
-  const { data, error } = await supabase
-    .from("master_agenda_events")
-    .insert(event)
-    .select()
-    .single();
-
-  if (error) {
-    return { error: error.message };
-  }
-
-  revalidatePath("/agenda");
-  return { data };
-}
-
-// ─────────────────────────────────────────
-// 2. UPDATE EVENT
-// ─────────────────────────────────────────
-
-export async function updateAgendaEvent(formData: FormData) {
-  const supabase = await createClient();
-
-  const tenantId = String(formData.get("tenant_id"));
-  if (!tenantId) {
-    return { error: "لم يتم التعرف على العيادة" };
-  }
-
-  await supabase.rpc("set_tenant_id", { tenant_id: tenantId });
-
-  const eventId = String(formData.get("id"));
-  const patientId = String(formData.get("patient_id"));
-  const doctorId = String(formData.get("doctor_id"));
-  const roomId = formData.get("room_id")
-    ? String(formData.get("room_id"))
-    : null;
-  const procedureId = formData.get("procedure_id")
-    ? String(formData.get("procedure_id"))
-    : null;
-  const scheduledStart = String(formData.get("scheduled_start"));
-  const scheduledEnd = String(formData.get("scheduled_end"));
-  const notes = formData.get("notes")
-    ? String(formData.get("notes"))
-    : null;
-
-  // Validate time range
-  const timeValidation = isValidTimeRange(scheduledStart, scheduledEnd);
-  if (!timeValidation.valid) {
-    return { error: timeValidation.message };
-  }
-
-  // Check conflicts (exclude self)
-  const conflictResult = await checkConflicts({
-    tenantId,
-    doctorId,
-    roomId,
-    patientId,
-    scheduledStart,
-    scheduledEnd,
-    excludeEventId: eventId,
-  });
-
-  if (conflictResult.hasConflict) {
-    return { error: conflictResult.message };
-  }
-
-  // Build update object
-  const updates: AgendaEventUpdate = {
-    patient_id: patientId,
-    doctor_id: doctorId,
-    room_id: roomId,
-    procedure_id: procedureId,
-    scheduled_start: scheduledStart,
-    scheduled_end: scheduledEnd,
-    notes,
-    updated_at: new Date().toISOString(),
-  };
-
-  // Remove undefined/null values
-  Object.keys(updates).forEach((key) => {
-    const k = key as keyof AgendaEventUpdate;
-    if (updates[k] === undefined || updates[k] === null) {
-      delete updates[k];
-    }
-  });
-
-  const { data, error } = await supabase
-    .from("master_agenda_events")
-    .update(updates)
-    .eq("id", eventId)
-    .eq("tenant_id", tenantId)
-    .select()
-    .single();
-
-  if (error) {
-    return { error: error.message };
-  }
-
-  revalidatePath("/agenda");
-  return { data };
-}
-
-// ─────────────────────────────────────────
-// 3. UPDATE EVENT STATUS
-// ─────────────────────────────────────────
-
-export async function updateAgendaEventStatus(formData: FormData) {
-  const supabase = await createClient();
-
-  const tenantId = String(formData.get("tenant_id"));
-  if (!tenantId) {
-    return { error: "لم يتم التعرف على العيادة" };
-  }
-
-  await supabase.rpc("set_tenant_id", { tenant_id: tenantId });
-
-  const eventId = String(formData.get("id"));
-  const newStatus = String(formData.get("status")) as AgendaEventStatusValue;
-  const currentStatus = String(formData.get("current_status")) as AgendaEventStatusValue;
-
-  // Validate state transition
-  const allowedTransitions = ValidStateTransitions[currentStatus];
-  if (!allowedTransitions || !allowedTransitions.includes(newStatus)) {
-    return {
-      error: `لا يمكن تغيير الحالة من "${currentStatus}" إلى "${newStatus}"`,
-    };
-  }
-
-  const { data, error } = await supabase
-    .from("master_agenda_events")
-    .update({
-      status: newStatus,
-      updated_at: new Date().toISOString(),
-    })
-    .eq("id", eventId)
-    .eq("tenant_id", tenantId)
-    .select()
-    .single();
-
-  if (error) {
-    return { error: error.message };
-  }
-
-  revalidatePath("/agenda");
-  return { data };
-}
-
-// ─────────────────────────────────────────
-// 4. CANCEL EVENT
-// ─────────────────────────────────────────
-
-export async function cancelAgendaEvent(formData: FormData) {
-  const supabase = await createClient();
-
-  const tenantId = String(formData.get("tenant_id"));
-  if (!tenantId) {
-    return { error: "لم يتم التعرف على العيادة" };
-  }
-
-  await supabase.rpc("set_tenant_id", { tenant_id: tenantId });
-
-  const eventId = String(formData.get("id"));
-  const currentStatus = String(formData.get("current_status")) as AgendaEventStatusValue;
-
-  // Validate: can only cancel from certain states
-  const cancellableStates = [
-    AgendaEventStatus.SCHEDULED,
-    AgendaEventStatus.CONFIRMED,
-    AgendaEventStatus.ARRIVED,
-    AgendaEventStatus.IN_SESSION,
-  ];
-
-  if (!cancellableStates.includes(currentStatus)) {
-    return {
-      error: `لا يمكن إلغاء موعد في حالة "${currentStatus}"`,
-    };
-  }
-
-  const { data, error } = await supabase
-    .from("master_agenda_events")
-    .update({
-      status: AgendaEventStatus.CANCELLED,
-      updated_at: new Date().toISOString(),
-    })
-    .eq("id", eventId)
-    .eq("tenant_id", tenantId)
-    .select()
-    .single();
-
-  if (error) {
-    return { error: error.message };
-  }
-
-  revalidatePath("/agenda");
-  return { data };
-}
+17:33:57.338 Running build in Washington, D.C., USA (East) – iad1
+17:33:57.339 Build machine configuration: 2 cores, 8 GB
+17:33:57.474 Cloning github.com/mdcode2026-core-sys/Core-System-clinic- (Branch: main, Commit: 602c43a)
+17:33:57.712 Cloning completed: 237.000ms
+17:33:59.246 Restored build cache from previous deployment (2e9vATiuxBTggeGXgr83nNHHbZr7)
+17:33:59.524 Running "vercel build"
+17:33:59.546 Vercel CLI 56.2.0
+17:33:59.994 Installing dependencies...
+17:34:00.984 
+17:34:00.984 up to date in 867ms
+17:34:00.985 
+17:34:00.985 158 packages are looking for funding
+17:34:00.985   run `npm fund` for details
+17:34:01.020 Detected Next.js version: 16.2.10
+17:34:01.025 Running "npm run build"
+17:34:01.131 
+17:34:01.131 > clinic-saas@1.0.0 build
+17:34:01.131 > next build
+17:34:01.131 
+17:34:01.849   Applying modifyConfig from Vercel
+17:34:01.867 ▲ Next.js 16.2.10 (Turbopack)
+17:34:01.868 - Environments: .env.local
+17:34:01.869 
+17:34:01.900   Creating an optimized production build ...
+17:34:12.574 ✓ Compiled successfully in 10.3s
+17:34:12.589   Running TypeScript ...
+17:34:19.540 Failed to type check.
+17:34:19.540 
+17:34:19.541 ./src/domain/agenda/agenda.actions.ts:81:5
+17:34:19.541 Type error: Object literal may only specify known properties, and 'inquiry_id' does not exist in type '{ id?: string | undefined; tenant_id: string; patient_id?: string | null | undefined; doctor_id?: string | null | undefined; room_id?: string | null | undefined; procedure_id?: string | null | undefined; ... 4 more ...; created_at?: string | undefined; }'.
+17:34:19.541 
+17:34:19.541   79 |     room_id: roomId,
+17:34:19.541   80 |     procedure_id: procedureId,
+17:34:19.542 > 81 |     inquiry_id: inquiryId,
+17:34:19.542      |     ^
+17:34:19.542   82 |     created_by: createdBy,
+17:34:19.542   83 |     scheduled_start: scheduledStart,
+17:34:19.542   84 |     scheduled_end: scheduledEnd,
+17:34:19.579 Next.js build worker exited with code: 1 and signal: null
+17:34:19.627 Error: Command "npm run build" exited with 1
