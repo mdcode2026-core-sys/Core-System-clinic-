@@ -2,15 +2,16 @@
  * Agenda Module — Main Page
  * Central Scheduling Engine
  * Integrates: Calendar, Form, Detail, Queries
+ * Uses AuthContext for tenantId (not localStorage)
  */
 
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useContext } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/shared/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
-import { Plus, CalendarDays, Loader2 } from "lucide-react";
+import { Plus, CalendarDays, Loader2, AlertTriangle } from "lucide-react";
 import { AgendaCalendar } from "@/features/agenda/agenda-calendar";
 import { AgendaEventForm } from "@/features/agenda/agenda-event-form";
 import { AgendaEventDetail } from "@/features/agenda/agenda-event-detail";
@@ -19,6 +20,7 @@ import {
   useInvalidateAgenda,
 } from "@/domain/agenda/agenda.queries";
 import { usePatients } from "@/domain/patients/patients.queries";
+import { AuthContext } from "@/core/auth/AuthContext";
 import type {
   AgendaEventWithRelations,
   CalendarRange,
@@ -51,6 +53,7 @@ const MOCK_PROCEDURES = [
 
 export default function AgendaPage() {
   const router = useRouter();
+  const auth = useContext(AuthContext);
 
   // ─────────────────────────────────────────
   // STATE
@@ -64,20 +67,11 @@ export default function AgendaPage() {
   const [formDefaultDate, setFormDefaultDate] = useState<string>("");
 
   // ─────────────────────────────────────────
-  // TENANT & USER (from localStorage for now)
-  // TODO: Replace with Auth context
+  // TENANT & USER FROM AUTH CONTEXT
   // ─────────────────────────────────────────
 
-  const [tenantId, setTenantId] = useState<string | null>(null);
-  const [userId, setUserId] = useState<string>("");
-
-  useEffect(() => {
-    // Get tenant_id from localStorage (set during login)
-    const storedTenantId = localStorage.getItem("tenant_id");
-    const storedUserId = localStorage.getItem("user_id");
-    if (storedTenantId) setTenantId(storedTenantId);
-    if (storedUserId) setUserId(storedUserId);
-  }, []);
+  const tenantId = auth?.tenantId ?? null;
+  const userId = auth?.user?.id ?? "";
 
   // ─────────────────────────────────────────
   // CALCULATE WEEK RANGE
@@ -104,13 +98,11 @@ export default function AgendaPage() {
   // QUERIES
   // ─────────────────────────────────────────
 
-  const { data: events = [], isLoading: eventsLoading } =
+  const { data: events = [], isLoading: eventsLoading, error: eventsError } =
     useAgendaEventsWithRelations(tenantId, calendarRange);
 
-  const { data: patientsData = [], isLoading: patientsLoading } =
+  const { data: patientsData = [], isLoading: patientsLoading, error: patientsError } =
     usePatients(tenantId);
-
-  const invalidateAgenda = useInvalidateAgenda();
 
   // ─────────────────────────────────────────
   // FORMAT PATIENTS FOR FORM
@@ -148,11 +140,6 @@ export default function AgendaPage() {
     setSelectedEvent(null);
   }, []);
 
-  const handleEditFromDetail = useCallback(() => {
-    setIsDetailOpen(false);
-    setIsFormOpen(true);
-  }, []);
-
   // ─────────────────────────────────────────
   // RENDER
   // ─────────────────────────────────────────
@@ -177,6 +164,25 @@ export default function AgendaPage() {
           موعد جديد
         </Button>
       </div>
+
+      {/* DEBUG PANEL — for mobile diagnostics */}
+      <Card className="border-yellow-200 bg-yellow-50">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm flex items-center gap-2 text-yellow-800">
+            <AlertTriangle className="w-4 h-4" />
+            تشخيص النظام
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="text-xs space-y-1 text-yellow-900">
+          <p><strong>tenant_id:</strong> {tenantId || "غير موجود"}</p>
+          <p><strong>user_id:</strong> {userId || "غير موجود"}</p>
+          <p><strong>auth_loading:</strong> {auth?.isLoading ? "نعم" : "لا"}</p>
+          <p><strong>عدد المرضى:</strong> {patientsData.length}</p>
+          <p><strong>خطأ المرضى:</strong> {patientsError ? patientsError.message : "لا يوجد"}</p>
+          <p><strong>عدد المواعيد:</strong> {events.length}</p>
+          <p><strong>خطأ المواعيد:</strong> {eventsError ? eventsError.message : "لا يوجد"}</p>
+        </CardContent>
+      </Card>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
