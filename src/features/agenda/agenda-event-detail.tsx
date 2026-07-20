@@ -31,7 +31,6 @@ import {
   XCircle,
   AlertCircle,
   Play,
-  Pause,
   RotateCcw,
 } from "lucide-react";
 import {
@@ -167,6 +166,8 @@ export function AgendaEventDetail({
   // ─────────────────────────────────────────
 
   async function handleStatusChange(newStatus: AgendaEventStatusValue) {
+    if (!event) return;
+    
     setIsLoading(true);
     setError("");
 
@@ -192,6 +193,8 @@ export function AgendaEventDetail({
   // ─────────────────────────────────────────
 
   async function handleCancel() {
+    if (!event) return;
+    
     setIsLoading(true);
     setError("");
 
