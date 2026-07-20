@@ -34,9 +34,6 @@ export async function createAgendaEvent(formData: FormData) {
     : null;
   const scheduledStart = String(formData.get("scheduled_start"));
   const scheduledEnd = String(formData.get("scheduled_end"));
-  const notes = formData.get("notes")
-    ? String(formData.get("notes"))
-    : null;
   const createdBy = String(formData.get("created_by"));
 
   const timeValidation = isValidTimeRange(scheduledStart, scheduledEnd);
@@ -57,7 +54,7 @@ export async function createAgendaEvent(formData: FormData) {
     return { error: conflictResult.message };
   }
 
-  const event = {
+  const event: AgendaEventInsert = {
     tenant_id: tenantId,
     patient_id: patientId,
     doctor_id: doctorId,
@@ -68,8 +65,7 @@ export async function createAgendaEvent(formData: FormData) {
     scheduled_start: scheduledStart,
     scheduled_end: scheduledEnd,
     status: AgendaEventStatus.SCHEDULED,
-    notes,
-  } as any;
+  };
 
   const { data, error } = await supabase
     .from("master_agenda_events")
@@ -106,9 +102,6 @@ export async function updateAgendaEvent(formData: FormData) {
     : null;
   const scheduledStart = String(formData.get("scheduled_start"));
   const scheduledEnd = String(formData.get("scheduled_end"));
-  const notes = formData.get("notes")
-    ? String(formData.get("notes"))
-    : null;
 
   const timeValidation = isValidTimeRange(scheduledStart, scheduledEnd);
   if (!timeValidation.valid) {
@@ -129,16 +122,15 @@ export async function updateAgendaEvent(formData: FormData) {
     return { error: conflictResult.message };
   }
 
-  const updates = {
+  const updates: AgendaEventUpdate = {
     patient_id: patientId,
     doctor_id: doctorId,
     room_id: roomId,
     procedure_id: procedureId,
     scheduled_start: scheduledStart,
     scheduled_end: scheduledEnd,
-    notes,
     updated_at: new Date().toISOString(),
-  } as any;
+  };
 
   const { data, error } = await supabase
     .from("master_agenda_events")
