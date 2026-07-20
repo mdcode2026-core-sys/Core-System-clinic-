@@ -1,8 +1,8 @@
 "use client";
 
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createClient } from "@/infrastructure/supabase/client";
-import type { Patient, PatientInsert, PatientUpdate, PatientHistory } from "./patients.types";
+import type { Patient, PatientHistory } from "./patients.types";
 
 const supabase = createClient();
 
@@ -39,64 +39,6 @@ export function usePatientById(patientId: string | null) {
   });
 }
 
-export function useCreatePatient() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: async (patient: PatientInsert) => {
-      const { data, error } = await supabase
-        .from("clinic_patients")
-        .insert(patient)
-        .select()
-        .single();
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["patients", variables.tenant_id] });
-    },
-  });
-}
-
-export function useUpdatePatient() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: async ({ id, ...update }: PatientUpdate & { id: string }) => {
-      const { data, error } = await supabase
-        .from("clinic_patients")
-        .update({ ...update, updated_at: new Date().toISOString() })
-        .eq("id", id)
-        .select()
-        .single();
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["patient", data.id] });
-      queryClient.invalidateQueries({ queryKey: ["patients"] });
-    },
-  });
-}
-
-export function useDeletePatient() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: async ({ id, tenantId }: { id: string; tenantId: string }) => {
-      const { data, error } = await supabase
-        .from("clinic_patients")
-        .update({ deleted_at: new Date().toISOString(), updated_at: new Date().toISOString() })
-        .eq("id", id)
-        .eq("tenant_id", tenantId)
-        .select()
-        .single();
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["patients", variables.tenantId] });
-    },
-  });
-}
-
 export function usePatientHistory(patientId: string | null) {
   return useQuery({
     queryKey: ["patient-history", patientId],
@@ -111,4 +53,22 @@ export function usePatientHistory(patientId: string | null) {
     },
     enabled: !!patientId,
   });
+}
+
+// Hook to invalidate patient queries after mutations
+export function useInvalidatePatients() {
+  const queryClient = useQueryClient();
+  
+  return {
+    invalidateAll: (tenantId?: string) => {
+      queryClient.invalidateQueries({ queryKey: ["patients"] });
+      if (tenantId) {
+        queryClient.invalidateQueries({ queryKey: ["patients", tenantId] });
+      }
+    },
+    invalidatePatient: (patientId: string) => {
+      queryClient.invalidateQueries({ queryKey: ["patient", patientId] });
+      queryClient.invalidateQueries({ queryKey: ["patient-history", patientId] });
+    },
+  };
 }
