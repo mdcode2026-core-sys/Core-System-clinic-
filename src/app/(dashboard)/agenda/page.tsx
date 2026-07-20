@@ -23,7 +23,7 @@ import type {
   AgendaEventWithRelations,
   CalendarRange,
 } from "@/domain/agenda/agenda.types";
-import type { ClinicPatient } from "@/infrastructure/supabase/database.types";
+import type { Patient } from "@/domain/patients/patients.types";
 
 // ─────────────────────────────────────────
 // MOCK DATA (will be replaced with real queries)
@@ -116,7 +116,7 @@ export default function AgendaPage() {
   // FORMAT PATIENTS FOR FORM
   // ─────────────────────────────────────────
 
-  const patientOptions = (patientsData as ClinicPatient[]).map((p) => ({
+  const patientOptions = (patientsData as Patient[]).map((p) => ({
     id: p.id,
     name: `${p.first_name} ${p.last_name}`,
     phone: p.phone_primary,
