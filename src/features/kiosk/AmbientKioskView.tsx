@@ -2,97 +2,56 @@
 
 // src/features/kiosk/AmbientKioskView.tsx
 // Phase 4 — Queue Management Module
-// Self-service kiosk for patient check-in
+// Self-service kiosk for patient check-in (simplified — no sonner)
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
 import { Badge } from "@/shared/components/ui/badge";
-import { toast } from "sonner";
 import {
   Stethoscope,
-  UserPlus,
   Clock,
   Phone,
   CheckCircle2,
   AlertCircle,
   ArrowRight,
 } from "lucide-react";
-import { checkInPatient } from "@/domain/queue/queue.actions";
-
-// ── Server Action للبحث عن مريض (سنستخدمها لاحقاً) ───────
-// ملاحظة: هذا يحتاج Server Action في patients.queries.ts
-// لكن الآن نستخدم طريقة مباشرة عبر Check-in
 
 export function AmbientKioskView() {
-  const router = useRouter();
-  const [mode, setMode] = useState<"idle" | "checkin" | "register" | "queue" | "success" | "error">("idle");
+  const [mode, setMode] = useState<"idle" | "checkin" | "register" | "queue" | "error">("idle");
   const [phone, setPhone] = useState("");
   const [patientName, setPatientName] = useState("");
   const [queueNumber, setQueueNumber] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
-  // ── تسجيل حضور ───────────────────────────────────────────
   const handleCheckIn = async () => {
     if (phone.length < 8) {
-      toast.error("الرجاء إدخال رقم هاتف صحيح");
+      setErrorMessage("الرجاء إدخال رقم هاتف صحيح");
+      setMode("error");
       return;
     }
-
     setIsSubmitting(true);
     setErrorMessage("");
-
-    try {
-      // ملاحظة: في الإصدار الكامل، نبحث عن المريض أولاً
-      // ثم نسجّل Check-in. الآن نفترض أن المريض موجود.
-      // سيتم ربط هذا بـ patients.queries.ts لاحقاً.
-      
-      // هذا مؤقت — نحتاج Server Action للبحث عن المريض
-      toast.info("جاري البحث عن المريض...");
-      
-      // في الإصدار النهائي:
-      // const patient = await findPatientByPhone(phone);
-      // if (!patient) { setMode("register"); return; }
-      // const result = await checkInPatient({ patient_id: patient.id });
-      
-      setMode("register"); // ننتقل لتسجيل المريض لأن البحث غير مكتمل
-    } catch (error: any) {
-      setErrorMessage(error.message || "حدث خطأ");
-      setMode("error");
-    } finally {
-      setIsSubmitting(false);
-    }
+    // TODO: ربط بـ findPatientByPhone لاحقاً
+    setMode("register");
+    setIsSubmitting(false);
   };
 
-  // ── تسجيل مريض جديد + Check-in ───────────────────────────
   const handleRegisterAndCheckIn = async () => {
     if (!patientName.trim() || phone.length < 8) {
-      toast.error("الرجاء إكمال جميع البيانات");
+      setErrorMessage("الرجاء إكمال جميع البيانات");
+      setMode("error");
       return;
     }
-
     setIsSubmitting(true);
-
-    try {
-      // ملاحظة: هذا يحتاج Server Action لإنشاء مريض
-      // ثم Check-in. سيتم ربطه لاحقاً.
-      
-      // مؤقت — نُظهر رسالة نجاح
-      setQueueNumber("A" + Math.floor(Math.random() * 100).toString().padStart(2, "0"));
-      setMode("queue");
-      toast.success("تم التسجيل بنجاح");
-    } catch (error: any) {
-      setErrorMessage(error.message || "حدث خطأ في التسجيل");
-      setMode("error");
-    } finally {
-      setIsSubmitting(false);
-    }
+    // TODO: ربط بـ createPatient + checkInPatient لاحقاً
+    setQueueNumber("A" + Math.floor(Math.random() * 100).toString().padStart(2, "0"));
+    setMode("queue");
+    setIsSubmitting(false);
   };
 
-  // ── إعادة التعيين ─────────────────────────────────────────
   const resetKiosk = () => {
     setMode("idle");
     setPhone("");
@@ -105,31 +64,23 @@ export function AmbientKioskView() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center p-4">
       <div className="w-full max-w-lg">
-        
-        {/* الشاشة الرئيسية */}
         {mode === "idle" && (
           <Card className="border-slate-700 bg-slate-800/80 backdrop-blur">
             <CardHeader className="text-center">
               <div className="mx-auto w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mb-4">
                 <Stethoscope className="w-10 h-10 text-primary" />
               </div>
-              <CardTitle className="text-3xl text-white">مرحباً بكم في العيادة</CardTitle>
+              <CardTitle className="text-3xl text-white">مرحبا بكم في العيادة</CardTitle>
               <p className="text-slate-400 mt-2">يرجى تسجيل حضورك</p>
             </CardHeader>
             <CardContent className="space-y-4">
-              <Button 
-                onClick={() => setMode("checkin")} 
-                className="w-full h-16 text-lg" 
-                size="lg"
-              >
-                <Clock className="w-6 h-6 ml-2" />
-                تسجيل حضور
+              <Button onClick={() => setMode("checkin")} className="w-full h-16 text-lg" size="lg">
+                <Clock className="w-6 h-6 ml-2" />تسجيل حضور
               </Button>
             </CardContent>
           </Card>
         )}
 
-        {/* شاشة تسجيل الحضور */}
         {mode === "checkin" && (
           <Card className="border-slate-700 bg-slate-800/80 backdrop-blur">
             <CardHeader className="text-center">
@@ -139,34 +90,16 @@ export function AmbientKioskView() {
             <CardContent className="space-y-4">
               <div className="relative">
                 <Phone className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                <Input
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  placeholder="مثال: 0501234567"
-                  className="pr-10 text-right text-lg h-14"
-                  type="tel"
-                  maxLength={10}
-                />
+                <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="مثال: 0501234567" className="pr-10 text-right text-lg h-14" type="tel" maxLength={10} />
               </div>
-              <Button 
-                onClick={handleCheckIn} 
-                className="w-full h-14 text-lg"
-                disabled={isSubmitting}
-              >
+              <Button onClick={handleCheckIn} className="w-full h-14 text-lg" disabled={isSubmitting}>
                 {isSubmitting ? "جاري البحث..." : "بحث"}
               </Button>
-              <Button 
-                onClick={resetKiosk} 
-                variant="ghost" 
-                className="w-full text-slate-400"
-              >
-                رجوع
-              </Button>
+              <Button onClick={resetKiosk} variant="ghost" className="w-full text-slate-400">رجوع</Button>
             </CardContent>
           </Card>
         )}
 
-        {/* شاشة تسجيل مريض جديد */}
         {mode === "register" && (
           <Card className="border-slate-700 bg-slate-800/80 backdrop-blur">
             <CardHeader className="text-center">
@@ -176,40 +109,17 @@ export function AmbientKioskView() {
             <CardContent className="space-y-4">
               <div className="relative">
                 <Phone className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                <Input
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  placeholder="رقم الهاتف"
-                  className="pr-10 text-right h-12"
-                  type="tel"
-                  maxLength={10}
-                />
+                <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="رقم الهاتف" className="pr-10 text-right h-12" type="tel" maxLength={10} />
               </div>
-              <Input
-                value={patientName}
-                onChange={(e) => setPatientName(e.target.value)}
-                placeholder="الاسم الكامل"
-                className="text-right h-12"
-              />
-              <Button 
-                onClick={handleRegisterAndCheckIn} 
-                className="w-full h-14 text-lg"
-                disabled={isSubmitting}
-              >
+              <Input value={patientName} onChange={(e) => setPatientName(e.target.value)} placeholder="الاسم الكامل" className="text-right h-12" />
+              <Button onClick={handleRegisterAndCheckIn} className="w-full h-14 text-lg" disabled={isSubmitting}>
                 {isSubmitting ? "جاري التسجيل..." : "تسجيل و تأكيد الحضور"}
               </Button>
-              <Button 
-                onClick={() => setMode("checkin")} 
-                variant="ghost" 
-                className="w-full text-slate-400"
-              >
-                رجوع
-              </Button>
+              <Button onClick={() => setMode("checkin")} variant="ghost" className="w-full text-slate-400">رجوع</Button>
             </CardContent>
           </Card>
         )}
 
-        {/* شاشة رقم الانتظار */}
         {mode === "queue" && queueNumber && (
           <Card className="border-slate-700 bg-slate-800/80 backdrop-blur text-center">
             <CardHeader>
@@ -223,18 +133,13 @@ export function AmbientKioskView() {
                 <p className="text-slate-400 mb-2">رقمك في الانتظار</p>
                 <div className="text-6xl font-bold text-primary">{queueNumber}</div>
               </div>
-              <Badge variant="secondary" className="text-lg px-4 py-2">
-                في الانتظار
-              </Badge>
+              <Badge variant="secondary" className="text-lg px-4 py-2">في الانتظار</Badge>
               <p className="text-slate-400">سيتم استدعاؤك قريباً</p>
-              <Button onClick={resetKiosk} className="w-full h-12 text-lg">
-                تم
-              </Button>
+              <Button onClick={resetKiosk} className="w-full h-12 text-lg">تم</Button>
             </CardContent>
           </Card>
         )}
 
-        {/* شاشة خطأ */}
         {mode === "error" && (
           <Card className="border-red-700 bg-slate-800/80 backdrop-blur text-center">
             <CardHeader>
@@ -246,8 +151,7 @@ export function AmbientKioskView() {
             <CardContent className="space-y-4">
               <p className="text-slate-400">{errorMessage || "الرجاء المحاولة مرة أخرى"}</p>
               <Button onClick={resetKiosk} className="w-full">
-                <ArrowRight className="w-4 h-4 ml-2" />
-                المحاولة مرة أخرى
+                <ArrowRight className="w-4 h-4 ml-2" />المحاولة مرة أخرى
               </Button>
             </CardContent>
           </Card>
