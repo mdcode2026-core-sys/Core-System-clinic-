@@ -129,7 +129,7 @@ export async function updateAgendaEvent(formData: FormData) {
     return { error: conflictResult.message };
   }
 
-  const updates: AgendaEventUpdate = {
+  const updates = {
     patient_id: patientId,
     doctor_id: doctorId,
     room_id: roomId,
@@ -138,14 +138,7 @@ export async function updateAgendaEvent(formData: FormData) {
     scheduled_end: scheduledEnd,
     notes,
     updated_at: new Date().toISOString(),
-  };
-
-  Object.keys(updates).forEach((key) => {
-    const k = key as keyof AgendaEventUpdate;
-    if (updates[k] === undefined || updates[k] === null) {
-      delete updates[k];
-    }
-  });
+  } as any;
 
   const { data, error } = await supabase
     .from("master_agenda_events")
