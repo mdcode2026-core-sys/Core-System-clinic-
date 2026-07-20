@@ -1,7 +1,8 @@
 /**
  * Agenda Module — Event Form
  * Create / Edit appointment form
- * Delegates all logic to Server Actions
+ * Supports: Existing Patient + New Patient (temp)
+ * Required: Phone number for all appointments
  */
 
 "use client";
@@ -26,9 +27,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/shared/components/ui/select";
-import { Calendar, Clock, User, Stethoscope, DoorOpen, FileText } from "lucide-react";
+import { Calendar, Clock, User, Stethoscope, DoorOpen, FileText, Phone, Search, UserPlus } from "lucide-react";
 import { createAgendaEvent, updateAgendaEvent } from "@/domain/agenda/agenda.actions";
-import type { AgendaEventRow, AgendaEventWithRelations } from "@/domain/agenda/agenda.types";
+import type { AgendaEventWithRelations } from "@/domain/agenda/agenda.types";
 
 // ─────────────────────────────────────────
 // TYPES
@@ -62,13 +63,19 @@ interface AgendaEventFormProps {
   onClose: () => void;
   tenantId: string;
   userId: string;
-  event?: AgendaEventWithRelations | null; // null = create mode
+  event?: AgendaEventWithRelations | null;
   patients: PatientOption[];
   doctors: DoctorOption[];
   rooms: RoomOption[];
   procedures: ProcedureOption[];
-  defaultDate?: string; // YYYY-MM-DD
+  defaultDate?: string;
 }
+
+// ─────────────────────────────────────────
+// PATIENT MODE
+// ─────────────────────────────────────────
+
+type PatientMode = "search" | "new";
 
 // ─────────────────────────────────────────
 // COMPONENT
@@ -89,8 +96,18 @@ export function AgendaEventForm({
   const router = useRouter();
   const isEditMode = !!event;
 
-  // Form state — all nullable for safety
+  // ─────────────────────────────────────────
+  // FORM STATE
+  // ─────────────────────────────────────────
+
+  // Patient
+  const [patientMode, setPatientMode] = useState<PatientMode>("search");
   const [patientId, setPatientId] = useState<string | null>(null);
+  const [tempPatientName, setTempPatientName] = useState("");
+  const [tempPatientPhone, setTempPatientPhone] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+
+  // Other fields
   const [doctorId, setDoctorId] = useState<string | null>(null);
   const [roomId, setRoomId] = useState<string>("");
   const [procedureId, setProcedureId] = useState<string>("");
@@ -101,10 +118,32 @@ export function AgendaEventForm({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // Load existing data in edit mode
+  // ─────────────────────────────────────────
+  // FILTER PATIENTS BY SEARCH
+  // ─────────────────────────────────────────
+
+  const filteredPatients = patients.filter((p) => {
+    const query = searchQuery.trim().toLowerCase();
+    if (!query) return false; // Don't show all, only when searching
+    return (
+      p.name.toLowerCase().includes(query) ||
+      p.phone.includes(query)
+    );
+  });
+
+  // ─────────────────────────────────────────
+  // LOAD EXISTING DATA IN EDIT MODE
+  // ─────────────────────────────────────────
+
   useEffect(() => {
     if (event) {
+      // In edit mode, always use existing patient
+      setPatientMode("search");
       setPatientId(event.patient_id || null);
+      setTempPatientName("");
+      setTempPatientPhone("");
+      setSearchQuery("");
+
       setDoctorId(event.doctor_id || null);
       setRoomId(event.room_id || "");
       setProcedureId(event.procedure_id || "");
@@ -114,7 +153,12 @@ export function AgendaEventForm({
       setNotes(event.notes || "");
     } else {
       // Reset for create mode
+      setPatientMode("search");
       setPatientId(null);
+      setTempPatientName("");
+      setTempPatientPhone("");
+      setSearchQuery("");
+
       setDoctorId(null);
       setRoomId("");
       setProcedureId("");
@@ -126,7 +170,10 @@ export function AgendaEventForm({
     setError("");
   }, [event, defaultDate, isOpen]);
 
-  // Auto-set end time based on procedure duration
+  // ─────────────────────────────────────────
+  // AUTO-SET END TIME
+  // ─────────────────────────────────────────
+
   useEffect(() => {
     if (!isEditMode && procedureId && startTime) {
       const proc = procedures.find((p) => p.id === procedureId);
@@ -151,9 +198,29 @@ export function AgendaEventForm({
     setIsLoading(true);
     setError("");
 
-    // Validate required fields
-    if (!patientId || !doctorId) {
-      setError("المريض والطبيب مطلوبان");
+    // Validate patient
+    if (patientMode === "search" && !patientId) {
+      setError("اختر مريضاً من القائمة أو أضف مريضاً جديداً");
+      setIsLoading(false);
+      return;
+    }
+
+    if (patientMode === "new") {
+      if (!tempPatientName.trim()) {
+        setError("اسم المريض مطلوب");
+        setIsLoading(false);
+        return;
+      }
+      if (!tempPatientPhone.trim()) {
+        setError("رقم هاتف المريض مطلوب للتواصل");
+        setIsLoading(false);
+        return;
+      }
+    }
+
+    // Validate doctor
+    if (!doctorId) {
+      setError("اختر الطبيب");
       setIsLoading(false);
       return;
     }
@@ -163,7 +230,17 @@ export function AgendaEventForm({
 
     const formData = new FormData();
     formData.append("tenant_id", tenantId);
-    formData.append("patient_id", patientId);
+
+    // Patient data
+    if (patientMode === "search" && patientId) {
+      formData.append("patient_id", patientId);
+    } else {
+      // New patient — send temp data
+      // TODO: Backend should create temp patient record
+      formData.append("temp_patient_name", tempPatientName.trim());
+      formData.append("temp_patient_phone", tempPatientPhone.trim());
+    }
+
     formData.append("doctor_id", doctorId);
     if (roomId) formData.append("room_id", roomId);
     if (procedureId) formData.append("procedure_id", procedureId);
@@ -216,27 +293,111 @@ export function AgendaEventForm({
             </div>
           )}
 
-          {/* Patient */}
-          <div className="space-y-2">
-            <Label htmlFor="patient" className="flex items-center gap-2">
-              <User className="w-4 h-4" />
-              المريض *
-            </Label>
-            <Select 
-              value={patientId || ""} 
-              onValueChange={(val) => setPatientId(val || null)}
-            >
-              <SelectTrigger id="patient">
-                <SelectValue placeholder="اختر المريض" />
-              </SelectTrigger>
-              <SelectContent>
-                {patients.map((p) => (
-                  <SelectItem key={p.id} value={p.id}>
-                    {p.name} — {p.phone}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          {/* Patient Section */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <Label className="flex items-center gap-2">
+                <User className="w-4 h-4" />
+                المريض *
+              </Label>
+              {!isEditMode && (
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    variant={patientMode === "search" ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setPatientMode("search")}
+                  >
+                    <Search className="w-3 h-3 ml-1" />
+                    موجود
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={patientMode === "new" ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setPatientMode("new")}
+                  >
+                    <UserPlus className="w-3 h-3 ml-1" />
+                    جديد
+                  </Button>
+                </div>
+              )}
+            </div>
+
+            {/* Search Mode */}
+            {patientMode === "search" && (
+              <div className="space-y-2">
+                <div className="relative">
+                  <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    placeholder="ابحث بالاسم أو رقم الهاتف..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pr-10"
+                  />
+                </div>
+
+                {/* Search Results */}
+                {searchQuery.trim() && (
+                  <div className="border rounded-md max-h-32 overflow-y-auto">
+                    {filteredPatients.length > 0 ? (
+                      filteredPatients.map((p) => (
+                        <div
+                          key={p.id}
+                          className={`p-2 cursor-pointer hover:bg-muted transition-colors ${
+                            patientId === p.id ? "bg-primary/10 border-r-2 border-primary" : ""
+                          }`}
+                          onClick={() => setPatientId(p.id)}
+                        >
+                          <div className="font-medium text-sm">{p.name}</div>
+                          <div className="text-xs text-muted-foreground flex items-center gap-1">
+                            <Phone className="w-3 h-3" />
+                            {p.phone}
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="p-2 text-sm text-muted-foreground text-center">
+                        لا يوجد مريض بهذا الاسم
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Selected Patient */}
+                {patientId && (
+                  <div className="p-2 bg-green-50 border border-green-200 rounded-md">
+                    <div className="text-sm font-medium text-green-800">
+                      ✓ {patients.find((p) => p.id === patientId)?.name}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* New Patient Mode */}
+            {patientMode === "new" && (
+              <div className="space-y-2">
+                <Input
+                  placeholder="اسم المريض الكامل *"
+                  value={tempPatientName}
+                  onChange={(e) => setTempPatientName(e.target.value)}
+                />
+                <div className="relative">
+                  <Phone className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    placeholder="رقم الهاتف للتواصل *"
+                    value={tempPatientPhone}
+                    onChange={(e) => setTempPatientPhone(e.target.value)}
+                    className="pr-10"
+                    type="tel"
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  سيتم استكمال السجل عند حضور المريض
+                </p>
+              </div>
+            )}
           </div>
 
           {/* Doctor */}
@@ -367,7 +528,7 @@ export function AgendaEventForm({
             <Button type="button" variant="outline" onClick={onClose} disabled={isLoading}>
               إلغاء
             </Button>
-            <Button type="submit" disabled={isLoading || !patientId || !doctorId}>
+            <Button type="submit" disabled={isLoading || !doctorId}>
               {isLoading
                 ? "جاري الحفظ..."
                 : isEditMode
