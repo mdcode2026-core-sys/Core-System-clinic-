@@ -209,11 +209,11 @@ export async function cancelAgendaEvent(formData: FormData) {
   const eventId = String(formData.get("id"));
   const currentStatus = String(formData.get("current_status")) as AgendaEventStatusValue;
 
-  const cancellableStates = [
-    AgendaEventStatus.SCHEDULED,
-    AgendaEventStatus.CONFIRMED,
-    AgendaEventStatus.ARRIVED,
-    AgendaEventStatus.IN_SESSION,
+  const cancellableStates: AgendaEventStatusValue[] = [
+    "scheduled",
+    "confirmed",
+    "arrived",
+    "in_session",
   ];
 
   if (!cancellableStates.includes(currentStatus)) {
