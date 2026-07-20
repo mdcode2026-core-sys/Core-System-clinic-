@@ -2,7 +2,7 @@
 
 // src/features/doctor/MyQueueView.tsx
 // Phase 4 — Queue Management Module
-// Doctor-specific queue view
+// Doctor-specific queue view (simplified — no sonner)
 
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/core/auth/AuthContext";
@@ -17,7 +17,6 @@ import { useQueueSubscription } from "@/shared/hooks/useQueue";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { Button } from "@/shared/components/ui/button";
 import { Badge } from "@/shared/components/ui/badge";
-import { toast } from "sonner";
 import {
   Stethoscope,
   DoorOpen,
@@ -26,7 +25,6 @@ import {
   PlayCircle,
   Clock,
   Phone,
-  AlertTriangle,
   Users,
 } from "lucide-react";
 import { EnrichedSession } from "@/domain/queue/queue.types";
@@ -36,23 +34,22 @@ export function MyQueueView() {
   const [sessions, setSessions] = useState<EnrichedSession[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isProcessing, setIsProcessing] = useState<Record<string, boolean>>({});
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  // Realtime subscription
   useQueueSubscription(tenantId);
 
-  // Fetch my queue
   const fetchData = useCallback(async () => {
     if (!tenantId || !user) return;
     setIsLoading(true);
+    setErrorMessage(null);
     try {
       const allSessions = await getQueue();
-      // Filter for my sessions only
       const mySessions = allSessions.filter(
         (s) => s.doctor_id === user.id || s.lock_holder_id === user.id
       );
       setSessions(mySessions);
     } catch (error: any) {
-      toast.error(error.message || "Failed to load queue");
+      setErrorMessage(error.message || "Failed to load queue");
     } finally {
       setIsLoading(false);
     }
@@ -62,31 +59,27 @@ export function MyQueueView() {
     fetchData();
   }, [fetchData]);
 
-  // Handle actions
   const handleAction = async (action: string, sessionId: string) => {
     setIsProcessing((prev) => ({ ...prev, [sessionId]: true }));
+    setErrorMessage(null);
     try {
       switch (action) {
         case "call":
           await callNextPatient(sessionId);
-          toast.success("تم استدعاء المريض");
           break;
         case "complete":
           await completeVisit(sessionId);
-          toast.success("تم إنهاء الكشف");
           break;
         case "hold":
           await holdVisit(sessionId);
-          toast.info("تم تعليق الكشف");
           break;
         case "resume":
           await resumeVisit(sessionId);
-          toast.success("تم استئناف الكشف");
           break;
       }
       await fetchData();
     } catch (error: any) {
-      toast.error(error.message || "Action failed");
+      setErrorMessage(error.message || "Action failed");
     } finally {
       setIsProcessing((prev) => ({ ...prev, [sessionId]: false }));
     }
@@ -102,7 +95,12 @@ export function MyQueueView() {
 
   return (
     <div className="p-6 space-y-6 max-w-4xl mx-auto">
-      {/* Header */}
+      {errorMessage && (
+        <div className="bg-red-50 border border-red-200 text-red-700 p-3 rounded-lg text-sm">
+          {errorMessage}
+        </div>
+      )}
+
       <div className="flex items-center gap-3">
         <div className="p-3 bg-primary/10 rounded-full">
           <Stethoscope className="h-6 w-6 text-primary" />
@@ -115,7 +113,6 @@ export function MyQueueView() {
         </div>
       </div>
 
-      {/* Current Patient */}
       {myCurrent ? (
         <Card className="border-green-300 ring-1 ring-green-200">
           <CardHeader className="pb-2">
@@ -144,21 +141,11 @@ export function MyQueueView() {
                 </div>
               </div>
               <div className="flex gap-2">
-                <Button
-                  onClick={() => handleAction("hold", myCurrent.id)}
-                  disabled={isProcessing[myCurrent.id]}
-                  variant="outline"
-                >
-                  <PauseCircle className="h-4 w-4 ml-1" />
-                  تعليق
+                <Button onClick={() => handleAction("hold", myCurrent.id)} disabled={isProcessing[myCurrent.id]} variant="outline">
+                  <PauseCircle className="h-4 w-4 ml-1" />تعليق
                 </Button>
-                <Button
-                  onClick={() => handleAction("complete", myCurrent.id)}
-                  disabled={isProcessing[myCurrent.id]}
-                  className="bg-green-600 hover:bg-green-700"
-                >
-                  <CheckCircle2 className="h-4 w-4 ml-1" />
-                  إنهاء
+                <Button onClick={() => handleAction("complete", myCurrent.id)} disabled={isProcessing[myCurrent.id]} className="bg-green-600 hover:bg-green-700">
+                  <CheckCircle2 className="h-4 w-4 ml-1" />إنهاء
                 </Button>
               </div>
             </div>
@@ -170,21 +157,14 @@ export function MyQueueView() {
             <DoorOpen className="h-10 w-10 mx-auto text-muted-foreground mb-2" />
             <p className="text-muted-foreground">لا يوجد مريض حالياً</p>
             {myWaiting.length > 0 && (
-              <Button
-                className="mt-4"
-                size="lg"
-                onClick={() => handleAction("call", myWaiting[0].id)}
-                disabled={isProcessing[myWaiting[0].id]}
-              >
-                <DoorOpen className="h-4 w-4 ml-1" />
-                استدعاء المريض التالي
+              <Button className="mt-4" size="lg" onClick={() => handleAction("call", myWaiting[0].id)} disabled={isProcessing[myWaiting[0].id]}>
+                <DoorOpen className="h-4 w-4 ml-1" />استدعاء المريض التالي
               </Button>
             )}
           </CardContent>
         </Card>
       )}
 
-      {/* On Hold Patients */}
       {myOnHold.length > 0 && (
         <Card>
           <CardHeader className="pb-2">
@@ -195,19 +175,10 @@ export function MyQueueView() {
           </CardHeader>
           <CardContent className="space-y-2">
             {myOnHold.map((session) => (
-              <div
-                key={session.id}
-                className="flex items-center justify-between p-2 bg-purple-50 rounded-lg"
-              >
+              <div key={session.id} className="flex items-center justify-between p-2 bg-purple-50 rounded-lg">
                 <span className="font-medium">{session.patient_name}</span>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => handleAction("resume", session.id)}
-                  disabled={isProcessing[session.id]}
-                >
-                  <PlayCircle className="h-3 w-3 ml-1" />
-                  استئناف
+                <Button size="sm" variant="outline" onClick={() => handleAction("resume", session.id)} disabled={isProcessing[session.id]}>
+                  <PlayCircle className="h-3 w-3 ml-1" />استئناف
                 </Button>
               </div>
             ))}
@@ -215,12 +186,10 @@ export function MyQueueView() {
         </Card>
       )}
 
-      {/* Waiting List */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Clock className="h-5 w-5" />
-            قائمة الانتظار
+            <Clock className="h-5 w-5" />قائمة الانتظار
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -229,29 +198,19 @@ export function MyQueueView() {
           ) : (
             <div className="space-y-2">
               {myWaiting.map((session, index) => (
-                <div
-                  key={session.id}
-                  className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors"
-                >
+                <div key={session.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors">
                   <div className="flex items-center gap-3">
-                    <div className="w-7 h-7 rounded-full bg-slate-200 flex items-center justify-center text-sm font-bold">
-                      {index + 1}
-                    </div>
+                    <div className="w-7 h-7 rounded-full bg-slate-200 flex items-center justify-center text-sm font-bold">{index + 1}</div>
                     <div>
                       <p className="font-medium">{session.patient_name}</p>
                       <div className="flex gap-2 text-xs text-muted-foreground">
                         <span className="flex items-center gap-1">
-                          <Clock className="h-3 w-3" />
-                          {session.wait_time_minutes}د
+                          <Clock className="h-3 w-3" />{session.wait_time_minutes}د
                         </span>
                       </div>
                     </div>
                   </div>
-                  <Button
-                    size="sm"
-                    onClick={() => handleAction("call", session.id)}
-                    disabled={isProcessing[session.id] || !!myCurrent}
-                  >
+                  <Button size="sm" onClick={() => handleAction("call", session.id)} disabled={isProcessing[session.id] || !!myCurrent}>
                     استدعاء
                   </Button>
                 </div>
