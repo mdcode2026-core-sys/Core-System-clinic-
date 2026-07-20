@@ -1,72 +1,112 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { useAuth } from "@/core/auth/AuthContext";
-import { useCreatePatient, useUpdatePatient } from "@/domain/patients/patients.queries";
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/components/ui/select";
 import { Textarea } from "@/shared/components/ui/textarea";
-import { X, Save } from "lucide-react";
-import type { Patient, PatientInsert, PatientUpdate } from "@/domain/patients/patients.types";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/shared/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/shared/components/ui/select";
+import { Save, Loader2 } from "lucide-react";
+import { createPatient, updatePatient } from "@/domain/patients/patients.actions";
+import type { Patient } from "@/domain/patients/patients.types";
 
 interface PatientFormProps {
   patient?: Patient | null;
+  isOpen: boolean;
   onClose: () => void;
   onSuccess?: () => void;
 }
 
-export function PatientForm({ patient, onClose, onSuccess }: PatientFormProps) {
+export function PatientForm({ patient, isOpen, onClose, onSuccess }: PatientFormProps) {
   const { tenantId } = useAuth();
-  const createPatient = useCreatePatient();
-  const updatePatient = useUpdatePatient();
+  const [isPending, startTransition] = useTransition();
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [serverError, setServerError] = useState<string | null>(null);
 
-  const [formData, setFormData] = useState<PatientInsert | PatientUpdate>({
-    tenant_id: tenantId || "",
+  const [formData, setFormData] = useState({
     first_name: patient?.first_name || "",
     last_name: patient?.last_name || "",
     first_name_ar: patient?.first_name_ar || "",
     last_name_ar: patient?.last_name_ar || "",
-    date_of_birth: patient?.date_of_birth || "",
-    gender: patient?.gender || "male",
     phone_primary: patient?.phone_primary || "",
     phone_secondary: patient?.phone_secondary || "",
     email: patient?.email || "",
+    date_of_birth: patient?.date_of_birth || "",
+    gender: patient?.gender || "",
     preferred_channel: patient?.preferred_channel || "whatsapp",
-    first_visit_date: patient?.first_visit_date || "",
     referral_source: patient?.referral_source || "",
     patient_status: patient?.patient_status || "active",
     notes: patient?.notes || "",
   });
 
-  const [errors, setErrors] = useState<Record<string, string>>({});
-
   const validate = () => {
     const newErrors: Record<string, string> = {};
-    if (!formData.first_name) newErrors.first_name = "الاسم الأول مطلوب";
-    if (!formData.last_name) newErrors.last_name = "الاسم الأخير مطلوب";
-    if (!formData.phone_primary) newErrors.phone_primary = "الهاتف الرئيسي مطلوب";
+    if (!formData.first_name.trim()) newErrors.first_name = "الاسم الأول مطلوب";
+    if (!formData.last_name.trim()) newErrors.last_name = "الاسم الأخير مطلوب";
+    if (!formData.phone_primary.trim()) newErrors.phone_primary = "الهاتف الرئيسي مطلوب";
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setServerError(null);
     if (!validate()) return;
-
-    try {
-      if (patient) {
-        await updatePatient.mutateAsync({ id: patient.id, ...formData });
-      } else {
-        await createPatient.mutateAsync(formData as PatientInsert);
-      }
-      onSuccess?.();
-      onClose();
-    } catch (error) {
-      console.error("Error saving patient:", error);
+    if (!tenantId) {
+      setServerError("خطأ: لم يتم التعرف على العيادة");
+      return;
     }
+
+    const form = new FormData();
+    form.append("tenant_id", tenantId);
+    form.append("first_name", formData.first_name);
+    form.append("last_name", formData.last_name);
+    form.append("first_name_ar", formData.first_name_ar);
+    form.append("last_name_ar", formData.last_name_ar);
+    form.append("phone_primary", formData.phone_primary);
+    form.append("phone_secondary", formData.phone_secondary);
+    form.append("email", formData.email);
+    form.append("date_of_birth", formData.date_of_birth);
+    form.append("gender", formData.gender);
+    form.append("preferred_channel", formData.preferred_channel);
+    form.append("referral_source", formData.referral_source);
+    form.append("patient_status", formData.patient_status);
+    form.append("notes", formData.notes);
+
+    startTransition(async () => {
+      try {
+        let result;
+        if (patient) {
+          form.append("id", patient.id);
+          result = await updatePatient(form);
+        } else {
+          result = await createPatient(form);
+        }
+
+        if (result.error) {
+          setServerError(result.error);
+        } else {
+          onSuccess?.();
+          onClose();
+        }
+      } catch (err) {
+        setServerError("حدث خطأ غير متوقع");
+      }
+    });
   };
 
   const handleChange = (field: string, value: string) => {
@@ -81,16 +121,23 @@ export function PatientForm({ patient, onClose, onSuccess }: PatientFormProps) {
   };
 
   return (
-    <Card className="w-full max-w-2xl mx-auto">
-      <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle>{patient ? "تعديل مريض" : "مريض جديد"}</CardTitle>
-        <Button variant="ghost" size="icon" onClick={onClose}>
-          <X className="w-4 h-4" />
-        </Button>
-      </CardHeader>
-      <CardContent>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>{patient ? "تعديل مريض" : "مريض جديد"}</DialogTitle>
+          <DialogDescription>
+            {patient ? "تعديل بيانات المريض الحالي" : "إضافة مريض جديد إلى النظام"}
+          </DialogDescription>
+        </DialogHeader>
+
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+          {serverError && (
+            <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive text-center">
+              {serverError}
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="first_name">الاسم الأول *</Label>
               <Input
@@ -119,7 +166,7 @@ export function PatientForm({ patient, onClose, onSuccess }: PatientFormProps) {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="first_name_ar">الاسم الأول (عربي)</Label>
               <Input
@@ -140,7 +187,7 @@ export function PatientForm({ patient, onClose, onSuccess }: PatientFormProps) {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="phone_primary">الهاتف الرئيسي *</Label>
               <Input
@@ -165,7 +212,7 @@ export function PatientForm({ patient, onClose, onSuccess }: PatientFormProps) {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="email">البريد الإلكتروني</Label>
               <Input
@@ -187,7 +234,7 @@ export function PatientForm({ patient, onClose, onSuccess }: PatientFormProps) {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="gender">الجنس</Label>
               <Select
@@ -223,14 +270,33 @@ export function PatientForm({ patient, onClose, onSuccess }: PatientFormProps) {
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="referral_source">مصدر الإحالة</Label>
-            <Input
-              id="referral_source"
-              value={formData.referral_source}
-              onChange={(e) => handleChange("referral_source", e.target.value)}
-              placeholder="مثال: فيسبوك، توصية صديق..."
-            />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="referral_source">مصدر الإحالة</Label>
+              <Input
+                id="referral_source"
+                value={formData.referral_source}
+                onChange={(e) => handleChange("referral_source", e.target.value)}
+                placeholder="مثال: فيسبوك، توصية صديق..."
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="patient_status">الحالة</Label>
+              <Select
+                value={formData.patient_status}
+                onValueChange={(value) => handleChange("patient_status", value)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="اختر الحالة" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="active">نشط</SelectItem>
+                  <SelectItem value="inactive">غير نشط</SelectItem>
+                  <SelectItem value="archived">مؤرشف</SelectItem>
+                  <SelectItem value="blocked">محظور</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           <div className="space-y-2">
@@ -245,16 +311,25 @@ export function PatientForm({ patient, onClose, onSuccess }: PatientFormProps) {
           </div>
 
           <div className="flex justify-end gap-2 pt-4">
-            <Button variant="outline" onClick={onClose} type="button">
+            <Button variant="outline" onClick={onClose} type="button" disabled={isPending}>
               إلغاء
             </Button>
-            <Button type="submit" disabled={createPatient.isPending || updatePatient.isPending}>
-              <Save className="w-4 h-4 ml-2" />
-              {createPatient.isPending || updatePatient.isPending ? "جاري الحفظ..." : "حفظ"}
+            <Button type="submit" disabled={isPending}>
+              {isPending ? (
+                <>
+                  <Loader2 className="w-4 h-4 ml-2 animate-spin" />
+                  جاري الحفظ...
+                </>
+              ) : (
+                <>
+                  <Save className="w-4 h-4 ml-2" />
+                  حفظ
+                </>
+              )}
             </Button>
           </div>
         </form>
-      </CardContent>
-    </Card>
+      </DialogContent>
+    </Dialog>
   );
 }
