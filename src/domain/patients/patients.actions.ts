@@ -7,11 +7,23 @@ import type { PatientInsert, PatientUpdate } from "@/domain/patients/patients.ty
 export async function createPatient(formData: FormData) {
   const supabase = await createClient();
   
+  // الحصول على المستخدم الحالي
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    return { error: "غير مصرح" };
+  }
+
+  // قراءة tenant_id من user_metadata
+  const tenantId = user.user_metadata?.tenant_id as string | undefined;
+  if (!tenantId) {
+    return { error: "لم يتم التعرف على العيادة" };
+  }
+
   const dateOfBirth = formData.get("date_of_birth");
   const firstVisitDate = formData.get("first_visit_date");
 
   const patient: PatientInsert = {
-    tenant_id: String(formData.get("tenant_id")),
+    tenant_id: tenantId, // استخدام tenant_id من المستخدم
     first_name: String(formData.get("first_name")),
     last_name: String(formData.get("last_name")),
     first_name_ar: String(formData.get("first_name_ar") || ""),
@@ -45,6 +57,16 @@ export async function createPatient(formData: FormData) {
 export async function updatePatient(formData: FormData) {
   const supabase = await createClient();
   
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    return { error: "غير مصرح" };
+  }
+
+  const tenantId = user.user_metadata?.tenant_id as string | undefined;
+  if (!tenantId) {
+    return { error: "لم يتم التعرف على العيادة" };
+  }
+
   const id = String(formData.get("id"));
   const dateOfBirth = formData.get("date_of_birth");
   const firstVisitDate = formData.get("first_visit_date");
@@ -66,7 +88,6 @@ export async function updatePatient(formData: FormData) {
     notes: String(formData.get("notes") || ""),
   };
 
-  // إزالة الحقول الفارغة
   Object.keys(update).forEach((key) => {
     if (update[key as keyof PatientUpdate] === "") {
       delete update[key as keyof PatientUpdate];
@@ -77,6 +98,7 @@ export async function updatePatient(formData: FormData) {
     .from("clinic_patients")
     .update({ ...update, updated_at: new Date().toISOString() })
     .eq("id", id)
+    .eq("tenant_id", tenantId) // التحقق من tenant_id
     .select()
     .single();
 
@@ -91,8 +113,17 @@ export async function updatePatient(formData: FormData) {
 export async function deletePatient(formData: FormData) {
   const supabase = await createClient();
   
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    return { error: "غير مصرح" };
+  }
+
+  const tenantId = user.user_metadata?.tenant_id as string | undefined;
+  if (!tenantId) {
+    return { error: "لم يتم التعرف على العيادة" };
+  }
+
   const id = String(formData.get("id"));
-  const tenantId = String(formData.get("tenant_id"));
 
   const { data, error } = await supabase
     .from("clinic_patients")
@@ -101,7 +132,7 @@ export async function deletePatient(formData: FormData) {
       updated_at: new Date().toISOString() 
     })
     .eq("id", id)
-    .eq("tenant_id", tenantId)
+    .eq("tenant_id", tenantId) // التحقق من tenant_id
     .select()
     .single();
 
