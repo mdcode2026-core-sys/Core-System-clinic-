@@ -7,12 +7,7 @@ import type { PatientInsert, PatientUpdate } from "@/domain/patients/patients.ty
 export async function createPatient(formData: FormData) {
   const supabase = await createClient();
   
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) {
-    return { error: "غير مصرح" };
-  }
-
-  const tenantId = user.user_metadata?.tenant_id as string | undefined;
+  const tenantId = String(formData.get("tenant_id"));
   if (!tenantId) {
     return { error: "لم يتم التعرف على العيادة" };
   }
@@ -58,12 +53,7 @@ export async function createPatient(formData: FormData) {
 export async function updatePatient(formData: FormData) {
   const supabase = await createClient();
   
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) {
-    return { error: "غير مصرح" };
-  }
-
-  const tenantId = user.user_metadata?.tenant_id as string | undefined;
+  const tenantId = String(formData.get("tenant_id"));
   if (!tenantId) {
     return { error: "لم يتم التعرف على العيادة" };
   }
@@ -116,12 +106,7 @@ export async function updatePatient(formData: FormData) {
 export async function deletePatient(formData: FormData) {
   const supabase = await createClient();
   
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) {
-    return { error: "غير مصرح" };
-  }
-
-  const tenantId = user.user_metadata?.tenant_id as string | undefined;
+  const tenantId = String(formData.get("tenant_id"));
   if (!tenantId) {
     return { error: "لم يتم التعرف على العيادة" };
   }
