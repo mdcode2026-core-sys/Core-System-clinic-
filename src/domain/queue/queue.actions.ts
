@@ -13,10 +13,10 @@ async function getAuthContext() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("Not authenticated");
-  
+
   const tenantId = user.user_metadata?.tenant_id as string | undefined;
   if (!tenantId) throw new Error("No tenant assigned");
-  
+
   return { supabase, user, tenantId, userId: user.id };
 }
 
@@ -33,11 +33,11 @@ function validateStatusTransition(
     cancelled: [],
     no_show: [],
   };
-  
+
   if (allowed[current]?.includes(newStatus)) {
     return { valid: true };
   }
-  
+
   return {
     valid: false,
     reason: `Cannot transition from ${current} to ${newStatus}`,
@@ -81,7 +81,6 @@ export async function checkInPatient(data: {
 export async function callNextPatient(sessionId: string): Promise<EnrichedSession> {
   const { supabase, tenantId, userId } = await getAuthContext();
 
-  // التحقق من الحالة الحالية
   const { data: current } = await supabase
     .from("clinic_visit_sessions")
     .select("session_status")
