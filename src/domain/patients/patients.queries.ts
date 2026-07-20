@@ -1,6 +1,6 @@
 "use client";
 
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { createClient } from "@/infrastructure/supabase/client";
 import type { Patient, PatientHistory } from "./patients.types";
 
@@ -55,7 +55,29 @@ export function usePatientHistory(patientId: string | null) {
   });
 }
 
-// Hook to invalidate patient queries after mutations
+export function useDeletePatient() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, tenantId }: { id: string; tenantId: string }) => {
+      const { data, error } = await supabase
+        .from("clinic_patients")
+        .update({ 
+          deleted_at: new Date().toISOString(), 
+          updated_at: new Date().toISOString() 
+        })
+        .eq("id", id)
+        .eq("tenant_id", tenantId)
+        .select()
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["patients", variables.tenantId] });
+    },
+  });
+}
+
 export function useInvalidatePatients() {
   const queryClient = useQueryClient();
   
