@@ -1,34 +1,232 @@
+/**
+ * Agenda Module — Queries
+ * Client-side React Query hooks
+ * Compatible with: agenda.types.ts + database.types.ts
+ */
+
 "use client";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { createClient } from "@/infrastructure/supabase/client";
-import type { AgendaEvent, AgendaEventInsert } from "./agenda.types";
+import type {
+  AgendaEventRow,
+  AgendaEventInsert,
+  AgendaEventUpdate,
+  AgendaEventWithRelations,
+  AgendaEventFilters,
+  CalendarRange,
+} from "./agenda.types";
 
 const supabase = createClient();
 
-export function useAgendaEvents(tenantId: string | null, date: string) {
+// ─────────────────────────────────────────
+// QUERY KEYS
+// ─────────────────────────────────────────
+
+const agendaKeys = {
+  all: ["agenda"] as const,
+  tenant: (tenantId: string) => [...agendaKeys.all, tenantId] as const,
+  range: (tenantId: string, range: CalendarRange) =>
+    [...agendaKeys.tenant(tenantId), range.start, range.end] as const,
+  detail: (tenantId: string, eventId: string) =>
+    [...agendaKeys.tenant(tenantId), "detail", eventId] as const,
+  filters: (tenantId: string, filters: AgendaEventFilters) =>
+    [...agendaKeys.tenant(tenantId), "filters", filters] as const,
+};
+
+// ─────────────────────────────────────────
+// 1. GET EVENTS BY DATE RANGE (for Calendar)
+// ─────────────────────────────────────────
+
+export function useAgendaEventsByRange(
+  tenantId: string | null,
+  range: CalendarRange | null
+) {
   return useQuery({
-    queryKey: ["agenda", tenantId, date],
+    queryKey: range ? agendaKeys.range(tenantId!, range) : agendaKeys.all,
     queryFn: async () => {
-      const startOfDay = `${date}T00:00:00Z`;
-      const endOfDay = `${date}T23:59:59Z`;
+      if (!tenantId || !range) return [];
+
       const { data, error } = await supabase
         .from("master_agenda_events")
         .select("*")
         .eq("tenant_id", tenantId)
-        .gte("scheduled_start", startOfDay)
-        .lte("scheduled_start", endOfDay)
+        .gte("scheduled_start", range.start)
+        .lte("scheduled_start", range.end)
         .not("status", "in", "(cancelled,no_show)")
-        .order("scheduled_start");
+        .order("scheduled_start", { ascending: true });
+
       if (error) throw error;
-      return data as AgendaEvent[];
+      return (data ?? []) as AgendaEventRow[];
     },
-    enabled: !!tenantId && !!date,
+    enabled: !!tenantId && !!range,
   });
 }
 
+// ─────────────────────────────────────────
+// 2. GET EVENTS WITH RELATIONS (for Detail View)
+// ─────────────────────────────────────────
+
+export function useAgendaEventsWithRelations(
+  tenantId: string | null,
+  range: CalendarRange | null
+) {
+  return useQuery({
+    queryKey: range
+      ? [...agendaKeys.range(tenantId!, range), "with-relations"]
+      : agendaKeys.all,
+    queryFn: async () => {
+      if (!tenantId || !range) return [];
+
+      const { data, error } = await supabase
+        .from("master_agenda_events")
+        .select(
+          `
+          *,
+          patient:patient_id (
+            id,
+            first_name,
+            last_name,
+            phone_primary
+          ),
+          doctor:doctor_id (
+            id,
+            full_name,
+            full_name_ar,
+            specialization
+          ),
+          room:room_id (
+            id,
+            room_name,
+            room_name_ar
+          ),
+          procedure:procedure_id (
+            id,
+            procedure_name,
+            standard_duration_minutes
+          )
+        `
+        )
+        .eq("tenant_id", tenantId)
+        .gte("scheduled_start", range.start)
+        .lte("scheduled_start", range.end)
+        .order("scheduled_start", { ascending: true });
+
+      if (error) throw error;
+      return (data ?? []) as AgendaEventWithRelations[];
+    },
+    enabled: !!tenantId && !!range,
+  });
+}
+
+// ─────────────────────────────────────────
+// 3. GET SINGLE EVENT BY ID
+// ─────────────────────────────────────────
+
+export function useAgendaEventById(
+  tenantId: string | null,
+  eventId: string | null
+) {
+  return useQuery({
+    queryKey: eventId && tenantId ? agendaKeys.detail(tenantId, eventId) : agendaKeys.all,
+    queryFn: async () => {
+      if (!tenantId || !eventId) return null;
+
+      const { data, error } = await supabase
+        .from("master_agenda_events")
+        .select(
+          `
+          *,
+          patient:patient_id (
+            id,
+            first_name,
+            last_name,
+            phone_primary
+          ),
+          doctor:doctor_id (
+            id,
+            full_name,
+            full_name_ar,
+            specialization
+          ),
+          room:room_id (
+            id,
+            room_name,
+            room_name_ar
+          ),
+          procedure:procedure_id (
+            id,
+            procedure_name,
+            standard_duration_minutes
+          )
+        `
+        )
+        .eq("tenant_id", tenantId)
+        .eq("id", eventId)
+        .single();
+
+      if (error) throw error;
+      return data as AgendaEventWithRelations | null;
+    },
+    enabled: !!tenantId && !!eventId,
+  });
+}
+
+// ─────────────────────────────────────────
+// 4. GET FILTERED EVENTS
+// ─────────────────────────────────────────
+
+export function useAgendaEventsFiltered(
+  tenantId: string | null,
+  filters: AgendaEventFilters
+) {
+  return useQuery({
+    queryKey: tenantId ? agendaKeys.filters(tenantId, filters) : agendaKeys.all,
+    queryFn: async () => {
+      if (!tenantId) return [];
+
+      let query = supabase
+        .from("master_agenda_events")
+        .select("*")
+        .eq("tenant_id", tenantId);
+
+      if (filters.doctorId) {
+        query = query.eq("doctor_id", filters.doctorId);
+      }
+      if (filters.roomId) {
+        query = query.eq("room_id", filters.roomId);
+      }
+      if (filters.status) {
+        query = query.eq("status", filters.status);
+      }
+      if (filters.patientId) {
+        query = query.eq("patient_id", filters.patientId);
+      }
+      if (filters.dateFrom) {
+        query = query.gte("scheduled_start", filters.dateFrom);
+      }
+      if (filters.dateTo) {
+        query = query.lte("scheduled_start", filters.dateTo);
+      }
+
+      const { data, error } = await query.order("scheduled_start", {
+        ascending: true,
+      });
+
+      if (error) throw error;
+      return (data ?? []) as AgendaEventRow[];
+    },
+    enabled: !!tenantId,
+  });
+}
+
+// ─────────────────────────────────────────
+// 5. CREATE EVENT (Mutation)
+// ─────────────────────────────────────────
+
 export function useCreateAgendaEvent() {
   const queryClient = useQueryClient();
+
   return useMutation({
     mutationFn: async (event: AgendaEventInsert) => {
       const { data, error } = await supabase
@@ -36,11 +234,166 @@ export function useCreateAgendaEvent() {
         .insert(event)
         .select()
         .single();
+
       if (error) throw error;
-      return data;
+      return data as AgendaEventRow;
     },
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["agenda", variables.tenant_id] });
+    onSuccess: (data) => {
+      // Invalidate all agenda queries for this tenant
+      queryClient.invalidateQueries({
+        queryKey: agendaKeys.tenant(data.tenant_id),
+      });
     },
   });
+}
+
+// ─────────────────────────────────────────
+// 6. UPDATE EVENT (Mutation)
+// ─────────────────────────────────────────
+
+export function useUpdateAgendaEvent() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      id,
+      tenantId,
+      updates,
+    }: {
+      id: string;
+      tenantId: string;
+      updates: AgendaEventUpdate;
+    }) => {
+      const { data, error } = await supabase
+        .from("master_agenda_events")
+        .update({
+          ...updates,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", id)
+        .eq("tenant_id", tenantId)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data as AgendaEventRow;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({
+        queryKey: agendaKeys.tenant(data.tenant_id),
+      });
+      queryClient.invalidateQueries({
+        queryKey: agendaKeys.detail(data.tenant_id, data.id),
+      });
+    },
+  });
+}
+
+// ─────────────────────────────────────────
+// 7. UPDATE EVENT STATUS (Mutation)
+// ─────────────────────────────────────────
+
+export function useUpdateAgendaEventStatus() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      id,
+      tenantId,
+      status,
+    }: {
+      id: string;
+      tenantId: string;
+      status: string;
+    }) => {
+      const { data, error } = await supabase
+        .from("master_agenda_events")
+        .update({
+          status,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", id)
+        .eq("tenant_id", tenantId)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data as AgendaEventRow;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({
+        queryKey: agendaKeys.tenant(data.tenant_id),
+      });
+      queryClient.invalidateQueries({
+        queryKey: agendaKeys.detail(data.tenant_id, data.id),
+      });
+    },
+  });
+}
+
+// ─────────────────────────────────────────
+// 8. DELETE EVENT (Soft — set status to cancelled)
+// ─────────────────────────────────────────
+
+export function useCancelAgendaEvent() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      id,
+      tenantId,
+    }: {
+      id: string;
+      tenantId: string;
+    }) => {
+      const { data, error } = await supabase
+        .from("master_agenda_events")
+        .update({
+          status: "cancelled",
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", id)
+        .eq("tenant_id", tenantId)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data as AgendaEventRow;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({
+        queryKey: agendaKeys.tenant(data.tenant_id),
+      });
+    },
+  });
+}
+
+// ─────────────────────────────────────────
+// 9. INVALIDATION HELPERS
+// ─────────────────────────────────────────
+
+export function useInvalidateAgenda() {
+  const queryClient = useQueryClient();
+
+  return {
+    invalidateAll: (tenantId?: string) => {
+      if (tenantId) {
+        queryClient.invalidateQueries({
+          queryKey: agendaKeys.tenant(tenantId),
+        });
+      } else {
+        queryClient.invalidateQueries({ queryKey: agendaKeys.all });
+      }
+    },
+    invalidateEvent: (tenantId: string, eventId: string) => {
+      queryClient.invalidateQueries({
+        queryKey: agendaKeys.detail(tenantId, eventId),
+      });
+    },
+    invalidateRange: (tenantId: string, range: CalendarRange) => {
+      queryClient.invalidateQueries({
+        queryKey: agendaKeys.range(tenantId, range),
+      });
+    },
+  };
 }
