@@ -1,6 +1,10 @@
 "use client";
 
-import { useEffect } from "react";
+// src/shared/hooks/useQueue.ts
+// Phase 4 — Queue Management Module
+// Realtime subscription + manual refresh for Queue
+
+import { useEffect, useCallback } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { createClient } from "@/infrastructure/supabase/client";
 
@@ -23,6 +27,7 @@ export function useQueueSubscription(tenantId: string | null) {
           filter: `tenant_id=eq.${tenantId}`,
         },
         () => {
+          // تحديث React Query Cache
           queryClient.invalidateQueries({ queryKey: ["queue", tenantId] });
         }
       )
@@ -32,4 +37,19 @@ export function useQueueSubscription(tenantId: string | null) {
       channel.unsubscribe();
     };
   }, [tenantId, queryClient]);
+}
+
+// ── دالة تحديث يدوي (تُستدعى بعد Server Actions) ───────────
+export function useQueueRefresh() {
+  const queryClient = useQueryClient();
+
+  const refreshQueue = useCallback((tenantId?: string | null) => {
+    if (tenantId) {
+      queryClient.invalidateQueries({ queryKey: ["queue", tenantId] });
+    } else {
+      queryClient.invalidateQueries({ queryKey: ["queue"] });
+    }
+  }, [queryClient]);
+
+  return { refreshQueue };
 }
