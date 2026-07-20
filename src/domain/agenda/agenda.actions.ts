@@ -247,4 +247,3 @@ export async function cancelAgendaEvent(formData: FormData) {
   revalidatePath("/agenda");
   return { data };
 }
- 
