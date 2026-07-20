@@ -89,11 +89,11 @@ export function AgendaEventForm({
   const router = useRouter();
   const isEditMode = !!event;
 
-  // Form state
-  const [patientId, setPatientId] = useState("");
-  const [doctorId, setDoctorId] = useState("");
-  const [roomId, setRoomId] = useState("");
-  const [procedureId, setProcedureId] = useState("");
+  // Form state — all nullable for safety
+  const [patientId, setPatientId] = useState<string | null>(null);
+  const [doctorId, setDoctorId] = useState<string | null>(null);
+  const [roomId, setRoomId] = useState<string>("");
+  const [procedureId, setProcedureId] = useState<string>("");
   const [date, setDate] = useState(defaultDate || new Date().toISOString().split("T")[0]);
   const [startTime, setStartTime] = useState("09:00");
   const [endTime, setEndTime] = useState("09:30");
@@ -104,8 +104,8 @@ export function AgendaEventForm({
   // Load existing data in edit mode
   useEffect(() => {
     if (event) {
-      setPatientId(event.patient_id);
-      setDoctorId(event.doctor_id);
+      setPatientId(event.patient_id || null);
+      setDoctorId(event.doctor_id || null);
       setRoomId(event.room_id || "");
       setProcedureId(event.procedure_id || "");
       setDate(event.scheduled_start.split("T")[0]);
@@ -114,8 +114,8 @@ export function AgendaEventForm({
       setNotes(event.notes || "");
     } else {
       // Reset for create mode
-      setPatientId("");
-      setDoctorId("");
+      setPatientId(null);
+      setDoctorId(null);
       setRoomId("");
       setProcedureId("");
       setDate(defaultDate || new Date().toISOString().split("T")[0]);
@@ -150,6 +150,13 @@ export function AgendaEventForm({
     e.preventDefault();
     setIsLoading(true);
     setError("");
+
+    // Validate required fields
+    if (!patientId || !doctorId) {
+      setError("المريض والطبيب مطلوبان");
+      setIsLoading(false);
+      return;
+    }
 
     const scheduledStart = `${date}T${startTime}:00`;
     const scheduledEnd = `${date}T${endTime}:00`;
@@ -215,7 +222,11 @@ export function AgendaEventForm({
               <User className="w-4 h-4" />
               المريض *
             </Label>
-            <Select value={patientId} onValueChange={setPatientId} required>
+            <Select 
+              value={patientId || ""} 
+              onValueChange={(val) => setPatientId(val || null)} 
+              required
+            >
               <SelectTrigger id="patient">
                 <SelectValue placeholder="اختر المريض" />
               </SelectTrigger>
@@ -235,7 +246,11 @@ export function AgendaEventForm({
               <Stethoscope className="w-4 h-4" />
               الطبيب *
             </Label>
-            <Select value={doctorId} onValueChange={setDoctorId} required>
+            <Select 
+              value={doctorId || ""} 
+              onValueChange={(val) => setDoctorId(val || null)} 
+              required
+            >
               <SelectTrigger id="doctor">
                 <SelectValue placeholder="اختر الطبيب" />
               </SelectTrigger>
