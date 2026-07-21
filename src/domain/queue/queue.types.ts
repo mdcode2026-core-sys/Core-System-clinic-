@@ -53,6 +53,7 @@ export interface EnrichedSession extends QueueSession {
   priority?: VisitPriority;
   lane?: QueueLane;
   notes?: string | null;
+  queue_position?: number;
 }
 
 // ── إحصائيات الطابور ─────────────────────────────────────
