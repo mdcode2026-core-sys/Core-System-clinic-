@@ -12,7 +12,6 @@ export async function createPatient(formData: FormData) {
     return { error: "لم يتم التعرف على العيادة" };
   }
 
-  // تعيين tenant_id للـ RLS
   await supabase.rpc('set_tenant_id', { tenant_id: tenantId });
 
   const dateOfBirth = formData.get("date_of_birth");
@@ -39,6 +38,30 @@ export async function createPatient(formData: FormData) {
   const { data, error } = await supabase
     .from("clinic_patients")
     .insert(patient)
+    .select()
+    .single();
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  revalidatePath("/patients");
+  return { data };
+}
+
+export async function createPatientFromObject(patientData: PatientInsert) {
+  const supabase = await createClient();
+  
+  const tenantId = patientData.tenant_id;
+  if (!tenantId) {
+    return { error: "لم يتم التعرف على العيادة" };
+  }
+
+  await supabase.rpc('set_tenant_id', { tenant_id: tenantId });
+
+  const { data, error } = await supabase
+    .from("clinic_patients")
+    .insert(patientData)
     .select()
     .single();
 
