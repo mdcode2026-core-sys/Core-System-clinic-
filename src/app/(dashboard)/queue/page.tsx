@@ -1,8 +1,9 @@
 // src/app/(dashboard)/queue/page.tsx
 // Phase 4 — Queue Management Module
-// Main queue page — simplified, no Tabs
+// Main queue page — role-based rendering
 
 import { redirect } from "next/navigation";
+import { createClient } from "@/infrastructure/supabase/server";
 import { getQueue, getQueueStats, getActiveDoctors } from "@/domain/queue/queue.queries";
 import { LiveQueueBoard } from "@/features/reception/LiveQueueBoard";
 import { MyQueueView } from "@/features/doctor/MyQueueView";
@@ -10,19 +11,32 @@ import { AmbientKioskView } from "@/features/kiosk/AmbientKioskView";
 
 export default async function QueuePage() {
   try {
-    await Promise.all([
-      getQueue(),
-      getQueueStats(),
-      getActiveDoctors(),
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+      redirect("/login");
+    }
+
+    const role = user.user_metadata?.role as string | undefined;
+    const tenantId = user.user_metadata?.tenant_id as string | undefined;
+
+    if (!tenantId) {
+      redirect("/login");
+    }
+
+    const [queue, stats, doctors] = await Promise.all([
+      getQueue(tenantId),
+      getQueueStats(tenantId),
+      getActiveDoctors(tenantId),
     ]);
 
-    // TODO: قراءة الدور من JWT لاحقاً
-    const isDoctor = false;
+    const isDoctor = role === "doctor";
 
     if (isDoctor) {
       return (
         <div className="container mx-auto py-6">
-          <MyQueueView />
+          <MyQueueView initialQueue={queue} tenantId={tenantId} />
         </div>
       );
     }
@@ -34,12 +48,12 @@ export default async function QueuePage() {
         
         <div>
           <h2 className="text-xl font-semibold mb-4">الاستقبال</h2>
-          <LiveQueueBoard />
+          <LiveQueueBoard initialQueue={queue} initialStats={stats} initialDoctors={doctors} tenantId={tenantId} />
         </div>
 
         <div>
           <h2 className="text-xl font-semibold mb-4">كشك التسجيل</h2>
-          <AmbientKioskView />
+          <AmbientKioskView tenantId={tenantId} />
         </div>
       </div>
     );
