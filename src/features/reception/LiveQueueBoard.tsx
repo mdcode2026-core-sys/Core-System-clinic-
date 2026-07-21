@@ -2,10 +2,9 @@
 
 // src/features/reception/LiveQueueBoard.tsx
 // Phase 4 — Queue Management Module
-// Full queue board for reception staff (simplified — no sonner/tabs)
+// Full queue board for reception staff
 
 import { useState, useEffect, useCallback } from "react";
-import { useAuth } from "@/core/auth/AuthContext";
 import { getQueue, getQueueStats, getActiveDoctors } from "@/domain/queue/queue.queries";
 import {
   callNextPatient,
@@ -37,15 +36,21 @@ import {
 } from "lucide-react";
 import { EnrichedSession, SessionStatus, QueueStats } from "@/domain/queue/queue.types";
 
-export function LiveQueueBoard() {
-  const { tenantId, user } = useAuth();
-  const [sessions, setSessions] = useState<EnrichedSession[]>([]);
-  const [stats, setStats] = useState<QueueStats | null>(null);
-  const [doctors, setDoctors] = useState<{ id: string; full_name: string; specialization: string | null }[]>([]);
+interface LiveQueueBoardProps {
+  tenantId: string;
+  initialQueue?: EnrichedSession[];
+  initialStats?: QueueStats | null;
+  initialDoctors?: { id: string; full_name: string; specialization: string | null }[];
+}
+
+export function LiveQueueBoard({ tenantId, initialQueue = [], initialStats = null, initialDoctors = [] }: LiveQueueBoardProps) {
+  const [sessions, setSessions] = useState<EnrichedSession[]>(initialQueue);
+  const [stats, setStats] = useState<QueueStats | null>(initialStats);
+  const [doctors, setDoctors] = useState<{ id: string; full_name: string; specialization: string | null }[]>(initialDoctors);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedDoctor, setSelectedDoctor] = useState<string>("all");
   const [activeFilter, setActiveFilter] = useState<"all" | "waiting" | "in_consultation" | "completed">("all");
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(initialQueue.length === 0);
   const [isProcessing, setIsProcessing] = useState<Record<string, boolean>>({});
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -54,14 +59,13 @@ export function LiveQueueBoard() {
 
   // Fetch data
   const fetchData = useCallback(async () => {
-    if (!tenantId) return;
     setIsLoading(true);
     setErrorMessage(null);
     try {
       const [queueData, statsData, doctorsData] = await Promise.all([
-        getQueue(),
-        getQueueStats(),
-        getActiveDoctors(),
+        getQueue(tenantId),
+        getQueueStats(tenantId),
+        getActiveDoctors(tenantId),
       ]);
       setSessions(queueData);
       setStats(statsData);
@@ -74,8 +78,10 @@ export function LiveQueueBoard() {
   }, [tenantId]);
 
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    if (initialQueue.length === 0) {
+      fetchData();
+    }
+  }, [fetchData, initialQueue.length]);
 
   // Handle actions
   const handleAction = async (action: string, sessionId: string) => {
