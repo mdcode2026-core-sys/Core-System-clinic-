@@ -64,6 +64,8 @@ export async function createAgendaEvent(formData: FormData) {
     created_by: createdBy,
     scheduled_start: scheduledStart,
     scheduled_end: scheduledEnd,
+    buffer_end: scheduledEnd,
+    event_type: "appointment",
     status: AgendaEventStatus.SCHEDULED,
   };
 
@@ -129,6 +131,7 @@ export async function updateAgendaEvent(formData: FormData) {
     procedure_id: procedureId,
     scheduled_start: scheduledStart,
     scheduled_end: scheduledEnd,
+    buffer_end: scheduledEnd,
     updated_at: new Date().toISOString(),
   };
 
