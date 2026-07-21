@@ -1,6 +1,6 @@
 // src/app/(dashboard)/queue/page.tsx
 // Phase 4 — Queue Management Module
-// Main queue page — role-based rendering
+// Main queue page — all roles see reception view for now
 
 import { redirect } from "next/navigation";
 import { createClient } from "@/infrastructure/supabase/server";
@@ -18,7 +18,6 @@ export default async function QueuePage() {
       redirect("/login");
     }
 
-    const role = user.user_metadata?.role as string | undefined;
     const tenantId = user.user_metadata?.tenant_id as string | undefined;
 
     if (!tenantId) {
@@ -31,7 +30,9 @@ export default async function QueuePage() {
       getActiveDoctors(tenantId),
     ]);
 
-    const isDoctor = role === "doctor";
+    // TODO: تفعيل الشاشات المستقلة حسب الدور لاحقاً
+    // عند الوصول إلى مرحلة تفعيل الصلاحيات والشاشات المستقلة
+    const isDoctor = false;
 
     if (isDoctor) {
       return (
