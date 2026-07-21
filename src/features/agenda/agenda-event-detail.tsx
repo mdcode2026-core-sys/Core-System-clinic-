@@ -383,7 +383,7 @@ export function AgendaEventDetail({
                 "confirmed",
                 "arrived",
                 "in_session",
-              ].includes(event.status) && (
+              ].includes(event.status ?? "") && (
                 <Button
                   variant="destructive"
                   size="sm"
