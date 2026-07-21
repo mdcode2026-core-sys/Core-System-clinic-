@@ -22,16 +22,22 @@ function getTodayRange(): { start: string; end: string } {
   return { start: start.toISOString(), end: end.toISOString() };
 }
 
+// ── Helper: قراءة tenantId من JWT ─────────────────────────
+async function getTenantId(): Promise<string> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not authenticated");
+  
+  const tenantId = user.user_metadata?.tenant_id as string | undefined;
+  if (!tenantId) throw new Error("No tenant assigned");
+  
+  return tenantId;
+}
+
 // ── 1. جلب الطابور (الزيارات المُغنّاة) ───────────────────
 export async function getQueue(filters?: QueueFilters): Promise<EnrichedSession[]> {
   const supabase = await createClient();
-
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error("Not authenticated");
-
-  // قراءة tenant_id من JWT
-  const tenantId = user.user_metadata?.tenant_id as string | undefined;
-  if (!tenantId) throw new Error("No tenant assigned");
+  const tenantId = await getTenantId();
 
   const { start, end } = getTodayRange();
 
@@ -76,12 +82,7 @@ export async function getQueue(filters?: QueueFilters): Promise<EnrichedSession[
 // ── 2. جلب إحصائيات الطابور ──────────────────────────────
 export async function getQueueStats(): Promise<QueueStats> {
   const supabase = await createClient();
-
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error("Not authenticated");
-
-  const tenantId = user.user_metadata?.tenant_id as string | undefined;
-  if (!tenantId) throw new Error("No tenant assigned");
+  const tenantId = await getTenantId();
 
   const { start, end } = getTodayRange();
 
@@ -119,12 +120,7 @@ export async function getQueueStats(): Promise<QueueStats> {
 // ── 3. جلب زيارة واحدة ───────────────────────────────────
 export async function getSessionById(sessionId: string): Promise<EnrichedSession | null> {
   const supabase = await createClient();
-
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error("Not authenticated");
-
-  const tenantId = user.user_metadata?.tenant_id as string | undefined;
-  if (!tenantId) throw new Error("No tenant assigned");
+  const tenantId = await getTenantId();
 
   const { data, error } = await supabase
     .from("clinic_visit_sessions")
@@ -156,12 +152,7 @@ export async function getSessionById(sessionId: string): Promise<EnrichedSession
 // ── 4. جلب الأطباء النشطين ───────────────────────────────
 export async function getActiveDoctors(): Promise<{ id: string; full_name: string; specialization: string | null }[]> {
   const supabase = await createClient();
-
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error("Not authenticated");
-
-  const tenantId = user.user_metadata?.tenant_id as string | undefined;
-  if (!tenantId) throw new Error("No tenant assigned");
+  const tenantId = await getTenantId();
 
   const { data, error } = await supabase
     .from("clinic_users")
@@ -178,12 +169,7 @@ export async function getActiveDoctors(): Promise<{ id: string; full_name: strin
 // ── 5. جلب الغرف المتاحة ─────────────────────────────────
 export async function getAvailableRooms(): Promise<{ id: string; name: string }[]> {
   const supabase = await createClient();
-
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error("Not authenticated");
-
-  const tenantId = user.user_metadata?.tenant_id as string | undefined;
-  if (!tenantId) throw new Error("No tenant assigned");
+  const tenantId = await getTenantId();
 
   const { data, error } = await supabase
     .from("clinic_rooms")
