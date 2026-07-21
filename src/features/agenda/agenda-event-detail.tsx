@@ -175,7 +175,7 @@ export function AgendaEventDetail({
     formData.append("tenant_id", tenantId);
     formData.append("id", event.id);
     formData.append("status", newStatus);
-    formData.append("current_status", event.status);
+    formData.append("current_status", event.status ?? "");
 
     const result = await updateAgendaEventStatus(formData);
 
@@ -201,7 +201,7 @@ export function AgendaEventDetail({
     const formData = new FormData();
     formData.append("tenant_id", tenantId);
     formData.append("id", event.id);
-    formData.append("current_status", event.status);
+    formData.append("current_status", event.status ?? "");
 
     const result = await cancelAgendaEvent(formData);
 
