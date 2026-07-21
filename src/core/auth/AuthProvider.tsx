@@ -16,13 +16,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const fetchUserData = useCallback(async (userId: string, jwtTenantId?: string) => {
     try {
-      // استخدام tenant_id من JWT إذا متوفرة
       let query = supabase
         .from("users")
         .select("tenant_id, role_id, roles(role_key)")
         .eq("auth_user_id", userId);
 
-      // إذا كان tenant_id متوفرة في JWT، نستخدمها لتجنب نتائج متعددة
       if (jwtTenantId) {
         query = query.eq("tenant_id", jwtTenantId);
       }
@@ -42,6 +40,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       setRole(roleKey);
       setTenantId(data.tenant_id ?? jwtTenantId ?? null);
+
+      // كتابة role و tenant_id في user_metadata
+      if (roleKey && data.tenant_id) {
+        await supabase.auth.updateUser({
+          data: {
+            role: roleKey,
+            tenant_id: data.tenant_id,
+          }
+        });
+      }
     } catch (err) {
       console.error("[Auth] Unexpected error:", err);
       setRole(null);
@@ -62,7 +70,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(initialSession?.user ?? null);
 
         if (initialSession?.user) {
-          // قراءة tenant_id من JWT
           const jwtTenantId = initialSession.user.user_metadata?.tenant_id as string | undefined;
           await fetchUserData(initialSession.user.id, jwtTenantId);
         }
@@ -83,7 +90,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(newSession?.user ?? null);
 
         if (newSession?.user) {
-          // قراءة tenant_id من JWT
           const jwtTenantId = newSession.user.user_metadata?.tenant_id as string | undefined;
           await fetchUserData(newSession.user.id, jwtTenantId);
         } else {
