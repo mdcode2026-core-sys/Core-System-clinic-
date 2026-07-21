@@ -1,0 +1,140 @@
+// src/domain/queue/queue.engine.ts
+// Phase 4 — Queue Management Module
+// Queue Engine: Business rules for ordering, priority, and flow
+// Isolated from UI and database — pure business logic
+
+import { QueueSession, EnrichedSession, SessionStatus, VisitPriority, QueueLane } from "./queue.types";
+
+// ── نتيجة المحرك ───────────────────────────────────────────
+export interface EngineResult {
+  success: boolean;
+  sessions: EnrichedSession[];
+  errors: string[];
+}
+
+// ── قاعدة المحرك ──────────────────────────────────────────
+export interface QueueRule {
+  name: string;
+  apply: (sessions: EnrichedSession[]) => EnrichedSession[];
+}
+
+// ── قاعدة 1: ترتيب الأولوية ──────────────────────────────
+// طارئ → مستعجل → عادي
+const prioritySortRule: QueueRule = {
+  name: "priority_sort",
+  apply: (sessions) => {
+    return [...sessions].sort((a, b) => {
+      const priorityA = a.priority ?? VisitPriority.NORMAL;
+      const priorityB = b.priority ?? VisitPriority.NORMAL;
+      if (priorityB !== priorityA) return priorityB - priorityA;
+      return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+    });
+  },
+};
+
+// ── قاعدة 2: عزل الطابور حسب الطبيب ───────────────────────
+const laneIsolationRule: QueueRule = {
+  name: "lane_isolation",
+  apply: (sessions) => {
+    return sessions.filter((s) => {
+      if (s.lane === QueueLane.DOCTOR && !s.doctor_id) return false;
+      return true;
+    });
+  },
+};
+
+// ── القواعد الافتراضية ────────────────────────────────────
+export const defaultQueueRules: QueueRule[] = [
+  laneIsolationRule,
+  prioritySortRule,
+];
+
+// ── محرك Queue ─────────────────────────────────────────────
+export class QueueEngine {
+  private rules: QueueRule[];
+
+  constructor(rules: QueueRule[] = defaultQueueRules) {
+    this.rules = rules;
+  }
+
+  // معالجة الطابور عبر جميع القواعد
+  processQueue(sessions: EnrichedSession[]): EngineResult {
+    const errors: string[] = [];
+    let processed = [...sessions];
+
+    for (const rule of this.rules) {
+      try {
+        const beforeCount = processed.length;
+        processed = rule.apply(processed);
+        if (processed.length < beforeCount) {
+          errors.push(`Rule '${rule.name}' filtered ${beforeCount - processed.length} sessions`);
+        }
+      } catch (err) {
+        errors.push(`Rule '${rule.name}' failed: ${err}`);
+      }
+    }
+
+    // إعادة ترقيم المواقع
+    processed = processed.map((session, index) => ({
+      ...session,
+      queue_position: index + 1,
+    }));
+
+    return {
+      success: errors.length === 0,
+      sessions: processed,
+      errors,
+    };
+  }
+
+  // التحقق من صلاحية الانتقال
+  validateTransition(
+    currentStatus: SessionStatus,
+    newStatus: SessionStatus
+  ): { valid: boolean; reason?: string } {
+    const allowedTransitions: Record<SessionStatus, SessionStatus[]> = {
+      waiting: ["in_consultation", "no_show", "cancelled"],
+      in_consultation: ["pending_close", "cancelled"],
+      pending_close: ["completed", "cancelled"],
+      completed: [],
+      cancelled: [],
+      no_show: [],
+    };
+
+    const allowed = allowedTransitions[currentStatus] || [];
+    if (allowed.includes(newStatus)) {
+      return { valid: true };
+    }
+
+    return {
+      valid: false,
+      reason: `Cannot transition from ${currentStatus} to ${newStatus}. Allowed: ${allowed.join(", ") || "none"}`,
+    };
+  }
+
+  // حساب وقت الانتظار المتوقع
+  calculateEstimatedWait(
+    queue: EnrichedSession[],
+    targetDoctorId?: string
+  ): number {
+    const relevant = targetDoctorId
+      ? queue.filter((s) => s.doctor_id === targetDoctorId && s.session_status === "waiting")
+      : queue.filter((s) => s.session_status === "waiting");
+
+    if (relevant.length === 0) return 0;
+
+    const totalDuration = relevant.reduce(
+      (sum, s) => sum + 30, // افتراض 30 دقيقة لكل زيارة
+      0
+    );
+
+    const activeDoctors = new Set(
+      queue.filter((s) => s.session_status === "in_consultation").map((s) => s.doctor_id)
+    ).size || 1;
+
+    return Math.round(totalDuration / activeDoctors);
+  }
+}
+
+// ── تصدير Singleton ───────────────────────────────────────
+export const queueEngine = new QueueEngine();
