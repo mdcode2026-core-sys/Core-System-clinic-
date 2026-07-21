@@ -2,13 +2,15 @@
 
 // src/features/kiosk/AmbientKioskView.tsx
 // Phase 4 — Queue Management Module
-// Self-service kiosk for patient check-in (simplified — no sonner)
+// Self-service kiosk for patient check-in
 
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
 import { Badge } from "@/shared/components/ui/badge";
+import { findPatientByPhone, checkInPatient } from "@/domain/queue/queue.actions";
+import { createPatientFromObject } from "@/domain/patients/patients.actions";
 import {
   Stethoscope,
   Clock,
@@ -18,7 +20,11 @@ import {
   ArrowRight,
 } from "lucide-react";
 
-export function AmbientKioskView() {
+interface AmbientKioskViewProps {
+  tenantId: string;
+}
+
+export function AmbientKioskView({ tenantId }: AmbientKioskViewProps) {
   const [mode, setMode] = useState<"idle" | "checkin" | "register" | "queue" | "error">("idle");
   const [phone, setPhone] = useState("");
   const [patientName, setPatientName] = useState("");
@@ -34,9 +40,24 @@ export function AmbientKioskView() {
     }
     setIsSubmitting(true);
     setErrorMessage("");
-    // TODO: ربط بـ findPatientByPhone لاحقاً
-    setMode("register");
-    setIsSubmitting(false);
+
+    try {
+      const patient = await findPatientByPhone(phone, tenantId);
+      if (patient) {
+        const session = await checkInPatient({
+          patient_id: patient.id,
+        });
+        setQueueNumber("A" + session.id.slice(-2).toUpperCase());
+        setMode("queue");
+      } else {
+        setMode("register");
+      }
+    } catch (err: any) {
+      setErrorMessage(err.message || "فشل البحث عن المريض");
+      setMode("error");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleRegisterAndCheckIn = async () => {
@@ -46,10 +67,33 @@ export function AmbientKioskView() {
       return;
     }
     setIsSubmitting(true);
-    // TODO: ربط بـ createPatient + checkInPatient لاحقاً
-    setQueueNumber("A" + Math.floor(Math.random() * 100).toString().padStart(2, "0"));
-    setMode("queue");
-    setIsSubmitting(false);
+
+    try {
+      const newPatient = await createPatientFromObject({
+        tenant_id: tenantId,
+        first_name: patientName,
+        last_name: "",
+        phone_primary: phone,
+        patient_status: "active",
+      });
+
+      if (newPatient.error) {
+        throw new Error(newPatient.error);
+      }
+
+      if (newPatient.data) {
+        const session = await checkInPatient({
+          patient_id: newPatient.data.id,
+        });
+        setQueueNumber("A" + session.id.slice(-2).toUpperCase());
+        setMode("queue");
+      }
+    } catch (err: any) {
+      setErrorMessage(err.message || "فشل التسجيل");
+      setMode("error");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const resetKiosk = () => {
