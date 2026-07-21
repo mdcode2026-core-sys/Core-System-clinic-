@@ -1,114 +1,109 @@
-.
-./.env.example
-./.env.local
-./.git
-./.gitignore
-./.next
-./Apendix A — Folder Structure Standard.md
-./Appendix B — Definition of Project Phases.md
-./ENGINEERING_CONSTITUTION.md
-./Handoff_Daily_Report_2026-07-17.md 
-./PROJECT_TREE.txt
-./components.json
-./middleware.ts
-./next-env.d.ts
-./next.config.ts
-./node_modules
-./package-lock.json
-./package.json
-./postcss.config.js
-./src
-./src/app
-./src/app/(auth)
-./src/app/(auth)/layout.tsx
-./src/app/(auth)/login
-./src/app/(auth)/login/page.tsx
-./src/app/(auth)/register
-./src/app/(auth)/register/page.tsx
-./src/app/(dashboard)
-./src/app/(dashboard)/agenda
-./src/app/(dashboard)/agenda/page.tsx
-./src/app/(dashboard)/analytics
-./src/app/(dashboard)/analytics/page.tsx
-./src/app/(dashboard)/invoices
-./src/app/(dashboard)/invoices/page.tsx
-./src/app/(dashboard)/layout.tsx
-./src/app/(dashboard)/page.tsx
-./src/app/(dashboard)/patients
-./src/app/(dashboard)/patients/page.tsx
-./src/app/(dashboard)/queue
-./src/app/(dashboard)/queue/page.tsx
-./src/app/(dashboard)/settings
-./src/app/(dashboard)/settings/page.tsx
-./src/app/globals.css
-./src/app/layout.tsx
-./src/app/page.tsx
-./src/core
-./src/core/auth
-./src/core/auth/AuthContext.ts
-./src/core/auth/AuthProvider.tsx
-./src/core/auth/actions.ts
-./src/core/permissions
-./src/core/permissions/PermissionGuard.tsx
-./src/core/permissions/permissionMatrix.ts
-./src/core/permissions/types.ts
-./src/core/realtime
-./src/core/realtime/RealtimeProvider.tsx
-./src/domain
-./src/domain/agenda
-./src/domain/agenda/agenda.queries.ts
-./src/domain/agenda/agenda.types.ts
-./src/domain/analytics
-./src/domain/analytics/analytics.queries.ts
-./src/domain/invoicing
-./src/domain/invoicing/invoicing.calculator.ts
-./src/domain/invoicing/invoicing.types.ts
-./src/domain/patients
-./src/domain/patients/patients.queries.ts
-./src/domain/patients/patients.types.ts
-./src/domain/queue
-./src/domain/queue/queue.queries.ts
-./src/domain/queue/queue.types.ts
-./src/features
-./src/features/clinic-admin
-./src/features/clinic-admin/AnalyticsOverview.tsx
-./src/features/dashboard
-./src/features/dashboard/DashboardShell.tsx
-./src/features/doctor
-./src/features/doctor/MyQueueView.tsx
-./src/features/kiosk
-./src/features/kiosk/AmbientKioskView.tsx
-./src/features/reception
-./src/features/reception/LiveQueueBoard.tsx
-./src/features/super-admin
-./src/features/super-admin/TenantRegistry.tsx
-./src/infrastructure
-./src/infrastructure/pwa
-./src/infrastructure/pwa/OfflineBanner.tsx
-./src/infrastructure/supabase
-./src/infrastructure/supabase/client.ts
-./src/infrastructure/supabase/database.types.ts
-./src/infrastructure/supabase/middleware.ts
-./src/infrastructure/supabase/server.ts
-./src/shared
-./src/shared/components
-./src/shared/components/QueryClientProvider.tsx
-./src/shared/components/ui
-./src/shared/components/ui/avatar.tsx
-./src/shared/components/ui/badge.tsx
-./src/shared/components/ui/button.tsx
-./src/shared/components/ui/card.tsx
-./src/shared/components/ui/input.tsx
-./src/shared/components/ui/label.tsx
-./src/shared/components/ui/separator.tsx
-./src/shared/components/ui/sheet.tsx
-./src/shared/components/ui/textarea.tsx
-./src/shared/hooks
-./src/shared/hooks/useNetworkStatus.ts
-./src/shared/hooks/useQueue.ts
-./src/shared/utils
-./src/shared/utils/cn.ts
-./src/shared/utils/currency.ts
-./src/shared/utils/dateTime.ts
-./tailwind.config.ts
-./tsconfig.json
+src
+├── app
+│   ├── (auth)
+│   │   ├── layout.tsx
+│   │   ├── login
+│   │   │   └── page.tsx
+│   │   └── register
+│   │       └── page.tsx
+│   ├── (dashboard)
+│   │   ├── agenda
+│   │   │   └── page.tsx
+│   │   ├── analytics
+│   │   │   └── page.tsx
+│   │   ├── invoices
+│   │   │   └── page.tsx
+│   │   ├── layout.tsx
+│   │   ├── patients
+│   │   │   └── page.tsx
+│   │   ├── queue
+│   │   │   └── page.tsx
+│   │   └── settings
+│   │       └── page.tsx
+│   ├── globals.css
+│   ├── layout.tsx
+│   └── page.tsx
+├── core
+│   ├── auth
+│   │   ├── AuthContext.ts
+│   │   ├── AuthProvider.tsx
+│   │   └── actions.ts
+│   ├── permissions
+│   │   ├── PermissionGuard.tsx
+│   │   ├── permissionMatrix.ts
+│   │   └── types.ts
+│   └── realtime
+│       └── RealtimeProvider.tsx
+├── domain
+│   ├── agenda
+│   │   ├── agenda.actions.ts
+│   │   ├── agenda.queries.ts
+│   │   ├── agenda.types.ts
+│   │   └── conflict.engine.ts
+│   ├── analytics
+│   │   └── analytics.queries.ts
+│   ├── invoicing
+│   │   ├── invoicing.calculator.ts
+│   │   └── invoicing.types.ts
+│   ├── patients
+│   │   ├── patients.actions.ts
+│   │   ├── patients.queries.ts
+│   │   └── patients.types.ts
+│   └── queue
+│       ├── queue.actions.ts\012
+│       ├── queue.engine.ts\012
+│       ├── queue.queries.ts
+│       └── queue.types.ts
+├── features
+│   ├── agenda
+│   │   ├── agenda-calendar.tsx
+│   │   ├── agenda-event-detail.tsx
+│   │   └── agenda-event-form.tsx
+│   ├── clinic-admin
+│   │   └── AnalyticsOverview.tsx
+│   ├── dashboard
+│   │   └── DashboardShell.tsx
+│   ├── doctor
+│   │   └── MyQueueView.tsx
+│   ├── kiosk
+│   │   └── AmbientKioskView.tsx
+│   ├── patients
+│   │   ├── patient-detail.tsx
+│   │   ├── patient-form.tsx
+│   │   └── patient-list.tsx
+│   ├── reception
+│   │   └── LiveQueueBoard.tsx
+│   └── super-admin
+│       └── TenantRegistry.tsx
+├── infrastructure
+│   ├── pwa
+│   │   └── OfflineBanner.tsx
+│   └── supabase
+│       ├── client.ts
+│       ├── database.types.ts
+│       ├── middleware.ts
+│       └── server.ts
+└── shared
+    ├── components
+    │   ├── QueryClientProvider.tsx
+    │   └── ui
+    │       ├── avatar.tsx
+    │       ├── badge.tsx
+    │       ├── button.tsx
+    │       ├── card.tsx
+    │       ├── dialog.tsx
+    │       ├── input.tsx
+    │       ├── label.tsx
+    │       ├── select.tsx
+    │       ├── separator.tsx
+    │       ├── sheet.tsx
+    │       └── textarea.tsx
+    ├── hooks
+    │   ├── useNetworkStatus.ts
+    │   └── useQueue.ts
+    └── utils
+        ├── cn.ts
+        ├── currency.ts
+        └── dateTime.ts
+
+39 directories, 68 files
