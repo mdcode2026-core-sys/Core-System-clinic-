@@ -40,16 +40,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       setRole(roleKey);
       setTenantId(data.tenant_id ?? jwtTenantId ?? null);
-
-      // كتابة role و tenant_id في user_metadata
-      if (roleKey && data.tenant_id) {
-        await supabase.auth.updateUser({
-          data: {
-            role: roleKey,
-            tenant_id: data.tenant_id,
-          }
-        });
-      }
     } catch (err) {
       console.error("[Auth] Unexpected error:", err);
       setRole(null);
