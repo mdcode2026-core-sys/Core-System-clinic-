@@ -68,9 +68,9 @@ export function LiveQueueBoard({ tenantId: propTenantId, initialQueue = [], init
     setErrorMessage(null);
     try {
       const [queueData, statsData, doctorsData] = await Promise.all([
-        getQueue(tenantId),
-        getQueueStats(tenantId),
-        getActiveDoctors(tenantId),
+        getQueue(),
+        getQueueStats(),
+        getActiveDoctors(),
       ]);
       setSessions(queueData);
       setStats(statsData);
