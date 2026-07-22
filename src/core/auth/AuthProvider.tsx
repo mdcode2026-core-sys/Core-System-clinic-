@@ -16,16 +16,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const fetchUserData = useCallback(async (userId: string, jwtTenantId?: string) => {
     try {
-      let query = supabase
-        .from("users")
-        .select("tenant_id, role_id, roles(role_key)")
-        .eq("auth_user_id", userId);
-
-      if (jwtTenantId) {
-        query = query.eq("tenant_id", jwtTenantId);
-      }
-
-      const { data, error } = await query.maybeSingle();
+      const { data, error } = await supabase
+        .from("clinic_users")
+        .select("tenant_id, role")
+        .eq("auth_user_id", userId)
+        .maybeSingle();
 
       if (error || !data) {
         console.error("[Auth] Error fetching user data:", error);
@@ -34,11 +29,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
-      const roleKey = Array.isArray(data.roles) && data.roles.length > 0 
-        ? data.roles[0].role_key 
-        : null;
-
-      setRole(roleKey);
+      setRole(data.role);
       setTenantId(data.tenant_id ?? jwtTenantId ?? null);
     } catch (err) {
       console.error("[Auth] Unexpected error:", err);
