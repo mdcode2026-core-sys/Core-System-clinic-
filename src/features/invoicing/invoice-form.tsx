@@ -14,10 +14,10 @@ import { Label } from "@/shared/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/components/ui/select";
 import { Textarea } from "@/shared/components/ui/textarea";
 import { Plus, Trash2, Calculator, Save } from "lucide-react";
-import { createManualInvoice } from "@/domain/invoicing/invoicing.actions";
-import { getUninvoicedSessions, getClinicProcedures, getPatientsList } from "@/domain/invoicing/invoicing.queries";
-import { calculateLineItem, calculateInvoiceTotals, formatCurrency } from "@/domain/invoicing/invoicing.calculator";
-import type { InvoiceFormState, InvoiceFormItem, PaymentTerms } from "@/domain/invoicing/invoicing.types";
+import { createManualInvoice } from "../../../domain/invoicing/invoicing.actions";
+import { getUninvoicedSessions, getClinicProcedures, getPatientsList } from "../../../domain/invoicing/invoicing.queries";
+import { calculateLineItem, calculateInvoiceTotals, formatCurrency } from "../../../domain/invoicing/invoicing.calculator";
+import type { InvoiceFormState, InvoiceFormItem, PaymentTerms } from "../../../domain/invoicing/invoicing.types";
 
 const paymentTermsOptions: { value: PaymentTerms; label: string }[] = [
   { value: "cash", label: "نقدي" },
@@ -131,7 +131,7 @@ export function InvoiceForm() {
     setError(null);
 
     const result = await createManualInvoice({
-      tenant_id: "", // Will be filled by server action
+      tenant_id: "",
       patient_id: form.patient_id,
       session_id: form.session_id,
       payment_terms: form.payment_terms,
