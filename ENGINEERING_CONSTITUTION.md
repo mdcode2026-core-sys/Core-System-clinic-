@@ -12,7 +12,7 @@
 >
 > **Copyright:** © 2026 All Rights Reserved
 
----
+--- 
 
 # Chapter 1 — Project Identity & Engineering Philosophy
 
