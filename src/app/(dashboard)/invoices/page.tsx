@@ -3,7 +3,7 @@
 // Phase 5 — Invoices List Page
 // ============================================================
 
-import { InvoiceList } from "@/features/invoicing/invoice-list";
+import { InvoiceList } from "../../features/invoicing/invoice-list";
 
 export default function InvoicesPage() {
   return (
