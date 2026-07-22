@@ -88,8 +88,6 @@ export function InvoiceDetail({ invoice }: InvoiceDetailProps) {
     }
     const result = await recordPayment({
       invoice_id: invoice.id,
-      amount_subunits: await recordPayment({
-      invoice_id: invoice.id,
       amount_subunits: amount,
       payment_method: paymentMethod,
       reference_number: paymentRef || null,
