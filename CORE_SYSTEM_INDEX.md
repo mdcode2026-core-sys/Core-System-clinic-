@@ -1,10 +1,11 @@
 # CORE_SYSTEM_INDEX.md
 
-> Version: 1.1
+> Version: 1.2
 > Status: Authoritative Reference
 > Project: CORE SYSTEM
 > Architecture: SaaS
 > Owner: Yazeed Waleed
+> Last Updated: 2026-07-23
 
 ---
 
@@ -169,7 +170,7 @@ Phase 5 — Invoicing
 
 Status
 
-Design
+Implementation (Database Complete, Files Pending Installation)
 
 Reason
 
@@ -177,7 +178,9 @@ Phase 1, 2, 3, 4 Core Implementation complete.
 
 Phase 4 remains in Progressive Validation with 2 suspended items.
 
-Phase 5 design begins.
+Phase 5 database schema, RLS, and Functions deployed.
+
+Phase 5 TypeScript files created but not yet installed in repository.
 
 ---
 
@@ -455,6 +458,9 @@ Avoid unnecessary technical jargon.
 Explain decisions before implementation.
 
 Never assume programming knowledge.
+
+---
+
 # PROJECT STATUS
 
 ## Current Development Status
@@ -477,9 +483,9 @@ Phase 5 — Invoicing
 
 Completion
 
-Design (0%)
+Database: 100% | TypeScript Files: Created (Pending Installation)
 
-Phase 5 cannot begin implementation until design is approved.
+Phase 5 database deployed. Files ready for installation and build test.
 
 ---
 
@@ -539,11 +545,25 @@ Legacy tables unified.
 
 ## Phase 5 Objectives
 
-Status: Design
+Status: Implementation
 
 Invoicing Module.
 
-Pending design approval.
+Database Schema: DEPLOYED
+
+RLS Policies: DEPLOYED
+
+Database Functions: DEPLOYED
+
+TypeScript Types: CREATED (pending install)
+
+Server Actions: CREATED (pending install)
+
+UI Components: CREATED (pending install)
+
+Build Test: PENDING
+
+Manual Testing: PENDING
 
 ---
 
@@ -829,3 +849,660 @@ Wait.
 
 Continue only after receiving clarification.
 
+---
+
+القسم 17 — قواعد العمل الإلزامية (Engineering Contract)
+
+هذه القواعد تعتبر عقد عمل هندسي.
+
+يجب الالتزام بها في جميع المحادثات.
+
+---
+
+أولاً
+
+لا يتم تعديل أي ملف إلا بعد فهم:
+
+- الهدف من الملف
+- علاقته ببقية الملفات
+- علاقته بقاعدة البيانات
+- تأثيره على المشروع
+
+---
+
+ثانياً
+
+يمنع تعديل أي ملف بسبب التخمين.
+
+إذا لم تكن المعلومات كافية يجب السؤال أولاً.
+
+---
+
+ثالثاً
+
+إذا كان هناك أكثر من احتمال للمشكلة:
+
+لا يتم اختيار أحدها عشوائياً.
+
+بل يتم جمع الأدلة أولاً.
+
+---
+
+رابعاً
+
+كل تعديل يجب أن يحتوي على:
+
+- لماذا؟
+- ماذا سيغير؟
+- ماذا قد يكسر؟
+- كيف سيتم التحقق؟
+
+---
+
+خامساً
+
+أي حل سبق تجربته وفشل يمنع اقتراحه مرة أخرى إلا إذا تغير سبب المشكلة.
+
+---
+
+سادساً
+
+أي تعديل معماري يحتاج تبريراً هندسياً.
+
+وليس مجرد:
+
+"هذا أفضل"
+
+---
+
+سابعاً
+
+لا يتم إنشاء ملفات جديدة إلا إذا كانت جزءاً من التصميم الحقيقي.
+
+---
+
+ثامناً
+
+إذا كان الملف لن يستخدم...
+
+لا يتم إنشاؤه.
+
+---
+
+تاسعاً
+
+كل قرار يجب أن يحافظ على:
+
+- Multi Tenant
+- SaaS
+- Security
+- Scalability
+- Maintainability
+
+---
+
+القسم 18 — طريقة التواصل
+
+أنا لست مبرمجاً.
+
+لذلك يجب أن تكون جميع الإجابات بالشكل التالي.
+
+---
+
+عند شرح مشكلة
+
+ماذا حدث؟
+
+بلغة بسيطة.
+
+---
+
+لماذا حدث؟
+
+بلغة بسيطة.
+
+---
+
+ما الحل؟
+
+بلغة بسيطة.
+
+---
+
+لماذا اخترنا هذا الحل؟
+
+بلغة بسيطة.
+
+---
+
+ماذا سألاحظ بعد التنفيذ؟
+
+بلغة بسيطة.
+
+---
+
+يمنع استخدام مصطلحات معقدة دون شرحها.
+
+---
+
+القسم 19 — طريقة طلب المعلومات
+
+إذا احتجت أي معلومة...
+
+لا تخمن.
+
+اطلبها مباشرة.
+
+مثال:
+
+أحتاج الملف التالي:
+
+```
+src/app/(dashboard)/layout.tsx
+```
+
+وسبب الحاجة:
+
+لأنني أريد معرفة من أين يأتي Redirect.
+
+---
+
+أو
+
+أحتاج نتيجة هذا الاستعلام.
+
+وسبب الحاجة:
+
+للتحقق من...
+
+---
+
+القسم 20 — طريقة اكتشاف الأخطاء
+
+قبل اقتراح أي تعديل...
+
+قم بهذه الخطوات.
+
+١.
+
+حدد المشكلة بدقة.
+
+٢.
+
+حدد الملفات المرتبطة بها.
+
+٣.
+
+حدد الجداول المرتبطة.
+
+٤.
+
+حدد Functions المرتبطة.
+
+٥.
+
+حدد Middleware.
+
+٦.
+
+حدد Routes.
+
+٧.
+
+حدد هل المشكلة Frontend أم Backend أم Auth أم Database.
+
+بعد ذلك فقط...
+
+ابدأ الحل.
+
+---
+
+القسم 21 — قاعدة منع تدمير النظام
+
+إذا كان جزء من النظام يعمل...
+
+لا يتم لمسه.
+
+حتى لو كان يمكن تحسينه.
+
+الأولوية دائماً:
+
+استقرار النظام.
+
+وليس إعادة كتابة الكود.
+
+---
+
+القسم 22 — سياسة الإصلاح
+
+الإصلاح يكون دائماً:
+
+Minimal Fix
+
+وليس
+
+Rewrite
+
+إلا إذا ثبت هندسياً أن إعادة الكتابة ضرورية.
+
+---
+
+القسم 23 — تعريف نجاح المهمة
+
+أي مهمة تعتبر ناجحة فقط إذا:
+
+✅ الكود يعمل.
+
+✅ Build ينجح.
+
+✅ لا يوجد Regression.
+
+✅ لا يتم كسر جزء آخر.
+
+✅ تم التحقق عملياً.
+
+وليس نظرياً.
+
+---
+
+القسم 24 — عند انتهاء كل جلسة
+
+يجب إنشاء تقرير Handoff يحتوي على:
+
+ما الذي تم؟
+
+لماذا؟
+
+الملفات المعدلة.
+
+الجداول المعدلة.
+
+Functions المعدلة.
+
+Triggers المعدلة.
+
+ما الذي بقي؟
+
+ما الذي يمنع المتابعة؟
+
+أول مهمة في الجلسة القادمة.
+
+---
+
+القسم 25 — ممنوعات المشروع
+
+ممنوع:
+
+- التخمين.
+- التكرار.
+- الحلول السطحية.
+- إنشاء ملفات بلا استخدام.
+- تغيير Architecture دون موافقة.
+- حذف كود يعمل.
+- تغيير مسارات دون التأكد.
+
+---
+
+القسم 26 — الحقيقة المرجعية للمشروع (Single Source of Truth)
+
+أي معلومة يجب أن تعتمد على أحد المصادر التالية فقط:
+
+1.
+
+CORE_SYSTEM_INDEX.md
+
+2.
+
+مستودع GitHub
+
+3.
+
+Supabase Schema
+
+4.
+
+الكود الحالي
+
+إذا تعارض مصدران...
+
+يتم إيقاف التنفيذ وطلب القرار.
+
+---
+
+القسم 27 — قواعد محادثة جديدة
+
+عند بدء أي محادثة جديدة يجب تنفيذ الخطوات التالية بالترتيب:
+
+١.
+
+قراءة CORE_SYSTEM_INDEX.md بالكامل.
+
+٢.
+
+قراءة آخر تقرير Handoff.
+
+٣.
+
+تلخيص فهم الحالة الحالية.
+
+٤.
+
+تحديد المرحلة الحالية.
+
+٥.
+
+تحديد المهمة الحالية فقط.
+
+٦.
+
+عدم الانتقال لأي مهمة أخرى.
+
+---
+
+القسم 28 — تعريف المرحلة الحالية
+
+حتى يتم إصدار قرار جديد...
+
+المشروع في:
+
+Phase 5 — Invoicing
+
+الهدف الوحيد:
+
+تثبيت ملفات Phase 5 واختبار Build وإجراء اختبار عملي.
+
+---
+
+القسم 29 — المشاكل المفتوحة حالياً (Open Issues)
+
+1. Dashboard Routing
+- Status: RESOLVED
+
+2. Redirect Loop (ERR_TOO_MANY_REDIRECTS)
+- Status: RESOLVED
+
+3. JWT Claims
+- Status: VERIFIED
+
+4. RLS Bugs (3 policies)
+- Status: RESOLVED
+
+5. Legacy Tables (users/clinic_users, tenants/master_tenants)
+- Status: RESOLVED
+
+6. isDoctor Manual Flag
+- Status: SUSPENDED — waits MyQueueView
+
+7. Kiosk Patient Integration
+- Status: SUSPENDED — waits Patients Module
+
+8. Phase 5 Files Installation
+- Status: IN PROGRESS — Database deployed, TypeScript files created, pending install and build test
+
+---
+
+القسم 30 — الهدف النهائي للمشروع
+
+CORE SYSTEM ليس مشروعاً تجريبياً.
+
+بل منصة SaaS احترافية لإدارة العيادات قابلة للتوسع.
+
+أي قرار هندسي يجب أن يخدم هذا الهدف.
+
+وليس مجرد حل مشكلة مؤقتة.
+
+---
+
+نهاية الوثيقة
+
+أي جلسة جديدة تبدأ من هذا الملف.
+
+أي قرار جديد يضاف إلى هذه الوثيقة.
+
+أي تغيير معماري يوثق هنا قبل تنفيذه.
+
+هذه الوثيقة هي المرجع الرسمي والهندسي للمشروع.
+
+---
+
+APPENDIX A — PROJECT STATUS (LIVE)
+
+> الغرض: هذا القسم هو المرجع الوحيد للحالة الحالية للمشروع. يتم تحديثه بعد نهاية كل جلسة عمل، ولا يُعدّل أي ملف أو قاعدة بيانات قبل قراءته بالكامل.
+
+الحالة الحالية
+
+المشروع
+
+Project: CORE SYSTEM
+
+Architecture: SaaS Multi-Tenant
+
+Framework: Next.js App Router
+
+Database: Supabase
+
+Deployment: Vercel
+
+Repository: GitHub
+
+Development: GitHub Codespaces
+
+---
+
+القرارات المعمارية المعتمدة (Architecture Decisions)
+
+معتمد
+
+Next.js App Router.
+
+Multi-Tenant Architecture.
+
+SaaS Architecture.
+
+Vertical Slice Architecture.
+
+TypeScript.
+
+Supabase Auth.
+
+RLS.
+
+JWT Claims.
+
+Database Functions للعمليات الذرية فقط (Atomic Operations).
+
+Server Actions لباقي منطق الأعمال.
+
+Subscription مستقل عن بيانات العيادة.
+
+لا يوجد أي تعديل معماري دون موافقة.
+
+---
+
+الحالة الحالية لقاعدة البيانات
+
+تم إنشاء الجداول الأساسية.
+
+تم إنشاء العلاقات الأساسية.
+
+تم إنشاء:
+
+RLS
+
+Policies
+
+Indexes
+
+Triggers
+
+Database Functions
+
+RLS Bugs: RESOLVED
+
+Legacy Tables: UNIFIED
+
+Phase 5 Tables Deployed:
+- clinic_procedures (modified: +procedure_code, +tax_included, +tax_rate_percent)
+- clinic_invoices (modified: +invoice_number, +issued_at, +payment_terms, +notes)
+- invoice_items (new: 15 columns)
+- invoice_payments (new: 12 columns)
+
+Phase 5 Functions Deployed:
+- generate_invoice_number()
+- can_edit_invoice()
+- create_invoice_from_session()
+- recalculate_invoice_totals()
+- issue_invoice()
+- record_invoice_payment()
+- cancel_invoice()
+
+Phase 5 RLS Deployed:
+- invoice_items: SELECT, INSERT, UPDATE, DELETE
+- invoice_payments: SELECT, INSERT, UPDATE, DELETE
+
+---
+
+الحالة الحالية للمشكلة
+
+المشكلة الحالية ليست قاعدة البيانات.
+
+المشكلة الحالية ليست الجداول.
+
+المشكلة الحالية ليست Functions.
+
+المشكلة الحالية ليست Authentication.
+
+المشكلة الحالية هي:
+
+Phase 5 — Invoicing: Files Installation and Build Test
+
+---
+
+المسار الصحيح للـ Dashboard
+
+المسار الصحيح المعتمد هو:
+
+src/app/(dashboard)/page.tsx
+
+وليس:
+
+src/app/(dashboard)/dashboard/page.tsx
+
+أي اقتراح يعتمد على المسار الثاني يجب اعتباره غير صحيح حتى يثبت العكس من خلال مراجعة المشروع الحقيقي.
+
+---
+
+قاعدة ذهبية
+
+لا يتم اقتراح أي تعديل على:
+
+Routes
+
+Middleware
+
+Layout
+
+Auth
+
+Dashboard
+
+قبل مراجعة الملفات الأصلية الموجودة داخل المشروع.
+
+---
+
+قبل أي تعديل
+
+يجب التأكد من:
+
+مسار الملف الحقيقي.
+
+الملف الذي يستورده.
+
+الملفات التي تستورده.
+
+تأثير التعديل على Authentication.
+
+تأثير التعديل على Middleware.
+
+تأثير التعديل على Dashboard.
+
+---
+
+بعد كل جلسة
+
+يجب تحديث فقط:
+
+Current Status
+
+Current Blocker
+
+Completed Tasks
+
+Next Task
+
+ولا يتم إعادة كتابة الملف بالكامل.
+
+---
+
+فلسفة المشروع
+
+الهدف ليس جعل المشروع يعمل اليوم فقط.
+
+الهدف هو بناء منصة SaaS مستقرة تستطيع العمل سنوات دون إعادة بناء.
+
+أي حل سريع يكسر التصميم الهندسي يعتبر مرفوضاً.
+
+أي تعديل يجب أن يجعل المشروع أكثر استقراراً وليس فقط يزيل الخطأ الحالي.
+
+---
+
+المرجع الأساسي
+
+أي محادثة جديدة تبدأ بالترتيب التالي:
+
+1. CORE_SYSTEM_INDEX.md
+
+2. تقرير آخر جلسة (Session Report)
+
+3. أي ملفات إضافية مطلوبة.
+
+---
+
+APPENDIX B — PHASE 5 INVOICING STATUS
+
+> آخر تحديث: 2026-07-23
+
+Database Schema: ✅ DEPLOYED
+- 26 SQL commands executed successfully
+- All tables verified (22, 14, 15, 12 columns)
+- All constraints verified
+- All indexes created
+- All functions deployed
+- All RLS policies active
+
+Files Status: ⏳ CREATED (not installed)
+- invoicing.types.ts: ready
+- invoicing.calculator.ts: ready
+- invoicing.actions.ts: ready
+- invoicing.queries.ts: ready
+- invoice-list.tsx: ready
+- invoice-detail.tsx: ready
+- invoice-form.tsx: ready
+- invoices/page.tsx: ready
+- invoices/new/page.tsx: ready
+- invoices/[id]/page.tsx: ready
+
+Next Tasks:
+1. Install TypeScript files into repository
+2. Update database.types.ts
+3. Run npm run build
+4. Fix any TypeScript errors
+5. Manual testing
+6. Update CORE_SYSTEM_INDEX.md to CLOSED status
+
+Files Needed from Repository:
+- src/infrastructure/supabase/server.ts
+- src/infrastructure/supabase/database.types.ts
+- src/core/auth/AuthProvider.tsx
+- src/app/(dashboard)/layout.tsx
+- src/app/(dashboard)/page.tsx
