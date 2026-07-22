@@ -5,6 +5,7 @@
 // Full queue board for reception staff
 
 import { useState, useEffect, useCallback } from "react";
+import { useAuth } from "@/core/auth/AuthContext";
 import { getQueue, getQueueStats, getActiveDoctors } from "@/domain/queue/queue.queries";
 import {
   callNextPatient,
@@ -37,13 +38,16 @@ import {
 import { EnrichedSession, SessionStatus, QueueStats } from "@/domain/queue/queue.types";
 
 interface LiveQueueBoardProps {
-  tenantId: string;
+  tenantId?: string;
   initialQueue?: EnrichedSession[];
   initialStats?: QueueStats | null;
   initialDoctors?: { id: string; full_name: string; specialization: string | null }[];
 }
 
-export function LiveQueueBoard({ tenantId, initialQueue = [], initialStats = null, initialDoctors = [] }: LiveQueueBoardProps) {
+export function LiveQueueBoard({ tenantId: propTenantId, initialQueue = [], initialStats = null, initialDoctors = [] }: LiveQueueBoardProps) {
+  const { tenantId: authTenantId } = useAuth();
+  const tenantId = propTenantId || authTenantId;
+
   const [sessions, setSessions] = useState<EnrichedSession[]>(initialQueue);
   const [stats, setStats] = useState<QueueStats | null>(initialStats);
   const [doctors, setDoctors] = useState<{ id: string; full_name: string; specialization: string | null }[]>(initialDoctors);
@@ -55,10 +59,11 @@ export function LiveQueueBoard({ tenantId, initialQueue = [], initialStats = nul
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // Realtime subscription
-  useQueueSubscription(tenantId);
+  useQueueSubscription(tenantId || "");
 
   // Fetch data
   const fetchData = useCallback(async () => {
+    if (!tenantId) return;
     setIsLoading(true);
     setErrorMessage(null);
     try {
@@ -78,10 +83,11 @@ export function LiveQueueBoard({ tenantId, initialQueue = [], initialStats = nul
   }, [tenantId]);
 
   useEffect(() => {
+    if (!tenantId) return;
     if (initialQueue.length === 0) {
       fetchData();
     }
-  }, [fetchData, initialQueue.length]);
+  }, [fetchData, initialQueue.length, tenantId]);
 
   // Handle actions
   const handleAction = async (action: string, sessionId: string) => {
@@ -151,6 +157,8 @@ export function LiveQueueBoard({ tenantId, initialQueue = [], initialStats = nul
         return { color: "bg-gray-100 text-gray-800 border-gray-200", label: "ملغى" };
     }
   };
+
+  if (!tenantId) return <div className="p-8 text-center">جاري التحميل...</div>;
 
   if (isLoading) return <div className="p-8 text-center">جاري التحميل...</div>;
 
