@@ -1,6 +1,6 @@
 # CORE_SYSTEM_INDEX.md
 
-> Version: 1.0
+> Version: 1.1
 > Status: Authoritative Reference
 > Project: CORE SYSTEM
 > Architecture: SaaS
@@ -165,33 +165,19 @@ Repository always wins.
 
 Current Phase
 
-Phase 1
-
-Foundation
+Phase 5 — Invoicing
 
 Status
 
-NOT CLOSED
+Design
 
 Reason
 
-Authentication works.
+Phase 1, 2, 3, 4 Core Implementation complete.
 
-Database exists.
+Phase 4 remains in Progressive Validation with 2 suspended items.
 
-Subscription bootstrap exists.
-
-Dashboard routing is unstable.
-
-Middleware requires final validation.
-
-JWT Claims require validation.
-
-RLS requires production verification.
-
-Dashboard cannot yet be considered production ready.
-
-No Phase 2 development may begin until Phase 1 is officially completed.
+Phase 5 design begins.
 
 ---
 
@@ -487,200 +473,77 @@ NO
 
 Current Phase
 
-Phase 1 — Foundation
+Phase 5 — Invoicing
 
 Completion
 
-Approximately 85%
+Design (0%)
 
-Phase 1 cannot be closed until every item below is verified.
+Phase 5 cannot begin implementation until design is approved.
 
 ---
 
 ## Phase 1 Objectives
 
-The objective of Phase 1 is NOT to build features.
+Status: CLOSED
 
-The objective is to build a stable foundation that every future module depends on.
+Authentication works.
 
-If Phase 1 contains hidden problems, every future phase will inherit them.
+Database exists.
 
-Therefore stability is more important than speed.
+Subscription bootstrap exists.
 
----
+Dashboard routing stable.
 
-## Phase 1 Deliverables
+Middleware validated.
 
-Authentication
+JWT Claims validated.
 
-Status:
-Almost Complete
-
-Remaining
-
-JWT validation
-
-Session validation
-
-Production testing
+RLS production verified.
 
 ---
 
-Database
+## Phase 2 Objectives
 
-Status
+Status: CLOSED
 
-Implemented
-
-Includes
-
-Tables
-
-Relations
-
-Indexes
-
-Triggers
-
-Functions
-
-Policies
-
-RLS
-
-Audit
-
-Subscriptions
-
-Remaining
-
-Production verification only.
+Patients Module complete.
 
 ---
 
-Multi Tenant
+## Phase 3 Objectives
 
-Status
+Status: Progressive Validation
 
-Implemented
+Agenda Module Core Implementation 85%.
 
-Remaining
-
-Cross Tenant Verification.
-
-Every clinic must only access its own records.
+Pending real data testing.
 
 ---
 
-Subscription Bootstrap
+## Phase 4 Objectives
 
-Status
+Status: Progressive Validation
 
-Implemented
+Queue Module Core Implementation 85%.
 
-Current Flow
+Build successful.
 
-User Registration
+RLS bugs resolved.
 
-↓
+Legacy tables unified.
 
-Create Auth User
-
-↓
-
-Create Tenant
-
-↓
-
-Create Subscription
-
-↓
-
-Create Owner
-
-↓
-
-Return Success
-
-Remaining
-
-Production validation.
+2 items suspended pending MyQueueView readiness.
 
 ---
 
-Dashboard
+## Phase 5 Objectives
 
-Status
+Status: Design
 
-Incomplete
+Invoicing Module.
 
-Reason
-
-Routing still requires verification.
-
-Dashboard is not considered complete until navigation works correctly after login.
-
----
-
-Middleware
-
-Status
-
-Needs Verification
-
-No assumptions are accepted.
-
-Routing must be verified against repository.
-
----
-
-JWT Claims
-
-Status
-
-Implemented
-
-Remaining
-
-Validation
-
-Claims must always include
-
-Tenant ID
-
-User Role
-
-No feature depending on JWT should be developed before verification.
-
----
-
-RLS
-
-Status
-
-Enabled
-
-Remaining
-
-Real testing.
-
-Not SQL Editor testing.
-
-Real authenticated user testing.
-
----
-
-Audit System
-
-Status
-
-Implemented
-
-Triggers exist.
-
-Audit tables exist.
-
-Verification still required.
+Pending design approval.
 
 ---
 
@@ -737,6 +600,8 @@ Before changing routing
 Verify repository.
 
 Never assume.
+
+Status: RESOLVED
 
 ---
 
@@ -811,6 +676,54 @@ This increases project complexity.
 New Rule
 
 Never create helper files unless they become permanent project assets.
+
+---
+
+Issue 006
+
+RLS Bugs
+
+Description
+
+3 RLS policies had critical flaws.
+
+Status: RESOLVED
+
+Policies fixed:
+
+- rls_sessions_write_role_check
+- rls_invoices_doctor_read
+- rls_audit_read (includes receptionist)
+
+---
+
+Issue 007
+
+Legacy Tables
+
+Description
+
+users vs clinic_users and tenants vs master_tenants caused data inconsistency.
+
+Status: RESOLVED
+
+AuthProvider now reads from clinic_users.
+
+subscriptions and subscription_events FKs now point to master_tenants.
+
+---
+
+Issue 008
+
+isDoctor Manual Flag
+
+Description
+
+queue/page.tsx uses isDoctor = false manually.
+
+Status: SUSPENDED
+
+Will be resolved when MyQueueView is production ready.
 
 ---
 
@@ -915,637 +828,4 @@ Ask.
 Wait.
 
 Continue only after receiving clarification.
-
-```
-# CORE_SYSTEM_INDEX.md
-## الجزء الأخير — قواعد العمل الإلزامية + سجل المشروع + آلية الاستمرار
-
----
-
-# القسم 17 — قواعد العمل الإلزامية (Engineering Contract)
-
-هذه القواعد تعتبر عقد عمل هندسي.
-
-يجب الالتزام بها في جميع المحادثات.
-
----
-
-## أولاً
-
-لا يتم تعديل أي ملف إلا بعد فهم:
-
-- الهدف من الملف
-- علاقته ببقية الملفات
-- علاقته بقاعدة البيانات
-- تأثيره على المشروع
-
----
-
-## ثانياً
-
-يمنع تعديل أي ملف بسبب التخمين.
-
-إذا لم تكن المعلومات كافية يجب السؤال أولاً.
-
----
-
-## ثالثاً
-
-إذا كان هناك أكثر من احتمال للمشكلة:
-
-لا يتم اختيار أحدها عشوائياً.
-
-بل يتم جمع الأدلة أولاً.
-
----
-
-## رابعاً
-
-كل تعديل يجب أن يحتوي على:
-
-- لماذا؟
-- ماذا سيغير؟
-- ماذا قد يكسر؟
-- كيف سيتم التحقق؟
-
----
-
-## خامساً
-
-أي حل سبق تجربته وفشل يمنع اقتراحه مرة أخرى إلا إذا تغير سبب المشكلة.
-
----
-
-## سادساً
-
-أي تعديل معماري يحتاج تبريراً هندسياً.
-
-وليس مجرد:
-
-"هذا أفضل"
-
----
-
-## سابعاً
-
-لا يتم إنشاء ملفات جديدة إلا إذا كانت جزءاً من التصميم الحقيقي.
-
----
-
-## ثامناً
-
-إذا كان الملف لن يستخدم...
-
-لا يتم إنشاؤه.
-
----
-
-## تاسعاً
-
-كل قرار يجب أن يحافظ على:
-
-- Multi Tenant
-- SaaS
-- Security
-- Scalability
-- Maintainability
-
----
-
-# القسم 18 — طريقة التواصل
-
-أنا لست مبرمجاً.
-
-لذلك يجب أن تكون جميع الإجابات بالشكل التالي.
-
----
-
-## عند شرح مشكلة
-
-### ماذا حدث؟
-
-بلغة بسيطة.
-
----
-
-### لماذا حدث؟
-
-بلغة بسيطة.
-
----
-
-### ما الحل؟
-
-بلغة بسيطة.
-
----
-
-### لماذا اخترنا هذا الحل؟
-
-بلغة بسيطة.
-
----
-
-### ماذا سألاحظ بعد التنفيذ؟
-
-بلغة بسيطة.
-
----
-
-يمنع استخدام مصطلحات معقدة دون شرحها.
-
----
-
-# القسم 19 — طريقة طلب المعلومات
-
-إذا احتجت أي معلومة...
-
-لا تخمن.
-
-اطلبها مباشرة.
-
-مثال:
-
-أحتاج الملف التالي:
-
-```
-src/app/(dashboard)/layout.tsx
-```
-
-وسبب الحاجة:
-
-لأنني أريد معرفة من أين يأتي Redirect.
-
----
-
-أو
-
-أحتاج نتيجة هذا الاستعلام.
-
-وسبب الحاجة:
-
-للتحقق من...
-
----
-
-# القسم 20 — طريقة اكتشاف الأخطاء
-
-قبل اقتراح أي تعديل...
-
-قم بهذه الخطوات.
-
-١.
-
-حدد المشكلة بدقة.
-
-٢.
-
-حدد الملفات المرتبطة بها.
-
-٣.
-
-حدد الجداول المرتبطة.
-
-٤.
-
-حدد Functions المرتبطة.
-
-٥.
-
-حدد Middleware.
-
-٦.
-
-حدد Routes.
-
-٧.
-
-حدد هل المشكلة Frontend أم Backend أم Auth أم Database.
-
-بعد ذلك فقط...
-
-ابدأ الحل.
-
----
-
-# القسم 21 — قاعدة منع تدمير النظام
-
-إذا كان جزء من النظام يعمل...
-
-لا يتم لمسه.
-
-حتى لو كان يمكن تحسينه.
-
-الأولوية دائماً:
-
-استقرار النظام.
-
-وليس إعادة كتابة الكود.
-
----
-
-# القسم 22 — سياسة الإصلاح
-
-الإصلاح يكون دائماً:
-
-Minimal Fix
-
-وليس
-
-Rewrite
-
-إلا إذا ثبت هندسياً أن إعادة الكتابة ضرورية.
-
----
-
-# القسم 23 — تعريف نجاح المهمة
-
-أي مهمة تعتبر ناجحة فقط إذا:
-
-✅ الكود يعمل.
-
-✅ Build ينجح.
-
-✅ لا يوجد Regression.
-
-✅ لا يتم كسر جزء آخر.
-
-✅ تم التحقق عملياً.
-
-وليس نظرياً.
-
----
-
-# القسم 24 — عند انتهاء كل جلسة
-
-يجب إنشاء تقرير Handoff يحتوي على:
-
-## ما الذي تم؟
-
-## لماذا؟
-
-## الملفات المعدلة.
-
-## الجداول المعدلة.
-
-## Functions المعدلة.
-
-## Triggers المعدلة.
-
-## ما الذي بقي؟
-
-## ما الذي يمنع المتابعة؟
-
-## أول مهمة في الجلسة القادمة.
-
----
-
-# القسم 25 — ممنوعات المشروع
-
-ممنوع:
-
-- التخمين.
-- التكرار.
-- الحلول السطحية.
-- إنشاء ملفات بلا استخدام.
-- تغيير Architecture دون موافقة.
-- حذف كود يعمل.
-- تغيير مسارات دون التأكد.
-
----
-
-# القسم 26 — الحقيقة المرجعية للمشروع (Single Source of Truth)
-
-أي معلومة يجب أن تعتمد على أحد المصادر التالية فقط:
-
-1.
-
-CORE_SYSTEM_INDEX.md
-
-2.
-
-مستودع GitHub
-
-3.
-
-Supabase Schema
-
-4.
-
-الكود الحالي
-
-إذا تعارض مصدران...
-
-يتم إيقاف التنفيذ وطلب القرار.
-
----
-
-# القسم 27 — قواعد محادثة جديدة
-
-عند بدء أي محادثة جديدة يجب تنفيذ الخطوات التالية بالترتيب:
-
-١.
-
-قراءة CORE_SYSTEM_INDEX.md بالكامل.
-
-٢.
-
-قراءة آخر تقرير Handoff.
-
-٣.
-
-تلخيص فهم الحالة الحالية.
-
-٤.
-
-تحديد المرحلة الحالية.
-
-٥.
-
-تحديد المهمة الحالية فقط.
-
-٦.
-
-عدم الانتقال لأي مهمة أخرى.
-
----
-
-# القسم 28 — تعريف المرحلة الحالية
-
-حتى يتم إصدار قرار جديد...
-
-المشروع في:
-
-## Phase 1 Foundation
-
-الهدف الوحيد:
-
-إيصال النظام إلى أول نسخة مستقرة قابلة للعمل.
-
-ولا يسمح بإضافة ميزات جديدة قبل إغلاق هذه المرحلة.
-
----
-
-# القسم 29 — المشاكل المفتوحة حالياً (Open Issues)
-
-هذه هي المشاكل المعروفة حالياً والتي يجب اعتبارها مرجعاً حتى يتم إغلاقها رسمياً:
-
-### 1. Dashboard Routing
-- يوجد التباس سابق حول المسار الصحيح.
-- المسار المعتمد:
-  `src/app/(dashboard)/page.tsx`
-- يمنع إنشاء أو الاعتماد على:
-  `src/app/(dashboard)/dashboard/page.tsx`
-  إلا إذا تغيرت البنية المعمارية بقرار موثق.
-
-### 2. Redirect Loop
-- توجد حلقة إعادة توجيه تمنع الوصول إلى Dashboard.
-- لا يتم اقتراح أي تعديل جديد قبل تحديد السبب الحقيقي بالأدلة.
-
-### 3. JWT Claims
-- موجودة تصميمياً.
-- تحتاج تحقق عملي قبل اعتمادها.
-
-### 4. RLS
-- السياسات موجودة.
-- لم يتم التحقق الكامل من عزل البيانات عملياً.
-
----
-
-# القسم 30 — الهدف النهائي للمشروع
-
-CORE SYSTEM ليس مشروعاً تجريبياً.
-
-بل منصة SaaS احترافية لإدارة العيادات قابلة للتوسع.
-
-أي قرار هندسي يجب أن يخدم هذا الهدف.
-
-وليس مجرد حل مشكلة مؤقتة.
-
----
-
-# نهاية الوثيقة
-
-أي جلسة جديدة تبدأ من هذا الملف.
-
-أي قرار جديد يضاف إلى هذه الوثيقة.
-
-أي تغيير معماري يوثق هنا قبل تنفيذه.
-
-هذه الوثيقة هي المرجع الرسمي والهندسي للمشروع.
-
----
-
-APPENDIX A — PROJECT STATUS (LIVE)
-
-> الغرض: هذا القسم هو المرجع الوحيد للحالة الحالية للمشروع. يتم تحديثه بعد نهاية كل جلسة عمل، ولا يُعدّل أي ملف أو قاعدة بيانات قبل قراءته بالكامل.
-
-
-
-الحالة الحالية
-
-المشروع
-
-Project: CORE SYSTEM
-
-Architecture: SaaS Multi-Tenant
-
-Framework: Next.js App Router
-
-Database: Supabase
-
-Deployment: Vercel
-
-Repository: GitHub
-
-Development: GitHub Codespaces
-
-
-
----
-
-القرارات المعمارية المعتمدة (Architecture Decisions)
-
-معتمد
-
-Next.js App Router.
-
-Multi-Tenant Architecture.
-
-SaaS Architecture.
-
-Vertical Slice Architecture.
-
-TypeScript.
-
-Supabase Auth.
-
-RLS.
-
-JWT Claims.
-
-Database Functions للعمليات الذرية فقط (Atomic Operations).
-
-Server Actions لباقي منطق الأعمال.
-
-Subscription مستقل عن بيانات العيادة.
-
-لا يوجد أي تعديل معماري دون موافقة.
-
-
-
----
-
-الحالة الحالية لقاعدة البيانات
-
-تم إنشاء الجداول الأساسية.
-
-تم إنشاء العلاقات الأساسية.
-
-تم إنشاء:
-
-RLS
-
-Policies
-
-Indexes
-
-Triggers
-
-Database Functions
-
-
-يوجد Function رئيسية:
-
-create_tenant_with_subscription
-
-وهي المرجع الوحيد لإنشاء Tenant جديد.
-
-
----
-
-الحالة الحالية للمشكلة
-
-المشكلة الحالية ليست قاعدة البيانات.
-
-المشكلة الحالية ليست الجداول.
-
-المشكلة الحالية ليست Functions.
-
-المشكلة الحالية هي:
-
-Authentication Flow
-+
-Middleware
-+
-Dashboard Routing
-
-وبشكل أدق:
-
-ERR_TOO_MANY_REDIRECTS
-
-حتى يتم حلها لا يتم الانتقال لأي مرحلة أخرى.
-
-
----
-
-المسار الصحيح للـ Dashboard
-
-المسار الصحيح المعتمد هو:
-
-src/app/(dashboard)/page.tsx
-
-وليس:
-
-src/app/(dashboard)/dashboard/page.tsx
-
-أي اقتراح يعتمد على المسار الثاني يجب اعتباره غير صحيح حتى يثبت العكس من خلال مراجعة المشروع الحقيقي.
-
-
----
-
-قاعدة ذهبية
-
-لا يتم اقتراح أي تعديل على:
-
-Routes
-
-Middleware
-
-Layout
-
-Auth
-
-Dashboard
-
-
-قبل مراجعة الملفات الأصلية الموجودة داخل المشروع.
-
-
----
-
-قبل أي تعديل
-
-يجب التأكد من:
-
-مسار الملف الحقيقي.
-
-الملف الذي يستورده.
-
-الملفات التي تستورده.
-
-تأثير التعديل على Authentication.
-
-تأثير التعديل على Middleware.
-
-تأثير التعديل على Dashboard.
-
-
-
----
-
-بعد كل جلسة
-
-يجب تحديث فقط:
-
-Current Status
-
-Current Blocker
-
-Completed Tasks
-
-Next Task
-
-ولا يتم إعادة كتابة الملف بالكامل.
-
-
----
-
-فلسفة المشروع
-
-الهدف ليس جعل المشروع يعمل اليوم فقط.
-
-الهدف هو بناء منصة SaaS مستقرة تستطيع العمل سنوات دون إعادة بناء.
-
-أي حل سريع يكسر التصميم الهندسي يعتبر مرفوضاً.
-
-أي تعديل يجب أن يجعل المشروع أكثر استقراراً وليس فقط يزيل الخطأ الحالي.
-
-
----
-
-المرجع الأساسي
-
-أي محادثة جديدة تبدأ بالترتيب التالي:
-
-1. CORE_SYSTEM_INDEX.md
-
-
-2. تقرير آخر جلسة (Session Report)
-
-
-3. أي ملفات إضافية مطلوبة.
-
-
-
 
