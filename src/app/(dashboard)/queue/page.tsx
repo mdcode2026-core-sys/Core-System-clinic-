@@ -28,9 +28,9 @@ export default async function QueuePage() {
 
   try {
     const [queueData, statsData, doctorsData] = await Promise.all([
-      getQueue(tenantId),
-      getQueueStats(tenantId),
-      getActiveDoctors(tenantId),
+      getQueue(),
+      getQueueStats(),
+      getActiveDoctors(),
     ]);
 
     // TODO: قراءة الدور من JWT لاحقاً
