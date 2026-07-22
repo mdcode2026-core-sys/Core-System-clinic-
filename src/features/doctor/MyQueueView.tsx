@@ -2,7 +2,7 @@
 
 // src/features/doctor/MyQueueView.tsx
 // Phase 4 — Queue Management Module
-// Doctor-specific queue view
+// Doctor-specific queue view (simplified — no sonner)
 
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/core/auth/AuthContext";
@@ -29,26 +29,21 @@ import {
 } from "lucide-react";
 import { EnrichedSession } from "@/domain/queue/queue.types";
 
-interface MyQueueViewProps {
-  tenantId: string;
-  initialQueue?: EnrichedSession[];
-}
-
-export function MyQueueView({ tenantId, initialQueue = [] }: MyQueueViewProps) {
-  const { user } = useAuth();
-  const [sessions, setSessions] = useState<EnrichedSession[]>(initialQueue);
-  const [isLoading, setIsLoading] = useState(initialQueue.length === 0);
+export function MyQueueView() {
+  const { user, tenantId } = useAuth();
+  const [sessions, setSessions] = useState<EnrichedSession[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [isProcessing, setIsProcessing] = useState<Record<string, boolean>>({});
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useQueueSubscription(tenantId);
 
   const fetchData = useCallback(async () => {
-    if (!user) return;
+    if (!tenantId || !user) return;
     setIsLoading(true);
     setErrorMessage(null);
     try {
-      const allSessions = await getQueue(tenantId);
+      const allSessions = await getQueue();
       const mySessions = allSessions.filter(
         (s) => s.doctor_id === user.id || s.lock_holder_id === user.id
       );
@@ -61,10 +56,8 @@ export function MyQueueView({ tenantId, initialQueue = [] }: MyQueueViewProps) {
   }, [tenantId, user]);
 
   useEffect(() => {
-    if (initialQueue.length === 0) {
-      fetchData();
-    }
-  }, [fetchData, initialQueue.length]);
+    fetchData();
+  }, [fetchData]);
 
   const handleAction = async (action: string, sessionId: string) => {
     setIsProcessing((prev) => ({ ...prev, [sessionId]: true }));
@@ -97,7 +90,7 @@ export function MyQueueView({ tenantId, initialQueue = [] }: MyQueueViewProps) {
   const myOnHold = sessions.filter((s) => s.session_status === "in_consultation" && !s.lock_holder_id);
   const myCompletedToday = sessions.filter((s) => s.session_status === "completed");
 
-  if (!user) return null;
+  if (!tenantId || !user) return null;
   if (isLoading) return <div className="p-8 text-center">جاري التحميل...</div>;
 
   return (
