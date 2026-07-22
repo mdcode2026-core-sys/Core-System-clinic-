@@ -5,6 +5,7 @@
 // Self-service kiosk for patient check-in
 
 import { useState } from "react";
+import { useAuth } from "@/core/auth/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
@@ -21,16 +22,31 @@ import {
 } from "lucide-react";
 
 interface AmbientKioskViewProps {
-  tenantId: string;
+  tenantId?: string;
 }
 
-export function AmbientKioskView({ tenantId }: AmbientKioskViewProps) {
+export function AmbientKioskView({ tenantId: propTenantId }: AmbientKioskViewProps) {
+  const { tenantId: authTenantId } = useAuth();
+  const tenantId = propTenantId || authTenantId;
+
   const [mode, setMode] = useState<"idle" | "checkin" | "register" | "queue" | "error">("idle");
   const [phone, setPhone] = useState("");
   const [patientName, setPatientName] = useState("");
   const [queueNumber, setQueueNumber] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+
+  if (!tenantId) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center p-4">
+        <Card className="border-slate-700 bg-slate-800/80 backdrop-blur text-center">
+          <CardContent className="p-8">
+            <p className="text-slate-400">جاري التحميل...</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   const handleCheckIn = async () => {
     if (phone.length < 8) {
