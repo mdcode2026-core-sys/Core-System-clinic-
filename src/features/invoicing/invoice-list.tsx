@@ -1,17 +1,16 @@
 // ============================================================
 // src/features/invoicing/invoice-list.tsx
-// Phase 5 — Invoice List Component
+// Phase 5 — Invoice List Component (Client Component)
 // ============================================================
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { Button } from "@/shared/components/ui/button";
 import { Badge } from "@/shared/components/ui/badge";
 import { FileText, Plus, Eye } from "lucide-react";
-import { listInvoices } from "../../domain/invoicing/invoicing.queries";
 import { formatCurrency } from "../../domain/invoicing/invoicing.calculator";
 import type { InvoiceListItem } from "../../domain/invoicing/invoicing.types";
 
@@ -33,26 +32,16 @@ const statusLabels: Record<string, string> = {
   refunded: "مستردة",
 };
 
-export function InvoiceList() {
+interface InvoiceListProps {
+  initialData: InvoiceListItem[];
+  initialError: string | null;
+}
+
+export function InvoiceList({ initialData, initialError }: InvoiceListProps) {
   const router = useRouter();
-  const [invoices, setInvoices] = useState<InvoiceListItem[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    loadInvoices();
-  }, []);
-
-  async function loadInvoices() {
-    setLoading(true);
-    const result = await listInvoices();
-    if (result.success) {
-      setInvoices(result.data);
-    } else {
-      setError(result.error);
-    }
-    setLoading(false);
-  }
+  const [invoices, setInvoices] = useState<InvoiceListItem[]>(initialData);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(initialError);
 
   if (loading) {
     return (
