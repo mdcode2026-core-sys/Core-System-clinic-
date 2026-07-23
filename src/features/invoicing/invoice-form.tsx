@@ -77,7 +77,7 @@ export function InvoiceForm({ initialPatients, initialProcedures, initialSession
                 <div><Label>خصم %</Label><Input type="number" min={0} max={100} value={item.discount_percent ?? ""} onChange={(e) => updateItem(item.tempId, { discount_percent: e.target.value ? parseFloat(e.target.value) : null })} /></div>
                 <div><Label>خصم مبلغ</Label><Input type="number" step="0.01" min={0} value={item.discount_amount_subunits / 100} onChange={(e) => updateItem(item.tempId, { discount_amount_subunits: Math.round(parseFloat(e.target.value) * 100) })} /></div>
               </div>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground"><Calculator className="w-4 h-4" /><span>الإجمالي: {formatCurrency(calc.lineTotal)}</span><span>|</span><span>الضريبة: {formatCurrency(calc.taxAmount)}</span>{calc.discountAmount > 0 && (<><span>|</span><span>الخصم: {formatCurrency(calc.discountAmount)}</span>)}</div>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground"><Calculator className="w-4 h-4" /><span>الإجمالي: {formatCurrency(calc.lineTotal)}</span><span>|</span><span>الضريبة: {formatCurrency(calc.taxAmount)}</span>{calc.discountAmount > 0 && (<><span>|</span><span>الخصم: {formatCurrency(calc.discountAmount)}</span></>)}</div>
             </div>
           );
         })}

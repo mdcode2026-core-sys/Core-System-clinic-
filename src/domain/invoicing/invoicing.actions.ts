@@ -49,9 +49,9 @@ async function getAuthContext() {
 
 export async function createInvoiceFromSession(
   input: CreateInvoiceFromSessionInput
-): ActionResult<{ invoice_id: string }> {
+): Promise<ActionResult<{ invoice_id: string }>> {
   const ctx = await getAuthContext();
-  if ("error" in ctx) return { success: false, error: ctx.error };
+  if ("error" in ctx) return { success: false, error: ctx.error ?? "Unknown error" };
 
   const { supabase, tenantId, role } = ctx;
 
@@ -93,9 +93,9 @@ export async function createInvoiceFromSession(
 
 export async function createManualInvoice(
   input: CreateManualInvoiceInput
-): ActionResult<{ invoice_id: string }> {
+): Promise<ActionResult<{ invoice_id: string }>> {
   const ctx = await getAuthContext();
-  if ("error" in ctx) return { success: false, error: ctx.error };
+  if ("error" in ctx) return { success: false, error: ctx.error ?? "Unknown error" };
 
   const { supabase, tenantId, role } = ctx;
 
@@ -179,9 +179,9 @@ export async function createManualInvoice(
 
 export async function issueInvoice(
   input: IssueInvoiceInput
-): ActionResult<{ invoice_number: string }> {
+): Promise<ActionResult<{ invoice_number: string }>> {
   const ctx = await getAuthContext();
-  if ("error" in ctx) return { success: false, error: ctx.error };
+  if ("error" in ctx) return { success: false, error: ctx.error ?? "Unknown error" };
 
   const { supabase, tenantId, role } = ctx;
 
@@ -223,9 +223,9 @@ export async function issueInvoice(
 
 export async function recordPayment(
   input: RecordPaymentInput
-): ActionResult<{ payment_id: string }> {
+): Promise<ActionResult<{ payment_id: string }>> {
   const ctx = await getAuthContext();
-  if ("error" in ctx) return { success: false, error: ctx.error };
+  if ("error" in ctx) return { success: false, error: ctx.error ?? "Unknown error" };
 
   const { supabase, tenantId, role, user } = ctx;
 
@@ -280,9 +280,9 @@ export async function recordPayment(
 
 export async function applyDiscount(
   input: ApplyDiscountInput
-): ActionResult<void> {
+): Promise<ActionResult<void>> {
   const ctx = await getAuthContext();
-  if ("error" in ctx) return { success: false, error: ctx.error };
+  if ("error" in ctx) return { success: false, error: ctx.error ?? "Unknown error" };
 
   const { supabase, tenantId, role, user } = ctx;
 
@@ -341,9 +341,9 @@ export async function applyDiscount(
 
 export async function cancelInvoice(
   input: CancelInvoiceInput
-): ActionResult<void> {
+): Promise<ActionResult<void>> {
   const ctx = await getAuthContext();
-  if ("error" in ctx) return { success: false, error: ctx.error };
+  if ("error" in ctx) return { success: false, error: ctx.error ?? "Unknown error" };
 
   const { supabase, tenantId, role } = ctx;
 
@@ -386,9 +386,9 @@ export async function cancelInvoice(
 
 export async function getInvoiceWithDetails(
   invoiceId: string
-): ActionResult<InvoiceWithItems> {
+): Promise<ActionResult<InvoiceWithItems>> {
   const ctx = await getAuthContext();
-  if ("error" in ctx) return { success: false, error: ctx.error };
+  if ("error" in ctx) return { success: false, error: ctx.error ?? "Unknown error" };
 
   const { supabase, tenantId } = ctx;
 

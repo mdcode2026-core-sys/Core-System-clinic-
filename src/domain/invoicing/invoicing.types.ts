@@ -9,19 +9,9 @@ import type { Database } from "@/infrastructure/supabase/database.types";
 // Database Table Types (Extracted from database.types.ts)
 // -----------------------------------------------------------
 
-export type InvoiceRow = Database["public"]["Tables"]["clinic_invoices"]["Row"];
-export type InvoiceInsert = Database["public"]["Tables"]["clinic_invoices"]["Insert"];
-export type InvoiceUpdate = Database["public"]["Tables"]["clinic_invoices"]["Update"];
 
-export type InvoiceItemRow = Database["public"]["Tables"]["invoice_items"]["Row"];
-export type InvoiceItemInsert = Database["public"]["Tables"]["invoice_items"]["Insert"];
-export type InvoiceItemUpdate = Database["public"]["Tables"]["invoice_items"]["Update"];
 
-export type InvoicePaymentRow = Database["public"]["Tables"]["invoice_payments"]["Row"];
-export type InvoicePaymentInsert = Database["public"]["Tables"]["invoice_payments"]["Insert"];
-export type InvoicePaymentUpdate = Database["public"]["Tables"]["invoice_payments"]["Update"];
 
-export type ProcedureRow = Database["public"]["Tables"]["clinic_procedures"]["Row"];
 
 // -----------------------------------------------------------
 // Enums

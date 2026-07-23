@@ -12,7 +12,7 @@ import type { InvoiceListFilters, InvoiceListItem, ActionResult } from "./invoic
 
 export async function listInvoices(
   filters: InvoiceListFilters = {}
-): ActionResult<InvoiceListItem[]> {
+): Promise<ActionResult<InvoiceListItem[]>> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
@@ -95,7 +95,7 @@ export async function listInvoices(
 // Get Invoice by ID
 // -----------------------------------------------------------
 
-export async function getInvoiceById(invoiceId: string): ActionResult<any> {
+export async function getInvoiceById(invoiceId: string): Promise<ActionResult<any>> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
@@ -137,7 +137,7 @@ export async function getInvoiceById(invoiceId: string): ActionResult<any> {
 // Get Uninvoiced Sessions
 // -----------------------------------------------------------
 
-export async function getUninvoicedSessions(): ActionResult<any[]> {
+export async function getUninvoicedSessions(): Promise<ActionResult<any[]>> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
@@ -180,7 +180,7 @@ export async function getUninvoicedSessions(): ActionResult<any[]> {
 // Get Clinic Procedures
 // -----------------------------------------------------------
 
-export async function getClinicProcedures(): ActionResult<any[]> {
+export async function getClinicProcedures(): Promise<ActionResult<any[]>> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
@@ -216,7 +216,7 @@ export async function getClinicProcedures(): ActionResult<any[]> {
 // Get Patients List
 // -----------------------------------------------------------
 
-export async function getPatientsList(): ActionResult<any[]> {
+export async function getPatientsList(): Promise<ActionResult<any[]>> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
