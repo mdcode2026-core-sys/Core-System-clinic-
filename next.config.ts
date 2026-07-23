@@ -18,7 +18,11 @@ const nextConfig: NextConfig = {
         ]
       }
     ];
-  }
+  },
+  // تعطيل Turbopack
+  webpack: (config) => {
+    return config;
+  },
 };
 
 export default nextConfig;
