@@ -1,109 +1,156 @@
-src
-├── app
-│   ├── (auth)
+.
+├── .env.example
+├── .env.local
+├── .gitignore
+├── Apendix A — Folder Structure Standard.md
+├── Appendix B — Definition of Project Phases.md
+├── CORE_SYSTEM_INDEX.md
+├── ENGINEERING_CONSTITUTION.md
+├── Handoff_Daily_Report_2026-07-17.md 
+├── PROJECT_TREE.txt
+├── clinic-saas@1.0.0
+├── components.json
+├── fix.sh
+├── middleware.ts
+├── next
+├── next-env.d.ts
+├── next.config.ts
+├── package-lock.json
+├── package.json
+├── postcss.config.js
+├── src
+│   ├── app
+│   │   ├── (auth)
+│   │   │   ├── layout.tsx
+│   │   │   ├── login
+│   │   │   │   └── page.tsx
+│   │   │   └── register
+│   │   │       └── page.tsx
+│   │   ├── (dashboard)
+│   │   │   ├── agenda
+│   │   │   │   └── page.tsx
+│   │   │   ├── analytics
+│   │   │   │   └── page.tsx
+│   │   │   ├── invoices
+│   │   │   │   ├── [id]
+│   │   │   │   │   └── page.tsx
+│   │   │   │   ├── new
+│   │   │   │   │   └── page.tsx
+│   │   │   │   └── page.tsx
+│   │   │   ├── layout.tsx
+│   │   │   ├── patients
+│   │   │   │   └── page.tsx
+│   │   │   ├── queue
+│   │   │   │   └── page.tsx
+│   │   │   └── settings
+│   │   │       └── page.tsx
+│   │   ├── globals.css
 │   │   ├── layout.tsx
-│   │   ├── login
-│   │   │   └── page.tsx
-│   │   └── register
-│   │       └── page.tsx
-│   ├── (dashboard)
+│   │   └── page.tsx
+│   ├── core
+│   │   ├── auth
+│   │   │   ├── AuthContext.ts
+│   │   │   ├── AuthProvider.tsx
+│   │   │   └── actions.ts
+│   │   ├── permissions
+│   │   │   ├── PermissionGuard.tsx
+│   │   │   ├── permissionMatrix.ts
+│   │   │   └── types.ts
+│   │   └── realtime
+│   │       └── RealtimeProvider.tsx
+│   ├── domain
 │   │   ├── agenda
-│   │   │   └── page.tsx
+│   │   │   ├── agenda.actions.ts
+│   │   │   ├── agenda.queries.ts
+│   │   │   ├── agenda.types.ts
+│   │   │   └── conflict.engine.ts
 │   │   ├── analytics
-│   │   │   └── page.tsx
-│   │   ├── invoices
-│   │   │   └── page.tsx
-│   │   ├── layout.tsx
+│   │   │   └── analytics.queries.ts
+│   │   ├── invoicing
+│   │   │   ├── invoicing.actions.ts
+│   │   │   ├── invoicing.calculator.ts
+│   │   │   ├── invoicing.queries.ts
+│   │   │   └── invoicing.types.ts
 │   │   ├── patients
-│   │   │   └── page.tsx
-│   │   ├── queue
-│   │   │   └── page.tsx
-│   │   └── settings
-│   │       └── page.tsx
-│   ├── globals.css
-│   ├── layout.tsx
-│   └── page.tsx
-├── core
-│   ├── auth
-│   │   ├── AuthContext.ts
-│   │   ├── AuthProvider.tsx
-│   │   └── actions.ts
-│   ├── permissions
-│   │   ├── PermissionGuard.tsx
-│   │   ├── permissionMatrix.ts
-│   │   └── types.ts
-│   └── realtime
-│       └── RealtimeProvider.tsx
-├── domain
-│   ├── agenda
-│   │   ├── agenda.actions.ts
-│   │   ├── agenda.queries.ts
-│   │   ├── agenda.types.ts
-│   │   └── conflict.engine.ts
-│   ├── analytics
-│   │   └── analytics.queries.ts
-│   ├── invoicing
-│   │   ├── invoicing.calculator.ts
-│   │   └── invoicing.types.ts
-│   ├── patients
-│   │   ├── patients.actions.ts
-│   │   ├── patients.queries.ts
-│   │   └── patients.types.ts
-│   └── queue
-│       ├── queue.actions.ts\012
-│       ├── queue.engine.ts\012
-│       ├── queue.queries.ts
-│       └── queue.types.ts
-├── features
-│   ├── agenda
-│   │   ├── agenda-calendar.tsx
-│   │   ├── agenda-event-detail.tsx
-│   │   └── agenda-event-form.tsx
-│   ├── clinic-admin
-│   │   └── AnalyticsOverview.tsx
-│   ├── dashboard
-│   │   └── DashboardShell.tsx
-│   ├── doctor
-│   │   └── MyQueueView.tsx
-│   ├── kiosk
-│   │   └── AmbientKioskView.tsx
-│   ├── patients
-│   │   ├── patient-detail.tsx
-│   │   ├── patient-form.tsx
-│   │   └── patient-list.tsx
-│   ├── reception
-│   │   └── LiveQueueBoard.tsx
-│   └── super-admin
-│       └── TenantRegistry.tsx
-├── infrastructure
-│   ├── pwa
-│   │   └── OfflineBanner.tsx
-│   └── supabase
-│       ├── client.ts
-│       ├── database.types.ts
-│       ├── middleware.ts
-│       └── server.ts
-└── shared
-    ├── components
-    │   ├── QueryClientProvider.tsx
-    │   └── ui
-    │       ├── avatar.tsx
-    │       ├── badge.tsx
-    │       ├── button.tsx
-    │       ├── card.tsx
-    │       ├── dialog.tsx
-    │       ├── input.tsx
-    │       ├── label.tsx
-    │       ├── select.tsx
-    │       ├── separator.tsx
-    │       ├── sheet.tsx
-    │       └── textarea.tsx
-    ├── hooks
-    │   ├── useNetworkStatus.ts
-    │   └── useQueue.ts
-    └── utils
-        ├── cn.ts
-        ├── currency.ts
-        └── dateTime.ts
+│   │   │   ├── patients.actions.ts
+│   │   │   ├── patients.queries.ts
+│   │   │   └── patients.types.ts
+│   │   └── queue
+│   │       ├── queue.actions.ts
+│   │       ├── queue.engine.ts
+│   │       ├── queue.queries.ts
+│   │       └── queue.types.ts
+│   ├── features
+│   │   ├── agenda
+│   │   │   ├── agenda-calendar.tsx
+│   │   │   ├── agenda-event-detail.tsx
+│   │   │   └── agenda-event-form.tsx
+│   │   ├── clinic-admin
+│   │   │   └── AnalyticsOverview.tsx
+│   │   ├── dashboard
+│   │   │   └── DashboardShell.tsx
+│   │   ├── doctor
+│   │   │   └── MyQueueView.tsx
+│   │   ├── invoicing
+│   │   │   ├── invoice-detail.tsx
+│   │   │   ├── invoice-form.tsx
+│   │   │   └── invoice-list.tsx
+│   │   ├── kiosk
+│   │   │   └── AmbientKioskView.tsx
+│   │   ├── patients
+│   │   │   ├── patient-detail.tsx
+│   │   │   ├── patient-form.tsx
+│   │   │   └── patient-list.tsx
+│   │   ├── reception
+│   │   │   └── LiveQueueBoard.tsx
+│   │   └── super-admin
+│   │       └── TenantRegistry.tsx
+│   ├── infrastructure
+│   │   ├── pwa
+│   │   │   └── OfflineBanner.tsx
+│   │   └── supabase
+│   │       ├── client.ts
+│   │       ├── database.types.ts
+│   │       ├── middleware.ts
+│   │       └── server.ts
+│   └── shared
+│       ├── components
+│       │   ├── QueryClientProvider.tsx
+│       │   └── ui
+│       │       ├── avatar.tsx
+│       │       ├── badge.tsx
+│       │       ├── button.tsx
+│       │       ├── card.tsx
+│       │       ├── dialog.tsx
+│       │       ├── input.tsx
+│       │       ├── label.tsx
+│       │       ├── select.tsx
+│       │       ├── separator.tsx
+│       │       ├── sheet.tsx
+│       │       └── textarea.tsx
+│       ├── hooks
+│       │   ├── useNetworkStatus.ts
+│       │   └── useQueue.ts
+│       └── utils
+│           ├── cn.ts
+│           ├── currency.ts
+│           └── dateTime.ts
+├── supabase
+│   ├── .temp
+│   │   ├── cli-latest
+│   │   ├── gotrue-version
+│   │   ├── linked-project.json
+│   │   ├── pooler-url
+│   │   ├── postgres-version
+│   │   ├── project-ref
+│   │   ├── rest-version
+│   │   ├── storage-migration
+│   │   └── storage-version
+│   └── migrations
+│       ├── 20260721100539_remote_schema.sql
+│       └── 20260721112514_remote_schema.sql
+├── supabase Data info.md
+├── tailwind.config.ts
+└── tsconfig.json
 
-39 directories, 68 files
+46 directories, 108 files

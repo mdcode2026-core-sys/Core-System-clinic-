@@ -259,15 +259,3 @@ export interface CanEditInvoiceResult {
 // Re-export for convenience
 // -----------------------------------------------------------
 
-export type {
-  InvoiceRow,
-  InvoiceInsert,
-  InvoiceUpdate,
-  InvoiceItemRow,
-  InvoiceItemInsert,
-  InvoiceItemUpdate,
-  InvoicePaymentRow,
-  InvoicePaymentInsert,
-  InvoicePaymentUpdate,
-  ProcedureRow,
-};
