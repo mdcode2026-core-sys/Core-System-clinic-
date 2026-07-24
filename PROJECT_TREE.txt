@@ -1,4 +1,4 @@
-src
+.
 ├── .env.example
 ├── .env.local
 ├── .gitignore
