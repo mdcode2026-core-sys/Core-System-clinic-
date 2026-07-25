@@ -104,6 +104,7 @@ export interface ConflictResult {
 // ─────────────────────────────────────────
 
 export interface AgendaEventWithRelations extends AgendaEventRow {
+  status: AgendaEventStatusValue;
   notes: string | null;
   patient?: {
     id: string;
