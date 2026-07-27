@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
-import { InvoiceDetail } from "../../../../features/invoicing/invoice-detail";
-import { getInvoiceWithDetails } from "../../../../domain/invoicing/invoicing.actions";
+import { InvoiceDetail } from "@/features/invoicing/invoice-detail";
+import { getInvoiceWithDetails } from "@/domain/invoicing/invoicing.actions";
 interface Props { params: Promise<{ id: string }>; }
 export default async function InvoiceDetailPage({ params }: Props) {
   const { id } = await params;
