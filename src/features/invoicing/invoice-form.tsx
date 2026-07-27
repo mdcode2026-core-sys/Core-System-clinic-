@@ -8,9 +8,9 @@ import { Label } from "@/shared/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/components/ui/select";
 import { Textarea } from "@/shared/components/ui/textarea";
 import { Plus, Trash2, Calculator, Save } from "lucide-react";
-import { createManualInvoice } from "../../domain/invoicing/invoicing.actions";
-import { calculateLineItem, calculateInvoiceTotals, formatCurrency } from "../../domain/invoicing/invoicing.calculator";
-import type { InvoiceFormState, InvoiceFormItem, PaymentTerms } from "../../domain/invoicing/invoicing.types";
+import { createManualInvoice } from "@/domain/invoicing/invoicing.actions";
+import { calculateLineItem, calculateInvoiceTotals, formatCurrency } from "@/domain/invoicing/invoicing.calculator";
+import type { InvoiceFormState, InvoiceFormItem, PaymentTerms } from "@/domain/invoicing/invoicing.types";
 const paymentTermsOptions: { value: PaymentTerms; label: string }[] = [
   { value: "cash", label: "نقدي" }, { value: "credit", label: "آجل" }, { value: "installment", label: "تقسيط" },
 ];
