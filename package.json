@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
-    "build": "next build --webpack",
+    "build": "next lint && next build --webpack",
     "start": "next start",
     "lint": "next lint",
     "db:types": "supabase gen types typescript --project-id qaslsjyxjwvdoiczmhgq --schema public > src/infrastructure/supabase/database.types.ts",
