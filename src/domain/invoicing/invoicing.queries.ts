@@ -87,8 +87,8 @@ export async function listInvoices(
     invoice_number: invoice.invoice_number,
     invoice_date: invoice.invoice_date,
     invoice_status: invoice.invoice_status,
-    patient_name: invoice.patient
-      ? `${invoice.patient.first_name} ${invoice.patient.last_name}`
+    patient_name: invoice.patient?.[0]
+      ? `${invoice.patient[0].first_name} ${invoice.patient[0].last_name}`
       : "Unknown",
     total_subunits: invoice.total_subunits,
     amount_paid_subunits: invoice.amount_paid_subunits,
