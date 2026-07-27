@@ -9,10 +9,6 @@ import type { Database } from "@/infrastructure/supabase/database.types";
 // Database Table Types (Extracted from database.types.ts)
 // -----------------------------------------------------------
 
-
-
-
-
 // -----------------------------------------------------------
 // Enums
 // -----------------------------------------------------------
@@ -117,16 +113,42 @@ export interface InvoiceWithItems extends Invoice {
 }
 
 // -----------------------------------------------------------
+// UI Option Types (shared across components)
+// -----------------------------------------------------------
+
+export interface PatientOption {
+  id: string;
+  first_name: string;
+  last_name: string;
+  phone_primary: string | null;
+}
+
+export interface ProcedureOption {
+  id: string;
+  procedure_name: string;
+  base_price_subunits: number;
+  tax_rate_percent: number | null;
+  tax_included: boolean | null;
+}
+
+export interface SessionOption {
+  id: string;
+  patient?: {
+    first_name: string;
+    last_name: string;
+  } | null;
+  session_started_at: string;
+}
+
+// -----------------------------------------------------------
 // Server Action Input Types
 // -----------------------------------------------------------
 
 export interface CreateInvoiceFromSessionInput {
   session_id: string;
-  tenant_id: string;
 }
 
 export interface CreateManualInvoiceInput {
-  tenant_id: string;
   patient_id: string;
   session_id?: string | null;
   invoice_date?: string;
@@ -258,4 +280,3 @@ export interface CanEditInvoiceResult {
 // -----------------------------------------------------------
 // Re-export for convenience
 // -----------------------------------------------------------
-
