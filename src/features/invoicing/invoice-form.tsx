@@ -11,37 +11,14 @@ import { Textarea } from "@/shared/components/ui/textarea";
 import { Plus, Trash2, Calculator, Save } from "lucide-react";
 import { createManualInvoice } from "@/domain/invoicing/invoicing.actions";
 import { calculateLineItem, calculateInvoiceTotals, formatCurrency } from "@/domain/invoicing/invoicing.calculator";
-import type { InvoiceFormState, InvoiceFormItem, PaymentTerms } from "@/domain/invoicing/invoicing.types";
-
-interface PatientOption {
-  id: string;
-  first_name: string;
-  last_name: string;
-  phone_primary: string | null;
-}
-
-interface ProcedureOption {
-  id: string;
-  procedure_name: string;
-  base_price_subunits: number;
-  tax_rate_percent: number | null;
-  tax_included: boolean | null;
-}
-
-interface SessionOption {
-  id: string;
-  patient?: {
-    first_name: string;
-    last_name: string;
-  } | null;
-  session_started_at: string;
-}
-
-const paymentTermsOptions: { value: PaymentTerms; label: string }[] = [
-  { value: "cash", label: "نقدي" },
-  { value: "credit", label: "آجل" },
-  { value: "installment", label: "تقسيط" },
-];
+import type {
+  InvoiceFormState,
+  InvoiceFormItem,
+  PaymentTerms,
+  PatientOption,
+  ProcedureOption,
+  SessionOption,
+} from "@/domain/invoicing/invoicing.types";
 
 interface Props {
   initialPatients: PatientOption[];
@@ -149,7 +126,6 @@ export function InvoiceForm({
     setError(null);
 
     const result = await createManualInvoice({
-      tenant_id: "",
       patient_id: form.patient_id,
       session_id: form.session_id,
       payment_terms: form.payment_terms,
@@ -455,3 +431,9 @@ export function InvoiceForm({
     </div>
   );
 }
+
+const paymentTermsOptions: { value: PaymentTerms; label: string }[] = [
+  { value: "cash", label: "نقدي" },
+  { value: "credit", label: "آجل" },
+  { value: "installment", label: "تقسيط" },
+];
