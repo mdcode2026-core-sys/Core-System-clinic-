@@ -1,5 +1,5 @@
-import { InvoiceForm } from "../../../../features/invoicing/invoice-form";
-import { getPatientsList, getClinicProcedures, getUninvoicedSessions } from "../../../../domain/invoicing/invoicing.queries";
+import { InvoiceForm } from "@/features/invoicing/invoice-form";
+import { getPatientsList, getClinicProcedures, getUninvoicedSessions } from "@/domain/invoicing/invoicing.queries";
 export default async function NewInvoicePage() {
   const [patientsRes, proceduresRes, sessionsRes] = await Promise.all([
     getPatientsList(), getClinicProcedures(), getUninvoicedSessions(),
