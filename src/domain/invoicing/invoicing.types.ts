@@ -134,9 +134,11 @@ export interface ProcedureOption {
 export interface SessionOption {
   id: string;
   patient?: {
+    id: string;
     first_name: string;
     last_name: string;
-  } | null;
+    phone_primary: string | null;
+  }[] | null;
   session_started_at: string;
 }
 
