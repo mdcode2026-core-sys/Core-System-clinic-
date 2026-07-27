@@ -5,8 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui
 import { Button } from "@/shared/components/ui/button";
 import { Badge } from "@/shared/components/ui/badge";
 import { FileText, Plus, Eye } from "lucide-react";
-import { formatCurrency } from "../../domain/invoicing/invoicing.calculator";
-import type { InvoiceListItem } from "../../domain/invoicing/invoicing.types";
+import { formatCurrency } from "@/domain/invoicing/invoicing.calculator";
+import type { InvoiceListItem } from "@/domain/invoicing/invoicing.types";
 const statusColors: Record<string, string> = { draft: "bg-gray-500", issued: "bg-blue-500", paid: "bg-green-500", partial: "bg-yellow-500", cancelled: "bg-red-500", refunded: "bg-purple-500" };
 const statusLabels: Record<string, string> = { draft: "مسودة", issued: "مصدرة", paid: "مدفوعة", partial: "جزئية", cancelled: "ملغاة", refunded: "مستردة" };
 interface Props { initialData: InvoiceListItem[]; initialError: string | null; }
