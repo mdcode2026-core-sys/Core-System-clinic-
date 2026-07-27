@@ -17,7 +17,7 @@
     "react-dom": "^19.0.0",
     "@supabase/supabase-js": "^2.49.4",
     "@supabase/ssr": "^0.6.1",
-    "tailwindcss": "^4.1.4",
+    "tailwindcss": "^3.4.0",
     "zod": "^3.24.4",
     "react-hook-form": "^7.56.3",
     "@hookform/resolvers": "^5.0.1",
