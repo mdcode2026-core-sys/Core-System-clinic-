@@ -4,7 +4,15 @@
 // ============================================================
 
 import { createClient } from "@/infrastructure/supabase/server";
-import type { InvoiceListFilters, InvoiceListItem, ActionResult } from "./invoicing.types";
+import type {
+  InvoiceListFilters,
+  InvoiceListItem,
+  InvoiceWithItems,
+  PatientOption,
+  ProcedureOption,
+  SessionOption,
+  ActionResult,
+} from "./invoicing.types";
 
 // -----------------------------------------------------------
 // List Invoices
@@ -74,7 +82,7 @@ export async function listInvoices(
     return { success: false, error: error.message };
   }
 
-  const items: InvoiceListItem[] = (data ?? []).map((invoice: any) => ({
+  const items: InvoiceListItem[] = (data ?? []).map((invoice) => ({
     id: invoice.id,
     invoice_number: invoice.invoice_number,
     invoice_date: invoice.invoice_date,
@@ -95,7 +103,7 @@ export async function listInvoices(
 // Get Invoice by ID
 // -----------------------------------------------------------
 
-export async function getInvoiceById(invoiceId: string): Promise<ActionResult<any>> {
+export async function getInvoiceById(invoiceId: string): Promise<ActionResult<InvoiceWithItems>> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
@@ -137,7 +145,7 @@ export async function getInvoiceById(invoiceId: string): Promise<ActionResult<an
 // Get Uninvoiced Sessions
 // -----------------------------------------------------------
 
-export async function getUninvoicedSessions(): Promise<ActionResult<any[]>> {
+export async function getUninvoicedSessions(): Promise<ActionResult<SessionOption[]>> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
@@ -162,8 +170,7 @@ export async function getUninvoicedSessions(): Promise<ActionResult<any[]>> {
       session_status,
       session_started_at,
       session_ended_at,
-      patient:patient_id(id, first_name, last_name, phone_primary),
-      doctor:doctor_id(full_name)
+      patient:patient_id(id, first_name, last_name, phone_primary)
     `)
     .eq("tenant_id", clinicUser.tenant_id)
     .not("session_status", "in", '("cancelled","no_show")')
@@ -180,7 +187,7 @@ export async function getUninvoicedSessions(): Promise<ActionResult<any[]>> {
 // Get Clinic Procedures
 // -----------------------------------------------------------
 
-export async function getClinicProcedures(): Promise<ActionResult<any[]>> {
+export async function getClinicProcedures(): Promise<ActionResult<ProcedureOption[]>> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
@@ -216,7 +223,7 @@ export async function getClinicProcedures(): Promise<ActionResult<any[]>> {
 // Get Patients List
 // -----------------------------------------------------------
 
-export async function getPatientsList(): Promise<ActionResult<any[]>> {
+export async function getPatientsList(): Promise<ActionResult<PatientOption[]>> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
