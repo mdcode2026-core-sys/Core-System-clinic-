@@ -1,5 +1,6 @@
-import { InvoiceList } from "../../../features/invoicing/invoice-list";
-import { listInvoices } from "../../../domain/invoicing/invoicing.queries";
+import { InvoiceList } from "@/features/invoicing/invoice-list";
+import { listInvoices } from "@/domain/invoicing/invoicing.queries";
+
 export default async function InvoicesPage() {
   const result = await listInvoices();
   return (
