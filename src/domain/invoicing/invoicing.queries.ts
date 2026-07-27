@@ -1,7 +1,7 @@
-// ============================================================
+// ================================================================
 // src/domain/invoicing/invoicing.queries.ts
 // Phase 5 — Invoice Query Functions
-// ============================================================
+// ================================================================
 
 import { createClient } from "@/infrastructure/supabase/server";
 import type {
@@ -14,9 +14,9 @@ import type {
   ActionResult,
 } from "./invoicing.types";
 
-// -----------------------------------------------------------
+// ---------------------------------------------------------------
 // List Invoices
-// -----------------------------------------------------------
+// ---------------------------------------------------------------
 
 export async function listInvoices(
   filters: InvoiceListFilters = {}
@@ -99,9 +99,9 @@ export async function listInvoices(
   return { success: true, data: items };
 }
 
-// -----------------------------------------------------------
+// ---------------------------------------------------------------
 // Get Invoice by ID
-// -----------------------------------------------------------
+// ---------------------------------------------------------------
 
 export async function getInvoiceById(invoiceId: string): Promise<ActionResult<InvoiceWithItems>> {
   const supabase = await createClient();
@@ -141,9 +141,9 @@ export async function getInvoiceById(invoiceId: string): Promise<ActionResult<In
   return { success: true, data };
 }
 
-// -----------------------------------------------------------
+// ---------------------------------------------------------------
 // Get Uninvoiced Sessions
-// -----------------------------------------------------------
+// ---------------------------------------------------------------
 
 export async function getUninvoicedSessions(): Promise<ActionResult<SessionOption[]>> {
   const supabase = await createClient();
@@ -180,12 +180,17 @@ export async function getUninvoicedSessions(): Promise<ActionResult<SessionOptio
     return { success: false, error: error.message };
   }
 
-  return { success: true, data: data ?? [] };
+  const sessions: SessionOption[] = (data ?? []).map((s) => ({
+    id: s.id,
+    patient: s.patient?.[0] ?? null,
+    session_started_at: s.session_started_at,
+  }));
+  return { success: true, data: sessions };
 }
 
-// -----------------------------------------------------------
+// ---------------------------------------------------------------
 // Get Clinic Procedures
-// -----------------------------------------------------------
+// ---------------------------------------------------------------
 
 export async function getClinicProcedures(): Promise<ActionResult<ProcedureOption[]>> {
   const supabase = await createClient();
@@ -219,9 +224,9 @@ export async function getClinicProcedures(): Promise<ActionResult<ProcedureOptio
   return { success: true, data: data ?? [] };
 }
 
-// -----------------------------------------------------------
+// ---------------------------------------------------------------
 // Get Patients List
-// -----------------------------------------------------------
+// ---------------------------------------------------------------
 
 export async function getPatientsList(): Promise<ActionResult<PatientOption[]>> {
   const supabase = await createClient();
