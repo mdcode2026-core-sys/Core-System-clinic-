@@ -33,8 +33,7 @@ export default async function QueuePage() {
       getActiveDoctors(),
     ]);
 
-    // TODO: قراءة الدور من JWT لاحقاً
-    const isDoctor = false;
+    const isDoctor = user.user_metadata?.role === "doctor";
 
     if (isDoctor) {
       return (
