@@ -40,10 +40,12 @@ export async function createClient() {
   const { data: { user } } = await supabase.auth.getUser();
   const tenantId = user?.app_metadata?.tenant_id || user?.user_metadata?.tenant_id;
   if (tenantId) {
-    await supabase.rpc("set_config", {
-      key: "app.current_tenant_id",
-      value: tenantId,
+    const { error: setTenantError } = await supabase.rpc("set_tenant_id", {
+      tenant_id: tenantId,
     });
+    if (setTenantError) {
+      console.error("[server.ts] set_tenant_id RPC failed:", setTenantError.message);
+    }
   }
 
   return supabase;
