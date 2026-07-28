@@ -88,6 +88,10 @@ export async function signUp(formData: FormData) {
         tenant_id: typedResult.tenant_id,
         role: typedResult.role,
       },
+      app_metadata: {
+        tenant_id: typedResult.tenant_id,
+        user_role: typedResult.role,
+      },
     }
   );
 
