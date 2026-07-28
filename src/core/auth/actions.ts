@@ -54,7 +54,7 @@ export async function signUp(formData: FormData) {
     return { error: authError?.message ?? "فشل إنشاء المستخدم" };
   }
 
-  // 2. إنشاء Tenant + Subscription + User باستخدام Admin (يتجاوز RLS)
+  // 2. إنشاء Tenant + Clinic User باستخدام Admin (يتجاوز RLS)
   const { data: result, error: dbError } = await admin.rpc(
     "create_tenant_with_subscription",
     {
@@ -72,6 +72,32 @@ export async function signUp(formData: FormData) {
       // ignore
     }
     return { error: dbError?.message ?? "فشل إنشاء العيادة" };
+  }
+
+  // 3. كتابة tenant_id و role داخل user_metadata — هذه هي خطوة الإصلاح الجوهرية.
+  //    الـ Trigger (handle_new_user) يعمل قبل وجود صف clinic_users، لذلك لا يمكن
+  //    الاعتماد عليه. هذا الاستدعاء يضبط user_metadata صراحةً وبالتوقيت الصحيح،
+  //    بعد أن أصبح صف clinic_users موجوداً فعلاً.
+  const typedResult = result as { tenant_id: string; role: string };
+
+  const { error: metaError } = await admin.auth.admin.updateUserById(
+    authData.user.id,
+    {
+      user_metadata: {
+        full_name: fullName,
+        tenant_id: typedResult.tenant_id,
+        role: typedResult.role,
+      },
+    }
+  );
+
+  if (metaError) {
+    try {
+      await admin.auth.admin.deleteUser(authData.user.id);
+    } catch {
+      // ignore
+    }
+    return { error: "فشل ضبط بيانات الجلسة (tenant_id). يرجى المحاولة لاحقاً." };
   }
 
   revalidatePath("/", "layout");
