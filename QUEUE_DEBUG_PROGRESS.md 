@@ -6,13 +6,36 @@
 | A.2  | Revert get_current_user_role()                       | DONE | 2026-07-29 11:42 | Reverted to original: SELECT auth.jwt() ->> 'user_role'; |
 | A.3  | Verify + correct set_tenant_id if needed              | DONE | 2026-07-29 11:42 | FOUND false → CORRECTED to true. Tenant isolation risk resolved. Do not know when/how it became false. |
 | B.2  | Fetch + confirm current queue/page.tsx                | DONE | 2026-07-29 11:42 | File matches exactly — SHA 8eb728ea9bb0cf146f7ccf210cb24bfe900200bc. No code drift. |
-| B.3  | Apply temporary debug patch                           | DONE | 2026-07-29 11:50 | Applied by Owner manually. Awaiting deploy confirmation. |
-| B.4  | Deploy / build check                                  | PENDING |           |       |
-| B.5  | Reproduce with Owner, capture raw error               | PENDING |           |       |
-| B.6  | Revert to original queue/page.tsx                     | PENDING |           |       |
-| B.7  | Confirm revert clean                                  | PENDING |           |       |
-| B.8  | Update HANDOFF.md, report, close                      | PENDING |           |       |
+| B.3  | Apply temporary debug patch                           | DONE | 2026-07-29 11:50 | Applied by Owner manually. |
+| B.4  | Deploy / build check                                  | DONE | 2026-07-29 11:50 | Build successful, deployment live. |
+| B.5  | Reproduce with Owner, capture raw error               | DONE | 2026-07-29 12:03 | Error captured verbatim. See "Captured Error" section below. |
+| B.6  | Revert to original queue/page.tsx                     | DONE | 2026-07-29 12:03 | Reverted by Owner manually. |
+| B.7  | Confirm revert clean                                  | DONE | 2026-07-29 12:03 | Owner confirmed: /queue returned to original behavior (redirects to /login). No debug screen remains. |
+| B.8  | Update HANDOFF.md, report, close                      | DONE | 2026-07-29 12:03 | See appended section in Handoff_Daily_Report_2026-07-29.md. |
 
-## Captured Error (paste verbatim here once you have it)
+## Captured Error (verbatim from Step B.5)
+
+Tenant: 2fa98983-8069-420f-9c27-7c36ef96ef6e
+User: 0e6e6030-121b-4e1a-bf14-ebbd18c19e4f
+
+```json
+[
+  {
+    "fn": "getQueue",
+    "message": "Queue fetch failed: column clinic_patients_1.file_number does not exist",
+    "stack": "Error: Queue fetch failed: column clinic_patients_1.file_number does not exist
+    at i (/var/task/.next/server/app/(dashboard)/queue/page.js:8:242)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async Promise.allSettled (index 0)
+    at async k (/var/task/.next/server/app/(dashboard)/queue/page.js:2:8433)"
+  }
+]
+```
+
+Notes:
+- getQueueStats: SUCCESS (no error)
+- getActiveDoctors: SUCCESS (no error)
+- Only getQueue failed.
 
 ## Stop Log
+- None. All steps completed without stop conditions.
