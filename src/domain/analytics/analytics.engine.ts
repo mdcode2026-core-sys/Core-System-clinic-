@@ -16,13 +16,13 @@ export async function getKpiData(
     throw new Error(`Unknown KPI: ${kpiId}`);
   }
 
-  const dateRange = dateEngine.resolve(datePreset);
+  const dateRange = await dateEngine.resolve(datePreset);
   const rawValue = await calculateKpi(kpiDef, supabase, tenantId, dateRange);
 
   return {
     id: kpiDef.id,
     nameAr: kpiDef.nameAr,
-    value: kpiDef.formatter(rawValue),
+    value: await kpiDef.formatter(rawValue),
     raw: rawValue,
     timestamp: new Date().toISOString(),
   };
