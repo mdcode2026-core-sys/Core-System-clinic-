@@ -1,0 +1,18 @@
+# QUEUE_DEBUG_PROGRESS — TASK-QUEUE-DEBUG-001
+
+| Step | Description                                        | Status  | Timestamp | Notes |
+|------|-----------------------------------------------------|---------|-----------|-------|
+| 0    | Read HANDOFF.md, confirm context, state SQL access   | DONE | 2026-07-29 11:42 | Handoff_Daily_Report_2026-07-29.md read and confirmed. No direct SQL access. |
+| A.2  | Revert get_current_user_role()                       | DONE | 2026-07-29 11:42 | Reverted to original: SELECT auth.jwt() ->> 'user_role'; |
+| A.3  | Verify + correct set_tenant_id if needed              | DONE | 2026-07-29 11:42 | FOUND false → CORRECTED to true. Tenant isolation risk resolved. Do not know when/how it became false. |
+| B.2  | Fetch + confirm current queue/page.tsx                | DONE | 2026-07-29 11:42 | File matches exactly — SHA 8eb728ea9bb0cf146f7ccf210cb24bfe900200bc. No code drift. |
+| B.3  | Apply temporary debug patch                           | DONE | 2026-07-29 11:50 | Applied by Owner manually. Awaiting deploy confirmation. |
+| B.4  | Deploy / build check                                  | PENDING |           |       |
+| B.5  | Reproduce with Owner, capture raw error               | PENDING |           |       |
+| B.6  | Revert to original queue/page.tsx                     | PENDING |           |       |
+| B.7  | Confirm revert clean                                  | PENDING |           |       |
+| B.8  | Update HANDOFF.md, report, close                      | PENDING |           |       |
+
+## Captured Error (paste verbatim here once you have it)
+
+## Stop Log
