@@ -259,220 +259,81 @@ DELETE FROM auth.users WHERE id = '1bad0a59-f489-4d84-9b3d-ba1160031c4c';
 - SQL: `create_tenant_with_subscription` (replaced)
 - SQL: `get_current_user_role` (modified)
 
-# 📋 تقرير Handoff اليومي — CORE SYSTEM
-## تاريخ: 17 يوليو 2026 | الجلسة: 05:30 - 07:00 UTC
-## المالك: Yazeed Waleed © 2026
-## المصنف: داخلي — فريق الهندسة والمالك
+
+
 
 ---
 
-## 1. ملخص الجلسة
+## TASK-QUEUE-DEBUG-001 — CLOSED
 
-| البند | القيمة |
-|-------|--------|
-| المشروع | CORE SYSTEM (ClinicSaaS) |
-| المرحلة | Phase 1 — Foundation (استكمال) |
-| الهدف | تثبيت المصادقة وربطها بقاعدة البيانات |
-| النتيجة | ✅ المشروع يعمل على Vercel |
-| الملفات المُعدَّلة | 9 ملفات |
-| المكتبات المُضافة | 6 مكتبات |
-| الأخطاء المُصلَّحة | 11 خطأ |
+**Date:** 2026-07-29
+**Status:** COMPLETE — Diagnostic task finished. No permanent fix applied.
 
----
+### Part A — Database Corrections
 
-## 2. ما تم اكتشافه في بداية الجلسة
+#### A.2 — get_current_user_role() Reverted
+- **Action:** Reverted to original verified definition from migration `20260721100539_remote_schema.sql`.
+- **Original:** `SELECT auth.jwt() ->> 'user_role';`
+- **Previous unauthorized modification:** `COALESCE(auth.jwt()->'app_metadata'->>'user_role', auth.jwt()->'user_metadata'->>'role')` (Attempt 2 from TASK-SIGNUP-001 handoff)
+- **Result:** Reverted successfully. Confirmed via `SELECT prosrc FROM pg_proc WHERE proname = 'get_current_user_role';`
 
-### 2.1 حالة قاعدة البيانات (قبل التعديلات)
+#### A.3 — set_tenant_id Corrected (Security Risk Found)
+- **Finding:** Live function used `set_config('app.current_tenant_id', tenant_id::text, false)` — third argument was `false`.
+- **Risk:** `false` scopes the setting to the entire database connection. Supabase uses connection pooling. A `tenant_id` set for one request could leak into a different user's request sharing the same pooled connection. This is a genuine tenant-isolation risk.
+- **Action:** Corrected to `set_config('app.current_tenant_id', tenant_id::text, true)` — `true` scopes to current transaction only.
+- **Result:** Corrected successfully. Confirmed via `SELECT prosrc FROM pg_proc WHERE proname = 'set_tenant_id';`
+- **Note:** Do not know when or how this function was changed to `false`. This finding was not anticipated.
 
-| الجدول | الحالة | السجلات |
-|--------|--------|---------|
-| `auth.users` | ❌ فارغ | 0 |
-| `clinic_users` | ⚠️ مستخدم واحد بدون ربط | 1 (`super_admin`) |
-| `master_tenants` | ✅ موجود | 1 |
-| RLS Policies | ✅ 23 policy | — |
-| Functions | ✅ 6 functions | — |
-| Triggers | ✅ 17 trigger | — |
+### Part B — /queue Error Capture
 
-### 2.2 المشكلة الرئيسية
+#### B.2 — Code Verification
+- Fetched `src/app/(dashboard)/queue/page.tsx` via GitHub API.
+- Confirmed exact match to expected content — no code drift.
+- SHA: `8eb728ea9bb0cf146f7ccf210cb24bfe900200bc`
 
-`clinic_users` لا يحتوي على `auth_user_id` — لا يوجد ربط بين Supabase Auth والمستخدمين.
+#### B.3–B.5 — Temporary Debug Patch Applied, Error Captured
+- Applied temporary debug patch using `Promise.allSettled` to surface individual query errors.
+- Deployed successfully.
+- Owner reproduced with test account (`xalkair@gmail.com` / `0e6e6030-121b-4e1a-bf14-ebbd18c19e4f`, tenant `2fa98983-8069-420f-9c27-7c36ef96ef6e`).
 
----
+**Captured Error (verbatim):**
 
-## 3. التعديلات المنفذة
+```json
+[
+  {
+    "fn": "getQueue",
+    "message": "Queue fetch failed: column clinic_patients_1.file_number does not exist",
+    "stack": "Error: Queue fetch failed: column clinic_patients_1.file_number does not exist
+    at i (/var/task/.next/server/app/(dashboard)/queue/page.js:8:242)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async Promise.allSettled (index 0)
+    at async k (/var/task/.next/server/app/(dashboard)/queue/page.js:2:8433)"
+  }
+]
+```
 
-### 3.1 قاعدة البيانات
+**Analysis of captured error:**
+- `getQueue`: **FAILED** — `column clinic_patients_1.file_number does not exist`
+- `getQueueStats`: **SUCCESS** (no error)
+- `getActiveDoctors`: **SUCCESS** (no error)
+- The failure is isolated to `getQueue()` in `src/domain/queue/queue.queries.ts`, which references a column `file_number` on table `clinic_patients` (aliased as `clinic_patients_1` in the generated query) that does not exist in the live database schema.
 
-| التعديل | الأمر | الحالة |
-|---------|-------|--------|
-| إضافة `auth_user_id` إلى `clinic_users` | Migration SQL | ✅ تم التنفيذ |
-| حذف `super_admin` القديم | Migration SQL | ✅ تم التنفيذ |
+#### B.6–B.7 — Revert Confirmed Clean
+- Reverted `queue/page.tsx` to exact original content.
+- Owner confirmed `/queue` returned to original behavior (redirects to `/login`).
+- No debug screen remains in production.
 
-### 3.2 الملفات المُعدَّلة
+### Files Modified in This Task
+- `src/app/(dashboard)/queue/page.tsx` — temporary debug patch applied, then reverted to original.
+- `QUEUE_DEBUG_PROGRESS.md` — created at repo root, all rows marked DONE.
+- SQL (executed by Owner): `get_current_user_role()` reverted, `set_tenant_id` corrected.
 
-| الملف | المسار | التعديل | الحالة |
-|-------|--------|---------|--------|
-| `AuthProvider.tsx` | `src/core/auth/AuthProvider.tsx` | `useMemo` + `auth_user_id` | ✅ مرفوع |
-| `actions.ts` | `src/core/auth/actions.ts` | `signUp` ينشئ عيادة + مستخدم | ✅ مرفوع |
-| `database.types.ts` | `src/infrastructure/supabase/database.types.ts` | `auth_user_id` + أعمدة ناقصة | ✅ مرفوع |
-| `login/page.tsx` | `src/app/(auth)/login/page.tsx` | Server Actions + `Suspense` | ✅ مرفوع |
-| `register/page.tsx` | `src/app/(auth)/register/page.tsx` | صفحة تسجيل جديد | ✅ مرفوع |
-| `QueryClientProvider.tsx` | `src/shared/components/QueryClientProvider.tsx` | إصلاح الاسم المكرر | ✅ مرفوع |
-| `middleware.ts` | `src/infrastructure/supabase/middleware.ts` | إصلاح TypeScript | ✅ مرفوع |
-| `server.ts` | `src/infrastructure/supabase/server.ts` | إصلاح TypeScript | ✅ مرفوع |
-| `package.json` | الجذر | إضافة 6 مكتبات ناقصة | ✅ مرفوع |
+### What Was NOT Modified (Per Prohibitions)
+- `queue.queries.ts` — not touched.
+- No RLS policy modified.
+- No SQL function modified other than the two corrections in Part A.
+- `middleware.ts`, `invoices/page.tsx`, and all other files — untouched.
+- No permanent fix applied to `/queue`.
 
-### 3.3 المكتبات المُضافة
-
-| المكتبة | السبب |
-|---------|-------|
-| `tailwindcss-animate` | Tailwind plugin |
-| `@radix-ui/react-dialog` | Sheet component |
-| `@radix-ui/react-label` | Label component |
-| `@radix-ui/react-separator` | Separator component |
-| `@radix-ui/react-avatar` | Avatar component |
-| `@tanstack/react-query` | QueryClientProvider |
-
-### 3.4 الأخطاء المُصلَّحة
-
-| # | الخطأ | الملف | الحل |
-|---|-------|-------|------|
-| 1 | `tailwindcss-animate` غير موجود | `package.json` | تثبيت المكتبة |
-| 2 | `login/page.tsx` نص غير مكتمل | `login/page.tsx` | إعادة كتابة الملف |
-| 3 | `QueryClientProvider` مكرر | `QueryClientProvider.tsx` | تغيير اسم الاستيراد |
-| 4 | `@radix-ui/react-dialog` ناقص | `package.json` | تثبيت المكتبة |
-| 5 | `@radix-ui/react-label` ناقص | `package.json` | تثبيت المكتبة |
-| 6 | `@radix-ui/react-separator` ناقص | `package.json` | تثبيت المكتبة |
-| 7 | `@tanstack/react-query` ناقص | `package.json` | تثبيت المكتبة |
-| 8 | `middleware.ts` TypeScript | `middleware.ts` | إضافة نوع `cookiesToSet` |
-| 9 | `server.ts` TypeScript | `server.ts` | إضافة نوع `cookiesToSet` |
-| 10 | `@radix-ui/react-avatar` ناقص | `package.json` | تثبيت المكتبة |
-| 11 | `useSearchParams` بدون `Suspense` | `login/page.tsx` | إضافة `Suspense` boundary |
-
----
-
-## 4. بنية المصادقة الحالية
-
-المستخدم يدخل البريد + كلمة المرور  ↓  supabase.auth.signInWithPassword  ↓  AuthProvider يقرأ auth_user_id  ↓  يجلب role + tenant_id من clinic_users  ↓  المستخدم مسجل الدخول
-
----
-
-## 5. الصفحات المتاحة
-
-| الصفحة | المسار | الغرض |
-|--------|--------|-------|
-| تسجيل الدخول | `/login` | دخول المستخدمين الموجودين |
-| تسجيل جديد | `/register` | إنشاء عيادة + مستخدم جديد |
-
----
-
-## 6. ما لم يُنجز بعد (Phase 1 مستمر)
-
-| المهمة | الحالة | التأثير |
-|--------|--------|---------|
-| JWT claims (`tenant_id`, `user_role`) | ⏳ لم يُعدّ بعد | RLS قد لا يعمل للمستخدمين الجدد |
-| Middleware حماية المسارات | ⚠️ موجود لكن لم يُختبر | قد لا يحمي المسارات |
-| صفحة `/check-email` | ❌ غير موجودة | المستخدم لا يرى تأكيد التسجيل |
-| صفحة `/dashboard` | ⚠️ موجودة لكن فارغة | لا يوجد محتوى بعد الدخول |
-| تسجيل الخروج | ✅ موجود في `actions.ts` | يعمل |
-| اختبار end-to-end | ❌ لم يُجرَ | لا يوجد تأكيد أن كل شيء يعمل |
-
----
-
-## 7. خطة العمل التالية
-
-### الجلسة القادمة (Phase 1 — استكمال)
-
-| الأولوية | المهمة | التبعية | المدة |
-|----------|--------|---------|-------|
-| 🔴 1 | إعداد JWT claims في Supabase | Supabase Dashboard | 30 دقيقة |
-| 🔴 2 | اختبار `signUp` end-to-end | يحتاج 1 | 15 دقيقة |
-| 🔴 3 | اختبار `signIn` + `AuthProvider` | يحتاج 2 | 15 دقيقة |
-| 🟡 4 | إنشاء صفحة `/check-email` | يحتاج 2 | 20 دقيقة |
-| 🟡 5 | اختبار Middleware + Route Guards | يحتاج 3 | 20 دقيقة |
-| 🟢 6 | إنشاء هيكل Dashboard فارغ | يحتاج 3 | 30 دقيقة |
-
----
-
-## 8. ⚠️ ما يحتاج للفهم والتحقق
-
-### 8.1 أسئلة يجب الإجابة عليها
-
-| # | السؤال | لماذا مهم |
-|---|--------|-----------|
-| 1 | هل تم إعداد JWT claims في Supabase؟ | بدونها RLS لا يعمل |
-| 2 | هل `signUp` ينشئ 3 سجلات (auth + tenant + user)؟ | يضمن عدم وجود مستخدمين بدون عيادة |
-| 3 | هل `signIn` يقرأ `role` و `tenantId` بشكل صحيح؟ | يضمن عزل المستأجرين |
-| 4 | هل Middleware يمنع الوصول غير المصرح به؟ | يضمن حماية المسارات |
-| 5 | هل هناك `SUPABASE_SERVICE_ROLE_KEY`؟ | مطلوب لبعض العمليات من الخادم |
-
-### 8.2 ما يجب التحقق منه في Supabase Dashboard
-
-| # | التحقق | الطريقة |
-|---|--------|---------|
-| 1 | JWT claims مُعدّة | Auth → Hooks → Postgres Function |
-| 2 | `get_current_tenant_id` تعمل | SQL Editor → اختبار الدالة |
-| 3 | `get_current_user_role` تعمل | SQL Editor → اختبار الدالة |
-| 4 | RLS Policies تمنع الوصول المتقاطع | اختبار استعلام من مستخدم مختلف |
-
-### 8.3 ما يجب التحقق منه في Vercel
-
-| # | التحقق | الطريقة |
-|---|--------|---------|
-| 1 | البناء يعمل بدون أخطاء | Logs → آخر build |
-| 2 | `/login` تعمل | فتح الرابط في المتصفح |
-| 3 | `/register` تعمل | فتح الرابط في المتصفح |
-| 4 | البيئة متغيرات صحيحة | Settings → Environment Variables |
-
----
-
-## 9. المخاطر الحالية
-
-| الخطر | الخطورة | الحل |
-|-------|---------|------|
-| JWT claims غير مُعدّة | 🔴 حرجة | إعداد في Supabase Dashboard |
-| `pin_code = "0000"` | 🟡 عالية | تغيير في قاعدة البيانات |
-| لا يوجد `SUPABASE_SERVICE_ROLE_KEY` | 🟡 عالية | إضافة في Vercel |
-| لا يوجد اختبارات | 🟡 عالية | إنشاء اختبارات يدوية |
-| Mobile-only تطوير | 🟡 متوسطة | الحصول على PC/Mac |
-
----
-
-## 10. المراجع المطلوبة
-
-| المستند | الغرض | أين يوجد |
-|---------|-------|---------|
-| `ClinicSaaS_Engineering_Handoff_v1.0.md` | سياق المشروع الكامل | الملفات المرفقة |
-| `ClinicSaaS_Engineering_Constitution.md` | قواعد التطوير | الملفات المرفقة |
-| `MASTER_ROADMAP.md` | خطة المراحل الزمنية | الملفات المرفقة |
-| `Phase_0.5_Closure_Report_v1.0` | تقرير إغلاق المرحلة 0.5 | الملفات المرفقة |
-| Migration SQL | تغييرات قاعدة البيانات | `supabase/migrations/` |
-
----
-
-## 11. التزامات الجلسة القادمة
-
-| # | الالتزام |
-|---|---------|
-| 1 | عدم البدء في Phase 2 قبل اكتمال Phase 1 |
-| 2 | اختبار كل تعديل قبل الانتقال للتالي |
-| 3 | عدم إضافة ميزات خارج النطاق |
-| 4 | الالتزام بالهيكل المعماري الموجود |
-| 5 | العمل العمودي — إنهاء كل جزء قبل الانتقال |
-| 6 | عدم إعادة فتح قرارات مغلقة |
-
----
-
-## 12. معلومات الاتصال
-
-| البند | القيمة |
-|-------|--------|
-| المستودع | `github.com/mdcode2026-core-sys/Core-System-clinic-` |
-| Supabase Project | `qaslsjyxjwvdoiczmhgq` |
-| Vercel | غير مربوط بالمستودع حتى الآن |
-
----
-
-*CORE SYSTEM — Intellectual Property: Yazeed Waleed © 2026*
-*هذا التقرير هو المصدر الوحيد للحقيقة في الجلسة القادمة.*
-*أي محادثة لا تشير إلى هذا التقرير تعمل بدون سياق كامل.*
+### Next Task Required
+A new task order is needed to fix the root cause: `clinic_patients` table is missing the `file_number` column that `getQueue()` expects. This is a schema/code mismatch — either the column needs to be added to the database, or the query needs to be updated to not reference it.
