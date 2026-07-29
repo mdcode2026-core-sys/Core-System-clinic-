@@ -21,7 +21,7 @@ export interface KpiDefinition {
     tenantId: string,
     dateRange: DateRange
   ) => Promise<number>;
-  formatter: (value: number) => string;
+  formatter: (value: number) => string | Promise<string>;
 }
 
 export interface KpiResult {
