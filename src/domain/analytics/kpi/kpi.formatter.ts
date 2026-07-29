@@ -1,22 +1,22 @@
 "use server";
 
 export const kpiFormatter = {
-  integer: (value: number): string => {
+  async integer(value: number): Promise<string> {
     return Math.round(value).toLocaleString("ar-SA");
   },
 
-  currency: (value: number): string => {
+  async currency(value: number): Promise<string> {
     return (value / 1000).toLocaleString("ar-SA", {
       minimumFractionDigits: 3,
       maximumFractionDigits: 3,
     });
   },
 
-  percentage: (value: number): string => {
+  async percentage(value: number): Promise<string> {
     return `${value.toLocaleString("ar-SA", { maximumFractionDigits: 1 })}%`;
   },
 
-  minutes: (value: number): string => {
+  async minutes(value: number): Promise<string> {
     return `${Math.round(value)} دقيقة`;
   },
 };
