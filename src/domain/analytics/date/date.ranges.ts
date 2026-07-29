@@ -2,7 +2,7 @@
 
 import type { DateRange, DatePreset } from "../analytics.types";
 
-export function resolveDateRange(preset: DatePreset): DateRange {
+export async function resolveDateRange(preset: DatePreset): Promise<DateRange> {
   const today = new Date();
   const yyyy = today.getFullYear();
   const mm = String(today.getMonth() + 1).padStart(2, "0");
