@@ -1,5 +1,5 @@
 // src/app/(dashboard)/queue/page.tsx
-// TEMPORARY DEBUG VERSION — TASK-QUEUE-FIX-002 — MUST BE REVERTED
+// TEMPORARY DEBUG VERSION — TASK-QUEUE-FIX-002-EXTENDED — MUST BE REVERTED
 
 import { redirect } from "next/navigation";
 import { createClient } from "@/infrastructure/supabase/server";
@@ -51,7 +51,7 @@ export default async function QueuePage() {
   if (failures.length > 0) {
     return (
       <div style={{ padding: 24, fontFamily: "monospace", direction: "ltr", textAlign: "left", background: "#111", color: "#0f0", minHeight: "100vh" }}>
-        <h1 style={{ color: "#f55" }}>TEMPORARY DEBUG OUTPUT — TASK-QUEUE-FIX-002</h1>
+        <h1 style={{ color: "#f55" }}>TEMPORARY DEBUG OUTPUT — TASK-QUEUE-FIX-002-EXTENDED</h1>
         <p>tenantId used: {tenantId}</p>
         <p>user id: {user.id}</p>
         <pre>{JSON.stringify(failures, null, 2)}</pre>
