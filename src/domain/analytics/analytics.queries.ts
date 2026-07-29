@@ -1,23 +1,34 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { createClient } from "@/infrastructure/supabase/client";
+import { getAnalyticsOverview, getAnalyticsByCategory } from "./analytics.actions";
+import type { KpiResult, DatePreset } from "./analytics.types";
 
-const supabase = createClient();
-
-export function useDailySnapshot(tenantId: string | null, date: string) {
+export function useAnalyticsOverview(
+  authUserId: string | null | undefined,
+  datePreset: DatePreset = "today"
+) {
   return useQuery({
-    queryKey: ["analytics", "daily", tenantId, date],
+    queryKey: ["analytics", "overview", authUserId, datePreset],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("analytics_daily_snapshots")
-        .select("*")
-        .eq("tenant_id", tenantId)
-        .eq("snapshot_date", date)
-        .single();
-      if (error) throw error;
-      return data;
+      if (!authUserId) return [] as KpiResult[];
+      return getAnalyticsOverview(authUserId, datePreset);
     },
-    enabled: !!tenantId && !!date,
+    enabled: !!authUserId,
+  });
+}
+
+export function useAnalyticsByCategory(
+  authUserId: string | null | undefined,
+  category: "patients" | "appointments" | "queue" | "revenue" | "invoices",
+  datePreset: DatePreset = "today"
+) {
+  return useQuery({
+    queryKey: ["analytics", "category", category, authUserId, datePreset],
+    queryFn: async () => {
+      if (!authUserId) return [] as KpiResult[];
+      return getAnalyticsByCategory(authUserId, category, datePreset);
+    },
+    enabled: !!authUserId,
   });
 }
