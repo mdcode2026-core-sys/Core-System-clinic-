@@ -791,7 +791,149 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+   invoice_items: {
+    Row: {
+      id: string
+      tenant_id: string
+      invoice_id: string
+      procedure_id: string | null
+      item_description: string
+      item_description_ar: string | null
+      quantity: number
+      unit_price_subunits: number
+      discount_subunits: number
+      tax_subunits: number
+      tax_rate_percent: number
+      line_total_subunits: number | null
+      sort_order: number
+      created_at: string
+      updated_at: string
+    }
+    Insert: {
+      id?: string
+      tenant_id: string
+      invoice_id: string
+      procedure_id?: string | null
+      item_description: string
+      item_description_ar?: string | null
+      quantity?: number
+      unit_price_subunits?: number
+      discount_subunits?: number
+      tax_subunits?: number
+      tax_rate_percent?: number
+      line_total_subunits?: number | null
+      sort_order?: number
+      created_at?: string
+      updated_at?: string
+    }
+    Update: {
+      id?: string
+      tenant_id?: string
+      invoice_id?: string
+      procedure_id?: string | null
+      item_description?: string
+      item_description_ar?: string | null
+      quantity?: number
+      unit_price_subunits?: number
+      discount_subunits?: number
+      tax_subunits?: number
+      tax_rate_percent?: number
+      line_total_subunits?: number | null
+      sort_order?: number
+      created_at?: string
+      updated_at?: string
+    }
+    Relationships: [
+      {
+        foreignKeyName: "invoice_items_invoice_id_fkey"
+        columns: ["invoice_id"]
+        isOneToOne: false
+        referencedRelation: "clinic_invoices"
+        referencedColumns: ["id"]
+      },
+      {
+        foreignKeyName: "invoice_items_procedure_id_fkey"
+        columns: ["procedure_id"]
+        isOneToOne: false
+        referencedRelation: "clinic_procedures"
+        referencedColumns: ["id"]
+      },
+      {
+        foreignKeyName: "invoice_items_tenant_id_fkey"
+        columns: ["tenant_id"]
+        isOneToOne: false
+        referencedRelation: "master_tenants"
+        referencedColumns: ["id"]
       }
+    ]
+  }
+  invoice_payments: {
+    Row: {
+      id: string
+      tenant_id: string
+      invoice_id: string
+      amount_subunits: number
+      payment_method: string
+      payment_reference: string | null
+      transaction_id: string | null
+      notes: string | null
+      collected_by: string | null
+      payment_date: string
+      created_at: string
+      updated_at: string
+    }
+    Insert: {
+      id?: string
+      tenant_id: string
+      invoice_id: string
+      amount_subunits: number
+      payment_method?: string
+      payment_reference?: string | null
+      transaction_id?: string | null
+      notes?: string | null
+      collected_by?: string | null
+      payment_date?: string
+      created_at?: string
+      updated_at?: string
+    }
+    Update: {
+      id?: string
+      tenant_id?: string
+      invoice_id?: string
+      amount_subunits?: number
+      payment_method?: string
+      payment_reference?: string | null
+      transaction_id?: string | null
+      notes?: string | null
+      collected_by?: string | null
+      payment_date?: string
+      created_at?: string
+      updated_at?: string
+    }
+    Relationships: [
+      {
+        foreignKeyName: "invoice_payments_collected_by_fkey"
+        columns: ["collected_by"]
+        isOneToOne: false
+        referencedRelation: "clinic_users"
+        referencedColumns: ["id"]
+      },
+      {
+        foreignKeyName: "invoice_payments_invoice_id_fkey"
+        columns: ["invoice_id"]
+        isOneToOne: false
+        referencedRelation: "clinic_invoices"
+        referencedColumns: ["id"]
+      },
+      {
+        foreignKeyName: "invoice_payments_tenant_id_fkey"
+        columns: ["tenant_id"]
+        isOneToOne: false
+        referencedRelation: "master_tenants"
+        referencedColumns: ["id"]
+      }
+    ]
+} 
       inventory_ledger: {
         Row: {
           id: string
