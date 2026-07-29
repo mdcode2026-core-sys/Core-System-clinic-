@@ -64,15 +64,15 @@ export type Database = {
           snapshot_metadata?: Json | null
           created_at?: string
         }
-                Relationships: [
-                  {
-                    foreignKeyName: "analytics_daily_snapshots_tenant_id_fkey"
-                    columns: ["tenant_id"]
-                    isOneToOne: false
-                    referencedRelation: "master_tenants"
-                    referencedColumns: ["id"]
-                  },
-                ]
+        Relationships: [
+          {
+            foreignKeyName: "analytics_daily_snapshots_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "master_tenants"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       audit_trail: {
         Row: {
@@ -117,22 +117,22 @@ export type Database = {
           ip_address?: unknown | null
           created_at?: string
         }
-                Relationships: [
-                  {
-                    foreignKeyName: "audit_trail_actor_id_fkey"
-                    columns: ["actor_id"]
-                    isOneToOne: false
-                    referencedRelation: "clinic_users"
-                    referencedColumns: ["id"]
-                  },
-                  {
-                    foreignKeyName: "audit_trail_tenant_id_fkey"
-                    columns: ["tenant_id"]
-                    isOneToOne: false
-                    referencedRelation: "master_tenants"
-                    referencedColumns: ["id"]
-                  },
-                ]
+        Relationships: [
+          {
+            foreignKeyName: "audit_trail_actor_id_fkey"
+            columns: ["actor_id"]
+            isOneToOne: false
+            referencedRelation: "clinic_users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "audit_trail_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "master_tenants"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       billing_events: {
         Row: {
@@ -174,22 +174,22 @@ export type Database = {
           event_metadata?: Json | null
           created_at?: string
         }
-                Relationships: [
-                  {
-                    foreignKeyName: "billing_events_activated_by_fkey"
-                    columns: ["activated_by"]
-                    isOneToOne: false
-                    referencedRelation: "clinic_users"
-                    referencedColumns: ["id"]
-                  },
-                  {
-                    foreignKeyName: "billing_events_tenant_id_fkey"
-                    columns: ["tenant_id"]
-                    isOneToOne: false
-                    referencedRelation: "master_tenants"
-                    referencedColumns: ["id"]
-                  },
-                ]
+        Relationships: [
+          {
+            foreignKeyName: "billing_events_activated_by_fkey"
+            columns: ["activated_by"]
+            isOneToOne: false
+            referencedRelation: "clinic_users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "billing_events_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "master_tenants"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       clinic_inquiries: {
         Row: {
@@ -237,29 +237,29 @@ export type Database = {
           created_at?: string
           updated_at?: string
         }
-                Relationships: [
-                  {
-                    foreignKeyName: "clinic_inquiries_handled_by_fkey"
-                    columns: ["handled_by"]
-                    isOneToOne: false
-                    referencedRelation: "clinic_users"
-                    referencedColumns: ["id"]
-                  },
-                  {
-                    foreignKeyName: "clinic_inquiries_patient_id_fkey"
-                    columns: ["patient_id"]
-                    isOneToOne: false
-                    referencedRelation: "clinic_patients"
-                    referencedColumns: ["id"]
-                  },
-                  {
-                    foreignKeyName: "clinic_inquiries_tenant_id_fkey"
-                    columns: ["tenant_id"]
-                    isOneToOne: false
-                    referencedRelation: "master_tenants"
-                    referencedColumns: ["id"]
-                  },
-                ]
+        Relationships: [
+          {
+            foreignKeyName: "clinic_inquiries_handled_by_fkey"
+            columns: ["handled_by"]
+            isOneToOne: false
+            referencedRelation: "clinic_users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clinic_inquiries_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "clinic_patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clinic_inquiries_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "master_tenants"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       clinic_invoices: {
         Row: {
@@ -322,43 +322,43 @@ export type Database = {
           created_at?: string
           updated_at?: string
         }
-                Relationships: [
-                  {
-                    foreignKeyName: "clinic_invoices_collected_by_fkey"
-                    columns: ["collected_by"]
-                    isOneToOne: false
-                    referencedRelation: "clinic_users"
-                    referencedColumns: ["id"]
-                  },
-                  {
-                    foreignKeyName: "clinic_invoices_discount_approved_by_fkey"
-                    columns: ["discount_approved_by"]
-                    isOneToOne: false
-                    referencedRelation: "clinic_users"
-                    referencedColumns: ["id"]
-                  },
-                  {
-                    foreignKeyName: "clinic_invoices_patient_id_fkey"
-                    columns: ["patient_id"]
-                    isOneToOne: false
-                    referencedRelation: "clinic_patients"
-                    referencedColumns: ["id"]
-                  },
-                  {
-                    foreignKeyName: "clinic_invoices_session_id_fkey"
-                    columns: ["session_id"]
-                    isOneToOne: false
-                    referencedRelation: "clinic_visit_sessions"
-                    referencedColumns: ["id"]
-                  },
-                  {
-                    foreignKeyName: "clinic_invoices_tenant_id_fkey"
-                    columns: ["tenant_id"]
-                    isOneToOne: false
-                    referencedRelation: "master_tenants"
-                    referencedColumns: ["id"]
-                  },
-                ]
+        Relationships: [
+          {
+            foreignKeyName: "clinic_invoices_collected_by_fkey"
+            columns: ["collected_by"]
+            isOneToOne: false
+            referencedRelation: "clinic_users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clinic_invoices_discount_approved_by_fkey"
+            columns: ["discount_approved_by"]
+            isOneToOne: false
+            referencedRelation: "clinic_users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clinic_invoices_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "clinic_patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clinic_invoices_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "clinic_visit_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clinic_invoices_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "master_tenants"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       clinic_patients: {
         Row: {
@@ -377,6 +377,7 @@ export type Database = {
           first_visit_date: string | null
           referral_source: string | null
           patient_status: string | null
+          file_number: string | null
           notes: string | null
           created_at: string
           updated_at: string
@@ -398,6 +399,7 @@ export type Database = {
           first_visit_date?: string | null
           referral_source?: string | null
           patient_status?: string | null
+          file_number?: string | null
           notes?: string | null
           created_at?: string
           updated_at?: string
@@ -419,20 +421,21 @@ export type Database = {
           first_visit_date?: string | null
           referral_source?: string | null
           patient_status?: string | null
+          file_number?: string | null
           notes?: string | null
           created_at?: string
           updated_at?: string
           deleted_at?: string | null
         }
-                Relationships: [
-                  {
-                    foreignKeyName: "clinic_patients_tenant_id_fkey"
-                    columns: ["tenant_id"]
-                    isOneToOne: false
-                    referencedRelation: "master_tenants"
-                    referencedColumns: ["id"]
-                  },
-                ]
+        Relationships: [
+          {
+            foreignKeyName: "clinic_patients_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "master_tenants"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       clinic_procedures: {
         Row: {
@@ -474,15 +477,15 @@ export type Database = {
           created_at?: string
           updated_at?: string
         }
-                Relationships: [
-                  {
-                    foreignKeyName: "clinic_procedures_tenant_id_fkey"
-                    columns: ["tenant_id"]
-                    isOneToOne: false
-                    referencedRelation: "master_tenants"
-                    referencedColumns: ["id"]
-                  },
-                ]
+        Relationships: [
+          {
+            foreignKeyName: "clinic_procedures_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "master_tenants"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       clinic_rooms: {
         Row: {
@@ -518,15 +521,15 @@ export type Database = {
           created_at?: string
           updated_at?: string
         }
-                Relationships: [
-                  {
-                    foreignKeyName: "clinic_rooms_tenant_id_fkey"
-                    columns: ["tenant_id"]
-                    isOneToOne: false
-                    referencedRelation: "master_tenants"
-                    referencedColumns: ["id"]
-                  },
-                ]
+        Relationships: [
+          {
+            foreignKeyName: "clinic_rooms_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "master_tenants"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       clinic_users: {
         Row: {
@@ -549,7 +552,7 @@ export type Database = {
           avatar_url: string | null
         }
         Insert: {
-          id: string
+          id?: string
           tenant_id: string
           full_name: string
           full_name_ar?: string | null
@@ -586,15 +589,15 @@ export type Database = {
           email?: string | null
           avatar_url?: string | null
         }
-                Relationships: [
-                  {
-                    foreignKeyName: "clinic_users_tenant_id_fkey"
-                    columns: ["tenant_id"]
-                    isOneToOne: false
-                    referencedRelation: "master_tenants"
-                    referencedColumns: ["id"]
-                  },
-                ]
+        Relationships: [
+          {
+            foreignKeyName: "clinic_users_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "master_tenants"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       clinic_visit_sessions: {
         Row: {
@@ -690,57 +693,57 @@ export type Database = {
           created_at?: string
           updated_at?: string
         }
-                Relationships: [
-                  {
-                    foreignKeyName: "clinic_visit_sessions_agenda_event_id_fkey"
-                    columns: ["agenda_event_id"]
-                    isOneToOne: false
-                    referencedRelation: "master_agenda_events"
-                    referencedColumns: ["id"]
-                  },
-                  {
-                    foreignKeyName: "clinic_visit_sessions_doctor_id_fkey"
-                    columns: ["doctor_id"]
-                    isOneToOne: false
-                    referencedRelation: "clinic_users"
-                    referencedColumns: ["id"]
-                  },
-                  {
-                    foreignKeyName: "clinic_visit_sessions_initialized_by_receptionist_fkey"
-                    columns: ["initialized_by_receptionist"]
-                    isOneToOne: false
-                    referencedRelation: "clinic_users"
-                    referencedColumns: ["id"]
-                  },
-                  {
-                    foreignKeyName: "clinic_visit_sessions_lock_holder_id_fkey"
-                    columns: ["lock_holder_id"]
-                    isOneToOne: false
-                    referencedRelation: "clinic_users"
-                    referencedColumns: ["id"]
-                  },
-                  {
-                    foreignKeyName: "clinic_visit_sessions_patient_id_fkey"
-                    columns: ["patient_id"]
-                    isOneToOne: false
-                    referencedRelation: "clinic_patients"
-                    referencedColumns: ["id"]
-                  },
-                  {
-                    foreignKeyName: "clinic_visit_sessions_room_id_fkey"
-                    columns: ["room_id"]
-                    isOneToOne: false
-                    referencedRelation: "clinic_rooms"
-                    referencedColumns: ["id"]
-                  },
-                  {
-                    foreignKeyName: "clinic_visit_sessions_tenant_id_fkey"
-                    columns: ["tenant_id"]
-                    isOneToOne: false
-                    referencedRelation: "master_tenants"
-                    referencedColumns: ["id"]
-                  },
-                ]
+        Relationships: [
+          {
+            foreignKeyName: "clinic_visit_sessions_agenda_event_id_fkey"
+            columns: ["agenda_event_id"]
+            isOneToOne: false
+            referencedRelation: "master_agenda_events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clinic_visit_sessions_doctor_id_fkey"
+            columns: ["doctor_id"]
+            isOneToOne: false
+            referencedRelation: "clinic_users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clinic_visit_sessions_initialized_by_receptionist_fkey"
+            columns: ["initialized_by_receptionist"]
+            isOneToOne: false
+            referencedRelation: "clinic_users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clinic_visit_sessions_lock_holder_id_fkey"
+            columns: ["lock_holder_id"]
+            isOneToOne: false
+            referencedRelation: "clinic_users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clinic_visit_sessions_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "clinic_patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clinic_visit_sessions_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "clinic_rooms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clinic_visit_sessions_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "master_tenants"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       feature_flags: {
         Row: {
@@ -779,15 +782,15 @@ export type Database = {
           created_at?: string
           updated_at?: string
         }
-                Relationships: [
-                  {
-                    foreignKeyName: "feature_flags_tenant_id_fkey"
-                    columns: ["tenant_id"]
-                    isOneToOne: false
-                    referencedRelation: "master_tenants"
-                    referencedColumns: ["id"]
-                  },
-                ]
+        Relationships: [
+          {
+            foreignKeyName: "feature_flags_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "master_tenants"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       inventory_ledger: {
         Row: {
@@ -826,36 +829,36 @@ export type Database = {
           notes?: string | null
           created_at?: string
         }
-                Relationships: [
-                  {
-                    foreignKeyName: "inventory_ledger_logged_by_fkey"
-                    columns: ["logged_by"]
-                    isOneToOne: false
-                    referencedRelation: "clinic_users"
-                    referencedColumns: ["id"]
-                  },
-                  {
-                    foreignKeyName: "inventory_ledger_procedure_id_fkey"
-                    columns: ["procedure_id"]
-                    isOneToOne: false
-                    referencedRelation: "clinic_procedures"
-                    referencedColumns: ["id"]
-                  },
-                  {
-                    foreignKeyName: "inventory_ledger_session_id_fkey"
-                    columns: ["session_id"]
-                    isOneToOne: false
-                    referencedRelation: "clinic_visit_sessions"
-                    referencedColumns: ["id"]
-                  },
-                  {
-                    foreignKeyName: "inventory_ledger_tenant_id_fkey"
-                    columns: ["tenant_id"]
-                    isOneToOne: false
-                    referencedRelation: "master_tenants"
-                    referencedColumns: ["id"]
-                  },
-                ]
+        Relationships: [
+          {
+            foreignKeyName: "inventory_ledger_logged_by_fkey"
+            columns: ["logged_by"]
+            isOneToOne: false
+            referencedRelation: "clinic_users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inventory_ledger_procedure_id_fkey"
+            columns: ["procedure_id"]
+            isOneToOne: false
+            referencedRelation: "clinic_procedures"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inventory_ledger_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "clinic_visit_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inventory_ledger_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "master_tenants"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       master_agenda_events: {
         Row: {
@@ -924,57 +927,57 @@ export type Database = {
           created_at?: string
           updated_at?: string
         }
-                Relationships: [
-                  {
-                    foreignKeyName: "master_agenda_events_created_by_fkey"
-                    columns: ["created_by"]
-                    isOneToOne: false
-                    referencedRelation: "clinic_users"
-                    referencedColumns: ["id"]
-                  },
-                  {
-                    foreignKeyName: "master_agenda_events_doctor_id_fkey"
-                    columns: ["doctor_id"]
-                    isOneToOne: false
-                    referencedRelation: "clinic_users"
-                    referencedColumns: ["id"]
-                  },
-                  {
-                    foreignKeyName: "master_agenda_events_inquiry_id_fkey"
-                    columns: ["inquiry_id"]
-                    isOneToOne: false
-                    referencedRelation: "clinic_inquiries"
-                    referencedColumns: ["id"]
-                  },
-                  {
-                    foreignKeyName: "master_agenda_events_patient_id_fkey"
-                    columns: ["patient_id"]
-                    isOneToOne: false
-                    referencedRelation: "clinic_patients"
-                    referencedColumns: ["id"]
-                  },
-                  {
-                    foreignKeyName: "master_agenda_events_procedure_id_fkey"
-                    columns: ["procedure_id"]
-                    isOneToOne: false
-                    referencedRelation: "clinic_procedures"
-                    referencedColumns: ["id"]
-                  },
-                  {
-                    foreignKeyName: "master_agenda_events_room_id_fkey"
-                    columns: ["room_id"]
-                    isOneToOne: false
-                    referencedRelation: "clinic_rooms"
-                    referencedColumns: ["id"]
-                  },
-                  {
-                    foreignKeyName: "master_agenda_events_tenant_id_fkey"
-                    columns: ["tenant_id"]
-                    isOneToOne: false
-                    referencedRelation: "master_tenants"
-                    referencedColumns: ["id"]
-                  },
-                ]
+        Relationships: [
+          {
+            foreignKeyName: "master_agenda_events_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "clinic_users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "master_agenda_events_doctor_id_fkey"
+            columns: ["doctor_id"]
+            isOneToOne: false
+            referencedRelation: "clinic_users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "master_agenda_events_inquiry_id_fkey"
+            columns: ["inquiry_id"]
+            isOneToOne: false
+            referencedRelation: "clinic_inquiries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "master_agenda_events_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "clinic_patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "master_agenda_events_procedure_id_fkey"
+            columns: ["procedure_id"]
+            isOneToOne: false
+            referencedRelation: "clinic_procedures"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "master_agenda_events_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "clinic_rooms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "master_agenda_events_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "master_tenants"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       master_tenants: {
         Row: {
@@ -1109,15 +1112,15 @@ export type Database = {
           metadata?: Json | null
           created_at?: string
         }
-                Relationships: [
-                  {
-                    foreignKeyName: "notification_queue_tenant_id_fkey"
-                    columns: ["tenant_id"]
-                    isOneToOne: false
-                    referencedRelation: "master_tenants"
-                    referencedColumns: ["id"]
-                  },
-                ]
+        Relationships: [
+          {
+            foreignKeyName: "notification_queue_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "master_tenants"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       patient_history: {
         Row: {
@@ -1168,22 +1171,22 @@ export type Database = {
           created_at?: string
           updated_at?: string
         }
-                Relationships: [
-                  {
-                    foreignKeyName: "patient_history_patient_id_fkey"
-                    columns: ["patient_id"]
-                    isOneToOne: false
-                    referencedRelation: "clinic_patients"
-                    referencedColumns: ["id"]
-                  },
-                  {
-                    foreignKeyName: "patient_history_tenant_id_fkey"
-                    columns: ["tenant_id"]
-                    isOneToOne: false
-                    referencedRelation: "master_tenants"
-                    referencedColumns: ["id"]
-                  },
-                ]
+        Relationships: [
+          {
+            foreignKeyName: "patient_history_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "clinic_patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patient_history_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "master_tenants"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       permissions: {
         Row: {
@@ -1267,36 +1270,36 @@ export type Database = {
           created_at?: string
           updated_at?: string
         }
-                Relationships: [
-                  {
-                    foreignKeyName: "retention_followups_patient_id_fkey"
-                    columns: ["patient_id"]
-                    isOneToOne: false
-                    referencedRelation: "clinic_patients"
-                    referencedColumns: ["id"]
-                  },
-                  {
-                    foreignKeyName: "retention_followups_sent_by_fkey"
-                    columns: ["sent_by"]
-                    isOneToOne: false
-                    referencedRelation: "clinic_users"
-                    referencedColumns: ["id"]
-                  },
-                  {
-                    foreignKeyName: "retention_followups_session_id_fkey"
-                    columns: ["session_id"]
-                    isOneToOne: false
-                    referencedRelation: "clinic_visit_sessions"
-                    referencedColumns: ["id"]
-                  },
-                  {
-                    foreignKeyName: "retention_followups_tenant_id_fkey"
-                    columns: ["tenant_id"]
-                    isOneToOne: false
-                    referencedRelation: "master_tenants"
-                    referencedColumns: ["id"]
-                  },
-                ]
+        Relationships: [
+          {
+            foreignKeyName: "retention_followups_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "clinic_patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "retention_followups_sent_by_fkey"
+            columns: ["sent_by"]
+            isOneToOne: false
+            referencedRelation: "clinic_users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "retention_followups_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "clinic_visit_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "retention_followups_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "master_tenants"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       role_permissions: {
         Row: {
@@ -1317,22 +1320,22 @@ export type Database = {
           permission_id?: string
           created_at?: string | null
         }
-                Relationships: [
-                  {
-                    foreignKeyName: "role_permissions_permission_id_fkey"
-                    columns: ["permission_id"]
-                    isOneToOne: false
-                    referencedRelation: "permissions"
-                    referencedColumns: ["id"]
-                  },
-                  {
-                    foreignKeyName: "role_permissions_role_id_fkey"
-                    columns: ["role_id"]
-                    isOneToOne: false
-                    referencedRelation: "roles"
-                    referencedColumns: ["id"]
-                  },
-                ]
+        Relationships: [
+          {
+            foreignKeyName: "role_permissions_permission_id_fkey"
+            columns: ["permission_id"]
+            isOneToOne: false
+            referencedRelation: "permissions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "role_permissions_role_id_fkey"
+            columns: ["role_id"]
+            isOneToOne: false
+            referencedRelation: "roles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       roles: {
         Row: {
@@ -1407,22 +1410,22 @@ export type Database = {
           metadata?: Json | null
           created_at?: string | null
         }
-                Relationships: [
-                  {
-                    foreignKeyName: "subscription_events_subscription_id_fkey"
-                    columns: ["subscription_id"]
-                    isOneToOne: false
-                    referencedRelation: "subscriptions"
-                    referencedColumns: ["id"]
-                  },
-                  {
-                    foreignKeyName: "subscription_events_tenant_id_fkey"
-                    columns: ["tenant_id"]
-                    isOneToOne: false
-                    referencedRelation: "tenants"
-                    referencedColumns: ["id"]
-                  },
-                ]
+        Relationships: [
+          {
+            foreignKeyName: "subscription_events_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "subscriptions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subscription_events_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       subscription_plans: {
         Row: {
@@ -1524,22 +1527,22 @@ export type Database = {
           created_at?: string | null
           updated_at?: string | null
         }
-                Relationships: [
-                  {
-                    foreignKeyName: "subscriptions_plan_id_fkey"
-                    columns: ["plan_id"]
-                    isOneToOne: false
-                    referencedRelation: "subscription_plans"
-                    referencedColumns: ["id"]
-                  },
-                  {
-                    foreignKeyName: "subscriptions_tenant_id_fkey"
-                    columns: ["tenant_id"]
-                    isOneToOne: false
-                    referencedRelation: "tenants"
-                    referencedColumns: ["id"]
-                  },
-                ]
+        Relationships: [
+          {
+            foreignKeyName: "subscriptions_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "subscription_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subscriptions_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       tenant_devices: {
         Row: {
@@ -1578,15 +1581,15 @@ export type Database = {
           last_seen_at?: string | null
           registered_at?: string
         }
-                Relationships: [
-                  {
-                    foreignKeyName: "tenant_devices_tenant_id_fkey"
-                    columns: ["tenant_id"]
-                    isOneToOne: false
-                    referencedRelation: "master_tenants"
-                    referencedColumns: ["id"]
-                  },
-                ]
+        Relationships: [
+          {
+            foreignKeyName: "tenant_devices_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "master_tenants"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       tenants: {
         Row: {
@@ -1706,22 +1709,22 @@ export type Database = {
           updated_at?: string | null
           deleted_at?: string | null
         }
-                Relationships: [
-                  {
-                    foreignKeyName: "users_role_id_fkey"
-                    columns: ["role_id"]
-                    isOneToOne: false
-                    referencedRelation: "roles"
-                    referencedColumns: ["id"]
-                  },
-                  {
-                    foreignKeyName: "users_tenant_id_fkey"
-                    columns: ["tenant_id"]
-                    isOneToOne: false
-                    referencedRelation: "tenants"
-                    referencedColumns: ["id"]
-                  },
-                ]
+        Relationships: [
+          {
+            foreignKeyName: "users_role_id_fkey"
+            columns: ["role_id"]
+            isOneToOne: false
+            referencedRelation: "roles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "users_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
@@ -1729,79 +1732,79 @@ export type Database = {
     }
     Functions: {
       can_edit_invoice: {
-              Args: {
-                p_invoice_id: string
-              }
-              Returns: boolean
-            }
-            cancel_invoice: {
-              Args: {
-                p_invoice_id: string
-                p_reason: string
-              }
-              Returns: Json
-            }
-            create_invoice_from_session: {
-              Args: {
-                p_session_id: string
-                p_tenant_id: string
-              }
-              Returns: Json
-            }
-            create_tenant_with_subscription: {
-              Args: {
-                p_auth_user_id: string
-                p_clinic_name: string
-                p_clinic_name_ar?: string
-                p_country_code?: string
-                p_currency?: string
-                p_email: string
-                p_full_name: string
-                p_license_key?: string
-                p_plan_key?: string
-                p_timezone?: string
-              }
-              Returns: Json
-            }
-            custom_access_token_hook: { Args: { event: Json }; Returns: Json }
-            generate_invoice_number: {
-              Args: {
-                p_tenant_id: string
-              }
-              Returns: string
-            }
-            get_current_tenant_id: { Args: never; Returns: string }
-            get_current_user_role: { Args: never; Returns: string }
-            issue_invoice: {
-              Args: {
-                p_invoice_id: string
-              }
-              Returns: Json
-            }
-            recalculate_invoice_totals: {
-              Args: {
-                p_invoice_id: string
-              }
-              Returns: Json
-            }
-            record_invoice_payment: {
-              Args: {
-                p_invoice_id: string
-                p_amount_subunits: number
-                p_payment_method: string
-                p_reference_number?: string
-                p_notes?: string
-              }
-              Returns: Json
-            }
-            set_tenant_id: { Args: { tenant_id: string }; Returns: undefined }
-            test_jwt_claims: {
-              Args: { p_user_id: string }
-              Returns: {
-                claim_name: string
-                claim_value: string
-              }[]
-            }
+        Args: {
+          p_invoice_id: string
+        }
+        Returns: boolean
+      }
+      cancel_invoice: {
+        Args: {
+          p_invoice_id: string
+          p_reason: string
+        }
+        Returns: Json
+      }
+      create_invoice_from_session: {
+        Args: {
+          p_session_id: string
+          p_tenant_id: string
+        }
+        Returns: Json
+      }
+      create_tenant_with_subscription: {
+        Args: {
+          p_auth_user_id: string
+          p_clinic_name: string
+          p_clinic_name_ar?: string
+          p_country_code?: string
+          p_currency?: string
+          p_email: string
+          p_full_name: string
+          p_license_key?: string
+          p_plan_key?: string
+          p_timezone?: string
+        }
+        Returns: Json
+      }
+      custom_access_token_hook: { Args: { event: Json }; Returns: Json }
+      generate_invoice_number: {
+        Args: {
+          p_tenant_id: string
+        }
+        Returns: string
+      }
+      get_current_tenant_id: { Args: never; Returns: string }
+      get_current_user_role: { Args: never; Returns: string }
+      issue_invoice: {
+        Args: {
+          p_invoice_id: string
+        }
+        Returns: Json
+      }
+      recalculate_invoice_totals: {
+        Args: {
+          p_invoice_id: string
+        }
+        Returns: Json
+      }
+      record_invoice_payment: {
+        Args: {
+          p_invoice_id: string
+          p_amount_subunits: number
+          p_payment_method: string
+          p_reference_number?: string
+          p_notes?: string
+        }
+        Returns: Json
+      }
+      set_tenant_id: { Args: { tenant_id: string }; Returns: undefined }
+      test_jwt_claims: {
+        Args: { p_user_id: string }
+        Returns: {
+          claim_name: string
+          claim_value: string
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never
@@ -1812,9 +1815,9 @@ export type Database = {
   }
 }
 
-type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
+type DatabaseWithoutInternals = Omit<Database, "public">
 
-type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof DatabaseWithoutInternals, "public">]
 
 export type Tables<
   DefaultSchemaTableNameOrOptions extends
