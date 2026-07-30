@@ -1,5 +1,3 @@
-"use server";
-
 import type { KpiDefinition } from "../../analytics.types";
 import { kpiFormatter } from "../kpi.formatter";
 
