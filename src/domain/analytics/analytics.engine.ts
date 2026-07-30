@@ -1,5 +1,3 @@
-"use server";
-
 import type { KpiResult, DatePreset, AnalyticsSupabaseClient } from "./analytics.types";
 import { kpiRegistry } from "./kpi/kpi.registry";
 import { dateEngine } from "./date/date.engine";
