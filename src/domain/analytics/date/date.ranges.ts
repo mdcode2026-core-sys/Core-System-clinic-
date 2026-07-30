@@ -1,5 +1,3 @@
-"use server";
-
 import type { DateRange, DatePreset } from "../analytics.types";
 
 export async function resolveDateRange(preset: DatePreset): Promise<DateRange> {
