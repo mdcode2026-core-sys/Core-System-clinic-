@@ -1,5 +1,3 @@
-"use server";
-
 export const kpiFormatter = {
   async integer(value: number): Promise<string> {
     return Math.round(value).toLocaleString("ar-SA");
