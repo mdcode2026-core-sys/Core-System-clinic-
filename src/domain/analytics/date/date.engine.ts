@@ -1,5 +1,3 @@
-"use server";
-
 import { resolveDateRange } from "./date.ranges";
 import type { DateRange, DatePreset } from "../analytics.types";
 
