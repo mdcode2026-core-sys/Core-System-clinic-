@@ -1,3 +1,5 @@
+"use server";
+
 import type { KpiDefinition } from "../../analytics.types";
 import { kpiFormatter } from "../kpi.formatter";
 
@@ -132,5 +134,5 @@ export const patientsAvgVisitsKpi: KpiDefinition = {
     if (totalPatients === 0) return 0;
     return totalVisits / totalPatients;
   },
-  formatter: (v) => v.toLocaleString("ar-SA", { maximumFractionDigits: 1 }),
+  formatter: (v) => v.toLocaleString("en-US", { maximumFractionDigits: 1 }),
 };
