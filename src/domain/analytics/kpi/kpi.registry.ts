@@ -1,5 +1,3 @@
-"use server";
-
 import type { KpiDefinition, KpiRegistry as IKpiRegistry } from "../analytics.types";
 
 import {
