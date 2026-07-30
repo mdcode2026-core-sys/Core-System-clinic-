@@ -791,6 +791,7 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
    invoice_items: {
     Row: {
       id: string
