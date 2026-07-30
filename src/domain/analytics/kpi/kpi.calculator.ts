@@ -1,5 +1,3 @@
-"use server";
-
 import type { KpiDefinition, DateRange, AnalyticsSupabaseClient } from "../analytics.types";
 
 export async function calculateKpi(
