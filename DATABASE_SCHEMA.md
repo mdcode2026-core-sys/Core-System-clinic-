@@ -129,6 +129,20 @@ Outbound message queue: recipient type/id/phone/email, `channel`, `priority` (1�
 - Every table listed above has RLS **enabled**. The one confirmed gap is `subscription_plans` (enabled, zero policies — see security audit).
 - `roles`, `permissions`, `role_permissions` have open `SELECT` policies (`USING (true)`) already in place, no write policies yet.
 
-## 12. Extensions
+## 12. Planned Schema Additions (approved architecture, not yet built — see `ARCHITECTURE_DECISIONS.md`)
+
+These do not exist in the live database yet. Listed here so `DATABASE_SCHEMA.md` stays the single reference for both current and approved-but-pending structure, per the frozen 2026-07-31 Product Owner decisions.
+
+**Permission Engine (ADR-001, Milestone 3):** `clinic_user_permission_overrides` — the one new table specified in `IMPLEMENTATION_PACKAGE_MILESTONE_3.md` Package 3.0.1.
+
+**Branch-Ready Architecture (ADR-004):** `branches` (`id`, `tenant_id → master_tenants`, `branch_name`/`_ar`, `is_default boolean`, `address`, `phone`, `is_active`, soft-delete). One default row per existing and future tenant.
+
+**Subscription / License Engine (ADR-003, Milestone 5):** the `master_tenants.subscription_tier` column needs splitting — plan identity stays here (or moves to a proper FK against `subscription_plans`), a new lifecycle-state column is added (`trial`/`active`/`expiring_soon`/`grace_period`/`suspended`/`reactivated`/`cancelled`, distinct from plan identity). New tables needed: an add-ons catalog and a per-tenant purchased-add-ons table, a per-tenant resource-consumption/usage table, and the License Engine's own resolved-license representation (likely a view or computed table combining Base Plan + Add-ons + Resource Limits + Feature Flags, per ADR-003's formula).
+
+**Medical Master Libraries & Procedure/Service Catalog (ADR-005, Milestone 4):** `medical_specialties` (global, Super-Admin-managed), `procedure_master_library` (global: internal ID, international code, scientific/medical name, description, categories), `procedure_specialty_map` (many-to-many join), `services` (distinct from procedures) and `service_procedures` (many-to-many join). Existing `clinic_procedures` gains a `master_procedure_id → procedure_master_library` foreign key, becoming the clinic-level customization layer (price, duration, assigned doctors, rooms, colors, commercial name) over the master library rather than a flat standalone catalog.
+
+---
+
+## 13. Extensions
 
 `pg_net`, `btree_gist` — both installed in the `public` schema (see SECURITY_AUDIT_REPORT SEC-010 for the relocation recommendation).
