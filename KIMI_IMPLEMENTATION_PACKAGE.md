@@ -8,7 +8,7 @@
 
 Do not start a package before its listed prerequisite is fully closed (Definition of Done met and reported).
 
-1. **Confirm `SECURITY_HOTFIX_MIGRATION.sql` Phases A/B/D are already applied.** If not, stop and flag this before writing any permission-related code — do not build new permission infrastructure on top of unresolved anon-access findings.
+1. **Security status check.** `SECURITY_HOTFIX_MIGRATION.sql` Phases A/B/D are confirmed applied to the live database as of 2026-07-31 (verified by the Architect directly against live grants — see `PROJECT_HANDOFF.md`). Phase C (`subscription_plans` read policy) remains pending an Owner decision and does not block Milestone 3 work. You cannot re-verify this yourself — treat `PROJECT_HANDOFF.md`'s current statement as authoritative; if it ever says otherwise, stop and flag before writing permission-related code.
 2. **Package 3.0.1 — Permission Engine Runtime**
 3. **Package 3.0.2 — Dynamic Navigation**
 4. **Package 3.0.3/3.0.4 — RTL/Responsive verification** (quick — can run in parallel with the start of Phase 3.1 module work once 3.0.2 is done)
@@ -38,16 +38,18 @@ Do not start a package before its listed prerequisite is fully closed (Definitio
 
 ## Verification Checklist Before Closing Any Package
 
+State these as exact, relayable requests (you cannot run any of them yourself — see `KIMI_IMPLEMENTATION_CONTRACT.md`):
+
 - [ ] Build passes (`next build` or equivalent) with zero errors
 - [ ] Zero TypeScript errors
 - [ ] Zero new lint errors
-- [ ] Manual functional test performed (not just "should work") — describe exactly what was clicked/called and what the result was
-- [ ] RLS/permission check verified against at least one unauthorized case (confirm it's actually blocked, not just hidden)
-- [ ] No existing, working functionality regressed (spot-check the module(s) this package touched, even indirectly)
-- [ ] `CHANGELOG.md` updated
-- [ ] `PROJECT_HANDOFF.md` "Current State" table updated
-- [ ] `DATABASE_SCHEMA.md` updated if any table/column changed
-- [ ] Handoff report produced in the established format
+- [ ] Manual functional test performed by the Owner following your exact step-by-step instructions — describe precisely what to click/call and what result confirms success
+- [ ] RLS/permission check verified against at least one unauthorized case — provide the exact query/scenario that proves it's actually blocked, not just hidden
+- [ ] No existing, working functionality regressed — specify what to spot-check
+- [ ] `CHANGELOG.md` updated (you write the complete updated file)
+- [ ] `PROJECT_HANDOFF.md` "Current State" table updated (you write the complete updated file)
+- [ ] `DATABASE_SCHEMA.md` updated if any table/column changed (you write the complete updated file)
+- [ ] Handoff report produced in the established format, with every result above marked as either confirmed-by-Architect or still-pending-confirmation — never assumed passing
 
 ---
 
