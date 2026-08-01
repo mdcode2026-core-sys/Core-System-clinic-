@@ -36,8 +36,15 @@ Authoritative next milestone: **Milestone 3 — Unified Workspace** (confirmed 2
 - `database.types.ts` **does** include `file_number` (confirmed) — contradicts `QUEUE_FIX_PROGRESS.md`, which still listed this as PENDING; that file was stale.
 **Still unverified:** whether `/queue` actually loads successfully end-to-end in the deployed app (`QUEUE_FIX_PROGRESS.md` steps 6.4–6.6 — build/deploy check, live verification, and formal closure — were never marked done). **Action needed: a manual load test of `/queue` with an authenticated session, then formally close this item.**
 
-### Open Item #2 — Security hotfixes pending approval
-See `SECURITY_AUDIT_REPORT.md` and `SECURITY_HOTFIX_PLAN.md`. Not yet applied to the live database. Two decisions needed from Owner before the migration can run: (a) `subscription_plans` read-policy shape, (b) whether to eventually `DROP` the debug functions or just leave access revoked.
+### Open Item #2 — Security hotfixes: Phases A/B/D applied and verified; Phase C still pending
+**Update (2026-08-01):** Phases A/B/D from `SECURITY_HOTFIX_MIGRATION.sql` were applied directly to the live database by the Architect on 2026-07-31, using `execute_sql` rather than the blocked `apply_migration` path. **First attempt silently failed verification** — `REVOKE ... FROM anon, authenticated` had no effect because Postgres grants `EXECUTE` to the implicit `PUBLIC` role by default at function creation, and `anon`/`authenticated` still inherited access through that. Corrected by revoking from `PUBLIC` directly and re-granting only to the intended roles (`authenticated`/`service_role` where needed, none for the fully-locked-down debug functions). Re-verified against live grants: confirmed `anon` no longer has `EXECUTE` on any of the flagged functions, while `authenticated` retains exactly what Patients/Agenda/Analytics depend on. **Phase C (`subscription_plans` read policy) remains pending an Owner decision and does not block other work.**
+
+### Open Item #6 — `service_role` key committed to git history (accepted risk, tracked)
+**Found:** 2026-08-01. `.env.local`, containing the real `SUPABASE_SERVICE_ROLE_KEY` (full RLS bypass), is tracked in git history (first committed alongside `PRODUCT_COMPLETION_ROADMAP_V2.md`). `.gitignore` lists `.env.local` but this does not retroactively untrack an already-committed file.
+**Owner decision (2026-08-01):** known and accepted for now — needed for current work procedures, project is pre-production with no real tenant data yet. **Hard condition, not optional: this key must be rotated in the Supabase dashboard and the file untracked (`git rm --cached`) before any real tenant data or production launch — whichever comes first.** Re-raise this explicitly at the start of any production-readiness (Milestone 7) or go-live discussion.
+
+### Open Item #7 — Build verification, partial (2026-08-01)
+The Architect cloned the repository directly and ran `npx tsc --noEmit`: **zero TypeScript errors, confirmed.** Full `next build` could not be completed in the Architect's sandbox — it failed only on fetching the Inter font from Google Fonts (a network restriction in that environment, not a code defect); this is not evidence of a real build failure. `next lint` hit a CLI/config resolution issue in the same sandbox, inconclusive — not yet confirmed clean. Kimi has no execution access at all (confirmed via Kimi's own Session 0 report) and cannot verify any of this independently — the Architect is the verification path for build/type-check results going forward, relayed through the Owner.
 
 ### Open Item #3 — Legacy tenant tables not formally resolved
 `tenants`, `users`, `subscriptions`, `subscription_events` (see ADR-000) still exist live with residual data, superseded since 2026-07-29 but never formally deprecated or dropped. No action taken yet; flagged for a future decision.
@@ -50,7 +57,27 @@ Sections 8–16 of the roadmap, which almost certainly specify Milestone 2, are 
 
 ---
 
-## 3. Historical Record (condensed from archived daily reports)
+## 3. Known Issues Register (consolidated from `CORE_SYSTEM_INDEX.md` "Current Known Problems," 11 issues total)
+
+| # | Issue | Status |
+|---|---|---|
+| 001 | Dashboard routing — correct route is `src/app/(dashboard)/page.tsx`, not `.../dashboard/page.tsx` | ✅ Resolved |
+| 002 | Repeated proposal of already-failed solutions | Process rule, not a bug — see `ENGINEERING_CONSTITUTION.md` |
+| 003 | Blind file modification without dependency analysis | Process rule — same |
+| 004 | Console/browser-devtools dependency (Owner develops from mobile) | Process rule — prefer server-side diagnostics |
+| 005 | Artificial/temporary file creation | Process rule |
+| 006 | RLS bugs in `rls_sessions_write_role_check`, `rls_invoices_doctor_read`, `rls_audit_read` | ✅ Resolved |
+| 007 | Legacy tables (`users`/`clinic_users`, `tenants`/`master_tenants`) inconsistency | ✅ Resolved (app-layer only — legacy tables still physically present, see ADR-000) |
+| 008 | `isDoctor` manually hardcoded to `false` in `queue/page.tsx` | 🟡 Suspended — waiting on `MyQueueView` |
+| 009 | Analytics build error chain (dead import, `"use server"` misuse, unsupported locale glyphs) | ✅ Resolved |
+| **010** | **`/queue` redirect to `/login`, missing `file_number` column** | **Still officially OPEN per `CORE_SYSTEM_INDEX.md` as of 2026-07-30 — matches Open Item #1 above. The column now exists (verified), but formal closure/live verification never happened.** |
+| 011 | `@types/react` peer dependency warning (18.x vs 19.x) | Cosmetic, non-blocking |
+
+**Production status:** Not yet in production (`Production: NO` per `CORE_SYSTEM_INDEX.md`).
+
+---
+
+## 4. Historical Record (condensed from archived daily reports)
 
 **2026-07-29 — TASK-SIGNUP-001:** Fixed sign-up flow so `tenant_id`/`role` are correctly written to both `user_metadata` and `app_metadata` after `create_tenant_with_subscription` succeeds (previously the `handle_new_user` trigger fired too early to have this data). `create_tenant_with_subscription` was rewritten to stop writing to the legacy tables (see ADR-000) and write only to `master_tenants`/`clinic_users`. Verified working end-to-end for Dashboard and Invoices; Queue was found broken (see Open Item #1's history).
 
