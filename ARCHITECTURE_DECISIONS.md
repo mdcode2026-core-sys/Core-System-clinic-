@@ -64,3 +64,65 @@ Live inspection also found `roles`, `permissions`, and `role_permissions` tables
 **Decision:** Milestone 3 (Unified Workspace) is confirmed as the current, authoritative next step. Phase 6 / "Settings Dashboard" content from `CORE_SYSTEM_INDEX.md` is understood to map to Milestone 2 ("Tenant Administration Center") in the Roadmap's numbering, not to a separate, earlier-priority track.
 
 **Consequence:** The Software Engineering Execution Plan for Milestone 3 proceeds as the active plan. Milestone 2 content is still pending (see EN-001, unresolved — Sections 8–16 of the roadmap are not present even in the canonical repository copy).
+
+---
+
+## ADR-003 — Four-Layer Subscription & License Architecture
+
+**Date:** 2026-07-31
+**Status:** Approved (Product Owner Final Decision — frozen)
+
+**Decision:** Subscriptions are modeled as four independent layers: (1) **Base Plan** — enabled modules, included users/branches/storage, support level, billing cycle only; (2) **Add-ons** — independently purchasable capabilities (extra users/storage/branches, WhatsApp, SMS, AI Assistant, Post-Visit Follow-up, Lab/Radiology/Pharmacy integration, API Access, Advanced Analytics); (3) **Resource Limits** — operational ceilings (users, branches, storage, attachments, file size, monthly messages, backups), storage treated as an expandable commercial resource, not a fixed package value; (4) **License Engine** — the single runtime source of truth, computed as Base Plan + Add-ons + Resource Limits + Feature Flags. **Every module validates against the License, never against `subscription_tier` directly.**
+
+**Trial Policy:** every new tenant gets an automatic, full-platform trial, duration configurable by Super Admin (default 14 days). On expiry: data stays intact, access is suspended, Super Admin can extend/activate/change.
+
+**Subscription Lifecycle (state machine):** `Trial → Active → Expiring Soon → Grace Period → Suspended → Reactivated → Cancelled`. Notifications follow state transitions.
+
+**Repository impact (found during this audit, not yet resolved by this ADR — flagged for the implementation package):** `master_tenants.subscription_tier` currently conflates two orthogonal concepts this ADR separates — plan identity (`trial`/`essential`/`professional`/`enterprise`) and lifecycle state (`suspended` is in the same CHECK constraint as the plan names). Implementation must split these: `subscription_tier` should reference the Base Plan (Layer 1) only; lifecycle state (Trial/Active/Expiring/Grace/Suspended/Reactivated/Cancelled) needs its own column. `subscription_plans.max_branches` already exists in the schema, confirming Layer 3 (Resource Limits) was partially anticipated. Add-ons, per-tenant resource consumption tracking, and the License Engine itself have no schema yet — net new.
+
+**Owner Home:** Milestone 5 (Super Admin Platform) builds and manages the License Engine and plan/add-on catalog. Milestone 2 (Tenant Administration Center) consumes it via the Subscription Center (ADR — see Milestone 2 scope).
+
+---
+
+## ADR-004 — Branch-Ready Architecture (Minimal Viable Addition)
+
+**Date:** 2026-07-31
+**Status:** Approved (Product Owner Final Decision — frozen), with one implementation-scope judgment made under this authority (see "Engineering interpretation" below)
+
+**Decision:** The system must be architecturally prepared for multi-branch operation from day one; single-branch clinics automatically use a default branch; no future database redesign should be required to add real multi-branch operation later.
+
+**Engineering interpretation (this ADR's technical scope, not a redesign of the decision above):** live inspection confirms `master_tenants` has no branch concept at all today, and no other table references branches. Satisfying "no future redesign required" does **not** require retrofitting `branch_id` onto every operational table today (patients, appointments, invoices, etc.) — that is a disproportionate change for a forward-looking requirement and would itself violate Minimal Change / Repository First Policy. The minimal viable addition that satisfies the stated requirement: introduce a `branches` table (`id`, `tenant_id → master_tenants`, `branch_name` (+`_ar`), `is_default boolean`, `address`, `phone`, `is_active`, soft-delete) and auto-create exactly one default branch per tenant (retroactively for existing tenants, and going forward inside `create_tenant_with_subscription`). Operational tables remain tenant-scoped as they are today; adding `branch_id` to them is deferred to whichever future milestone actually implements multi-branch operation, at which point the `branches` table already exists and no tenant/branch relationship redesign is needed — satisfying the decision as stated.
+
+**Owner Home:** foundational — recommend this ships early (alongside or just before Milestone 2), since the Subscription Center (Milestone 2) is specified to show "Branch Usage."
+
+---
+
+## ADR-005 — Medical Master Libraries & Procedure/Service Catalog
+
+**Date:** 2026-07-31
+**Status:** Approved (Product Owner Final Decision — frozen)
+
+**Decision:** CORE SYSTEM is a Multi-Specialty Medical Platform, not aesthetic-clinic-specific. Two centrally-maintained master libraries, managed by Super Admin:
+- **Medical Specialty Library** — internationally recognized specialties; Clinic Admin selects from this list, does not create specialties.
+- **Procedure Master Library** — permanent internal ID, international procedure code (where applicable), scientific name, medical name, description, categories, **many-to-many relationship with Medical Specialties** (a procedure may belong to multiple specialties).
+
+**Clinic Procedure Catalog:** Clinic Admin never creates procedures from scratch — always selects from the Master Library, then customizes clinic-facing presentation (price, duration, assigned doctors, rooms, colors, commercial/display name) while the scientific identity is preserved unchanged (example given: "Botulinum Toxin Injection" scientifically, displayed commercially as "Botox Premium").
+
+**Service Catalog:** a Service is a distinct, independent entity from a Procedure — a Service **may bundle multiple Procedures**. This distinction is permanent architecture, not a naming convenience.
+
+**Repository impact:** `clinic_procedures` currently exists as a single flat table (no master-library reference, no specialty relationship, no distinction from "services"). This ADR requires: new `medical_specialties` table (Super-Admin-managed, global), new `procedure_master_library` table (global) with a `procedure_specialty_map` many-to-many join table, `clinic_procedures` reinterpreted as the clinic-level customization layer over the master library (needs a `master_procedure_id` FK added), and a new `services` + `service_procedures` (many-to-many) pair distinct from `clinic_procedures`. This is a substantial schema addition — **not started in any milestone's execution package yet.**
+
+**Owner Home:** this does not fit cleanly into any currently-defined milestone. Recommend it becomes explicit prerequisite scope within Milestone 4 ("Clinical & Business Modules" — previously only vaguely described as "Medical Workflow Completion"), since Billing/Invoicing, Appointments, and Analytics all eventually need to reference real procedures rather than the current flat `clinic_procedures` table. See `MASTER_ROADMAP.md` Milestone 4 update.
+
+---
+
+## ADR-006 — Everything Is a Module Principle
+
+**Date:** 2026-07-31
+**Status:** Approved (Product Owner Final Decision — frozen)
+
+**Decision:** The platform is officially module-driven. Every business capability (Patients, Appointments, Queue, Billing, Inventory, Analytics, Follow-up, and future: Radiology, Laboratory, Pharmacy, Prescription, CRM, Marketing, AI) is an independent module. Every module must support: Feature Flag, License Control (ADR-003), Permission Control (ADR-001), Independent Configuration, Independent Activation. Governing statement: **"Everything is a Module. Everything is Licensable. Everything is Permission Controlled."**
+
+**Repository impact:** `feature_flags` table already exists (global or per-tenant, `allowed_tiers` array) — partial groundwork already in place. No module today checks a feature flag or license before rendering — Milestone 3's modules (Patients, Agenda, Queue, Billing, Inventory, Analytics, Follow-up) were specified in `IMPLEMENTATION_PACKAGE_MILESTONE_3.md` against ADR-001 (permissions) only. **This principle is not retroactively applied to the already-issued Milestone 3 package** — doing so now would restart in-flight, already-precise work. Recommend License/Feature-Flag gating is added as a Milestone 3 follow-up hardening pass, or folded into Milestone 6 ("System Integration," which already covers "Full Permission Integration") once the License Engine (ADR-003) actually exists to check against — a module can't validate a License Engine that hasn't been built yet.
+
+**Owner Home:** cross-cutting principle; enforced going forward on every future module (Inventory/Reports/Follow-up in Milestone 3 onward, and all Milestone 4+ modules) once ADR-003's License Engine ships.
