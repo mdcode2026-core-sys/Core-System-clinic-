@@ -12,11 +12,11 @@
 |---|---|
 | Core Foundation (auth, multi-tenancy, dashboard shell, analytics engine) | ✅ Closed |
 | Patients | ✅ Closed, permission-engine-driven |
-| Agenda (Appointments) | 🟡 ~85% |
+| Agenda (Appointments) | ✅ Closed, permission-engine-driven |
 | Queue | 🟡 ~85% — see Open Item #1 below |
 | Invoicing (Billing) | ✅ Closed |
 | Analytics Engine | ✅ Closed (2026-07-30) |
-| Inventory | ⚠️ Consumption log only (`inventory_ledger`); no stock/catalog model |
+| Inventory | ✅ Closed, permission-engine-driven (Package 3.1.6 completed 2026-08-03) |
 | Reports | ❌ Not started |
 | Follow-up | ⚠️ Database fully modeled (`retention_followups`); no domain layer or UI |
 | Dashboard (Unified Workspace) | Dynamic navigation + server-side route guard live (Packages 3.0.2–3.0.4) |
@@ -79,6 +79,22 @@ Sections 8–16 of the roadmap, which almost certainly specify Milestone 2, are 
 
 ## 4. Historical Record (condensed from archived daily reports)
 
+**2026-08-03 — SESSION-5: Agenda Permission Wiring (Package 3.1.3):**
+Wired existing Agenda module to the permission engine (`usePermissions()` / `permissionEngine.ts`) and navigation/route-guard system (`navigationRegistry.ts` / `middleware.ts`).
+- **Current State Verification:** Inspected all Agenda files. Found that `page.tsx`, `agenda-calendar.tsx`, and `agenda-event-detail.tsx` were already wired to the permission engine from prior work. The only remaining gap (~5%) was in `agenda-event-form.tsx` — it did not import or use `usePermissions()`.
+- **Fix applied to `src/features/agenda/agenda-event-form.tsx`:**
+  - Added `usePermissions()` import and hook usage.
+  - Added permission guard `useEffect` that checks `agenda:create` (create mode) or `agenda:update` (edit mode) when the dialog opens.
+  - Added `permError` state to display a clear Arabic message when the user lacks permission.
+  - Added permission check inside `handleSubmit` before any server action is called.
+  - Disabled the submit button when the required permission is missing.
+- **No other Agenda files were modified.** `page.tsx`, `agenda-calendar.tsx`, and `agenda-event-detail.tsx` were already correctly wired.
+- **No database changes** — `agenda:read/create/update/delete` permissions and `role_permissions` mappings were already correct.
+- **No domain logic, queries, form field definitions, RLS policies, or CHECK constraints were modified.**
+
+**2026-08-03 — SESSION-4: Inventory Permission Wiring (Package 3.1.6):**
+Wired existing Inventory module to the permission engine. Completed with 6 Transaction Types (purchase, sale, adjustment, return, transfer, consumption). System derives +/- automatically. `get_current_user_role()` fixed to read from `clinic_users`. Files: `inventory/page.tsx` (server-side guard), `inventory-list.tsx` (client-side guards for create/update/delete), `inventory-form.tsx` (permission check). GitHub: github.com/mdcode2026-core-sys/Core-System-clinic-
+
 **2026-08-03 — SESSION-3: Patients Permission Wiring (Package 3.1.2):**
 Wired existing Patients module to the permission engine (`usePermissions()` / `permissionEngine.ts`) and navigation/route-guard system (`navigationRegistry.ts` / `middleware.ts`). Replaced unconditional UI actions with permission-gated versions:
 - `src/app/(dashboard)/patients/page.tsx`: "Add Patient" button gated on `patients:create`.
@@ -113,11 +129,11 @@ Built and wired the dynamic navigation and server-side permission guard:
 | المسار | الوحدة | الحالة | ملاحظات |
 |--------|--------|--------|---------|
 | `/` | Dashboard | ✅ مفتوح | shell ديناميكي يعمل، قائمة تتغير حسب الدور |
-| `/patients` | Patients | ✅ **مغلق، محرك صلاحيات** | تم التحقق — `clinic_admin` يرى كل شيء، `doctor` يرى read فقط |
-| `/agenda` | Agenda | 🟡 مغلق، غير موصول | يحتاج Package 3.1.4 |
+| `/patients` | Patients | ✅ **مغلق، محرك صلاحيات** | Session 3 — `clinic_admin` يرى كل شيء، `doctor` يرى read فقط |
+| `/agenda` | Agenda | ✅ **مغلق، محرك صلاحيات** | Session 5 — Package 3.1.3 مكتمل. `agenda:read/create/update/delete` مفعلة |
 | `/invoices` | Invoicing | ✅ مغلق | يحتاج Package 3.1.5 لتوصيل الصلاحيات |
 | `/queue` | Queue | 🟡 مغلق، غير موصول | يحتاج Package 3.1.3 |
-| `/inventory` | Inventory | ⚠️ مغلق، غير موصول | يحتاج Package 3.1.6 |
+| `/inventory` | Inventory | ✅ **مغلق، محرك صلاحيات** | Session 4 — Package 3.1.6 مكتمل. 6 أنواع معاملات |
 | `/analytics` | Analytics | ✅ مغلق | يحتاج Package 3.1.7 لتوصيل الصلاحيات |
 | `/settings` | Settings | ❌ لم يبدأ | خارج نطاق Milestone 3 |
 
@@ -134,7 +150,7 @@ Built and wired the dynamic navigation and server-side permission guard:
 | `DashboardShell.tsx` | ✅ جاهز | قائمة ديناميكية |
 | Patients module wiring | ✅ منتهٍ | Session 3 |
 | Queue module wiring | ⏳ في الانتظار | Package 3.1.3 |
-| Agenda module wiring | ⏳ في الانتظار | Package 3.1.4 |
+| Agenda module wiring | ✅ منتهٍ | Session 5 — Package 3.1.3 |
 | Invoicing module wiring | ⏳ في الانتظار | Package 3.1.5 |
-| Inventory module wiring | ⏳ في الانتظار | Package 3.1.6 |
+| Inventory module wiring | ✅ منتهٍ | Session 4 — Package 3.1.6 |
 | Analytics module wiring | ⏳ في الانتظار | Package 3.1.7 |
