@@ -39,3 +39,11 @@ Each entry should include: date, short title, and either a migration filename (f
 - **تعديل `src/app/(dashboard)/layout.tsx`:** إضافة حارس المسارات من جانب الخادم باستخدام `permissionEngine.ts` — الدخول المباشر على رابط ممنوع يُعاد توجيهه إلى `/`.
 - **لا تغييرات على قاعدة البيانات** في هذه الجلسة.
 - **التحقق معلق:** نجاح البناء، اختبار قائمتين مختلفتين، اختبار إعادة التوجيه، فحص RTL/تجاوب.
+
+## 2026-08-03 — Inventory Module Architecture Correction (Package 3.1.6 Rev 2)
+- **Migration `20260804000001_inventory_transaction_types.sql`:** replaced generic consumption_type with 6 approved Transaction Types (purchase, purchase_return, doctor_request, unused_return, inventory_adjustment_increase, inventory_adjustment_decrease).
+- **Transaction Type system:** user selects type only; system derives (+/-) stock effect automatically. No manual (+/-) input.
+- **Fixed `get_current_user_role()`:** now reads from `clinic_users` table instead of non-existent JWT claim `user_role`.
+- **Updated CHECK constraint:** `inventory_ledger_consumption_type_check` enforces 6 approved types only.
+- **Files modified:** `inventory.types.ts`, `inventory.actions.ts`, `inventory-form.tsx`.
+- **Verified:** all 6 transaction types work, negative stock guard works, ledger writes with `item_id` populated.
