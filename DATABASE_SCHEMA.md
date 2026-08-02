@@ -83,8 +83,16 @@ Payment records: `amount_subunits`, `payment_method` (cash/card/bank_transfer/in
 
 ## 6. Inventory
 
+### `inventory_items` (NEW in Package 3.1.6)
+Product catalog + live stock level per tenant. RLS: 3 policies (read/insert/update). Indexes: PK, tenant_id, low_stock composite.
+
 ### `inventory_ledger` (0 rows)
-Consumption log only: `material_name` (free text, no catalog FK), `quantity_consumed`, `consumption_type` (standard_clinical/operational_waste), `logged_by`, optional `session_id` link. **No stock-level or product-catalog table exists.** A real Inventory module (stock overview, product availability, per the roadmap) needs new schema — this ledger alone doesn't support it.
+Transaction log with 6 approved Transaction Types:
+- `purchase` (+), `purchase_return` (-), `doctor_request` (-)
+- `unused_return` (+), `inventory_adjustment_increase` (+), `inventory_adjustment_decrease` (-)
+CHECK constraint: `inventory_ledger_consumption_type_check` enforces these 6 types only.
+`item_id → inventory_items` (added 2026-08-03) linking ledger to catalog.
+`material_name`, `quantity_consumed`, `consumption_type`, `logged_by`, optional `session_id`.
 
 ---
 
