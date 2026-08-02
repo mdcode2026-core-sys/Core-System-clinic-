@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useAuth } from "@/core/auth/AuthContext";
+import { usePermissions } from "@/core/permissions/usePermissions";
 import { usePatients, useDeletePatient } from "@/domain/patients/patients.queries";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { Button } from "@/shared/components/ui/button";
@@ -20,6 +21,7 @@ export function PatientList({ onAdd }: PatientListProps) {
   const { tenantId } = useAuth();
   const { data: patients, isLoading } = usePatients(tenantId);
   const deletePatient = useDeletePatient();
+  const { hasPermission, isLoading: permsLoading } = usePermissions();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   const [detailPatientId, setDetailPatientId] = useState<string | null>(null);
@@ -84,7 +86,7 @@ export function PatientList({ onAdd }: PatientListProps) {
       <div className="relative">
         <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
         <Input
-          placeholder="البحث بالاسم أو الهاتف..."
+          placeholder="ابحث باسم المريض أو رقم الهاتف..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="pr-10 h-12 text-base"
@@ -141,22 +143,26 @@ export function PatientList({ onAdd }: PatientListProps) {
                       >
                         <Eye className="w-5 h-5" />
                       </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-10 w-10 p-0"
-                        onClick={() => handleEdit(patient)}
-                      >
-                        <Pencil className="w-5 h-5" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-10 w-10 p-0 text-destructive hover:text-destructive"
-                        onClick={() => handleDelete(patient)}
-                      >
-                        <Trash2 className="w-5 h-5" />
-                      </Button>
+                      {!permsLoading && hasPermission("patients:update") && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-10 w-10 p-0"
+                          onClick={() => handleEdit(patient)}
+                        >
+                          <Pencil className="w-5 h-5" />
+                        </Button>
+                      )}
+                      {!permsLoading && hasPermission("patients:delete") && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-10 w-10 p-0 text-destructive hover:text-destructive"
+                          onClick={() => handleDelete(patient)}
+                        >
+                          <Trash2 className="w-5 h-5" />
+                        </Button>
+                      )}
                     </div>
                   </div>
                 </div>
