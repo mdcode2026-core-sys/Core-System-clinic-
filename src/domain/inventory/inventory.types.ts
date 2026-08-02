@@ -31,6 +31,17 @@ export interface InventoryItemUpdate {
   is_active?: boolean;
 }
 
+// Approved Transaction Types — Architecture Directive
+// Purchase (+), Purchase Return (-), Doctor Request (-)
+// Unused Return (+), Inventory Adjustment Increase (+), Inventory Adjustment Decrease (-)
+export type InventoryTransactionType =
+  | "purchase"
+  | "purchase_return"
+  | "doctor_request"
+  | "unused_return"
+  | "inventory_adjustment_increase"
+  | "inventory_adjustment_decrease";
+
 export interface InventoryLedgerEntry {
   id: string;
   tenant_id: string;
@@ -38,7 +49,7 @@ export interface InventoryLedgerEntry {
   procedure_id?: string;
   material_name: string;
   quantity_consumed: number;
-  consumption_type: "standard_clinical" | "operational_waste" | "stock_adjustment" | "stock_in";
+  consumption_type: InventoryTransactionType;
   logged_by?: string;
   session_id?: string;
   notes?: string;
@@ -48,7 +59,6 @@ export interface InventoryLedgerEntry {
 export interface StockAdjustmentInput {
   item_id: string;
   tenant_id: string;
-  quantity_delta: number;
+  transaction_type: InventoryTransactionType;
   reason: string;
-  consumption_type: "stock_adjustment" | "stock_in";
 }
