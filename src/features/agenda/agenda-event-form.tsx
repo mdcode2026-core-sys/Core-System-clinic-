@@ -29,6 +29,7 @@ import {
 } from "@/shared/components/ui/select";
 import { Calendar, Clock, User, Stethoscope, DoorOpen, FileText, Phone, Search, UserPlus } from "lucide-react";
 import { createAgendaEvent, updateAgendaEvent } from "@/domain/agenda/agenda.actions";
+import { usePermissions } from "@/core/permissions/usePermissions";
 import type { AgendaEventWithRelations } from "@/domain/agenda/agenda.types";
 
 // ─────────────────────────────────────────
@@ -95,6 +96,7 @@ export function AgendaEventForm({
 }: AgendaEventFormProps) {
   const router = useRouter();
   const isEditMode = !!event;
+  const { hasPermission, isLoading: permsLoading } = usePermissions();
 
   // ─────────────────────────────────────────
   // FORM STATE
@@ -117,6 +119,26 @@ export function AgendaEventForm({
   const [notes, setNotes] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [permError, setPermError] = useState("");
+
+  // ─────────────────────────────────────────
+  // PERMISSION GUARD
+  // ─────────────────────────────────────────
+
+  useEffect(() => {
+    if (!permsLoading && isOpen) {
+      const requiredPerm = isEditMode ? "agenda:update" : "agenda:create";
+      if (!hasPermission(requiredPerm)) {
+        setPermError(
+          isEditMode
+            ? "ليس لديك صلاحية تعديل المواعيد"
+            : "ليس لديك صلاحية إنشاء مواعيد جديدة"
+        );
+      } else {
+        setPermError("");
+      }
+    }
+  }, [permsLoading, isOpen, isEditMode, hasPermission]);
 
   // ─────────────────────────────────────────
   // FILTER PATIENTS BY SEARCH
@@ -195,6 +217,18 @@ export function AgendaEventForm({
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+
+    // Permission check before submit
+    const requiredPerm = isEditMode ? "agenda:update" : "agenda:create";
+    if (!permsLoading && !hasPermission(requiredPerm)) {
+      setPermError(
+        isEditMode
+          ? "ليس لديك صلاحية تعديل المواعيد"
+          : "ليس لديك صلاحية إنشاء مواعيد جديدة"
+      );
+      return;
+    }
+
     setIsLoading(true);
     setError("");
 
@@ -286,6 +320,13 @@ export function AgendaEventForm({
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Permission Error */}
+          {permError && (
+            <div className="p-3 text-sm text-red-700 bg-red-50 border border-red-200 rounded-md">
+              {permError}
+            </div>
+          )}
+
           {/* Error Message */}
           {error && (
             <div className="p-3 text-sm text-red-700 bg-red-50 border border-red-200 rounded-md">
@@ -339,25 +380,30 @@ export function AgendaEventForm({
 
                 {/* Search Results */}
                 {searchQuery.trim() && (
-                  <div className="border rounded-md max-h-32 overflow-y-auto">
+                  <div className="border rounded-md max-h-40 overflow-y-auto">
                     {filteredPatients.length > 0 ? (
                       filteredPatients.map((p) => (
                         <div
                           key={p.id}
-                          className={`p-2 cursor-pointer hover:bg-muted transition-colors ${
-                            patientId === p.id ? "bg-primary/10 border-r-2 border-primary" : ""
+                          className={`p-2 cursor-pointer hover:bg-muted flex items-center justify-between ${
+                            patientId === p.id ? "bg-primary/10" : ""
                           }`}
                           onClick={() => setPatientId(p.id)}
                         >
-                          <div className="font-medium text-sm">{p.name}</div>
-                          <div className="text-xs text-muted-foreground flex items-center gap-1">
-                            <Phone className="w-3 h-3" />
-                            {p.phone}
+                          <div>
+                            <div className="font-medium text-sm">{p.name}</div>
+                            <div className="text-xs text-muted-foreground flex items-center gap-1">
+                              <Phone className="w-3 h-3" />
+                              {p.phone}
+                            </div>
                           </div>
+                          {patientId === p.id && (
+                            <div className="text-primary text-sm">✓</div>
+                          )}
                         </div>
                       ))
                     ) : (
-                      <div className="p-2 text-sm text-muted-foreground text-center">
+                      <div className="p-3 text-sm text-muted-foreground text-center">
                         لا يوجد مريض بهذا الاسم
                       </div>
                     )}
@@ -366,10 +412,8 @@ export function AgendaEventForm({
 
                 {/* Selected Patient */}
                 {patientId && (
-                  <div className="p-2 bg-green-50 border border-green-200 rounded-md">
-                    <div className="text-sm font-medium text-green-800">
-                      ✓ {patients.find((p) => p.id === patientId)?.name}
-                    </div>
+                  <div className="p-2 bg-primary/5 rounded-md text-sm">
+                    ✓ {patients.find((p) => p.id === patientId)?.name}
                   </div>
                 )}
               </div>
@@ -379,14 +423,14 @@ export function AgendaEventForm({
             {patientMode === "new" && (
               <div className="space-y-2">
                 <Input
-                  placeholder="اسم المريض الكامل *"
+                  placeholder="اسم المريض الجديد *"
                   value={tempPatientName}
                   onChange={(e) => setTempPatientName(e.target.value)}
                 />
                 <div className="relative">
                   <Phone className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
-                    placeholder="رقم الهاتف للتواصل *"
+                    placeholder="رقم الهاتف *"
                     value={tempPatientPhone}
                     onChange={(e) => setTempPatientPhone(e.target.value)}
                     className="pr-10"
@@ -402,22 +446,19 @@ export function AgendaEventForm({
 
           {/* Doctor */}
           <div className="space-y-2">
-            <Label htmlFor="doctor" className="flex items-center gap-2">
+            <Label className="flex items-center gap-2">
               <Stethoscope className="w-4 h-4" />
               الطبيب *
             </Label>
-            <Select 
-              value={doctorId || ""} 
-              onValueChange={(val) => setDoctorId(val || null)}
-            >
-              <SelectTrigger id="doctor">
+            <Select value={doctorId || ""} onValueChange={setDoctorId}>
+              <SelectTrigger>
                 <SelectValue placeholder="اختر الطبيب" />
               </SelectTrigger>
               <SelectContent>
                 {doctors.map((d) => (
                   <SelectItem key={d.id} value={d.id}>
                     {d.name}
-                    {d.specialization ? ` — ${d.specialization}` : ""}
+                    {d.specialization && ` — ${d.specialization}`}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -426,16 +467,15 @@ export function AgendaEventForm({
 
           {/* Room */}
           <div className="space-y-2">
-            <Label htmlFor="room" className="flex items-center gap-2">
+            <Label className="flex items-center gap-2">
               <DoorOpen className="w-4 h-4" />
               الغرفة
             </Label>
             <Select value={roomId} onValueChange={setRoomId}>
-              <SelectTrigger id="room">
+              <SelectTrigger>
                 <SelectValue placeholder="اختر الغرفة (اختياري)" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">بدون غرفة</SelectItem>
                 {rooms.map((r) => (
                   <SelectItem key={r.id} value={r.id}>
                     {r.name}
@@ -447,16 +487,15 @@ export function AgendaEventForm({
 
           {/* Procedure */}
           <div className="space-y-2">
-            <Label htmlFor="procedure" className="flex items-center gap-2">
+            <Label className="flex items-center gap-2">
               <FileText className="w-4 h-4" />
               الإجراء
             </Label>
             <Select value={procedureId} onValueChange={setProcedureId}>
-              <SelectTrigger id="procedure">
+              <SelectTrigger>
                 <SelectValue placeholder="اختر الإجراء (اختياري)" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">بدون إجراء</SelectItem>
                 {procedures.map((p) => (
                   <SelectItem key={p.id} value={p.id}>
                     {p.name} ({p.duration} دقيقة)
@@ -468,12 +507,11 @@ export function AgendaEventForm({
 
           {/* Date */}
           <div className="space-y-2">
-            <Label htmlFor="date" className="flex items-center gap-2">
+            <Label className="flex items-center gap-2">
               <Calendar className="w-4 h-4" />
               التاريخ *
             </Label>
             <Input
-              id="date"
               type="date"
               value={date}
               onChange={(e) => setDate(e.target.value)}
@@ -484,12 +522,11 @@ export function AgendaEventForm({
           {/* Time Range */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="startTime" className="flex items-center gap-2">
+              <Label className="flex items-center gap-2">
                 <Clock className="w-4 h-4" />
                 من *
               </Label>
               <Input
-                id="startTime"
                 type="time"
                 value={startTime}
                 onChange={(e) => setStartTime(e.target.value)}
@@ -497,12 +534,11 @@ export function AgendaEventForm({
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="endTime" className="flex items-center gap-2">
+              <Label className="flex items-center gap-2">
                 <Clock className="w-4 h-4" />
                 إلى *
               </Label>
               <Input
-                id="endTime"
                 type="time"
                 value={endTime}
                 onChange={(e) => setEndTime(e.target.value)}
@@ -513,22 +549,34 @@ export function AgendaEventForm({
 
           {/* Notes */}
           <div className="space-y-2">
-            <Label htmlFor="notes">ملاحظات</Label>
+            <Label className="flex items-center gap-2">
+              <FileText className="w-4 h-4" />
+              ملاحظات
+            </Label>
             <Textarea
-              id="notes"
+              placeholder="أي ملاحظات إضافية..."
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              placeholder="أي ملاحظات إضافية..."
               rows={3}
             />
           </div>
 
-          {/* Footer */}
-          <DialogFooter className="gap-2">
-            <Button type="button" variant="outline" onClick={onClose} disabled={isLoading}>
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onClose}
+              disabled={isLoading}
+            >
               إلغاء
             </Button>
-            <Button type="submit" disabled={isLoading || !doctorId}>
+            <Button
+              type="submit"
+              disabled={
+                isLoading ||
+                (!permsLoading && !hasPermission(isEditMode ? "agenda:update" : "agenda:create"))
+              }
+            >
               {isLoading
                 ? "جاري الحفظ..."
                 : isEditMode
