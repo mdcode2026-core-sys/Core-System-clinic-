@@ -6,7 +6,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/infrastructure/supabase/server";
 import { getEffectivePermissions } from "@/core/permissions/permissionEngine";
 import { getQueue, getQueueStats, getActiveDoctors } from "@/domain/queue/queue.queries";
-import { LiveQueueBoard } from "@@/features/reception/LiveQueueBoard";
+import { LiveQueueBoard } from "@/features/reception/LiveQueueBoard";
 import { MyQueueView } from "@/features/doctor/MyQueueView";
 import { AmbientKioskView } from "@/features/kiosk/AmbientKioskView";
 
@@ -63,36 +63,22 @@ export default async function QueuePage() {
 
   if (isDoctorView) {
     return (
-      <MyQueueView
-        initialSessions={queueData}
-        initialStats={statsData}
-        canUpdateSession={canUpdateSession}
-      />
+      <div className="space-y-6 p-6">
+        <h1 className="text-2xl font-bold">قائمة الانتظار — الطبيب</h1>
+        <MyQueueView initialData={queueData} />
+      </div>
     );
   }
 
   return (
     <div className="space-y-6 p-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">لوحة الانتظار</h1>
-          <p className="text-muted-foreground">إدارة تدفق المرضى والكشف</p>
-        </div>
-      </div>
-
-      <div className="grid gap-6 lg:grid-cols-3">
-        <div className="lg:col-span-2">
-          <LiveQueueBoard
-            initialSessions={queueData}
-            initialStats={statsData}
-            initialDoctors={doctorsData}
-            canUpdateSession={canUpdateSession}
-          />
-        </div>
-        <div>
-          <AmbientKioskView tenantId={tenantId} />
-        </div>
-      </div>
+      <h1 className="text-2xl font-bold">لوحة الانتظار</h1>
+      <p className="text-muted-foreground">إدارة تدفق المرضى والكشف</p>
+      <LiveQueueBoard
+        initialData={queueData}
+        initialStats={statsData}
+        initialDoctors={doctorsData}
+      />
     </div>
   );
 }
