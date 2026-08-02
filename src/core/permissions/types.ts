@@ -9,7 +9,9 @@ export type Permission =
   | "analytics:read"
   | "users:read" | "users:create" | "users:update" | "users:delete"
   | "settings:read" | "settings:update"
-  | "audit:read";
+  | "audit:read"
+  | "reports:read"
+  | "followup:read" | "followup:create" | "followup:update";
 
 export interface PermissionGuardProps {
   permission: Permission;
