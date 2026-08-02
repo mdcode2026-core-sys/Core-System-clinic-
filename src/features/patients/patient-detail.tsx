@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { usePatientById, usePatientHistory } from "@/domain/patients/patients.queries";
+import { usePermissions } from "@/core/permissions/usePermissions";
 import { Button } from "@/shared/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { Badge } from "@/shared/components/ui/badge";
@@ -37,6 +38,7 @@ interface PatientDetailProps {
 export function PatientDetail({ patientId, isOpen, onClose }: PatientDetailProps) {
   const { data: patient, isLoading: patientLoading } = usePatientById(patientId);
   const { data: history, isLoading: historyLoading } = usePatientHistory(patientId);
+  const { hasPermission, isLoading: permsLoading } = usePermissions();
   const [showEditForm, setShowEditForm] = useState(false);
 
   const getStatusBadge = (status: string) => {
@@ -139,10 +141,12 @@ export function PatientDetail({ patientId, isOpen, onClose }: PatientDetailProps
                       <div className="mt-2">{getStatusBadge(patient.patient_status)}</div>
                     </div>
                   </div>
-                  <Button variant="outline" size="sm" onClick={() => setShowEditForm(true)}>
-                    <Edit className="w-4 h-4 ml-2" />
-                    تعديل
-                  </Button>
+                  {!permsLoading && hasPermission("patients:update") && (
+                    <Button variant="outline" size="sm" onClick={() => setShowEditForm(true)}>
+                      <Edit className="w-4 h-4 ml-2" />
+                      تعديل
+                    </Button>
+                  )}
                 </div>
               </CardContent>
             </Card>
