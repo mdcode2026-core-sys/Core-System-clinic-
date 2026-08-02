@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useId } from "react";
+import { useState, useId, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { Button } from "@/shared/components/ui/button";
@@ -11,6 +11,7 @@ import { Textarea } from "@/shared/components/ui/textarea";
 import { Plus, Trash2, Calculator, Save } from "lucide-react";
 import { createManualInvoice } from "@/domain/invoicing/invoicing.actions";
 import { calculateLineItem, calculateInvoiceTotals, formatCurrency } from "@/domain/invoicing/invoicing.calculator";
+import { usePermissions } from "@/core/permissions/usePermissions";
 import type {
   InvoiceFormState,
   InvoiceFormItem,
@@ -38,6 +39,7 @@ export function InvoiceForm({
   initialSessionsError,
 }: Props) {
   const router = useRouter();
+  const { hasPermission, isLoading: permLoading } = usePermissions();
   const idPrefix = useId();
   const [patients] = useState<PatientOption[]>(initialPatients);
   const [procedures] = useState<ProcedureOption[]>(initialProcedures);
@@ -46,6 +48,7 @@ export function InvoiceForm({
   const [error, setError] = useState<string | null>(
     initialPatientsError || initialProceduresError || initialSessionsError
   );
+  const [permError, setPermError] = useState<string | null>(null);
   const [form, setForm] = useState<InvoiceFormState>({
     patient_id: "",
     session_id: null,
@@ -53,6 +56,13 @@ export function InvoiceForm({
     notes: "",
     items: [],
   });
+
+  // Permission guard on mount
+  useEffect(() => {
+    if (!permLoading && !hasPermission("invoices:create")) {
+      setPermError("ليس لديك صلاحية إنشاء فواتير. تواصل مع مسؤول العيادة.");
+    }
+  }, [permLoading, hasPermission]);
 
   function addItem() {
     const newItem: InvoiceFormItem = {
@@ -113,12 +123,17 @@ export function InvoiceForm({
   }
 
   async function handleSubmit() {
+    if (!hasPermission("invoices:create")) {
+      setPermError("ليس لديك صلاحية إنشاء فواتير.");
+      return;
+    }
+
     if (!form.patient_id) {
-      setError("اختر المريض");
+      setError("يرجى اختيار المريض");
       return;
     }
     if (form.items.length === 0) {
-      setError("أضف بند واحد على الأقل");
+      setError("يجب إضافة بند واحد على الأقل");
       return;
     }
 
@@ -151,15 +166,20 @@ export function InvoiceForm({
   }
 
   const totals = getCalculations();
+  const canCreate = !permLoading && hasPermission("invoices:create");
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">فاتورة جديدة</h1>
+        <h1 className="text-2xl font-bold">إنشاء فاتورة جديدة</h1>
         <Button variant="outline" onClick={() => router.push("/invoices")}>
-          إلغاء
+          العودة
         </Button>
       </div>
+
+      {permError && (
+        <div className="bg-red-50 text-red-600 p-3 rounded-md text-sm">{permError}</div>
+      )}
 
       {error && (
         <div className="bg-red-50 text-red-600 p-3 rounded-md text-sm">{error}</div>
@@ -167,7 +187,7 @@ export function InvoiceForm({
 
       <Card>
         <CardHeader>
-          <CardTitle>معلومات الفاتورة</CardTitle>
+          <CardTitle>بيانات الفاتورة</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
@@ -176,6 +196,7 @@ export function InvoiceForm({
               <Select
                 value={form.patient_id}
                 onValueChange={(v) => setForm((p) => ({ ...p, patient_id: v }))}
+                disabled={!canCreate}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="اختر المريض" />
@@ -196,9 +217,10 @@ export function InvoiceForm({
                 onValueChange={(v) =>
                   setForm((p) => ({ ...p, session_id: v === "none" ? null : v }))
                 }
+                disabled={!canCreate}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="اختر جلسة" />
+                  <SelectValue placeholder="اختر الجلسة" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="none">بدون جلسة</SelectItem>
@@ -221,6 +243,7 @@ export function InvoiceForm({
                 onValueChange={(v) =>
                   setForm((p) => ({ ...p, payment_terms: v as PaymentTerms }))
                 }
+                disabled={!canCreate}
               >
                 <SelectTrigger>
                   <SelectValue />
@@ -239,7 +262,8 @@ export function InvoiceForm({
               <Textarea
                 value={form.notes}
                 onChange={(e) => setForm((p) => ({ ...p, notes: e.target.value }))}
-                placeholder="ملاحظات اختيارية"
+                placeholder="أي ملاحظات إضافية"
+                disabled={!canCreate}
               />
             </div>
           </div>
@@ -249,10 +273,12 @@ export function InvoiceForm({
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>البنود</CardTitle>
-          <Button onClick={addItem} variant="outline" size="sm">
-            <Plus className="w-4 h-4 ml-2" />
-            إضافة بند
-          </Button>
+          {canCreate && (
+            <Button onClick={addItem} variant="outline" size="sm">
+              <Plus className="w-4 h-4 ml-2" />
+              إضافة بند
+            </Button>
+          )}
         </CardHeader>
         <CardContent className="space-y-4">
           {form.items.length === 0 && (
@@ -275,13 +301,15 @@ export function InvoiceForm({
               <div key={item.tempId} className="border rounded-lg p-4 space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="font-medium">بند #{index + 1}</span>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => removeItem(item.tempId)}
-                  >
-                    <Trash2 className="w-4 h-4 text-red-500" />
-                  </Button>
+                  {canCreate && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => removeItem(item.tempId)}
+                    >
+                      <Trash2 className="w-4 h-4 text-red-500" />
+                    </Button>
+                  )}
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
@@ -292,12 +320,13 @@ export function InvoiceForm({
                       onValueChange={(v) =>
                         handleProcedureSelect(item.tempId, v === "custom" ? null : v)
                       }
+                      disabled={!canCreate}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder="اختر إجراء" />
+                        <SelectValue placeholder="اختر الإجراء" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="custom">يدوي</SelectItem>
+                        <SelectItem value="custom">مخصص</SelectItem>
                         {procedures.map((p) => (
                           <SelectItem key={p.id} value={p.id}>
                             {p.procedure_name} — {formatCurrency(p.base_price_subunits)}
@@ -313,6 +342,7 @@ export function InvoiceForm({
                       onChange={(e) =>
                         updateItem(item.tempId, { description: e.target.value })
                       }
+                      disabled={!canCreate}
                     />
                   </div>
                 </div>
@@ -329,6 +359,7 @@ export function InvoiceForm({
                           quantity: parseInt(e.target.value) || 1,
                         })
                       }
+                      disabled={!canCreate}
                     />
                   </div>
                   <div>
@@ -345,6 +376,7 @@ export function InvoiceForm({
                           ),
                         })
                       }
+                      disabled={!canCreate}
                     />
                   </div>
                   <div>
@@ -361,6 +393,7 @@ export function InvoiceForm({
                             : null,
                         })
                       }
+                      disabled={!canCreate}
                     />
                   </div>
                   <div>
@@ -377,6 +410,7 @@ export function InvoiceForm({
                           ),
                         })
                       }
+                      disabled={!canCreate}
                     />
                   </div>
                 </div>
@@ -421,7 +455,11 @@ export function InvoiceForm({
           </div>
 
           <div className="mt-6 flex justify-end">
-            <Button onClick={handleSubmit} disabled={saving} size="lg">
+            <Button 
+              onClick={handleSubmit} 
+              disabled={saving || !canCreate} 
+              size="lg"
+            >
               <Save className="w-4 h-4 ml-2" />
               {saving ? "جاري الحفظ..." : "حفظ الفاتورة"}
             </Button>
