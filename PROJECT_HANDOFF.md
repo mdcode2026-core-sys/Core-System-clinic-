@@ -88,3 +88,14 @@ Sections 8–16 of the roadmap, which almost certainly specify Milestone 2, are 
 **2026-07-30 — Analytics Engine (Phase 1A) closed.**
 
 **2026-07-31 — This audit cycle:** Full repository + live database inspection performed. Findings: security exposures (see `SECURITY_AUDIT_REPORT.md`), confirmed the permission system architecture direction (ADR-001), confirmed Milestone 3 as current (ADR-002), and began documentation consolidation.
+| المسار | الوحدة | الحالة | ملاحظات |
+|--------|--------|--------|---------|
+| `/` | Dashboard | مفتوح | shell ديناميكي يعمل |
+| `/patients` | Patients | **مغلق، محرك صلاحيات** | تم توصيل `usePermissions()` في page.tsx / patient-list.tsx / patient-detail.tsx |
+| `/agenda` | Agenda | مغلق، غير موصول | يحتاج Package 3.1.4 |
+| `/invoices` | Invoicing | مغلق، غير موصول | يحتاج Package 3.1.5 |
+| `/queue` | Queue | مغلق، غير موصول | يحتاج Package 3.1.3 |
+| `/inventory` | Inventory | مغلق، غير موصول | يحتاج Package 3.1.6 |
+| `/analytics` | Analytics | مغلق، غير موصول | يحتاج Package 3.1.7 |
+| `/settings` | Settings | مغلق، غير موصول | خارج نطاق Milestone 3 |
+
