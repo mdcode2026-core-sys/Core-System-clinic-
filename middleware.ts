@@ -1,20 +1,21 @@
-// middleware.ts — الإصدار المُصحَّح
-
 import { type NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { navigationRegistry } from "@/core/navigation/navigationRegistry";
 import type { Permission } from "@/core/permissions/types";
 
+// خريطة الصلاحيات للمسارات — للبحث السريع O(1)
 const routePermissionMap = new Map<string, Permission | null>();
 for (const item of navigationRegistry) {
   routePermissionMap.set(item.href, item.requiredPermission);
 }
 
-const publicRoutes = ["/login", "/register", "/"];
+// المسارات العامة فقط — تسجيل الدخول وإنشاء الحساب
+const publicRoutes = ["/login", "/register"];
 
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({ request });
 
+  // 1. إنشاء عميل Supabase من كوكيز الطلب
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -35,6 +36,7 @@ export async function middleware(request: NextRequest) {
     }
   );
 
+  // 2. التحقق من المصادقة
   const {
     data: { user },
     error: authError,
@@ -42,26 +44,32 @@ export async function middleware(request: NextRequest) {
 
   const path = request.nextUrl.pathname;
 
+  // 3. المسارات العامة دائماً مسموحة
   if (publicRoutes.includes(path)) {
     return response;
   }
 
+  // 4. غير مسجل → تسجيل الدخول
   if (!user) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     return NextResponse.redirect(url);
   }
 
+  // 5. حل الصلاحية المطلوبة لهذا المسار
   const requiredPermission = routePermissionMap.get(path);
 
+  // إذا المسار غير مسجل في القائمة → اسمح (قد يكون مسار فرعي)
   if (requiredPermission === undefined) {
     return response;
   }
 
+  // لوحة التحكم ("/") دائماً مرئية لأي مستخدم مسجل — لا تحتاج صلاحية
   if (requiredPermission === null) {
     return response;
   }
 
+  // 6. حل صلاحيات المستخدم الفعلية
   const { data: clinicUsers, error: cuError } = await supabase
     .from("clinic_users")
     .select("role, tenant_id")
@@ -106,12 +114,14 @@ export async function middleware(request: NextRequest) {
     if (key) userPermissions.add(key);
   }
 
+  // 7. هل المستخدم يملك الصلاحية المطلوبة؟
   if (!userPermissions.has(requiredPermission)) {
     const url = request.nextUrl.clone();
     url.pathname = "/";
     return NextResponse.redirect(url);
   }
 
+  // 8. مسموح — أكمل
   return response;
 }
 
