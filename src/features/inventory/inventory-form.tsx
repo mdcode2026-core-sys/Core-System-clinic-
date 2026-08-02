@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useInvalidateInventory } from "@/domain/inventory/inventory.queries";
 import { createInventoryItem, updateInventoryItem, adjustStock } from "@/domain/inventory/inventory.actions";
-import { Button } from "@@/shared/components/ui/button";
+import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/shared/components/ui/dialog";
@@ -239,7 +239,7 @@ export function InventoryForm({ open, onClose, tenantId, initialData }: Inventor
                     إلغاء
                   </Button>
                   <Button type="submit" disabled={isPending}>
-                    {isPending ? "جاري التعديل..." : "تنفيذ التعديل"}
+                    {adjustMutation.isPending ? "جاري التعديل..." : "تنفيذ التعديل"}
                   </Button>
                 </div>
               </form>
