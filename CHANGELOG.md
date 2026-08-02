@@ -32,3 +32,10 @@ Reconstructed baseline as of 2026-07-31 from committed migration files and archi
 ## Format Going Forward
 
 Each entry should include: date, short title, and either a migration filename (for schema changes) or a file path (for code changes) plus a one-line reason. Task-level detail belongs in `PROJECT_HANDOFF.md`, not here — this file stays a scannable timeline.
+
+## 2026-08-02 — التنقل الديناميكي والتحقق من الصدفة (حزم 3.0.2/3.0.3/3.0.4)
+- **إنشاء `src/core/navigation/navigationRegistry.ts`:** السجل الرسمي لربط 10 مسارات لوحة التحكم بصلاحياتها.
+- **تعديل `src/features/dashboard/DashboardShell.tsx`:** استبدال القائمة الثابتة بنسخة ديناميكية باستخدام `usePermissions()`. الحفاظ على RTL والتجاوب.
+- **تعديل `src/app/(dashboard)/layout.tsx`:** إضافة حارس المسارات من جانب الخادم باستخدام `permissionEngine.ts` — الدخول المباشر على رابط ممنوع يُعاد توجيهه إلى `/`.
+- **لا تغييرات على قاعدة البيانات** في هذه الجلسة.
+- **التحقق معلق:** نجاح البناء، اختبار قائمتين مختلفتين، اختبار إعادة التوجيه، فحص RTL/تجاوب.
