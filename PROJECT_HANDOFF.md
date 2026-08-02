@@ -2,7 +2,7 @@
 
 **Project:** CORE SYSTEM — ClinicSaaS™
 **Purpose:** Single, living handoff document. Updated in place going forward — supersedes dated snapshot files (`Handoff_Daily_Report_2026-07-29.md`, `QUEUE_DEBUG_PROGRESS.md`, `QUEUE_FIX_PROGRESS.md`, `ANALYTICS_BUILD_PROGRESS.md`), which are archived under `/archive/` for historical reference.
-**Last Updated:** 2026-07-31
+**Last Updated:** 2026-08-03
 
 ---
 
@@ -11,7 +11,7 @@
 | Area | Status |
 |---|---|
 | Core Foundation (auth, multi-tenancy, dashboard shell, analytics engine) | ✅ Closed |
-| Patients | ✅ Closed |
+| Patients | ✅ Closed, permission-engine-driven |
 | Agenda (Appointments) | 🟡 ~85% |
 | Queue | 🟡 ~85% — see Open Item #1 below |
 | Invoicing (Billing) | ✅ Closed |
@@ -19,8 +19,8 @@
 | Inventory | ⚠️ Consumption log only (`inventory_ledger`); no stock/catalog model |
 | Reports | ❌ Not started |
 | Follow-up | ⚠️ Database fully modeled (`retention_followups`); no domain layer or UI |
-| Dashboard (Unified Workspace) | Partial shell exists (`DashboardShell.tsx`) |
-| Permission Engine (dynamic, per ADR-001) | Not yet built — currently hardcoded 4-role system |
+| Dashboard (Unified Workspace) | Dynamic navigation + server-side route guard live (Packages 3.0.2–3.0.4) |
+| Permission Engine (dynamic, per ADR-001) | ✅ Built and live — `usePermissions()`, `permissionEngine.ts`, `navigationRegistry.ts`, `middleware.ts` all working |
 | Tenant Administration Center / Settings Dashboard | Not started |
 
 Authoritative next milestone: **Milestone 3 — Unified Workspace** (confirmed 2026-07-31, see ADR-002 in `ARCHITECTURE_DECISIONS.md`).
@@ -79,6 +79,23 @@ Sections 8–16 of the roadmap, which almost certainly specify Milestone 2, are 
 
 ## 4. Historical Record (condensed from archived daily reports)
 
+**2026-08-03 — SESSION-3: Patients Permission Wiring (Package 3.1.2):**
+Wired existing Patients module to the permission engine (`usePermissions()` / `permissionEngine.ts`) and navigation/route-guard system (`navigationRegistry.ts` / `middleware.ts`). Replaced unconditional UI actions with permission-gated versions:
+- `src/app/(dashboard)/patients/page.tsx`: "Add Patient" button gated on `patients:create`.
+- `src/features/patients/patient-list.tsx`: Edit (pencil) and Delete (trash) action buttons gated on `patients:update` and `patients:delete` respectively. View (eye) remains unconditional because route-level `patients:read` is already enforced by `middleware.ts`.
+- `src/features/patients/patient-detail.tsx`: Edit button in detail dialog gated on `patients:update`.
+- **Database correction required and applied:** `role_permissions` table had `clinic_admin` missing `patients:delete` and `doctor` incorrectly holding `patients:update`. SQL fix applied live; verified by re-querying `role_permissions`.
+- **Verified end-to-end:** `clinic_admin` (xalkair@gmail.com) sees all four actions; `doctor` (yazead48@gmail.com) sees read-only (eye icon only). Build passes.
+- No domain logic, queries, form components, RLS policies, or CHECK constraints were modified.
+
+**2026-08-02 — SESSION-2: Dynamic Navigation & Server-Side Route Guard (Packages 3.0.2/3.0.3/3.0.4):**
+Built and wired the dynamic navigation and server-side permission guard:
+- Created `src/core/navigation/navigationRegistry.ts`: official registry mapping 10 dashboard routes to their required permissions.
+- Modified `src/features/dashboard/DashboardShell.tsx`: replaced static menu with dynamic version using `usePermissions()`. RTL and responsiveness preserved.
+- Modified `src/app/(dashboard)/layout.tsx`: added server-side route guard using `permissionEngine.ts` — direct URL access to a forbidden route redirects to `/`.
+- No database changes in this session.
+- Verified: build pass, two different menu counts (clinic_admin 8 items / doctor 4 items), redirect test, RTL/responsive check.
+
 **2026-07-29 — TASK-SIGNUP-001:** Fixed sign-up flow so `tenant_id`/`role` are correctly written to both `user_metadata` and `app_metadata` after `create_tenant_with_subscription` succeeds (previously the `handle_new_user` trigger fired too early to have this data). `create_tenant_with_subscription` was rewritten to stop writing to the legacy tables (see ADR-000) and write only to `master_tenants`/`clinic_users`. Verified working end-to-end for Dashboard and Invoices; Queue was found broken (see Open Item #1's history).
 
 **2026-07-29 — TASK-QUEUE-DEBUG-001:** Diagnostic task. Reverted an unauthorized modification to `get_current_user_role()` made during the prior task's troubleshooting. **Found and fixed a genuine tenant-isolation risk:** `set_tenant_id()` was using `set_config(..., false)` — database-connection-wide scope — instead of `true` (transaction-local). Under Supabase's connection pooling, this could have let one request's tenant context leak into another pooled connection. Corrected to `true`. Root-caused the `/queue` failure precisely to the missing `file_number` column via a temporary, then fully reverted, debug patch.
@@ -88,14 +105,36 @@ Sections 8–16 of the roadmap, which almost certainly specify Milestone 2, are 
 **2026-07-30 — Analytics Engine (Phase 1A) closed.**
 
 **2026-07-31 — This audit cycle:** Full repository + live database inspection performed. Findings: security exposures (see `SECURITY_AUDIT_REPORT.md`), confirmed the permission system architecture direction (ADR-001), confirmed Milestone 3 as current (ADR-002), and began documentation consolidation.
+
+---
+
+## 5. Module Status Table (Milestone 3 — Unified Workspace)
+
 | المسار | الوحدة | الحالة | ملاحظات |
 |--------|--------|--------|---------|
-| `/` | Dashboard | مفتوح | shell ديناميكي يعمل |
-| `/patients` | Patients | **مغلق، محرك صلاحيات** | تم توصيل `usePermissions()` في page.tsx / patient-list.tsx / patient-detail.tsx |
-| `/agenda` | Agenda | مغلق، غير موصول | يحتاج Package 3.1.4 |
-| `/invoices` | Invoicing | مغلق، غير موصول | يحتاج Package 3.1.5 |
-| `/queue` | Queue | مغلق، غير موصول | يحتاج Package 3.1.3 |
-| `/inventory` | Inventory | مغلق، غير موصول | يحتاج Package 3.1.6 |
-| `/analytics` | Analytics | مغلق، غير موصول | يحتاج Package 3.1.7 |
-| `/settings` | Settings | مغلق، غير موصول | خارج نطاق Milestone 3 |
+| `/` | Dashboard | ✅ مفتوح | shell ديناميكي يعمل، قائمة تتغير حسب الدور |
+| `/patients` | Patients | ✅ **مغلق، محرك صلاحيات** | تم التحقق — `clinic_admin` يرى كل شيء، `doctor` يرى read فقط |
+| `/agenda` | Agenda | 🟡 مغلق، غير موصول | يحتاج Package 3.1.4 |
+| `/invoices` | Invoicing | ✅ مغلق | يحتاج Package 3.1.5 لتوصيل الصلاحيات |
+| `/queue` | Queue | 🟡 مغلق، غير موصول | يحتاج Package 3.1.3 |
+| `/inventory` | Inventory | ⚠️ مغلق، غير موصول | يحتاج Package 3.1.6 |
+| `/analytics` | Analytics | ✅ مغلق | يحتاج Package 3.1.7 لتوصيل الصلاحيات |
+| `/settings` | Settings | ❌ لم يبدأ | خارج نطاق Milestone 3 |
 
+---
+
+## 6. Permission Engine Status
+
+| المكون | الحالة | ملاحظات |
+|--------|--------|---------|
+| `permissionEngine.ts` | ✅ جاهز | يعمل على الخادم (middleware + server actions) |
+| `usePermissions.ts` | ✅ جاهز | Hook يعمل على العميل |
+| `navigationRegistry.ts` | ✅ جاهز | 10 مسارات مسجلة |
+| `middleware.ts` | ✅ جاهز | حارس المسارات من جانب الخادم |
+| `DashboardShell.tsx` | ✅ جاهز | قائمة ديناميكية |
+| Patients module wiring | ✅ منتهٍ | Session 3 |
+| Queue module wiring | ⏳ في الانتظار | Package 3.1.3 |
+| Agenda module wiring | ⏳ في الانتظار | Package 3.1.4 |
+| Invoicing module wiring | ⏳ في الانتظار | Package 3.1.5 |
+| Inventory module wiring | ⏳ في الانتظار | Package 3.1.6 |
+| Analytics module wiring | ⏳ في الانتظار | Package 3.1.7 |
