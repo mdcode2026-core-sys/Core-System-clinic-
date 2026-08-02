@@ -1,7 +1,6 @@
 // src/app/(dashboard)/layout.tsx
-// Package 3.0.2 — Server-side auth check only.
-// Route guard moved to client-side DashboardShell to avoid unreliable
-// pathname reading in Server Components on Vercel.
+// Package 3.0.2 — Auth check + DashboardShell wrap.
+// Server-side permission guard is now handled by middleware.ts at project root.
 
 import { redirect } from "next/navigation";
 import { createClient } from "@/infrastructure/supabase/server";
@@ -14,7 +13,6 @@ export default async function DashboardLayout({
 }) {
   const supabase = await createClient();
 
-  // Auth check only
   const {
     data: { user },
     error: authError,
