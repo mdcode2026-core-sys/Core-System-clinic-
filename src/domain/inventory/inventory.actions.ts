@@ -2,6 +2,19 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/infrastructure/supabase/server";
+import type { InventoryTransactionType } from "./inventory.types";
+
+// Transaction Type to stock effect mapping — Architecture Directive
+// Purchase (+), Purchase Return (-), Doctor Request (-)
+// Unused Return (+), Inventory Adjustment Increase (+), Inventory Adjustment Decrease (-)
+const TRANSACTION_EFFECT: Record<InventoryTransactionType, number> = {
+  purchase: 1,
+  purchase_return: -1,
+  doctor_request: -1,
+  unused_return: 1,
+  inventory_adjustment_increase: 1,
+  inventory_adjustment_decrease: -1,
+};
 
 export async function createInventoryItem(formData: FormData) {
   const supabase = await createClient();
@@ -72,17 +85,29 @@ export async function adjustStock(formData: FormData) {
 
   const tenantId = String(formData.get("tenant_id"));
   const itemId = String(formData.get("item_id"));
-  const quantityDelta = Number(formData.get("quantity_delta"));
+  const transactionType = String(formData.get("transaction_type")) as InventoryTransactionType;
   const reason = String(formData.get("reason") || "").trim();
-  const consumptionType = String(formData.get("consumption_type")) as "stock_adjustment" | "stock_in";
 
-  if (!tenantId || !itemId || isNaN(quantityDelta) || !reason) {
+  if (!tenantId || !itemId || !transactionType || !reason) {
     return { error: "بيانات التعديل ناقصة" };
+  }
+
+  // Validate transaction type
+  if (!(transactionType in TRANSACTION_EFFECT)) {
+    return { error: "نوع المعاملة غير صالح" };
   }
 
   await supabase.rpc("set_tenant_id", { tenant_id: tenantId });
 
-  // ATOMIC UPDATE: single SQL statement with guard
+  // Derive quantity_delta from transaction type (system derives +/-, user never chooses)
+  const effect = TRANSACTION_EFFECT[transactionType];
+  const quantityDelta = effect * Math.abs(Number(formData.get("quantity") || 0));
+
+  if (quantityDelta === 0) {
+    return { error: "الكمية يجب أن تكون أكبر من صفر" };
+  }
+
+  // Atomic update via database function
   const { data: updated, error: updateError } = await supabase.rpc(
     "adjust_inventory_stock",
     {
@@ -93,14 +118,13 @@ export async function adjustStock(formData: FormData) {
   );
 
   if (updateError) {
-    // Check if it's the negative-stock guard
-    if (updateError.message.includes("negative") || updateError.message.includes("sufficient")) {
+    if (updateError.message.includes("negative") || updateError.message.includes("Insufficient")) {
       return { error: "المخزون لا يمكن أن يكون سالباً" };
     }
     return { error: updateError.message };
   }
 
-  // Write ledger entry with item_id FK populated
+  // Write ledger entry with transaction type
   const { error: ledgerError } = await supabase
     .from("inventory_ledger")
     .insert({
@@ -108,7 +132,7 @@ export async function adjustStock(formData: FormData) {
       item_id: itemId,
       material_name: reason,
       quantity_consumed: Math.abs(quantityDelta),
-      consumption_type: consumptionType,
+      consumption_type: transactionType,
       notes: reason,
     });
 
