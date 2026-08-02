@@ -5,13 +5,12 @@ import type { Permission } from "./types";
 
 /**
  * Resolves a user's effective permissions by:
- * 1. Looking up the user's role in clinic_users
+ * 1. Looking up the user's role in clinic_users (by auth_user_id, limit 1)
  * 2. Finding the matching role template in roles
  * 3. Collecting all permissions from role_permissions
  * 4. Applying any user-specific overrides from clinic_user_permission_overrides
  *
- * This is the database-backed replacement for the hardcoded permissionMatrix.
- * Both systems coexist during transition.
+ * Fix: replaced .maybeSingle() with .limit(1) to handle duplicate rows gracefully.
  */
 export async function getEffectivePermissions(
   userId: string,
@@ -20,23 +19,24 @@ export async function getEffectivePermissions(
   const supabase = await createClient();
 
   // Step 1: Get the user's role from clinic_users
-  const { data: clinicUser, error: userError } = await supabase
+  // Use .limit(1) instead of .maybeSingle() to avoid "multiple rows" error
+  const { data: clinicUsers, error: userError } = await supabase
     .from("clinic_users")
-    .select("role")
+    .select("role, tenant_id")
     .eq("auth_user_id", userId)
-    .eq("tenant_id", tenantId)
-    .maybeSingle();
+    .limit(1);
 
   if (userError) {
     console.error("[permissionEngine] Failed to fetch clinic user:", userError.message);
     return [];
   }
 
-  if (!clinicUser?.role) {
-    console.warn("[permissionEngine] No role found for user", userId);
+  if (!clinicUsers || clinicUsers.length === 0) {
+    console.warn("[permissionEngine] No clinic user found for auth_user_id:", userId);
     return [];
   }
 
+  const clinicUser = clinicUsers[0];
   const roleKey = clinicUser.role;
 
   // Step 2: Get the role template ID from roles
