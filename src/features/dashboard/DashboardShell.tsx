@@ -1,19 +1,15 @@
-// src/features/dashboard/DashboardShell.tsx
-// Package 3.0.2 — Dynamic Navigation: replaces static navItems with permission-filtered
-// version driven by usePermissions(). RTL and responsive behavior preserved.
-
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect } from "react";
 import { cn } from "@/shared/utils/cn";
 import { Button } from "@/shared/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/shared/components/ui/sheet";
 import { Separator } from "@/shared/components/ui/separator";
 import { Menu, LogOut, Stethoscope } from "lucide-react";
 import { createClient } from "@/infrastructure/supabase/client";
-import { useRouter } from "next/navigation";
-import { navigationRegistry, type NavItem } from "@/core/navigation/navigationRegistry";
+import { navigationRegistry } from "@/core/navigation/navigationRegistry";
 import { usePermissions } from "@/core/permissions/usePermissions";
 import type { Permission } from "@/core/permissions/types";
 
@@ -28,21 +24,29 @@ export function DashboardShell({ children, user }: DashboardShellProps) {
   const supabase = createClient();
   const { hasPermission, isLoading: permsLoading } = usePermissions();
 
+  // Client-side route guard: redirect if user lacks permission for current route
+  useEffect(() => {
+    if (permsLoading) return;
+
+    const currentRoute = navigationRegistry.find((r) => r.href === pathname);
+    if (currentRoute && currentRoute.requiredPermission !== null) {
+      const allowed = hasPermission(currentRoute.requiredPermission as Permission);
+      if (!allowed) {
+        router.replace("/");
+      }
+    }
+  }, [pathname, permsLoading, hasPermission, router]);
+
   const handleSignOut = async () => {
     await supabase.auth.signOut();
     router.push("/login");
     router.refresh();
   };
 
-  /**
-   * Filter navigation items based on effective permissions.
-   * Dashboard ("/") is always visible (requiredPermission === null).
-   * All other items require their specific permission.
-   */
-  const visibleNavItems: NavItem[] = navigationRegistry.filter((item) => {
-    if (item.requiredPermission === null) return true;
-    // While permissions are loading, show nothing except Dashboard to prevent flash
-    if (permsLoading) return item.requiredPermission === null;
+  // Filter navigation items based on effective permissions
+  const visibleNavItems = navigationRegistry.filter((item) => {
+    if (item.requiredPermission === null) return true; // Dashboard always visible
+    if (permsLoading) return false; // Hide while loading
     return hasPermission(item.requiredPermission as Permission);
   });
 
@@ -63,7 +67,7 @@ export function DashboardShell({ children, user }: DashboardShellProps) {
             )}
           >
             <Icon className="h-4 w-4 shrink-0" />
-            <span className="truncate">{item.labelAr}</span>
+            <span className="truncate">{item.labelAr || item.label}</span>
           </Link>
         );
       })}
@@ -100,7 +104,7 @@ export function DashboardShell({ children, user }: DashboardShellProps) {
               <span>ClinicSaaS™</span>
             </div>
             <nav className="flex flex-col gap-1">
-              <NavLinks onNavigate={() => { /* Sheet auto-closes on navigation in shadcn */ }} />
+              <NavLinks />
             </nav>
           </SheetContent>
         </Sheet>
