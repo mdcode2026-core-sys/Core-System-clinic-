@@ -27,7 +27,7 @@ export default async function QueuePage() {
     redirect("/login");
   }
 
-  // Resolve permissions via permission engine
+  // Permission engine guard
   let permissions: string[] = [];
   try {
     permissions = await getEffectivePermissions(user.id, tenantId);
@@ -36,61 +36,53 @@ export default async function QueuePage() {
   }
 
   const canReadSessions = permissions.includes("sessions:read");
-  const canUpdateSession = permissions.includes("sessions:update");
 
   if (!canReadSessions) {
     redirect("/");
   }
 
-  // Fetch queue data
-  let queueData: Awaited<ReturnType<typeof getQueue>> = [];
-  let statsData: Awaited<ReturnType<typeof getQueueStats>> | null = null;
-  let doctorsData: Awaited<ReturnType<typeof getActiveDoctors>> = [];
-
   try {
-    const result = await Promise.all([
+    const [queueData, statsData, doctorsData] = await Promise.all([
       getQueue(),
       getQueueStats(),
       getActiveDoctors(),
     ]);
-    queueData = result[0];
-    statsData = result[1];
-    doctorsData = result[2];
-  } catch (error: any) {
-    console.error("[QueuePage] Data fetch failed:", error?.message || error);
-  }
 
-  // Doctor view determined by permission, not hardcoded role
-  const isDoctorView = canUpdateSession;
+    // View selection: use actual role from clinic_users, NOT permission key
+    // sessions:update is shared by clinic_admin and doctor for different reasons
+    const isDoctor = user.user_metadata?.role === "doctor";
 
-  if (isDoctorView) {
+    if (isDoctor) {
+      return (
+        <div className="container mx-auto py-6">
+          <MyQueueView />
+        </div>
+      );
+    }
+
     return (
-      <div className="container mx-auto py-6">
-        <MyQueueView canUpdateSession={canUpdateSession} />
+      <div className="container mx-auto py-6 space-y-6">
+        <h1 className="text-3xl font-bold tracking-tight">لوحة الانتظار</h1>
+        <p className="text-muted-foreground">إدارة تدفق المرضى والكشف</p>
+
+        <div>
+          <h2 className="text-xl font-semibold mb-4">الاستقبال</h2>
+          <LiveQueueBoard
+            tenantId={tenantId}
+            initialQueue={queueData}
+            initialStats={statsData}
+            initialDoctors={doctorsData}
+          />
+        </div>
+
+        <div>
+          <h2 className="text-xl font-semibold mb-4">كشك التسجيل</h2>
+          <AmbientKioskView />
+        </div>
       </div>
     );
+
+  } catch (error) {
+    redirect("/login");
   }
-
-  return (
-    <div className="container mx-auto py-6 space-y-6">
-      <h1 className="text-3xl font-bold tracking-tight">لوحة الانتظار</h1>
-      <p className="text-muted-foreground">إدارة تدفق المرضى والكشف</p>
-
-      <div>
-        <h2 className="text-xl font-semibold mb-4">الاستقبال</h2>
-        <LiveQueueBoard
-          tenantId={tenantId}
-          initialQueue={queueData}
-          initialStats={statsData}
-          initialDoctors={doctorsData}
-          canUpdateSession={canUpdateSession}
-        />
-      </div>
-
-      <div>
-        <h2 className="text-xl font-semibold mb-4">كشك التسجيل</h2>
-        <AmbientKioskView />
-      </div>
-    </div>
-  );
 }
