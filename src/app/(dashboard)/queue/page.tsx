@@ -48,7 +48,7 @@ export default async function QueuePage() {
       getActiveDoctors(),
     ]);
 
-    // View selection: use actual role from clinic_users, NOT permission key
+    // View selection: use actual role from user metadata, NOT permission key
     // sessions:update is shared by clinic_admin and doctor for different reasons
     const isDoctor = user.user_metadata?.role === "doctor";
 
