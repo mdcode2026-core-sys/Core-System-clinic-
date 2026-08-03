@@ -1,43 +1,51 @@
 -- Migration: Sync inventory definitions with live database
 -- Date: 2026-08-03
--- Architect corrections: adjust_inventory_stock() already hardened on live DB
--- This migration documents the actual live state in the repository
+-- Architect corrections applied directly on live DB:
+--   - adjust_inventory_stock() hardened (SECURITY DEFINER removed, tenant_id enforced)
+--   - inventory_items table created
+--   - inventory_ledger.item_id column added
+-- This migration documents the actual live state in the repository.
 
 -- ============================================
--- 1. inventory_items TABLE (missing from repo)
+-- 1. inventory_items TABLE
 -- ============================================
 -- The live database has an inventory_items table referenced by adjust_inventory_stock().
--- This table was created by the Architect directly and is NOT in the repo schema.
--- 
--- Expected structure (verify with \d inventory_items):
---   id uuid PK
---   tenant_id uuid NOT NULL
---   procedure_id uuid (FK to clinic_procedures)
---   current_stock integer
---   deleted_at timestamptz
---   updated_at timestamptz
---
--- ACTION REQUIRED: Owner must verify and add CREATE TABLE if this table
--- does not exist in a separate migration. This migration only documents
--- the live state.
+-- This table was created by the Architect directly and was NOT in the repo schema.
+
+CREATE TABLE IF NOT EXISTS public.inventory_items (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    tenant_id uuid NOT NULL,
+    procedure_id uuid REFERENCES public.clinic_procedures(id) ON DELETE SET NULL,
+    current_stock integer NOT NULL DEFAULT 0,
+    deleted_at timestamp with time zone,
+    updated_at timestamp with time zone DEFAULT now(),
+    created_at timestamp with time zone DEFAULT now()
+);
+
+-- Enable RLS on inventory_items
+ALTER TABLE public.inventory_items ENABLE ROW LEVEL SECURITY;
+
+-- RLS policy for tenant isolation
+CREATE POLICY IF NOT EXISTS "rls_inventory_items_isolation"
+ON public.inventory_items
+USING (tenant_id = public.get_current_tenant_id());
 
 -- ============================================
 -- 2. inventory_ledger COLUMN: item_id
 -- ============================================
 -- The live database has item_id (uuid, nullable) on inventory_ledger.
 -- This column links to inventory_items.id.
--- It is NOT in the original repo schema.
---
--- If item_id is missing, add it:
+-- It was added by the Architect and was NOT in the original repo schema.
+
 ALTER TABLE public.inventory_ledger
-ADD COLUMN IF NOT EXISTS item_id uuid;
+ADD COLUMN IF NOT EXISTS item_id uuid REFERENCES public.inventory_items(id) ON DELETE SET NULL;
 
 -- ============================================
 -- 3. adjust_inventory_stock() — LIVE DEFINITION
 -- ============================================
 -- Live state: NOT SECURITY DEFINER (invoker rights)
 -- Live state: Updates inventory_items (not inventory_ledger)
--- Live state: Has tenant_id check built-in
+-- Live state: Has tenant_id check built-in via WHERE clause
 --
 -- Drop and recreate to match live definition exactly:
 
@@ -72,14 +80,7 @@ END;
 $$;
 
 -- ============================================
--- 4. RLS POLICY — already correct on live DB
--- ============================================
--- Live state: rls_inventory_isolation exists with tenant_id check
--- No change needed. Verified:
---   qual: (tenant_id = get_current_tenant_id())
-
--- ============================================
--- 5. GRANTS
+-- 4. GRANTS
 -- ============================================
 GRANT EXECUTE ON FUNCTION public.adjust_inventory_stock(uuid, uuid, numeric) TO authenticated;
 
