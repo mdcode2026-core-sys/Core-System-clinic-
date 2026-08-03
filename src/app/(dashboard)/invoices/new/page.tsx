@@ -12,18 +12,13 @@ export default async function NewInvoicePage() {
     redirect("/login");
   }
 
-  const { data: clinicUser } = await supabase
-    .from("clinic_users")
-    .select("tenant_id")
-    .eq("auth_user_id", user.id)
-    .limit(1)
-    .maybeSingle();
+  const tenantId = user.user_metadata?.tenant_id as string | undefined;
 
-  if (!clinicUser?.tenant_id) {
+  if (!tenantId) {
     redirect("/login");
   }
 
-  const permissions = await getEffectivePermissions(user.id, clinicUser.tenant_id);
+  const permissions = await getEffectivePermissions(user.id, tenantId);
 
   if (!permissions.includes("invoices:create")) {
     redirect("/invoices");
