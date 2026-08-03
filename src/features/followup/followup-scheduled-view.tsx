@@ -5,11 +5,6 @@
 "use client";
 
 import { useState } from "react";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { CalendarClock, Phone } from "lucide-react";
 import { updateFollowupStatus } from "@/domain/followup/followup.queries";
 import type { FollowupRecord, FollowupDeliveryStatus } from "@/domain/followup/followup.types";
 
@@ -44,8 +39,6 @@ export function FollowupScheduledView({ records, canUpdate, onStatusUpdate, isPe
     setUpdatingId(null);
   };
 
-  const now = new Date();
-
   // Group by date (YYYY-MM-DD)
   const grouped = records.reduce<Record<string, FollowupRecord[]>>((acc, record) => {
     const dateKey = record.scheduled_for.slice(0, 10);
@@ -59,74 +52,78 @@ export function FollowupScheduledView({ records, canUpdate, onStatusUpdate, isPe
   return (
     <div className="space-y-6">
       {records.length === 0 ? (
-        <Card>
-          <CardContent className="py-12 text-center text-muted-foreground">
-            <CalendarClock className="mx-auto mb-3 h-8 w-8 opacity-50" />
-            لا توجد متابعات مجدولة مستقبلية
-          </CardContent>
-        </Card>
+        <div className="rounded-lg border border-dashed p-8 text-center text-gray-500">
+          <svg className="mx-auto mb-3 h-8 w-8 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          لا توجد متابعات مجدولة مستقبلية
+        </div>
       ) : (
         sortedDates.map((dateKey) => (
           <div key={dateKey} className="space-y-3">
-            <h3 className="text-sm font-semibold text-muted-foreground">
+            <h3 className="text-sm font-semibold text-gray-500">
               {new Date(dateKey).toLocaleDateString("ar-SA", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
             </h3>
             <div className="grid gap-3">
               {grouped[dateKey].map((record) => (
-                <Card key={record.id} className="overflow-hidden border-l-4 border-l-primary">
-                  <CardContent className="p-4">
-                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                          <span className="font-semibold">{record.patient_name ?? "مريض غير معروف"}</span>
-                          {record.patient_phone && (
-                            <span className="text-sm text-muted-foreground flex items-center gap-1">
-                              <Phone className="h-3 w-3" />
-                              {record.patient_phone}
-                            </span>
-                          )}
-                        </div>
-                        <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-                          <Badge variant="outline">{typeLabels[record.followup_type] ?? record.followup_type}</Badge>
-                          <span>•</span>
-                          <span>{new Date(record.scheduled_for).toLocaleTimeString("ar-SA", { hour: "2-digit", minute: "2-digit" })}</span>
-                          {record.channel && (
-                            <>
-                              <span>•</span>
-                              <span>{record.channel}</span>
-                            </>
-                          )}
-                        </div>
-                        {record.message_body && (
-                          <p className="text-sm text-muted-foreground line-clamp-2">{record.message_body}</p>
+                <div key={record.id} className="rounded-lg border border-l-4 border-l-blue-500 bg-white p-4 shadow-sm">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    {/* Info */}
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-semibold text-gray-900">
+                          {record.patient_name ?? "مريض غير معروف"}
+                        </span>
+                        {record.patient_phone && (
+                          <span className="text-sm text-gray-500 flex items-center gap-1">
+                            <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                            </svg>
+                            {record.patient_phone}
+                          </span>
                         )}
                       </div>
-
-                      <div className="flex items-center gap-2">
-                        <Badge variant="secondary">معلّقة</Badge>
-                        {canUpdate && (
-                          <Select
-                            disabled={updatingId === record.id || isPending}
-                            value={record.delivery_status ?? "pending"}
-                            onValueChange={(val) => handleStatusChange(record.id, val as FollowupDeliveryStatus)}
-                          >
-                            <SelectTrigger className="w-32">
-                              <SelectValue placeholder="تحديث" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="pending">معلّقة</SelectItem>
-                              <SelectItem value="sent">تم الإرسال</SelectItem>
-                              <SelectItem value="delivered">تم التوصيل</SelectItem>
-                              <SelectItem value="read">مقروءة</SelectItem>
-                              <SelectItem value="failed">فشل</SelectItem>
-                              <SelectItem value="cancelled">ملغاة</SelectItem>
-                            </SelectContent>
-                          </Select>
+                      <div className="flex flex-wrap items-center gap-2 text-sm text-gray-500">
+                        <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium">
+                          {typeLabels[record.followup_type] ?? record.followup_type}
+                        </span>
+                        <span>•</span>
+                        <span>{new Date(record.scheduled_for).toLocaleTimeString("ar-SA", { hour: "2-digit", minute: "2-digit" })}</span>
+                        {record.channel && (
+                          <>
+                            <span>•</span>
+                            <span>{record.channel}</span>
+                          </>
                         )}
                       </div>
+                      {record.message_body && (
+                        <p className="text-sm text-gray-500 line-clamp-2">{record.message_body}</p>
+                      )}
                     </div>
-                  </CardContent>
-                </Card>
+
+                    {/* Status + Action */}
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="inline-flex items-center rounded-full border border-yellow-200 bg-yellow-100 px-2.5 py-0.5 text-xs font-medium text-yellow-800">
+                        معلّقة
+                      </span>
+                      {canUpdate && (
+                        <select
+                          disabled={updatingId === record.id || isPending}
+                          value={record.delivery_status ?? "pending"}
+                          onChange={(e) => handleStatusChange(record.id, e.target.value as FollowupDeliveryStatus)}
+                          className="h-8 rounded-md border border-input bg-background px-2 py-1 text-sm shadow-sm"
+                        >
+                          <option value="pending">معلّقة</option>
+                          <option value="sent">تم الإرسال</option>
+                          <option value="delivered">تم التوصيل</option>
+                          <option value="read">مقروءة</option>
+                          <option value="failed">فشل</option>
+                          <option value="cancelled">ملغاة</option>
+                        </select>
+                      )}
+                    </div>
+                  </div>
+                </div>
               ))}
             </div>
           </div>
