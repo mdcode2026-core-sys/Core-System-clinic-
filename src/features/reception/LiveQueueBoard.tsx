@@ -6,7 +6,6 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/core/auth/AuthContext";
-import { usePermissions } from "@/core/permissions/usePermissions";
 import { getQueue, getQueueStats, getActiveDoctors } from "@/domain/queue/queue.queries";
 import {
   callNextPatient,
@@ -43,12 +42,10 @@ interface LiveQueueBoardProps {
   initialQueue?: EnrichedSession[];
   initialStats?: QueueStats | null;
   initialDoctors?: { id: string; full_name: string; specialization: string | null }[];
-  canUpdateSession?: boolean;
 }
 
-export function LiveQueueBoard({ tenantId: propTenantId, initialQueue = [], initialStats = null, initialDoctors = [], canUpdateSession = false }: LiveQueueBoardProps) {
+export function LiveQueueBoard({ tenantId: propTenantId, initialQueue = [], initialStats = null, initialDoctors = [] }: LiveQueueBoardProps) {
   const { tenantId: authTenantId } = useAuth();
-  const { hasPermission } = usePermissions();
   const tenantId = propTenantId || authTenantId;
 
   const [sessions, setSessions] = useState<EnrichedSession[]>(initialQueue);
@@ -60,9 +57,6 @@ export function LiveQueueBoard({ tenantId: propTenantId, initialQueue = [], init
   const [isLoading, setIsLoading] = useState(initialQueue.length === 0);
   const [isProcessing, setIsProcessing] = useState<Record<string, boolean>>({});
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-
-  // Effective permission: prop from server OR client-side hook
-  const effectiveCanUpdate = canUpdateSession || hasPermission("sessions:update");
 
   // Realtime subscription
   useQueueSubscription(tenantId || "");
@@ -97,10 +91,6 @@ export function LiveQueueBoard({ tenantId: propTenantId, initialQueue = [], init
 
   // Handle actions
   const handleAction = async (action: string, sessionId: string) => {
-    if (!effectiveCanUpdate) {
-      setErrorMessage("ليس لديك صلاحية لتنفيذ هذا الإجراء");
-      return;
-    }
     setIsProcessing((prev) => ({ ...prev, [sessionId]: true }));
     setErrorMessage(null);
     try {
@@ -338,27 +328,27 @@ export function LiveQueueBoard({ tenantId: propTenantId, initialQueue = [], init
                     </div>
                     <div className="flex flex-wrap gap-2">
                       {session.session_status === "waiting" && (
-                        <Button size="sm" onClick={() => handleAction("call", session.id)} disabled={isProcessingSession || !effectiveCanUpdate}>
+                        <Button size="sm" onClick={() => handleAction("call", session.id)} disabled={isProcessingSession}>
                           <DoorOpen className="h-3 w-3 ml-1" />استدعاء
                         </Button>
                       )}
                       {session.session_status === "in_consultation" && (
                         <>
-                          <Button size="sm" onClick={() => handleAction("complete", session.id)} disabled={isProcessingSession || !effectiveCanUpdate} className="bg-green-600 hover:bg-green-700">
+                          <Button size="sm" onClick={() => handleAction("complete", session.id)} disabled={isProcessingSession} className="bg-green-600 hover:bg-green-700">
                             <CheckCircle2 className="h-3 w-3 ml-1" />إنهاء
                           </Button>
-                          <Button size="sm" variant="outline" onClick={() => handleAction("hold", session.id)} disabled={isProcessingSession || !effectiveCanUpdate}>
+                          <Button size="sm" variant="outline" onClick={() => handleAction("hold", session.id)} disabled={isProcessingSession}>
                             <PauseCircle className="h-3 w-3 ml-1" />تعليق
                           </Button>
                         </>
                       )}
                       {session.session_status === "waiting" && (
-                        <Button size="sm" variant="ghost" onClick={() => handleAction("noshow", session.id)} disabled={isProcessingSession || !effectiveCanUpdate}>
+                        <Button size="sm" variant="ghost" onClick={() => handleAction("noshow", session.id)} disabled={isProcessingSession}>
                           <XCircle className="h-3 w-3 ml-1" />لم يحضر
                         </Button>
                       )}
                       {(session.session_status === "waiting" || session.session_status === "in_consultation") && (
-                        <Button size="sm" variant="ghost" onClick={() => handleAction("cancel", session.id)} disabled={isProcessingSession || !effectiveCanUpdate} className="text-destructive">
+                        <Button size="sm" variant="ghost" onClick={() => handleAction("cancel", session.id)} disabled={isProcessingSession} className="text-destructive">
                           إلغاء
                         </Button>
                       )}
