@@ -6,7 +6,6 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/core/auth/AuthContext";
-import { usePermissions } from "@/core/permissions/usePermissions";
 import { getQueue } from "@/domain/queue/queue.queries";
 import {
   callNextPatient,
@@ -30,22 +29,14 @@ import {
 } from "lucide-react";
 import { EnrichedSession } from "@/domain/queue/queue.types";
 
-interface MyQueueViewProps {
-  canUpdateSession?: boolean;
-}
-
-export function MyQueueView({ canUpdateSession = false }: MyQueueViewProps) {
+export function MyQueueView() {
   const { user, tenantId } = useAuth();
-  const { hasPermission } = usePermissions();
   const [sessions, setSessions] = useState<EnrichedSession[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isProcessing, setIsProcessing] = useState<Record<string, boolean>>({});
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useQueueSubscription(tenantId);
-
-  // Effective permission: prop from server OR client-side hook
-  const effectiveCanUpdate = canUpdateSession || hasPermission("sessions:update");
 
   const fetchData = useCallback(async () => {
     if (!tenantId || !user) return;
@@ -69,10 +60,6 @@ export function MyQueueView({ canUpdateSession = false }: MyQueueViewProps) {
   }, [fetchData]);
 
   const handleAction = async (action: string, sessionId: string) => {
-    if (!effectiveCanUpdate) {
-      setErrorMessage("ليس لديك صلاحية لتنفيذ هذا الإجراء");
-      return;
-    }
     setIsProcessing((prev) => ({ ...prev, [sessionId]: true }));
     setErrorMessage(null);
     try {
@@ -154,10 +141,10 @@ export function MyQueueView({ canUpdateSession = false }: MyQueueViewProps) {
                 </div>
               </div>
               <div className="flex gap-2">
-                <Button onClick={() => handleAction("hold", myCurrent.id)} disabled={isProcessing[myCurrent.id] || !effectiveCanUpdate} variant="outline">
+                <Button onClick={() => handleAction("hold", myCurrent.id)} disabled={isProcessing[myCurrent.id]} variant="outline">
                   <PauseCircle className="h-4 w-4 ml-1" />تعليق
                 </Button>
-                <Button onClick={() => handleAction("complete", myCurrent.id)} disabled={isProcessing[myCurrent.id] || !effectiveCanUpdate} className="bg-green-600 hover:bg-green-700">
+                <Button onClick={() => handleAction("complete", myCurrent.id)} disabled={isProcessing[myCurrent.id]} className="bg-green-600 hover:bg-green-700">
                   <CheckCircle2 className="h-4 w-4 ml-1" />إنهاء
                 </Button>
               </div>
@@ -169,7 +156,7 @@ export function MyQueueView({ canUpdateSession = false }: MyQueueViewProps) {
           <CardContent className="p-8 text-center">
             <DoorOpen className="h-10 w-10 mx-auto text-muted-foreground mb-2" />
             <p className="text-muted-foreground">لا يوجد مريض حالياً</p>
-            {myWaiting.length > 0 && effectiveCanUpdate && (
+            {myWaiting.length > 0 && (
               <Button className="mt-4" size="lg" onClick={() => handleAction("call", myWaiting[0].id)} disabled={isProcessing[myWaiting[0].id]}>
                 <DoorOpen className="h-4 w-4 ml-1" />استدعاء المريض التالي
               </Button>
@@ -190,7 +177,7 @@ export function MyQueueView({ canUpdateSession = false }: MyQueueViewProps) {
             {myOnHold.map((session) => (
               <div key={session.id} className="flex items-center justify-between p-2 bg-purple-50 rounded-lg">
                 <span className="font-medium">{session.patient_name}</span>
-                <Button size="sm" variant="outline" onClick={() => handleAction("resume", session.id)} disabled={isProcessing[session.id] || !effectiveCanUpdate}>
+                <Button size="sm" variant="outline" onClick={() => handleAction("resume", session.id)} disabled={isProcessing[session.id]}>
                   <PlayCircle className="h-3 w-3 ml-1" />استئناف
                 </Button>
               </div>
@@ -223,7 +210,7 @@ export function MyQueueView({ canUpdateSession = false }: MyQueueViewProps) {
                       </div>
                     </div>
                   </div>
-                  <Button size="sm" onClick={() => handleAction("call", session.id)} disabled={isProcessing[session.id] || !!myCurrent || !effectiveCanUpdate}>
+                  <Button size="sm" onClick={() => handleAction("call", session.id)} disabled={isProcessing[session.id] || !!myCurrent}>
                     استدعاء
                   </Button>
                 </div>
