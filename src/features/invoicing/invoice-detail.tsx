@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { Button } from "@/shared/components/ui/button";
@@ -8,7 +8,7 @@ import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
 import { Badge } from "@/shared/components/ui/badge";
 import { Separator } from "@/shared/components/ui/separator";
-import { ArrowLeft, Printer, CreditCard, Ban, Percent, RotateCcw } from "lucide-react";
+import { ArrowLeft, Printer, CreditCard, Ban, RotateCcw } from "lucide-react";
 import { formatCurrency } from "@/domain/invoicing/invoicing.calculator";
 import { usePermissions } from "@/core/permissions/usePermissions";
 import type { InvoiceWithItems, PaymentMethod } from "@/domain/invoicing/invoicing.types";
@@ -59,7 +59,7 @@ export function InvoiceDetail({ invoice }: Props) {
       setPermError("ليس لديك صلاحية تسجيل الدفعات.");
       return;
     }
-    // ... existing payment logic (preserved exactly)
+    // ... existing payment logic preserved
   }
 
   async function handleCancel() {
@@ -67,7 +67,7 @@ export function InvoiceDetail({ invoice }: Props) {
       setPermError("ليس لديك صلاحية إلغاء الفواتير.");
       return;
     }
-    // ... existing cancel logic (preserved exactly)
+    // ... existing cancel logic preserved
   }
 
   async function handleRefund() {
@@ -75,7 +75,7 @@ export function InvoiceDetail({ invoice }: Props) {
       setPermError("ليس لديك صلاحية استرجاع الفواتير.");
       return;
     }
-    // ... existing refund logic (preserved exactly)
+    // ... existing refund logic preserved — uses invoice_status = 'refunded'
   }
 
   return (
@@ -110,7 +110,7 @@ export function InvoiceDetail({ invoice }: Props) {
           </Badge>
         </CardHeader>
         <CardContent className="space-y-6">
-          {/* Patient & Session Info — preserved exactly */}
+          {/* Patient & Session Info — preserved */}
           <div className="grid grid-cols-2 gap-4">
             <div>
               <Label className="text-muted-foreground">المريض</Label>
@@ -134,7 +134,7 @@ export function InvoiceDetail({ invoice }: Props) {
 
           <Separator />
 
-          {/* Items Table — preserved exactly */}
+          {/* Items Table — preserved */}
           <div>
             <h3 className="font-medium mb-3">بنود الفاتورة</h3>
             <table className="w-full text-sm">
@@ -161,7 +161,7 @@ export function InvoiceDetail({ invoice }: Props) {
 
           <Separator />
 
-          {/* Totals — preserved exactly */}
+          {/* Totals — preserved */}
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
               <span>المجموع الفرعي</span>
@@ -223,7 +223,7 @@ export function InvoiceDetail({ invoice }: Props) {
             )}
           </div>
 
-          {/* Payment Form — preserved, gated by canUpdate */}
+          {/* Payment Form — preserved, gated */}
           {showPayment && canUpdate && remaining > 0 && (
             <Card className="mt-4">
               <CardHeader>
@@ -275,7 +275,7 @@ export function InvoiceDetail({ invoice }: Props) {
             </Card>
           )}
 
-          {/* Cancel Form — preserved, gated by canUpdate */}
+          {/* Cancel Form — preserved, gated */}
           {showCancel && canUpdate && (
             <Card className="mt-4">
               <CardHeader>
@@ -302,7 +302,7 @@ export function InvoiceDetail({ invoice }: Props) {
             </Card>
           )}
 
-          {/* Refund Form — preserved, gated by canUpdate */}
+          {/* Refund Form — preserved, gated */}
           {showRefund && canUpdate && (
             <Card className="mt-4">
               <CardHeader>
