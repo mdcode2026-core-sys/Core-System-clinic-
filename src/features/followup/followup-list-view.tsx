@@ -5,10 +5,6 @@
 "use client";
 
 import { useState } from "react";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { updateFollowupStatus } from "@/domain/followup/followup.queries";
 import type { FollowupRecord, FollowupDeliveryStatus } from "@/domain/followup/followup.types";
 
@@ -19,13 +15,13 @@ interface FollowupListViewProps {
   isPending: boolean;
 }
 
-const statusConfig: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
-  pending: { label: "معلّقة", variant: "secondary" },
-  sent: { label: "تم الإرسال", variant: "default" },
-  delivered: { label: "تم التوصيل", variant: "default" },
-  read: { label: "مقروءة", variant: "default" },
-  failed: { label: "فشل", variant: "destructive" },
-  cancelled: { label: "ملغاة", variant: "outline" },
+const statusConfig: Record<string, { label: string; colorClass: string }> = {
+  pending: { label: "معلّقة", colorClass: "bg-yellow-100 text-yellow-800 border-yellow-200" },
+  sent: { label: "تم الإرسال", colorClass: "bg-blue-100 text-blue-800 border-blue-200" },
+  delivered: { label: "تم التوصيل", colorClass: "bg-green-100 text-green-800 border-green-200" },
+  read: { label: "مقروءة", colorClass: "bg-emerald-100 text-emerald-800 border-emerald-200" },
+  failed: { label: "فشل", colorClass: "bg-red-100 text-red-800 border-red-200" },
+  cancelled: { label: "ملغاة", colorClass: "bg-gray-100 text-gray-800 border-gray-200" },
 };
 
 const typeLabels: Record<string, string> = {
@@ -59,89 +55,89 @@ export function FollowupListView({ records, canUpdate, onStatusUpdate, isPending
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-3">
-        <span className="text-sm text-muted-foreground">تصفية حسب الحالة:</span>
-        <Select value={filterStatus} onValueChange={setFilterStatus}>
-          <SelectTrigger className="w-40">
-            <SelectValue placeholder="الكل" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">الكل</SelectItem>
-            <SelectItem value="pending">معلّقة</SelectItem>
-            <SelectItem value="sent">تم الإرسال</SelectItem>
-            <SelectItem value="delivered">تم التوصيل</SelectItem>
-            <SelectItem value="read">مقروءة</SelectItem>
-            <SelectItem value="failed">فشل</SelectItem>
-            <SelectItem value="cancelled">ملغاة</SelectItem>
-          </SelectContent>
-        </Select>
-        <span className="text-sm text-muted-foreground mr-auto">الإجمالي: {filtered.length}</span>
+      {/* Filter bar */}
+      <div className="flex items-center gap-3 flex-wrap">
+        <span className="text-sm text-gray-500">تصفية حسب الحالة:</span>
+        <select
+          value={filterStatus}
+          onChange={(e) => setFilterStatus(e.target.value)}
+          className="h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm"
+        >
+          <option value="all">الكل</option>
+          <option value="pending">معلّقة</option>
+          <option value="sent">تم الإرسال</option>
+          <option value="delivered">تم التوصيل</option>
+          <option value="read">مقروءة</option>
+          <option value="failed">فشل</option>
+          <option value="cancelled">ملغاة</option>
+        </select>
+        <span className="text-sm text-gray-500 mr-auto">الإجمالي: {filtered.length}</span>
       </div>
 
       {filtered.length === 0 ? (
-        <Card>
-          <CardContent className="py-12 text-center text-muted-foreground">
-            لا توجد متابعات مطابقة للتصفية
-          </CardContent>
-        </Card>
+        <div className="rounded-lg border border-dashed p-8 text-center text-gray-500">
+          لا توجد متابعات مطابقة للتصفية
+        </div>
       ) : (
         <div className="grid gap-3">
           {filtered.map((record) => {
             const status = record.delivery_status ?? "pending";
-            const cfg = statusConfig[status] ?? { label: status, variant: "secondary" };
+            const cfg = statusConfig[status] ?? { label: status, colorClass: "bg-gray-100 text-gray-800" };
 
             return (
-              <Card key={record.id} className="overflow-hidden">
-                <CardContent className="p-4">
-                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2">
-                        <span className="font-semibold">{record.patient_name ?? "مريض غير معروف"}</span>
-                        {record.patient_phone && (
-                          <span className="text-sm text-muted-foreground">{record.patient_phone}</span>
-                        )}
-                      </div>
-                      <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-                        <Badge variant="outline">{typeLabels[record.followup_type] ?? record.followup_type}</Badge>
-                        <span>•</span>
-                        <span>{new Date(record.scheduled_for).toLocaleString("ar-SA")}</span>
-                        {record.channel && (
-                          <>
-                            <span>•</span>
-                            <span>{record.channel}</span>
-                          </>
-                        )}
-                      </div>
-                      {record.message_body && (
-                        <p className="text-sm text-muted-foreground line-clamp-2">{record.message_body}</p>
+              <div key={record.id} className="rounded-lg border bg-white p-4 shadow-sm">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  {/* Info */}
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-semibold text-gray-900">
+                        {record.patient_name ?? "مريض غير معروف"}
+                      </span>
+                      {record.patient_phone && (
+                        <span className="text-sm text-gray-500">{record.patient_phone}</span>
                       )}
                     </div>
-
-                    <div className="flex items-center gap-2">
-                      <Badge variant={cfg.variant}>{cfg.label}</Badge>
-                      {canUpdate && (
-                        <Select
-                          disabled={updatingId === record.id || isPending}
-                          value={status}
-                          onValueChange={(val) => handleStatusChange(record.id, val as FollowupDeliveryStatus)}
-                        >
-                          <SelectTrigger className="w-32">
-                            <SelectValue placeholder="تغيير الحالة" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="pending">معلّقة</SelectItem>
-                            <SelectItem value="sent">تم الإرسال</SelectItem>
-                            <SelectItem value="delivered">تم التوصيل</SelectItem>
-                            <SelectItem value="read">مقروءة</SelectItem>
-                            <SelectItem value="failed">فشل</SelectItem>
-                            <SelectItem value="cancelled">ملغاة</SelectItem>
-                          </SelectContent>
-                        </Select>
+                    <div className="flex flex-wrap items-center gap-2 text-sm text-gray-500">
+                      <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium">
+                        {typeLabels[record.followup_type] ?? record.followup_type}
+                      </span>
+                      <span>•</span>
+                      <span>{new Date(record.scheduled_for).toLocaleString("ar-SA")}</span>
+                      {record.channel && (
+                        <>
+                          <span>•</span>
+                          <span>{record.channel}</span>
+                        </>
                       )}
                     </div>
+                    {record.message_body && (
+                      <p className="text-sm text-gray-500 line-clamp-2">{record.message_body}</p>
+                    )}
                   </div>
-                </CardContent>
-              </Card>
+
+                  {/* Status + Action */}
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium ${cfg.colorClass}`}>
+                      {cfg.label}
+                    </span>
+                    {canUpdate && (
+                      <select
+                        disabled={updatingId === record.id || isPending}
+                        value={status}
+                        onChange={(e) => handleStatusChange(record.id, e.target.value as FollowupDeliveryStatus)}
+                        className="h-8 rounded-md border border-input bg-background px-2 py-1 text-sm shadow-sm"
+                      >
+                        <option value="pending">معلّقة</option>
+                        <option value="sent">تم الإرسال</option>
+                        <option value="delivered">تم التوصيل</option>
+                        <option value="read">مقروءة</option>
+                        <option value="failed">فشل</option>
+                        <option value="cancelled">ملغاة</option>
+                      </select>
+                    )}
+                  </div>
+                </div>
+              </div>
             );
           })}
         </div>
