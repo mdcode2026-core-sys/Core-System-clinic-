@@ -1,6 +1,6 @@
 // src/app/(dashboard)/queue/page.tsx
-// Package 3.1.4 — Queue Migration & Critical Bug Closure
-// Removed hardcoded isDoctor; uses permission engine
+// Phase 4 — Queue Management Module
+// Main queue page — simplified, no Tabs
 
 import { redirect } from "next/navigation";
 import { createClient } from "@/infrastructure/supabase/server";
@@ -27,7 +27,7 @@ export default async function QueuePage() {
     redirect("/login");
   }
 
-  // Resolve effective permissions via permission engine
+  // Resolve permissions via permission engine
   let permissions: string[] = [];
   try {
     permissions = await getEffectivePermissions(user.id, tenantId);
@@ -42,56 +42,54 @@ export default async function QueuePage() {
     redirect("/");
   }
 
-  // Fetch queue data — errors logged but not redirected to prevent false loop
+  // Fetch queue data
   let queueData: Awaited<ReturnType<typeof getQueue>> = [];
   let statsData: Awaited<ReturnType<typeof getQueueStats>> | null = null;
   let doctorsData: Awaited<ReturnType<typeof getActiveDoctors>> = [];
 
   try {
-    [queueData, statsData, doctorsData] = await Promise.all([
+    const result = await Promise.all([
       getQueue(),
       getQueueStats(),
       getActiveDoctors(),
     ]);
+    queueData = result[0];
+    statsData = result[1];
+    doctorsData = result[2];
   } catch (error: any) {
     console.error("[QueuePage] Data fetch failed:", error?.message || error);
-    // Render with empty data instead of redirecting to login
   }
 
-  // Doctor view: user has sessions:update (can call/complete/hold/resume)
+  // Doctor view determined by permission, not hardcoded role
   const isDoctorView = canUpdateSession;
 
   if (isDoctorView) {
     return (
-      <MyQueueView
-        initialSessions={queueData}
-        initialStats={statsData}
-        canUpdateSession={canUpdateSession}
-      />
+      <div className="container mx-auto py-6">
+        <MyQueueView canUpdateSession={canUpdateSession} />
+      </div>
     );
   }
 
   return (
-    <div className="space-y-6 p-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">لوحة الانتظار</h1>
-          <p className="text-muted-foreground">إدارة تدفق المرضى والكشف</p>
-        </div>
+    <div className="container mx-auto py-6 space-y-6">
+      <h1 className="text-3xl font-bold tracking-tight">لوحة الانتظار</h1>
+      <p className="text-muted-foreground">إدارة تدفق المرضى والكشف</p>
+
+      <div>
+        <h2 className="text-xl font-semibold mb-4">الاستقبال</h2>
+        <LiveQueueBoard
+          tenantId={tenantId}
+          initialQueue={queueData}
+          initialStats={statsData}
+          initialDoctors={doctorsData}
+          canUpdateSession={canUpdateSession}
+        />
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-3">
-        <div className="lg:col-span-2">
-          <LiveQueueBoard
-            initialSessions={queueData}
-            initialStats={statsData}
-            initialDoctors={doctorsData}
-            canUpdateSession={canUpdateSession}
-          />
-        </div>
-        <div>
-          <AmbientKioskView tenantId={tenantId} />
-        </div>
+      <div>
+        <h2 className="text-xl font-semibold mb-4">كشك التسجيل</h2>
+        <AmbientKioskView />
       </div>
     </div>
   );
