@@ -1,7 +1,7 @@
 # DATABASE_SCHEMA.md
 
 **Source:** Generated directly from the live Supabase project `core-system-clinic` (`qaslsjyxjwvdoiczmhgq`) via direct schema inspection — not from the ad-hoc CSV export it replaces (`supabase Data info.md`, now archived).
-**Date:** 2026-07-31
+**Date:** 2026-08-04
 **Note:** Row counts reflect the audit snapshot moment and will change; this document should be regenerated periodically, not hand-edited for data changes — only for structural (DDL) changes.
 
 ---
@@ -40,7 +40,7 @@ No migration has dropped these. `create_tenant_with_subscription()` no longer wr
 
 All three already have permissive `SELECT` RLS policies (`USING (true)`) — readable by any role today. No `INSERT`/`UPDATE`/`DELETE` policy exists yet for any of them.
 
-**Application-layer permission system (currently separate, not wired to the above):** `src/core/permissions/types.ts` defines a hardcoded `UserRole` union and a `Permission` union (`patients:read`, `sessions:create`, `agenda:update`, `invoices:read`, `inventory:create`, `analytics:read`, `users:delete`, `settings:update`, `audit:read`, etc.), consumed by a static `permissionMatrix.ts` and enforced client-side only via `PermissionGuard.tsx`. Note: this in-code catalog already anticipates `sessions:*`, `inventory:*`, and `settings:*` permissions the current RLS/route layer doesn't yet enforce server-side.
+**Application-layer permission system (currently separate, not wired to the above):** `src/core/permissions/types.ts` defines a hardcoded `UserRole` union and a `Permission` union (`patients:read`, `sessions:create`, `agenda:update`, `invoices:read`, `inventory:create`, `analytics:read`, `users:delete`, `settings:update`, `audit:read`, etc.), consumed by a static `permissionMatrix.ts` and enforced client-side only via `PermissionGuard.tsx`. Note: this in-code catalog already anticipates `sessions:**`, `inventory:**`, and `settings:**` permissions the current RLS/route layer doesn't yet enforce server-side.
 
 ---
 
@@ -115,7 +115,7 @@ Pre-aggregated daily rollup per tenant: visit counts, new/returning patients, no
 | Table | Rows | Purpose |
 |---|---|---|
 | `subscription_plans` | 4 | Plan catalog (`max_users/devices/branches`, `modules` jsonb, `ai_limits` jsonb, `storage_gb`, `api_rate_limit`). **RLS enabled, zero policies — currently unreadable by anyone. See SECURITY_AUDIT_REPORT SEC-007.** |
-| `feature_flags` | 5 | `flag_key`, `is_enabled`, `allowed_tiers` (array, e.g. `{enterprise}`), `config_json`. Can be tenant-specific (`tenant_id` nullable) or global. |
+| `feature_flags` | 5 → **11 after seed** (2026-08-04) | `flag_key`, `is_enabled`, `allowed_tiers` (array, e.g. `{enterprise}`), `config_json`. Can be tenant-specific (`tenant_id` nullable) or global. **Now actively used by `isFeatureEnabled()` in `src/core/features/featureRegistry.ts` (Package 3.1.7).** Seed data: 6 globally-enabled module flags (`patients`, `agenda`, `queue`, `billing`, `inventory`, `followup`). |
 | `billing_events` | 0 | Audit trail of subscription lifecycle events (trial_started, upgraded, tier_override_by_admin, etc.), separate from `audit_trail`. |
 | `tenant_devices` | 0 | Device registration/fingerprinting per tenant, ties to `master_tenants.max_devices` limit enforcement. |
 
