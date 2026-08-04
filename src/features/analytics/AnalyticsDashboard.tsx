@@ -39,6 +39,8 @@ export function AnalyticsDashboard() {
   const queue = kpis.filter((k) => k.id.startsWith("queue."));
   const revenue = kpis.filter((k) => k.id.startsWith("revenue."));
   const invoices = kpis.filter((k) => k.id.startsWith("invoices."));
+  const inventory = kpis.filter((k) => k.id.startsWith("inventory."));
+  const followup = kpis.filter((k) => k.id.startsWith("followup."));
 
   return (
     <div className="space-y-8">
@@ -61,6 +63,14 @@ export function AnalyticsDashboard() {
       <section>
         <h2 className="text-lg font-semibold mb-3">الفواتير</h2>
         <KpiGrid kpis={invoices} />
+      </section>
+      <section>
+        <h2 className="text-lg font-semibold mb-3">المخزون</h2>
+        <KpiGrid kpis={inventory} />
+      </section>
+      <section>
+        <h2 className="text-lg font-semibold mb-3">المتابعة</h2>
+        <KpiGrid kpis={followup} />
       </section>
     </div>
   );
