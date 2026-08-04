@@ -20,7 +20,7 @@ export function useAnalyticsOverview(
 
 export function useAnalyticsByCategory(
   authUserId: string | null | undefined,
-  category: "patients" | "appointments" | "queue" | "revenue" | "invoices",
+  category: "patients" | "appointments" | "queue" | "revenue" | "invoices" | "inventory" | "followup",
   datePreset: DatePreset = "today"
 ) {
   return useQuery({
