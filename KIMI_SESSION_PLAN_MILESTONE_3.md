@@ -159,15 +159,15 @@ You are the Implementation Engineer for CORE SYSTEM — ClinicSaaS™. You are n
 
 ---
 
-## Session 9 — Reports (Conditional — May Not Be Executable)
+## Session 9 — Reports (Unblocked — full spec confirmed 2026-08-05, ADR-007)
 
-**Reference:** Package 3.1.7.
+**Reference:** Package 3.1.7 (fully rewritten — read it fresh, do not rely on any earlier summary of it).
 
-**Before doing anything else:** check whether a report catalog has been confirmed since `IMPLEMENTATION_PACKAGE_MILESTONE_3.md` was written (check `PROJECT_HANDOFF.md` and `MASTER_ROADMAP.md` for an update). **If no catalog is documented, stop immediately and report this** — do not invent a set of reports to build. This is a known, pre-flagged gap, not a new discovery you need to investigate further.
+**Tasks:** Task 0 — check for an existing PDF library before adding one. Build `featureRegistry.ts` (`isFeatureEnabled`) + the `feature_flags` seed migration (6 globally-enabled module rows) — this is shared infrastructure, not Reports-specific, per ADR-007. Build `moduleRegistry.ts` + `reportRegistry.ts` + the two-dropdown Reports UI + the 18 exact reports specified in the package, each implementing exactly the data source listed — no more, no fewer.
 
-**If a catalog exists:** build the aggregation views and UI per the confirmed list, read-only against existing module tables.
+**Verification to request:** each of the 18 reports against real data, module dropdown correctly filtered by permission + feature flag, Print and Export PDF both functional.
 
-**Session-End Procedure:** Handoff Report either way — either the completed module, or a clear "blocked, catalog still not confirmed" status.
+**Session-End Procedure:** Handoff Report. Output complete updated `DATABASE_SCHEMA.md` (feature_flags now in use, new reports domain files) and `CHANGELOG.md`.
 
 ---
 
