@@ -405,9 +405,9 @@ export async function getInventoryMovements(
       quantity_consumed: r.quantity_consumed,
       consumption_type: r.consumption_type,
       created_at: r.created_at,
-      item_name: (r.inventory_items as Record<string, unknown> | null)?.name ?? null,
-      item_name_ar: (r.inventory_items as Record<string, unknown> | null)?.name_ar ?? null,
-      unit: (r.inventory_items as Record<string, unknown> | null)?.unit ?? null,
+      item_name: ((r.inventory_items as unknown) as { name?: string | null } | null)?.name ?? null,
+      item_name_ar: ((r.inventory_items as unknown) as { name_ar?: string | null } | null)?.name_ar ?? null,
+      unit: ((r.inventory_items as unknown) as { unit?: string | null } | null)?.unit ?? null,
     })),
   };
 }
