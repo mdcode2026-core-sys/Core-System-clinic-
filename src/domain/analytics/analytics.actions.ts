@@ -41,7 +41,7 @@ export async function getAnalyticsOverview(
 
 export async function getAnalyticsByCategory(
   authUserId: string,
-  category: "patients" | "appointments" | "queue" | "revenue" | "invoices",
+  category: "patients" | "appointments" | "queue" | "revenue" | "invoices" | "inventory" | "followup",
   datePreset: DatePreset = "today"
 ): Promise<KpiResult[]> {
   const tenantId = await resolveTenantId(authUserId);
