@@ -126,3 +126,32 @@ Live inspection also found `roles`, `permissions`, and `role_permissions` tables
 **Repository impact:** `feature_flags` table already exists (global or per-tenant, `allowed_tiers` array) — partial groundwork already in place. No module today checks a feature flag or license before rendering — Milestone 3's modules (Patients, Agenda, Queue, Billing, Inventory, Analytics, Follow-up) were specified in `IMPLEMENTATION_PACKAGE_MILESTONE_3.md` against ADR-001 (permissions) only. **This principle is not retroactively applied to the already-issued Milestone 3 package** — doing so now would restart in-flight, already-precise work. Recommend License/Feature-Flag gating is added as a Milestone 3 follow-up hardening pass, or folded into Milestone 6 ("System Integration," which already covers "Full Permission Integration") once the License Engine (ADR-003) actually exists to check against — a module can't validate a License Engine that hasn't been built yet.
 
 **Owner Home:** cross-cutting principle; enforced going forward on every future module (Inventory/Reports/Follow-up in Milestone 3 onward, and all Milestone 4+ modules) once ADR-003's License Engine ships.
+
+---
+
+## ADR-007 — Reports Module (Package 3.1.7) and Reusable Feature Registry
+
+**Date:** 2026-08-05
+**Status:** Approved (Product Owner Final Decision — frozen)
+
+**Decision — Reports Module scope:** a single, independent module — a unified viewer for pre-defined reports across other modules, explicitly **not** a new analytics/BI system (that remains Package 3.1.8, unaffected).
+
+- **Flow:** Reports home shows a brief overview, then two cascading dropdowns — select **Module** (only modules the user's tenant has enabled, see Feature Registry below), then select **Report** (only reports defined for that module). Selected report renders in-page with **Print** and **Export PDF** buttons only.
+- **Explicitly out of scope:** Excel/CSV export, scheduled reports, email delivery, charts, dashboards, BI, custom report builder, period-comparison features, or anything not listed below.
+- **First-version report catalog (18 reports, 3 per module):**
+  - **Patients:** Total Patients, New Patients, Active Patients
+  - **Agenda:** Total Appointments, Cancelled Appointments, Attendance Rate
+  - **Queue:** Waiting Patients, Average Waiting Time, Completed Queue
+  - **Billing:** Revenue Summary, Paid Invoices, Outstanding Invoices
+  - **Inventory:** Low Stock Items, Inventory Movements, Most Consumed Items
+  - **Follow-up:** Scheduled Follow-ups, Completed Follow-ups, Overdue Follow-ups
+- **Extensibility requirement:** adding a module or report must be a registry-entry addition, never a redesign — see Package 3.1.7 for the exact registry pattern.
+
+**Decision — Feature Registry (elevated from a Reports-only concern to shared infrastructure):** the Owner's requirement that the module list be subscription-aware, not hardcoded, is implemented now — not deferred — by building the **read side** of feature-flag checking against the `feature_flags` table (already exists in the schema since before Milestone 3, currently unused by any code). This is a deliberately small, contained piece of Milestone 5/6 infrastructure pulled forward:
+
+- New function `isFeatureEnabled(tenantId, moduleKey)`: checks `feature_flags` for a matching `flag_key` that is either global (`tenant_id IS NULL`) or tenant-specific, `is_enabled = true`.
+- **Seed data, not new subscription logic:** insert one globally-enabled (`tenant_id = NULL, is_enabled = true`) row per module key (`patients`, `agenda`, `queue`, `billing`, `inventory`, `followup`) — this preserves today's behavior exactly (every tenant sees every module they have permission for) while making the check real rather than hardcoded.
+- **Reusable beyond Reports:** any future module list (navigation, dashboard widgets) can call the same function without new infrastructure once real per-tenant/per-plan flags are needed — that becomes a data change (update rows in `feature_flags`), not a code or architecture change, satisfying the "no redesign to add a module" requirement directly.
+- **Explicitly not built now:** the License Engine (ADR-003) itself, plan-to-feature mapping, or any UI for Super Admin to manage flags — the table and a read function are enough for this decision's scope.
+
+**Consequence:** Reports' module dropdown filters by both permission (`hasPermission`) and feature flag (`isFeatureEnabled`) — two independent, already-existing mechanisms combined, no new permission keys needed. `reports:read` (added Session 1) continues to gate the Reports route itself, exactly as `navigationRegistry.ts` already specifies.
