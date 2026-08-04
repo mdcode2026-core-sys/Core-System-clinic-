@@ -54,7 +54,7 @@ export async function getAllKpiData(
 }
 
 export async function getKpiDataByCategory(
-  category: "patients" | "appointments" | "queue" | "revenue" | "invoices",
+  category: "patients" | "appointments" | "queue" | "revenue" | "invoices" | "inventory" | "followup",
   supabase: AnalyticsSupabaseClient,
   tenantId: string,
   datePreset: DatePreset
