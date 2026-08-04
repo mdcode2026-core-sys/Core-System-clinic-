@@ -10,7 +10,8 @@ export const permissionMatrix: Record<UserRole, Permission[]> = {
     "analytics:read",
     "users:read", "users:create", "users:update", "users:delete",
     "settings:read", "settings:update",
-    "audit:read"
+    "audit:read",
+    "reports:read"
   ],
   clinic_admin: [
     "patients:read", "patients:create", "patients:update",
@@ -21,19 +22,22 @@ export const permissionMatrix: Record<UserRole, Permission[]> = {
     "analytics:read",
     "users:read", "users:create", "users:update",
     "settings:read", "settings:update",
-    "audit:read"
+    "audit:read",
+    "reports:read"
   ],
   doctor: [
     "patients:read", "patients:update",
     "sessions:read", "sessions:create", "sessions:update",
     "agenda:read",
-    "inventory:read"
+    "inventory:read",
+    "reports:read"
   ],
   receptionist: [
     "patients:read", "patients:create", "patients:update",
     "sessions:read", "sessions:create", "sessions:update",
     "agenda:read", "agenda:create", "agenda:update",
-    "invoices:read", "invoices:create"
+    "invoices:read", "invoices:create",
+    "reports:read"
   ]
 };
 
