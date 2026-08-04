@@ -42,6 +42,24 @@ import {
   invoicesCollectionRateKpi,
 } from "./kpi.definitions/invoice.kpis";
 
+// ── NEW: Inventory KPIs ─────────────────────────────────────
+import {
+  stockTurnoverRateKpi,
+  inventoryConsumptionRateKpi,
+  lowStockRiskRateKpi,
+  inventoryAdjustmentRateKpi,
+  purchaseReturnRateKpi,
+} from "./kpi.definitions/inventory.kpis";
+
+// ── NEW: Follow-up KPIs ─────────────────────────────────────
+import {
+  followupCompletionRateKpi,
+  followupResponseRateKpi,
+  overdueFollowupRateKpi,
+  patientRetentionRateKpi,
+  avgFollowupDelayKpi,
+} from "./kpi.definitions/followup.kpis";
+
 const allKpis: KpiDefinition[] = [
   // Patients (6)
   patientsTotalKpi,
@@ -75,6 +93,18 @@ const allKpis: KpiDefinition[] = [
   invoicesPendingKpi,
   invoicesCancelledKpi,
   invoicesCollectionRateKpi,
+  // Inventory (5) — NEW
+  stockTurnoverRateKpi,
+  inventoryConsumptionRateKpi,
+  lowStockRiskRateKpi,
+  inventoryAdjustmentRateKpi,
+  purchaseReturnRateKpi,
+  // Follow-up (5) — NEW
+  followupCompletionRateKpi,
+  followupResponseRateKpi,
+  overdueFollowupRateKpi,
+  patientRetentionRateKpi,
+  avgFollowupDelayKpi,
 ];
 
 export const kpiRegistry: IKpiRegistry = {
