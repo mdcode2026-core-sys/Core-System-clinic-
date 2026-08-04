@@ -5,7 +5,7 @@ export type AnalyticsSupabaseClient = SupabaseClient<Database>;
 
 export interface DateRange {
   from: string; // ISO date string YYYY-MM-DD
-  to: string;   // ISO date string YYYY-MM-DD
+  to: string; // ISO date string YYYY-MM-DD
 }
 
 export type DatePreset = "today" | "this_month";
@@ -13,7 +13,7 @@ export type DatePreset = "today" | "this_month";
 export interface KpiDefinition {
   id: string;
   nameAr: string;
-  category: "patients" | "appointments" | "queue" | "revenue" | "invoices";
+  category: "patients" | "appointments" | "queue" | "revenue" | "invoices" | "inventory" | "followup";
   calculator: (
     supabase: AnalyticsSupabaseClient,
     tenantId: string,
