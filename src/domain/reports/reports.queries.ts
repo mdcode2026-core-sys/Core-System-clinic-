@@ -341,7 +341,7 @@ export async function getOutstandingInvoices(): Promise<ReportResult> {
 
 // ── 5. Inventory ──
 
-/** Low Stock Items — SELECT * FROM inventory_items WHERE current_stock <= reorder_threshold AND is_active (current snapshot) */
+/** Low Stock Items — fetch all active items, filter in application code */
 export async function getLowStockItems(): Promise<ReportResult> {
   const tenantId = await getTenantId();
   if (!tenantId) return { columns: [], rows: [] };
@@ -351,24 +351,18 @@ export async function getLowStockItems(): Promise<ReportResult> {
     .from("inventory_items")
     .select("name, name_ar, unit, current_stock, reorder_threshold")
     .eq("tenant_id", tenantId)
-    .eq("is_active", true)
-    .lte("current_stock", "reorder_threshold");
+    .eq("is_active", true);
 
-  if (error) {
-    // Fallback: use raw RPC if column comparison fails in Supabase JS
-    const { data: rawData, error: rawErr } = await supabase.rpc("get_low_stock_items", {
-      p_tenant_id: tenantId,
-    });
-    if (rawErr) throw new Error(`getLowStockItems: ${rawErr.message}`);
-    return {
-      columns: ["name", "name_ar", "unit", "current_stock", "reorder_threshold"],
-      rows: (rawData ?? []) as Record<string, unknown>[],
-    };
-  }
+  if (error) throw new Error(`getLowStockItems: ${error.message}`);
+
+  // Filter in application code: Supabase JS does not support column-to-column comparison
+  const lowStock = (data ?? []).filter(
+    (item) => (item.current_stock as number) <= (item.reorder_threshold as number)
+  );
 
   return {
     columns: ["name", "name_ar", "unit", "current_stock", "reorder_threshold"],
-    rows: (data ?? []) as Record<string, unknown>[],
+    rows: lowStock as Record<string, unknown>[],
   };
 }
 
