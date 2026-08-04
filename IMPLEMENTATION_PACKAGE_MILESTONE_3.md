@@ -132,10 +132,43 @@
 **Acceptance Criteria:** stock list view, add/adjust stock flow, low-stock indicator; adjustment writes to `inventory_ledger` linked to `inventory_items`.
 **Definition of Done:** new migration applied and reviewed; build passes; permission-gated correctly.
 
-### Package 3.1.7 — Reports (net-new, catalog undefined — needs Owner input before Task 1)
-**Objective:** Build reporting module. **Blocked on one decision not available in any source document: which specific reports are in scope for Milestone 3.** Do not start UI/query work until this is confirmed — this is a product-scope gap, not an engineering one, consistent with prior EN-001-style flags in this project.
-**Permission key:** `reports:read` (added in Package 3.0.1).
-**Files to Create (once catalog is confirmed):** `src/domain/reports/`, `src/features/reports/`, `src/app/(dashboard)/reports/page.tsx`.
+### Package 3.1.7 — Reports (unblocked — full spec per ADR-007, 2026-08-05)
+
+**Objective:** Unified report viewer across modules. Not analytics/BI — no charts, no new KPIs (that's 3.1.8). Two-step selection (Module → Report), in-page render, Print + Export PDF only.
+
+**Task 0 (first, before any other task):** check whether a PDF-generation library already exists anywhere in `package.json`/repo. If yes, use it. If none exists, report this back before adding a new dependency — do not assume.
+
+**New shared infrastructure (build once, reusable beyond Reports — per ADR-007):**
+- `src/core/features/featureRegistry.ts` — `isFeatureEnabled(tenantId, moduleKey): Promise<boolean>`, queries `feature_flags` for a row matching `flag_key = moduleKey` where `tenant_id IS NULL OR tenant_id = $tenantId`, `is_enabled = true`.
+- **Seed migration:** insert one globally-enabled row per module key into `feature_flags`: `patients`, `agenda`, `queue`, `billing`, `inventory`, `followup` (`tenant_id = NULL`, `is_enabled = true`, `flag_name` = each module's display name). This preserves current behavior — every tenant sees every module they already have permission for.
+
+**Reports-specific registries:**
+- `src/domain/reports/moduleRegistry.ts` — array of `{ key, label, labelAr, requiredPermission }` for the 6 modules below.
+- `src/domain/reports/reportRegistry.ts` — array of `{ key, moduleKey, label, labelAr, dataSource }` for the 18 reports below.
+
+**Report Catalog (exact — no substitutions):**
+
+| Module (key) | Required permission | Reports (key — data source) |
+|---|---|---|
+| Patients (`patients`) | `patients:read` | Total Patients — `COUNT(*) FROM clinic_patients WHERE tenant_id=$1 AND deleted_at IS NULL`; New Patients — same + `created_at` within selected date range; Active Patients — same + `patient_status='active'` |
+| Agenda (`agenda`) | `agenda:read` | Total Appointments — `COUNT(*) FROM master_agenda_events WHERE tenant_id=$1 AND scheduled_start` within range; Cancelled Appointments — same + `status='cancelled'`; Attendance Rate — `completed / (total - cancelled - rescheduled)` within range |
+| Queue (`queue`) | `sessions:read` | Waiting Patients — `COUNT(*) FROM clinic_visit_sessions WHERE session_status='waiting'` (current snapshot, no date range); Average Waiting Time — `AVG(waiting_time_minutes)` within range; Completed Queue — `COUNT(*) WHERE session_status='completed'` within range |
+| Billing (`billing`) | `invoices:read` | Revenue Summary — `SUM(amount_paid_subunits) FROM clinic_invoices` within range; Paid Invoices — `COUNT(*) WHERE invoice_status='paid'` within range; Outstanding Invoices — `COUNT(*), SUM(amount_due_subunits) WHERE invoice_status IN ('issued','partial')` |
+| Inventory (`inventory`) | `inventory:read` | Low Stock Items — `SELECT * FROM inventory_items WHERE current_stock <= reorder_threshold AND is_active` (current snapshot); Inventory Movements — `inventory_ledger` joined to `inventory_items` within range; Most Consumed Items — `GROUP BY item_id, SUM(quantity_consumed) ORDER BY DESC` within range |
+| Follow-up (`followup`) | `followup:read` | Scheduled Follow-ups — `COUNT(*) FROM retention_followups WHERE delivery_status='pending' AND scheduled_for >= now()`; Completed Follow-ups — `COUNT(*) WHERE delivery_status IN ('sent','delivered')` within range; Overdue Follow-ups — `COUNT(*) WHERE delivery_status='pending' AND scheduled_for < now()` |
+
+**Date range:** a single simple date-range picker (default: current calendar month), applied to every report whose data source says "within range." No period-comparison, no presets beyond a plain start/end date — comparison features are explicitly out of scope per ADR-007.
+
+**UI Flow / Files to Create:**
+- `src/app/(dashboard)/reports/page.tsx` — server-side permission guard (`reports:read`, matching `navigationRegistry.ts`), renders the client shell.
+- `src/features/reports/reports-shell.tsx` — overview blurb + Module dropdown (filtered by `hasPermission(module.requiredPermission) && isFeatureEnabled(tenantId, module.key)`) + Report dropdown (filtered to `reportRegistry` entries for the selected module) + date-range input (shown only when the selected report's data source needs one).
+- `src/features/reports/report-viewer.tsx` — renders the selected report's result in a simple table/summary layout, plus Print (native `window.print()`) and Export PDF buttons.
+- `src/domain/reports/reports.queries.ts` — one query function per report key, implementing exactly the data source specified in the table above. No query answers more than what's listed.
+
+**Explicitly Out of Scope (per ADR-007 — do not build):** Excel/CSV export, scheduled/email reports, charts, dashboards, BI, custom report builder, advanced period comparison, any report not in the 18 listed above.
+
+**Acceptance Criteria:** Module dropdown shows only modules the current user has permission for AND that are feature-enabled; Report dropdown updates correctly per module; each of the 18 reports returns correct data matching its exact specified query; Print and Export PDF both work; no report/module beyond the specified 18+6 exists.
+**Definition of Done:** all 18 reports verified against real data; feature flag seed migration applied; build/lint/type-check clean.
 
 ### Package 3.1.8 — Analytics (extend, don't rebuild)
 **Objective:** `src/domain/analytics/` is extensive and closed (27 P0 KPIs). Extend the existing `kpi.registry.ts` / `kpi.definitions/` pattern with any new KPIs Inventory/Reports/Follow-up introduce — **do not create a parallel analytics engine.**
