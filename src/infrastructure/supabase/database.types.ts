@@ -7,62 +7,67 @@ export type Json =
   | Json[]
 
 export type Database = {
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: "14.5"
+  }
   public: {
     Tables: {
       analytics_daily_snapshots: {
         Row: {
-          id: string
-          tenant_id: string
-          snapshot_date: string
-          total_visits: number | null
-          total_new_patients: number | null
-          total_returning_patients: number | null
-          total_no_shows: number | null
-          total_cancellations: number | null
-          avg_wait_time_minutes: number | null
           avg_session_duration_minutes: number | null
-          total_revenue_subunits: number | null
-          total_discounts_subunits: number | null
-          hot_leads_count: number | null
+          avg_wait_time_minutes: number | null
           conversion_rate: number | null
-          snapshot_metadata: Json | null
           created_at: string
+          hot_leads_count: number | null
+          id: string
+          snapshot_date: string
+          snapshot_metadata: Json | null
+          tenant_id: string
+          total_cancellations: number | null
+          total_discounts_subunits: number | null
+          total_new_patients: number | null
+          total_no_shows: number | null
+          total_returning_patients: number | null
+          total_revenue_subunits: number | null
+          total_visits: number | null
         }
         Insert: {
-          id?: string
-          tenant_id: string
-          snapshot_date: string
-          total_visits?: number | null
-          total_new_patients?: number | null
-          total_returning_patients?: number | null
-          total_no_shows?: number | null
-          total_cancellations?: number | null
-          avg_wait_time_minutes?: number | null
           avg_session_duration_minutes?: number | null
-          total_revenue_subunits?: number | null
-          total_discounts_subunits?: number | null
-          hot_leads_count?: number | null
+          avg_wait_time_minutes?: number | null
           conversion_rate?: number | null
-          snapshot_metadata?: Json | null
           created_at?: string
+          hot_leads_count?: number | null
+          id?: string
+          snapshot_date: string
+          snapshot_metadata?: Json | null
+          tenant_id: string
+          total_cancellations?: number | null
+          total_discounts_subunits?: number | null
+          total_new_patients?: number | null
+          total_no_shows?: number | null
+          total_returning_patients?: number | null
+          total_revenue_subunits?: number | null
+          total_visits?: number | null
         }
         Update: {
-          id?: string
-          tenant_id?: string
-          snapshot_date?: string
-          total_visits?: number | null
-          total_new_patients?: number | null
-          total_returning_patients?: number | null
-          total_no_shows?: number | null
-          total_cancellations?: number | null
-          avg_wait_time_minutes?: number | null
           avg_session_duration_minutes?: number | null
-          total_revenue_subunits?: number | null
-          total_discounts_subunits?: number | null
-          hot_leads_count?: number | null
+          avg_wait_time_minutes?: number | null
           conversion_rate?: number | null
-          snapshot_metadata?: Json | null
           created_at?: string
+          hot_leads_count?: number | null
+          id?: string
+          snapshot_date?: string
+          snapshot_metadata?: Json | null
+          tenant_id?: string
+          total_cancellations?: number | null
+          total_discounts_subunits?: number | null
+          total_new_patients?: number | null
+          total_no_shows?: number | null
+          total_returning_patients?: number | null
+          total_revenue_subunits?: number | null
+          total_visits?: number | null
         }
         Relationships: [
           {
@@ -76,46 +81,46 @@ export type Database = {
       }
       audit_trail: {
         Row: {
-          id: string
-          tenant_id: string
+          action: string
           actor_id: string | null
           actor_role: string | null
-          action: string
-          table_name: string
-          record_id: string | null
-          old_values: Json | null
-          new_values: Json | null
-          reason: string | null
-          ip_address: unknown | null
           created_at: string
+          id: string
+          ip_address: unknown
+          new_values: Json | null
+          old_values: Json | null
+          reason: string | null
+          record_id: string | null
+          table_name: string
+          tenant_id: string
         }
         Insert: {
-          id?: string
-          tenant_id: string
+          action: string
           actor_id?: string | null
           actor_role?: string | null
-          action: string
-          table_name: string
-          record_id?: string | null
-          old_values?: Json | null
-          new_values?: Json | null
-          reason?: string | null
-          ip_address?: unknown | null
           created_at?: string
+          id?: string
+          ip_address?: unknown
+          new_values?: Json | null
+          old_values?: Json | null
+          reason?: string | null
+          record_id?: string | null
+          table_name: string
+          tenant_id: string
         }
         Update: {
-          id?: string
-          tenant_id?: string
+          action?: string
           actor_id?: string | null
           actor_role?: string | null
-          action?: string
-          table_name?: string
-          record_id?: string | null
-          old_values?: Json | null
-          new_values?: Json | null
-          reason?: string | null
-          ip_address?: unknown | null
           created_at?: string
+          id?: string
+          ip_address?: unknown
+          new_values?: Json | null
+          old_values?: Json | null
+          reason?: string | null
+          record_id?: string | null
+          table_name?: string
+          tenant_id?: string
         }
         Relationships: [
           {
@@ -136,43 +141,43 @@ export type Database = {
       }
       billing_events: {
         Row: {
-          id: string
-          tenant_id: string | null
-          event_type: string
-          previous_tier: string | null
-          new_tier: string | null
-          amount_subunits: number | null
-          is_manual: boolean | null
           activated_by: string | null
           activation_notes: string | null
-          event_metadata: Json | null
+          amount_subunits: number | null
           created_at: string
+          event_metadata: Json | null
+          event_type: string
+          id: string
+          is_manual: boolean | null
+          new_tier: string | null
+          previous_tier: string | null
+          tenant_id: string | null
         }
         Insert: {
-          id?: string
-          tenant_id?: string | null
-          event_type: string
-          previous_tier?: string | null
-          new_tier?: string | null
-          amount_subunits?: number | null
-          is_manual?: boolean | null
           activated_by?: string | null
           activation_notes?: string | null
-          event_metadata?: Json | null
+          amount_subunits?: number | null
           created_at?: string
+          event_metadata?: Json | null
+          event_type: string
+          id?: string
+          is_manual?: boolean | null
+          new_tier?: string | null
+          previous_tier?: string | null
+          tenant_id?: string | null
         }
         Update: {
-          id?: string
-          tenant_id?: string | null
-          event_type?: string
-          previous_tier?: string | null
-          new_tier?: string | null
-          amount_subunits?: number | null
-          is_manual?: boolean | null
           activated_by?: string | null
           activation_notes?: string | null
-          event_metadata?: Json | null
+          amount_subunits?: number | null
           created_at?: string
+          event_metadata?: Json | null
+          event_type?: string
+          id?: string
+          is_manual?: boolean | null
+          new_tier?: string | null
+          previous_tier?: string | null
+          tenant_id?: string | null
         }
         Relationships: [
           {
@@ -193,48 +198,48 @@ export type Database = {
       }
       clinic_inquiries: {
         Row: {
+          created_at: string
+          handled_by: string | null
           id: string
-          tenant_id: string
+          inquiry_reason: string | null
           inquiry_type: string
+          notes: string | null
           patient_id: string | null
+          procedures_requested: string[] | null
+          status: string | null
           temp_patient_name: string | null
           temp_phone: string | null
-          inquiry_reason: string | null
-          procedures_requested: string | null
-          status: string | null
-          handled_by: string | null
-          notes: string | null
-          created_at: string
+          tenant_id: string
           updated_at: string
         }
         Insert: {
+          created_at?: string
+          handled_by?: string | null
           id?: string
-          tenant_id: string
+          inquiry_reason?: string | null
           inquiry_type: string
+          notes?: string | null
           patient_id?: string | null
+          procedures_requested?: string[] | null
+          status?: string | null
           temp_patient_name?: string | null
           temp_phone?: string | null
-          inquiry_reason?: string | null
-          procedures_requested?: string | null
-          status?: string | null
-          handled_by?: string | null
-          notes?: string | null
-          created_at?: string
+          tenant_id: string
           updated_at?: string
         }
         Update: {
+          created_at?: string
+          handled_by?: string | null
           id?: string
-          tenant_id?: string
+          inquiry_reason?: string | null
           inquiry_type?: string
+          notes?: string | null
           patient_id?: string | null
+          procedures_requested?: string[] | null
+          status?: string | null
           temp_patient_name?: string | null
           temp_phone?: string | null
-          inquiry_reason?: string | null
-          procedures_requested?: string | null
-          status?: string | null
-          handled_by?: string | null
-          notes?: string | null
-          created_at?: string
+          tenant_id?: string
           updated_at?: string
         }
         Relationships: [
@@ -263,63 +268,75 @@ export type Database = {
       }
       clinic_invoices: {
         Row: {
-          id: string
-          tenant_id: string
-          session_id: string
-          patient_id: string
-          subtotal_subunits: number
-          discount_subunits: number
-          discount_reason: string | null
-          discount_approved_by: string | null
-          tax_subunits: number
-          total_subunits: number
-          amount_paid_subunits: number
           amount_due_subunits: number | null
-          payment_method: string | null
-          invoice_status: string | null
+          amount_paid_subunits: number
           collected_by: string | null
-          invoice_date: string
           created_at: string
+          discount_approved_by: string | null
+          discount_reason: string | null
+          discount_subunits: number
+          id: string
+          invoice_date: string
+          invoice_number: string | null
+          invoice_status: string | null
+          issued_at: string | null
+          notes: string | null
+          patient_id: string
+          payment_method: string | null
+          payment_terms: string
+          session_id: string
+          subtotal_subunits: number
+          tax_subunits: number
+          tenant_id: string
+          total_subunits: number
           updated_at: string
         }
         Insert: {
-          id?: string
-          tenant_id: string
-          session_id: string
-          patient_id: string
-          subtotal_subunits?: number
-          discount_subunits?: number
-          discount_reason?: string | null
-          discount_approved_by?: string | null
-          tax_subunits?: number
-          total_subunits?: number
-          amount_paid_subunits?: number
           amount_due_subunits?: number | null
-          payment_method?: string | null
-          invoice_status?: string | null
+          amount_paid_subunits?: number
           collected_by?: string | null
-          invoice_date?: string
           created_at?: string
+          discount_approved_by?: string | null
+          discount_reason?: string | null
+          discount_subunits?: number
+          id?: string
+          invoice_date?: string
+          invoice_number?: string | null
+          invoice_status?: string | null
+          issued_at?: string | null
+          notes?: string | null
+          patient_id: string
+          payment_method?: string | null
+          payment_terms?: string
+          session_id: string
+          subtotal_subunits?: number
+          tax_subunits?: number
+          tenant_id: string
+          total_subunits?: number
           updated_at?: string
         }
         Update: {
-          id?: string
-          tenant_id?: string
-          session_id?: string
-          patient_id?: string
-          subtotal_subunits?: number
-          discount_subunits?: number
-          discount_reason?: string | null
-          discount_approved_by?: string | null
-          tax_subunits?: number
-          total_subunits?: number
-          amount_paid_subunits?: number
           amount_due_subunits?: number | null
-          payment_method?: string | null
-          invoice_status?: string | null
+          amount_paid_subunits?: number
           collected_by?: string | null
-          invoice_date?: string
           created_at?: string
+          discount_approved_by?: string | null
+          discount_reason?: string | null
+          discount_subunits?: number
+          id?: string
+          invoice_date?: string
+          invoice_number?: string | null
+          invoice_status?: string | null
+          issued_at?: string | null
+          notes?: string | null
+          patient_id?: string
+          payment_method?: string | null
+          payment_terms?: string
+          session_id?: string
+          subtotal_subunits?: number
+          tax_subunits?: number
+          tenant_id?: string
+          total_subunits?: number
           updated_at?: string
         }
         Relationships: [
@@ -362,70 +379,70 @@ export type Database = {
       }
       clinic_patients: {
         Row: {
-          id: string
-          tenant_id: string
-          first_name: string
-          last_name: string
-          first_name_ar: string | null
-          last_name_ar: string | null
+          created_at: string
           date_of_birth: string | null
+          deleted_at: string | null
+          email: string | null
+          file_number: string | null
+          first_name: string
+          first_name_ar: string | null
+          first_visit_date: string | null
           gender: string | null
+          id: string
+          last_name: string
+          last_name_ar: string | null
+          notes: string | null
+          patient_status: string | null
           phone_primary: string
           phone_secondary: string | null
-          email: string | null
           preferred_channel: string | null
-          first_visit_date: string | null
           referral_source: string | null
-          patient_status: string | null
-          file_number: string | null
-          notes: string | null
-          created_at: string
+          tenant_id: string
           updated_at: string
-          deleted_at: string | null
         }
         Insert: {
-          id?: string
-          tenant_id: string
-          first_name: string
-          last_name: string
-          first_name_ar?: string | null
-          last_name_ar?: string | null
+          created_at?: string
           date_of_birth?: string | null
+          deleted_at?: string | null
+          email?: string | null
+          file_number?: string | null
+          first_name: string
+          first_name_ar?: string | null
+          first_visit_date?: string | null
           gender?: string | null
+          id?: string
+          last_name: string
+          last_name_ar?: string | null
+          notes?: string | null
+          patient_status?: string | null
           phone_primary: string
           phone_secondary?: string | null
-          email?: string | null
           preferred_channel?: string | null
-          first_visit_date?: string | null
           referral_source?: string | null
-          patient_status?: string | null
-          file_number?: string | null
-          notes?: string | null
-          created_at?: string
+          tenant_id: string
           updated_at?: string
-          deleted_at?: string | null
         }
         Update: {
-          id?: string
-          tenant_id?: string
-          first_name?: string
-          last_name?: string
-          first_name_ar?: string | null
-          last_name_ar?: string | null
+          created_at?: string
           date_of_birth?: string | null
+          deleted_at?: string | null
+          email?: string | null
+          file_number?: string | null
+          first_name?: string
+          first_name_ar?: string | null
+          first_visit_date?: string | null
           gender?: string | null
+          id?: string
+          last_name?: string
+          last_name_ar?: string | null
+          notes?: string | null
+          patient_status?: string | null
           phone_primary?: string
           phone_secondary?: string | null
-          email?: string | null
           preferred_channel?: string | null
-          first_visit_date?: string | null
           referral_source?: string | null
-          patient_status?: string | null
-          file_number?: string | null
-          notes?: string | null
-          created_at?: string
+          tenant_id?: string
           updated_at?: string
-          deleted_at?: string | null
         }
         Relationships: [
           {
@@ -439,42 +456,51 @@ export type Database = {
       }
       clinic_procedures: {
         Row: {
+          base_price_subunits: number
+          buffer_time_minutes: number
+          category: string | null
+          created_at: string
           id: string
-          tenant_id: string
+          is_active: boolean
+          procedure_code: string | null
           procedure_name: string
           procedure_name_ar: string | null
-          category: string | null
           standard_duration_minutes: number
-          buffer_time_minutes: number
-          base_price_subunits: number
-          is_active: boolean
-          created_at: string
+          tax_included: boolean
+          tax_rate_percent: number
+          tenant_id: string
           updated_at: string
         }
         Insert: {
+          base_price_subunits?: number
+          buffer_time_minutes?: number
+          category?: string | null
+          created_at?: string
           id?: string
-          tenant_id: string
+          is_active?: boolean
+          procedure_code?: string | null
           procedure_name: string
           procedure_name_ar?: string | null
-          category?: string | null
           standard_duration_minutes?: number
-          buffer_time_minutes?: number
-          base_price_subunits?: number
-          is_active?: boolean
-          created_at?: string
+          tax_included?: boolean
+          tax_rate_percent?: number
+          tenant_id: string
           updated_at?: string
         }
         Update: {
+          base_price_subunits?: number
+          buffer_time_minutes?: number
+          category?: string | null
+          created_at?: string
           id?: string
-          tenant_id?: string
+          is_active?: boolean
+          procedure_code?: string | null
           procedure_name?: string
           procedure_name_ar?: string | null
-          category?: string | null
           standard_duration_minutes?: number
-          buffer_time_minutes?: number
-          base_price_subunits?: number
-          is_active?: boolean
-          created_at?: string
+          tax_included?: boolean
+          tax_rate_percent?: number
+          tenant_id?: string
           updated_at?: string
         }
         Relationships: [
@@ -489,36 +515,39 @@ export type Database = {
       }
       clinic_rooms: {
         Row: {
+          capacity: number | null
+          created_at: string
+          floor_number: number | null
           id: string
-          tenant_id: string
+          is_active: boolean
+          name: string | null
           room_name: string
           room_type: string
-          floor_number: number | null
-          capacity: number | null
-          is_active: boolean
-          created_at: string
+          tenant_id: string
           updated_at: string
         }
         Insert: {
+          capacity?: number | null
+          created_at?: string
+          floor_number?: number | null
           id?: string
-          tenant_id: string
+          is_active?: boolean
+          name?: string | null
           room_name: string
           room_type: string
-          floor_number?: number | null
-          capacity?: number | null
-          is_active?: boolean
-          created_at?: string
+          tenant_id: string
           updated_at?: string
         }
         Update: {
+          capacity?: number | null
+          created_at?: string
+          floor_number?: number | null
           id?: string
-          tenant_id?: string
+          is_active?: boolean
+          name?: string | null
           room_name?: string
           room_type?: string
-          floor_number?: number | null
-          capacity?: number | null
-          is_active?: boolean
-          created_at?: string
+          tenant_id?: string
           updated_at?: string
         }
         Relationships: [
@@ -531,63 +560,122 @@ export type Database = {
           },
         ]
       }
-      clinic_users: {
+      clinic_user_permission_overrides: {
         Row: {
-          id: string
-          tenant_id: string
-          full_name: string
-          full_name_ar: string | null
-          role: string
-          specialization: string | null
-          employee_code: string
-          pin_code: string
-          phone: string | null
-          is_active: boolean
-          last_login_at: string | null
           created_at: string
-          updated_at: string
-          deleted_at: string | null
-          auth_user_id: string | null
-          email: string | null
-          avatar_url: string | null
+          created_by: string | null
+          granted: boolean
+          id: string
+          permission_id: string
+          tenant_id: string
+          user_id: string
         }
         Insert: {
-          id?: string
-          tenant_id: string
-          full_name: string
-          full_name_ar?: string | null
-          role: string
-          specialization?: string | null
-          employee_code: string
-          pin_code: string
-          phone?: string | null
-          is_active?: boolean
-          last_login_at?: string | null
           created_at?: string
-          updated_at?: string
-          deleted_at?: string | null
-          auth_user_id?: string | null
-          email?: string | null
-          avatar_url?: string | null
+          created_by?: string | null
+          granted: boolean
+          id?: string
+          permission_id: string
+          tenant_id: string
+          user_id: string
         }
         Update: {
+          created_at?: string
+          created_by?: string | null
+          granted?: boolean
           id?: string
+          permission_id?: string
           tenant_id?: string
-          full_name?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clinic_user_permission_overrides_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "clinic_users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clinic_user_permission_overrides_permission_id_fkey"
+            columns: ["permission_id"]
+            isOneToOne: false
+            referencedRelation: "permissions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clinic_user_permission_overrides_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "master_tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clinic_user_permission_overrides_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "clinic_users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      clinic_users: {
+        Row: {
+          auth_user_id: string | null
+          avatar_url: string | null
+          created_at: string
+          deleted_at: string | null
+          email: string | null
+          employee_code: string
+          full_name: string
+          full_name_ar: string | null
+          id: string
+          is_active: boolean
+          last_login_at: string | null
+          phone: string | null
+          pin_code: string
+          role: string
+          specialization: string | null
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          auth_user_id?: string | null
+          avatar_url?: string | null
+          created_at?: string
+          deleted_at?: string | null
+          email?: string | null
+          employee_code: string
+          full_name: string
           full_name_ar?: string | null
-          role?: string
-          specialization?: string | null
-          employee_code?: string
-          pin_code?: string
-          phone?: string | null
+          id: string
           is_active?: boolean
           last_login_at?: string | null
-          created_at?: string
+          phone?: string | null
+          pin_code: string
+          role: string
+          specialization?: string | null
+          tenant_id: string
           updated_at?: string
-          deleted_at?: string | null
+        }
+        Update: {
           auth_user_id?: string | null
-          email?: string | null
           avatar_url?: string | null
+          created_at?: string
+          deleted_at?: string | null
+          email?: string | null
+          employee_code?: string
+          full_name?: string
+          full_name_ar?: string | null
+          id?: string
+          is_active?: boolean
+          last_login_at?: string | null
+          phone?: string | null
+          pin_code?: string
+          role?: string
+          specialization?: string | null
+          tenant_id?: string
+          updated_at?: string
         }
         Relationships: [
           {
@@ -601,97 +689,97 @@ export type Database = {
       }
       clinic_visit_sessions: {
         Row: {
-          id: string
-          tenant_id: string
-          patient_id: string
-          doctor_id: string
-          room_id: string | null
           agenda_event_id: string | null
           arrived_at: string | null
-          session_started_at: string | null
-          session_ended_at: string | null
-          visit_closed_at: string | null
-          lock_holder_id: string | null
-          lock_timestamp: string | null
+          auto_close_at: string | null
+          buffer_window_expires_at: string | null
+          clinical_notes: string | null
+          created_at: string
+          diagnosis: string | null
+          doctor_id: string
+          doctor_notes: string | null
+          follow_up_date: string | null
+          follow_up_required: boolean | null
+          id: string
           initialized_by_receptionist: string | null
           is_insured: boolean
-          waiting_time_minutes: number | null
-          session_duration_minutes: number | null
-          doctor_notes: string | null
-          clinical_notes: string | null
-          diagnosis: string | null
-          treatment_performed: string | null
-          follow_up_required: boolean | null
-          follow_up_date: string | null
+          lock_holder_id: string | null
+          lock_timestamp: string | null
           patient_feedback: string | null
+          patient_id: string
           patient_satisfaction_score: number | null
+          room_id: string | null
+          session_duration_minutes: number | null
+          session_ended_at: string | null
+          session_started_at: string | null
           session_status: string
-          buffer_window_expires_at: string | null
-          auto_close_at: string | null
-          created_at: string
+          tenant_id: string
+          treatment_performed: string | null
           updated_at: string
+          visit_closed_at: string | null
+          waiting_time_minutes: number | null
         }
         Insert: {
-          id?: string
-          tenant_id: string
-          patient_id: string
-          doctor_id: string
-          room_id?: string | null
           agenda_event_id?: string | null
           arrived_at?: string | null
-          session_started_at?: string | null
-          session_ended_at?: string | null
-          visit_closed_at?: string | null
-          lock_holder_id?: string | null
-          lock_timestamp?: string | null
+          auto_close_at?: string | null
+          buffer_window_expires_at?: string | null
+          clinical_notes?: string | null
+          created_at?: string
+          diagnosis?: string | null
+          doctor_id: string
+          doctor_notes?: string | null
+          follow_up_date?: string | null
+          follow_up_required?: boolean | null
+          id?: string
           initialized_by_receptionist?: string | null
           is_insured?: boolean
-          waiting_time_minutes?: number | null
-          session_duration_minutes?: number | null
-          doctor_notes?: string | null
-          clinical_notes?: string | null
-          diagnosis?: string | null
-          treatment_performed?: string | null
-          follow_up_required?: boolean | null
-          follow_up_date?: string | null
+          lock_holder_id?: string | null
+          lock_timestamp?: string | null
           patient_feedback?: string | null
+          patient_id: string
           patient_satisfaction_score?: number | null
+          room_id?: string | null
+          session_duration_minutes?: number | null
+          session_ended_at?: string | null
+          session_started_at?: string | null
           session_status?: string
-          buffer_window_expires_at?: string | null
-          auto_close_at?: string | null
-          created_at?: string
+          tenant_id: string
+          treatment_performed?: string | null
           updated_at?: string
+          visit_closed_at?: string | null
+          waiting_time_minutes?: number | null
         }
         Update: {
-          id?: string
-          tenant_id?: string
-          patient_id?: string
-          doctor_id?: string
-          room_id?: string | null
           agenda_event_id?: string | null
           arrived_at?: string | null
-          session_started_at?: string | null
-          session_ended_at?: string | null
-          visit_closed_at?: string | null
-          lock_holder_id?: string | null
-          lock_timestamp?: string | null
+          auto_close_at?: string | null
+          buffer_window_expires_at?: string | null
+          clinical_notes?: string | null
+          created_at?: string
+          diagnosis?: string | null
+          doctor_id?: string
+          doctor_notes?: string | null
+          follow_up_date?: string | null
+          follow_up_required?: boolean | null
+          id?: string
           initialized_by_receptionist?: string | null
           is_insured?: boolean
-          waiting_time_minutes?: number | null
-          session_duration_minutes?: number | null
-          doctor_notes?: string | null
-          clinical_notes?: string | null
-          diagnosis?: string | null
-          treatment_performed?: string | null
-          follow_up_required?: boolean | null
-          follow_up_date?: string | null
+          lock_holder_id?: string | null
+          lock_timestamp?: string | null
           patient_feedback?: string | null
+          patient_id?: string
           patient_satisfaction_score?: number | null
+          room_id?: string | null
+          session_duration_minutes?: number | null
+          session_ended_at?: string | null
+          session_started_at?: string | null
           session_status?: string
-          buffer_window_expires_at?: string | null
-          auto_close_at?: string | null
-          created_at?: string
+          tenant_id?: string
+          treatment_performed?: string | null
           updated_at?: string
+          visit_closed_at?: string | null
+          waiting_time_minutes?: number | null
         }
         Relationships: [
           {
@@ -747,39 +835,39 @@ export type Database = {
       }
       feature_flags: {
         Row: {
-          id: string
-          tenant_id: string | null
-          flag_key: string
-          flag_name: string
-          description: string | null
-          is_enabled: boolean
-          allowed_tiers: string | null
+          allowed_tiers: string[] | null
           config_json: Json | null
           created_at: string
+          description: string | null
+          flag_key: string
+          flag_name: string
+          id: string
+          is_enabled: boolean
+          tenant_id: string | null
           updated_at: string
         }
         Insert: {
-          id?: string
-          tenant_id?: string | null
-          flag_key: string
-          flag_name: string
-          description?: string | null
-          is_enabled?: boolean
-          allowed_tiers?: string | null
+          allowed_tiers?: string[] | null
           config_json?: Json | null
           created_at?: string
+          description?: string | null
+          flag_key: string
+          flag_name: string
+          id?: string
+          is_enabled?: boolean
+          tenant_id?: string | null
           updated_at?: string
         }
         Update: {
-          id?: string
-          tenant_id?: string | null
-          flag_key?: string
-          flag_name?: string
-          description?: string | null
-          is_enabled?: boolean
-          allowed_tiers?: string | null
+          allowed_tiers?: string[] | null
           config_json?: Json | null
           created_at?: string
+          description?: string | null
+          flag_key?: string
+          flag_name?: string
+          id?: string
+          is_enabled?: boolean
+          tenant_id?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -792,185 +880,47 @@ export type Database = {
           },
         ]
       }
-      invoice_items: {
-        Row: {
-          id: string
-          tenant_id: string
-          invoice_id: string
-          procedure_id: string | null
-          item_description: string
-          item_description_ar: string | null
-          quantity: number
-          unit_price_subunits: number
-          discount_subunits: number
-          tax_subunits: number
-          tax_rate_percent: number
-          line_total_subunits: number | null
-          sort_order: number
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          tenant_id: string
-          invoice_id: string
-          procedure_id?: string | null
-          item_description: string
-          item_description_ar?: string | null
-          quantity?: number
-          unit_price_subunits?: number
-          discount_subunits?: number
-          tax_subunits?: number
-          tax_rate_percent?: number
-          line_total_subunits?: number | null
-          sort_order?: number
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          tenant_id?: string
-          invoice_id?: string
-          procedure_id?: string | null
-          item_description?: string
-          item_description_ar?: string | null
-          quantity?: number
-          unit_price_subunits?: number
-          discount_subunits?: number
-          tax_subunits?: number
-          tax_rate_percent?: number
-          line_total_subunits?: number | null
-          sort_order?: number
-          created_at?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "invoice_items_invoice_id_fkey"
-            columns: ["invoice_id"]
-            isOneToOne: false
-            referencedRelation: "clinic_invoices"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "invoice_items_procedure_id_fkey"
-            columns: ["procedure_id"]
-            isOneToOne: false
-            referencedRelation: "clinic_procedures"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "invoice_items_tenant_id_fkey"
-            columns: ["tenant_id"]
-            isOneToOne: false
-            referencedRelation: "master_tenants"
-            referencedColumns: ["id"]
-          }
-        ]
-      }
-      invoice_payments: {
-        Row: {
-          id: string
-          tenant_id: string
-          invoice_id: string
-          amount_subunits: number
-          payment_method: string
-          payment_reference: string | null
-          transaction_id: string | null
-          notes: string | null
-          collected_by: string | null
-          payment_date: string
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          tenant_id: string
-          invoice_id: string
-          amount_subunits: number
-          payment_method?: string
-          payment_reference?: string | null
-          transaction_id?: string | null
-          notes?: string | null
-          collected_by?: string | null
-          payment_date?: string
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          tenant_id?: string
-          invoice_id?: string
-          amount_subunits?: number
-          payment_method?: string
-          payment_reference?: string | null
-          transaction_id?: string | null
-          notes?: string | null
-          collected_by?: string | null
-          payment_date?: string
-          created_at?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "invoice_payments_collected_by_fkey"
-            columns: ["collected_by"]
-            isOneToOne: false
-            referencedRelation: "clinic_users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "invoice_payments_invoice_id_fkey"
-            columns: ["invoice_id"]
-            isOneToOne: false
-            referencedRelation: "clinic_invoices"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "invoice_payments_tenant_id_fkey"
-            columns: ["tenant_id"]
-            isOneToOne: false
-            referencedRelation: "master_tenants"
-            referencedColumns: ["id"]
-          }
-        ]
-      }
       inventory_items: {
         Row: {
-          id: string
-          tenant_id: string
-          procedure_id: string | null
+          created_at: string
           current_stock: number
           deleted_at: string | null
-          updated_at: string | null
-          created_at: string | null
+          id: string
+          is_active: boolean
+          name: string
+          name_ar: string | null
+          reorder_threshold: number
+          tenant_id: string
+          unit: string
+          updated_at: string
         }
         Insert: {
-          id?: string
-          tenant_id: string
-          procedure_id?: string | null
+          created_at?: string
           current_stock?: number
           deleted_at?: string | null
-          updated_at?: string | null
-          created_at?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          name_ar?: string | null
+          reorder_threshold?: number
+          tenant_id: string
+          unit?: string
+          updated_at?: string
         }
         Update: {
-          id?: string
-          tenant_id?: string
-          procedure_id?: string | null
+          created_at?: string
           current_stock?: number
           deleted_at?: string | null
-          updated_at?: string | null
-          created_at?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          name_ar?: string | null
+          reorder_threshold?: number
+          tenant_id?: string
+          unit?: string
+          updated_at?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "inventory_items_procedure_id_fkey"
-            columns: ["procedure_id"]
-            isOneToOne: false
-            referencedRelation: "clinic_procedures"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "inventory_items_tenant_id_fkey"
             columns: ["tenant_id"]
@@ -982,42 +932,52 @@ export type Database = {
       }
       inventory_ledger: {
         Row: {
-          id: string
-          tenant_id: string
-          procedure_id: string | null
-          material_name: string
-          quantity_consumed: number
           consumption_type: string
-          logged_by: string | null
-          session_id: string | null
-          notes: string | null
           created_at: string
+          id: string
+          item_id: string | null
+          logged_by: string | null
+          material_name: string
+          notes: string | null
+          procedure_id: string | null
+          quantity_consumed: number
+          session_id: string | null
+          tenant_id: string
         }
         Insert: {
-          id?: string
-          tenant_id: string
-          procedure_id?: string | null
-          material_name: string
-          quantity_consumed: number
           consumption_type: string
-          logged_by?: string | null
-          session_id?: string | null
-          notes?: string | null
           created_at?: string
+          id?: string
+          item_id?: string | null
+          logged_by?: string | null
+          material_name: string
+          notes?: string | null
+          procedure_id?: string | null
+          quantity_consumed: number
+          session_id?: string | null
+          tenant_id: string
         }
         Update: {
-          id?: string
-          tenant_id?: string
-          procedure_id?: string | null
-          material_name?: string
-          quantity_consumed?: number
           consumption_type?: string
-          logged_by?: string | null
-          session_id?: string | null
-          notes?: string | null
           created_at?: string
+          id?: string
+          item_id?: string | null
+          logged_by?: string | null
+          material_name?: string
+          notes?: string | null
+          procedure_id?: string | null
+          quantity_consumed?: number
+          session_id?: string | null
+          tenant_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "inventory_ledger_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_items"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "inventory_ledger_logged_by_fkey"
             columns: ["logged_by"]
@@ -1048,72 +1008,215 @@ export type Database = {
           },
         ]
       }
-      master_agenda_events: {
+      invoice_items: {
         Row: {
-          id: string
-          tenant_id: string
-          patient_id: string | null
-          doctor_id: string | null
-          room_id: string | null
-          procedure_id: string | null
-          inquiry_id: string | null
-          scheduled_start: string
-          scheduled_end: string
-          buffer_end: string
-          event_type: string
-          visit_type: string | null
-          status: string | null
-          cancellation_reason: string | null
-          reminder_sent_24h: boolean | null
-          reminder_sent_2h: boolean | null
-          booking_notes: string | null
-          created_by: string | null
           created_at: string
+          discount_subunits: number
+          id: string
+          invoice_id: string
+          item_description: string
+          item_description_ar: string | null
+          line_total_subunits: number | null
+          procedure_id: string | null
+          quantity: number
+          sort_order: number
+          tax_rate_percent: number
+          tax_subunits: number
+          tenant_id: string
+          unit_price_subunits: number
           updated_at: string
         }
         Insert: {
-          id?: string
-          tenant_id: string
-          patient_id?: string | null
-          doctor_id?: string | null
-          room_id?: string | null
-          procedure_id?: string | null
-          inquiry_id?: string | null
-          scheduled_start: string
-          scheduled_end: string
-          buffer_end: string
-          event_type: string
-          visit_type?: string | null
-          status?: string | null
-          cancellation_reason?: string | null
-          reminder_sent_24h?: boolean | null
-          reminder_sent_2h?: boolean | null
-          booking_notes?: string | null
-          created_by?: string | null
           created_at?: string
+          discount_subunits?: number
+          id?: string
+          invoice_id: string
+          item_description: string
+          item_description_ar?: string | null
+          line_total_subunits?: number | null
+          procedure_id?: string | null
+          quantity?: number
+          sort_order?: number
+          tax_rate_percent?: number
+          tax_subunits?: number
+          tenant_id: string
+          unit_price_subunits?: number
           updated_at?: string
         }
         Update: {
+          created_at?: string
+          discount_subunits?: number
           id?: string
-          tenant_id?: string
-          patient_id?: string | null
-          doctor_id?: string | null
-          room_id?: string | null
+          invoice_id?: string
+          item_description?: string
+          item_description_ar?: string | null
+          line_total_subunits?: number | null
           procedure_id?: string | null
-          inquiry_id?: string | null
-          scheduled_start?: string
-          scheduled_end?: string
-          buffer_end?: string
-          event_type?: string
-          visit_type?: string | null
-          status?: string | null
+          quantity?: number
+          sort_order?: number
+          tax_rate_percent?: number
+          tax_subunits?: number
+          tenant_id?: string
+          unit_price_subunits?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoice_items_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "clinic_invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoice_items_procedure_id_fkey"
+            columns: ["procedure_id"]
+            isOneToOne: false
+            referencedRelation: "clinic_procedures"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoice_items_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "master_tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      invoice_payments: {
+        Row: {
+          amount_subunits: number
+          collected_by: string | null
+          created_at: string
+          id: string
+          invoice_id: string
+          notes: string | null
+          payment_date: string
+          payment_method: string
+          payment_reference: string | null
+          tenant_id: string
+          transaction_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          amount_subunits: number
+          collected_by?: string | null
+          created_at?: string
+          id?: string
+          invoice_id: string
+          notes?: string | null
+          payment_date?: string
+          payment_method?: string
+          payment_reference?: string | null
+          tenant_id: string
+          transaction_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          amount_subunits?: number
+          collected_by?: string | null
+          created_at?: string
+          id?: string
+          invoice_id?: string
+          notes?: string | null
+          payment_date?: string
+          payment_method?: string
+          payment_reference?: string | null
+          tenant_id?: string
+          transaction_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoice_payments_collected_by_fkey"
+            columns: ["collected_by"]
+            isOneToOne: false
+            referencedRelation: "clinic_users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoice_payments_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "clinic_invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoice_payments_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "master_tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      master_agenda_events: {
+        Row: {
+          booking_notes: string | null
+          buffer_end: string
+          cancellation_reason: string | null
+          created_at: string
+          created_by: string | null
+          doctor_id: string | null
+          event_type: string
+          id: string
+          inquiry_id: string | null
+          patient_id: string | null
+          procedure_id: string | null
+          reminder_sent_24h: boolean | null
+          reminder_sent_2h: boolean | null
+          room_id: string | null
+          scheduled_end: string
+          scheduled_start: string
+          status: string | null
+          tenant_id: string
+          updated_at: string
+          visit_type: string | null
+        }
+        Insert: {
+          booking_notes?: string | null
+          buffer_end: string
           cancellation_reason?: string | null
+          created_at?: string
+          created_by?: string | null
+          doctor_id?: string | null
+          event_type: string
+          id?: string
+          inquiry_id?: string | null
+          patient_id?: string | null
+          procedure_id?: string | null
           reminder_sent_24h?: boolean | null
           reminder_sent_2h?: boolean | null
-          booking_notes?: string | null
-          created_by?: string | null
-          created_at?: string
+          room_id?: string | null
+          scheduled_end: string
+          scheduled_start: string
+          status?: string | null
+          tenant_id: string
           updated_at?: string
+          visit_type?: string | null
+        }
+        Update: {
+          booking_notes?: string | null
+          buffer_end?: string
+          cancellation_reason?: string | null
+          created_at?: string
+          created_by?: string | null
+          doctor_id?: string | null
+          event_type?: string
+          id?: string
+          inquiry_id?: string | null
+          patient_id?: string | null
+          procedure_id?: string | null
+          reminder_sent_24h?: boolean | null
+          reminder_sent_2h?: boolean | null
+          room_id?: string | null
+          scheduled_end?: string
+          scheduled_start?: string
+          status?: string | null
+          tenant_id?: string
+          updated_at?: string
+          visit_type?: string | null
         }
         Relationships: [
           {
@@ -1169,136 +1272,136 @@ export type Database = {
       }
       master_tenants: {
         Row: {
-          id: string
+          address: string | null
           clinic_name: string
           clinic_name_ar: string | null
-          license_key: string
-          subscription_tier: string
-          max_devices: number
-          subscription_start: string | null
-          subscription_end: string | null
-          trial_started_at: string | null
-          timezone: string
+          country_code: string | null
+          created_at: string
           currency: string
           currency_subunit: number
+          deleted_at: string | null
+          id: string
+          is_active: boolean
+          license_key: string
           logo_url: string | null
+          max_devices: number
           primary_color: string | null
           primary_phone: string | null
-          whatsapp_number: string | null
-          address: string | null
-          country_code: string | null
-          is_active: boolean
-          created_at: string
+          subscription_end: string | null
+          subscription_start: string | null
+          subscription_tier: string
+          timezone: string
+          trial_started_at: string | null
           updated_at: string
-          deleted_at: string | null
+          whatsapp_number: string | null
         }
         Insert: {
-          id?: string
+          address?: string | null
           clinic_name: string
           clinic_name_ar?: string | null
-          license_key: string
-          subscription_tier?: string
-          max_devices?: number
-          subscription_start?: string | null
-          subscription_end?: string | null
-          trial_started_at?: string | null
-          timezone?: string
+          country_code?: string | null
+          created_at?: string
           currency?: string
           currency_subunit?: number
+          deleted_at?: string | null
+          id?: string
+          is_active?: boolean
+          license_key: string
           logo_url?: string | null
+          max_devices?: number
           primary_color?: string | null
           primary_phone?: string | null
-          whatsapp_number?: string | null
-          address?: string | null
-          country_code?: string | null
-          is_active?: boolean
-          created_at?: string
+          subscription_end?: string | null
+          subscription_start?: string | null
+          subscription_tier?: string
+          timezone?: string
+          trial_started_at?: string | null
           updated_at?: string
-          deleted_at?: string | null
+          whatsapp_number?: string | null
         }
         Update: {
-          id?: string
+          address?: string | null
           clinic_name?: string
           clinic_name_ar?: string | null
-          license_key?: string
-          subscription_tier?: string
-          max_devices?: number
-          subscription_start?: string | null
-          subscription_end?: string | null
-          trial_started_at?: string | null
-          timezone?: string
+          country_code?: string | null
+          created_at?: string
           currency?: string
           currency_subunit?: number
+          deleted_at?: string | null
+          id?: string
+          is_active?: boolean
+          license_key?: string
           logo_url?: string | null
+          max_devices?: number
           primary_color?: string | null
           primary_phone?: string | null
-          whatsapp_number?: string | null
-          address?: string | null
-          country_code?: string | null
-          is_active?: boolean
-          created_at?: string
+          subscription_end?: string | null
+          subscription_start?: string | null
+          subscription_tier?: string
+          timezone?: string
+          trial_started_at?: string | null
           updated_at?: string
-          deleted_at?: string | null
+          whatsapp_number?: string | null
         }
         Relationships: []
       }
       notification_queue: {
         Row: {
+          channel: string
+          created_at: string
+          error_message: string | null
           id: string
-          tenant_id: string
-          recipient_type: string
+          max_retries: number | null
+          message_body: string
+          metadata: Json | null
+          priority: number | null
+          recipient_email: string | null
           recipient_id: string | null
           recipient_phone: string | null
-          recipient_email: string | null
-          channel: string
-          message_body: string
-          priority: number | null
-          status: string | null
+          recipient_type: string
           retry_count: number | null
-          max_retries: number | null
           scheduled_at: string | null
           sent_at: string | null
-          error_message: string | null
-          metadata: Json | null
-          created_at: string
+          status: string | null
+          tenant_id: string
         }
         Insert: {
+          channel: string
+          created_at?: string
+          error_message?: string | null
           id?: string
-          tenant_id: string
-          recipient_type: string
+          max_retries?: number | null
+          message_body: string
+          metadata?: Json | null
+          priority?: number | null
+          recipient_email?: string | null
           recipient_id?: string | null
           recipient_phone?: string | null
-          recipient_email?: string | null
-          channel: string
-          message_body: string
-          priority?: number | null
-          status?: string | null
+          recipient_type: string
           retry_count?: number | null
-          max_retries?: number | null
           scheduled_at?: string | null
           sent_at?: string | null
-          error_message?: string | null
-          metadata?: Json | null
-          created_at?: string
+          status?: string | null
+          tenant_id: string
         }
         Update: {
+          channel?: string
+          created_at?: string
+          error_message?: string | null
           id?: string
-          tenant_id?: string
-          recipient_type?: string
+          max_retries?: number | null
+          message_body?: string
+          metadata?: Json | null
+          priority?: number | null
+          recipient_email?: string | null
           recipient_id?: string | null
           recipient_phone?: string | null
-          recipient_email?: string | null
-          channel?: string
-          message_body?: string
-          priority?: number | null
-          status?: string | null
+          recipient_type?: string
           retry_count?: number | null
-          max_retries?: number | null
           scheduled_at?: string | null
           sent_at?: string | null
-          error_message?: string | null
-          metadata?: Json | null
-          created_at?: string
+          status?: string | null
+          tenant_id?: string
         }
         Relationships: [
           {
@@ -1312,51 +1415,51 @@ export type Database = {
       }
       patient_history: {
         Row: {
+          created_at: string
           id: string
-          tenant_id: string
+          last_calculated_at: string | null
+          last_visit_date: string | null
+          loyalty_tier: string | null
+          next_scheduled_visit: string | null
           patient_id: string
-          total_visits: number | null
+          tenant_id: string
+          total_cancellations: number | null
           total_completed_visits: number | null
           total_no_shows: number | null
-          total_cancellations: number | null
           total_revenue_subunits: number | null
-          last_visit_date: string | null
-          next_scheduled_visit: string | null
-          loyalty_tier: string | null
-          last_calculated_at: string | null
-          created_at: string
+          total_visits: number | null
           updated_at: string
         }
         Insert: {
+          created_at?: string
           id?: string
-          tenant_id: string
+          last_calculated_at?: string | null
+          last_visit_date?: string | null
+          loyalty_tier?: string | null
+          next_scheduled_visit?: string | null
           patient_id: string
-          total_visits?: number | null
+          tenant_id: string
+          total_cancellations?: number | null
           total_completed_visits?: number | null
           total_no_shows?: number | null
-          total_cancellations?: number | null
           total_revenue_subunits?: number | null
-          last_visit_date?: string | null
-          next_scheduled_visit?: string | null
-          loyalty_tier?: string | null
-          last_calculated_at?: string | null
-          created_at?: string
+          total_visits?: number | null
           updated_at?: string
         }
         Update: {
+          created_at?: string
           id?: string
-          tenant_id?: string
+          last_calculated_at?: string | null
+          last_visit_date?: string | null
+          loyalty_tier?: string | null
+          next_scheduled_visit?: string | null
           patient_id?: string
-          total_visits?: number | null
+          tenant_id?: string
+          total_cancellations?: number | null
           total_completed_visits?: number | null
           total_no_shows?: number | null
-          total_cancellations?: number | null
           total_revenue_subunits?: number | null
-          last_visit_date?: string | null
-          next_scheduled_visit?: string | null
-          loyalty_tier?: string | null
-          last_calculated_at?: string | null
-          created_at?: string
+          total_visits?: number | null
           updated_at?: string
         }
         Relationships: [
@@ -1378,84 +1481,84 @@ export type Database = {
       }
       permissions: {
         Row: {
+          action: string
+          created_at: string | null
+          description: string | null
           id: string
           permission_key: string
           permission_name: string
-          description: string | null
           resource: string
-          action: string
-          created_at: string | null
         }
         Insert: {
+          action: string
+          created_at?: string | null
+          description?: string | null
           id?: string
           permission_key: string
           permission_name: string
-          description?: string | null
           resource: string
-          action: string
-          created_at?: string | null
         }
         Update: {
+          action?: string
+          created_at?: string | null
+          description?: string | null
           id?: string
           permission_key?: string
           permission_name?: string
-          description?: string | null
           resource?: string
-          action?: string
-          created_at?: string | null
         }
         Relationships: []
       }
       retention_followups: {
         Row: {
-          id: string
-          tenant_id: string
-          patient_id: string
-          session_id: string | null
-          scheduled_for: string
-          followup_type: string
           channel: string | null
-          message_body: string | null
-          delivery_status: string | null
-          sent_at: string | null
-          delivered_at: string | null
-          response_received: boolean | null
-          sent_by: string | null
           created_at: string
+          delivered_at: string | null
+          delivery_status: string | null
+          followup_type: string
+          id: string
+          message_body: string | null
+          patient_id: string
+          response_received: boolean | null
+          scheduled_for: string
+          sent_at: string | null
+          sent_by: string | null
+          session_id: string | null
+          tenant_id: string
           updated_at: string
         }
         Insert: {
-          id?: string
-          tenant_id: string
-          patient_id: string
-          session_id?: string | null
-          scheduled_for: string
-          followup_type: string
           channel?: string | null
-          message_body?: string | null
-          delivery_status?: string | null
-          sent_at?: string | null
-          delivered_at?: string | null
-          response_received?: boolean | null
-          sent_by?: string | null
           created_at?: string
+          delivered_at?: string | null
+          delivery_status?: string | null
+          followup_type: string
+          id?: string
+          message_body?: string | null
+          patient_id: string
+          response_received?: boolean | null
+          scheduled_for: string
+          sent_at?: string | null
+          sent_by?: string | null
+          session_id?: string | null
+          tenant_id: string
           updated_at?: string
         }
         Update: {
-          id?: string
-          tenant_id?: string
-          patient_id?: string
-          session_id?: string | null
-          scheduled_for?: string
-          followup_type?: string
           channel?: string | null
-          message_body?: string | null
-          delivery_status?: string | null
-          sent_at?: string | null
-          delivered_at?: string | null
-          response_received?: boolean | null
-          sent_by?: string | null
           created_at?: string
+          delivered_at?: string | null
+          delivery_status?: string | null
+          followup_type?: string
+          id?: string
+          message_body?: string | null
+          patient_id?: string
+          response_received?: boolean | null
+          scheduled_for?: string
+          sent_at?: string | null
+          sent_by?: string | null
+          session_id?: string | null
+          tenant_id?: string
           updated_at?: string
         }
         Relationships: [
@@ -1491,22 +1594,22 @@ export type Database = {
       }
       role_permissions: {
         Row: {
-          id: string
-          role_id: string
-          permission_id: string
           created_at: string | null
+          id: string
+          permission_id: string
+          role_id: string
         }
         Insert: {
-          id?: string
-          role_id: string
-          permission_id: string
           created_at?: string | null
+          id?: string
+          permission_id: string
+          role_id: string
         }
         Update: {
-          id?: string
-          role_id?: string
-          permission_id?: string
           created_at?: string | null
+          id?: string
+          permission_id?: string
+          role_id?: string
         }
         Relationships: [
           {
@@ -1527,76 +1630,76 @@ export type Database = {
       }
       roles: {
         Row: {
+          created_at: string | null
+          description: string | null
           id: string
+          is_system_role: boolean | null
           role_key: string
           role_name: string
           role_name_ar: string | null
-          description: string | null
-          is_system_role: boolean | null
-          created_at: string | null
         }
         Insert: {
+          created_at?: string | null
+          description?: string | null
           id?: string
+          is_system_role?: boolean | null
           role_key: string
           role_name: string
           role_name_ar?: string | null
-          description?: string | null
-          is_system_role?: boolean | null
-          created_at?: string | null
         }
         Update: {
+          created_at?: string | null
+          description?: string | null
           id?: string
+          is_system_role?: boolean | null
           role_key?: string
           role_name?: string
           role_name_ar?: string | null
-          description?: string | null
-          is_system_role?: boolean | null
-          created_at?: string | null
         }
         Relationships: []
       }
       subscription_events: {
         Row: {
-          id: string
-          subscription_id: string
-          tenant_id: string
+          created_at: string | null
           event_type: string
-          previous_status: string | null
+          id: string
+          metadata: Json | null
+          new_plan_id: string | null
           new_status: string | null
           previous_plan_id: string | null
-          new_plan_id: string | null
-          triggered_by: string | null
+          previous_status: string | null
           reason: string | null
-          metadata: Json | null
-          created_at: string | null
-        }
-        Insert: {
-          id?: string
           subscription_id: string
           tenant_id: string
+          triggered_by: string | null
+        }
+        Insert: {
+          created_at?: string | null
           event_type: string
-          previous_status?: string | null
+          id?: string
+          metadata?: Json | null
+          new_plan_id?: string | null
           new_status?: string | null
           previous_plan_id?: string | null
-          new_plan_id?: string | null
-          triggered_by?: string | null
+          previous_status?: string | null
           reason?: string | null
-          metadata?: Json | null
-          created_at?: string | null
+          subscription_id: string
+          tenant_id: string
+          triggered_by?: string | null
         }
         Update: {
-          id?: string
-          subscription_id?: string
-          tenant_id?: string
+          created_at?: string | null
           event_type?: string
-          previous_status?: string | null
+          id?: string
+          metadata?: Json | null
+          new_plan_id?: string | null
           new_status?: string | null
           previous_plan_id?: string | null
-          new_plan_id?: string | null
-          triggered_by?: string | null
+          previous_status?: string | null
           reason?: string | null
-          metadata?: Json | null
-          created_at?: string | null
+          subscription_id?: string
+          tenant_id?: string
+          triggered_by?: string | null
         }
         Relationships: [
           {
@@ -1610,109 +1713,109 @@ export type Database = {
             foreignKeyName: "subscription_events_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
-            referencedRelation: "tenants"
+            referencedRelation: "master_tenants"
             referencedColumns: ["id"]
           },
         ]
       }
       subscription_plans: {
         Row: {
+          ai_limits: Json | null
+          api_rate_limit: number | null
+          created_at: string | null
           id: string
+          is_active: boolean | null
+          max_branches: number
+          max_devices: number
+          max_users: number
+          modules: Json | null
           plan_key: string
           plan_name: string
           plan_name_ar: string | null
-          max_users: number
-          max_devices: number
-          max_branches: number
-          modules: Json | null
-          ai_limits: Json | null
           storage_gb: number | null
-          api_rate_limit: number | null
-          is_active: boolean | null
-          created_at: string | null
         }
         Insert: {
+          ai_limits?: Json | null
+          api_rate_limit?: number | null
+          created_at?: string | null
           id?: string
+          is_active?: boolean | null
+          max_branches?: number
+          max_devices?: number
+          max_users?: number
+          modules?: Json | null
           plan_key: string
           plan_name: string
           plan_name_ar?: string | null
-          max_users?: number
-          max_devices?: number
-          max_branches?: number
-          modules?: Json | null
-          ai_limits?: Json | null
           storage_gb?: number | null
-          api_rate_limit?: number | null
-          is_active?: boolean | null
-          created_at?: string | null
         }
         Update: {
+          ai_limits?: Json | null
+          api_rate_limit?: number | null
+          created_at?: string | null
           id?: string
+          is_active?: boolean | null
+          max_branches?: number
+          max_devices?: number
+          max_users?: number
+          modules?: Json | null
           plan_key?: string
           plan_name?: string
           plan_name_ar?: string | null
-          max_users?: number
-          max_devices?: number
-          max_branches?: number
-          modules?: Json | null
-          ai_limits?: Json | null
           storage_gb?: number | null
-          api_rate_limit?: number | null
-          is_active?: boolean | null
-          created_at?: string | null
         }
         Relationships: []
       }
       subscriptions: {
         Row: {
-          id: string
-          tenant_id: string
-          plan_id: string
-          status: string
-          billing_cycle: string | null
-          started_at: string | null
-          ends_at: string | null
-          trial_ends_at: string | null
-          cancelled_at: string | null
           auto_renew: boolean | null
-          payment_method: string | null
-          discount_code: string | null
-          metadata: Json | null
+          billing_cycle: string | null
+          cancelled_at: string | null
           created_at: string | null
+          discount_code: string | null
+          ends_at: string | null
+          id: string
+          metadata: Json | null
+          payment_method: string | null
+          plan_id: string
+          started_at: string | null
+          status: string
+          tenant_id: string
+          trial_ends_at: string | null
           updated_at: string | null
         }
         Insert: {
-          id?: string
-          tenant_id: string
-          plan_id: string
-          status?: string
-          billing_cycle?: string | null
-          started_at?: string | null
-          ends_at?: string | null
-          trial_ends_at?: string | null
-          cancelled_at?: string | null
           auto_renew?: boolean | null
-          payment_method?: string | null
-          discount_code?: string | null
-          metadata?: Json | null
+          billing_cycle?: string | null
+          cancelled_at?: string | null
           created_at?: string | null
+          discount_code?: string | null
+          ends_at?: string | null
+          id?: string
+          metadata?: Json | null
+          payment_method?: string | null
+          plan_id: string
+          started_at?: string | null
+          status?: string
+          tenant_id: string
+          trial_ends_at?: string | null
           updated_at?: string | null
         }
         Update: {
-          id?: string
-          tenant_id?: string
-          plan_id?: string
-          status?: string
-          billing_cycle?: string | null
-          started_at?: string | null
-          ends_at?: string | null
-          trial_ends_at?: string | null
-          cancelled_at?: string | null
           auto_renew?: boolean | null
-          payment_method?: string | null
-          discount_code?: string | null
-          metadata?: Json | null
+          billing_cycle?: string | null
+          cancelled_at?: string | null
           created_at?: string | null
+          discount_code?: string | null
+          ends_at?: string | null
+          id?: string
+          metadata?: Json | null
+          payment_method?: string | null
+          plan_id?: string
+          started_at?: string | null
+          status?: string
+          tenant_id?: string
+          trial_ends_at?: string | null
           updated_at?: string | null
         }
         Relationships: [
@@ -1727,47 +1830,47 @@ export type Database = {
             foreignKeyName: "subscriptions_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
-            referencedRelation: "tenants"
+            referencedRelation: "master_tenants"
             referencedColumns: ["id"]
           },
         ]
       }
       tenant_devices: {
         Row: {
-          id: string
-          tenant_id: string
+          browser_info: string | null
           device_fingerprint: string
           device_name: string | null
           device_type: string | null
-          os_info: string | null
-          browser_info: string | null
+          id: string
           is_active: boolean | null
           last_seen_at: string | null
+          os_info: string | null
           registered_at: string
+          tenant_id: string
         }
         Insert: {
-          id?: string
-          tenant_id: string
+          browser_info?: string | null
           device_fingerprint: string
           device_name?: string | null
           device_type?: string | null
-          os_info?: string | null
-          browser_info?: string | null
+          id?: string
           is_active?: boolean | null
           last_seen_at?: string | null
+          os_info?: string | null
           registered_at?: string
+          tenant_id: string
         }
         Update: {
-          id?: string
-          tenant_id?: string
+          browser_info?: string | null
           device_fingerprint?: string
           device_name?: string | null
           device_type?: string | null
-          os_info?: string | null
-          browser_info?: string | null
+          id?: string
           is_active?: boolean | null
           last_seen_at?: string | null
+          os_info?: string | null
           registered_at?: string
+          tenant_id?: string
         }
         Relationships: [
           {
@@ -1781,121 +1884,121 @@ export type Database = {
       }
       tenants: {
         Row: {
-          id: string
+          address: string | null
           clinic_name: string
           clinic_name_ar: string | null
-          license_key: string
-          timezone: string | null
+          country_code: string | null
+          created_at: string | null
           currency: string | null
           currency_subunit: number | null
+          deleted_at: string | null
+          id: string
+          is_active: boolean | null
+          license_key: string
           logo_url: string | null
           primary_color: string | null
           primary_phone: string | null
-          whatsapp_number: string | null
-          address: string | null
-          country_code: string | null
-          is_active: boolean | null
-          created_at: string | null
+          timezone: string | null
           updated_at: string | null
-          deleted_at: string | null
+          whatsapp_number: string | null
         }
         Insert: {
-          id?: string
+          address?: string | null
           clinic_name: string
           clinic_name_ar?: string | null
-          license_key: string
-          timezone?: string | null
+          country_code?: string | null
+          created_at?: string | null
           currency?: string | null
           currency_subunit?: number | null
+          deleted_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          license_key: string
           logo_url?: string | null
           primary_color?: string | null
           primary_phone?: string | null
-          whatsapp_number?: string | null
-          address?: string | null
-          country_code?: string | null
-          is_active?: boolean | null
-          created_at?: string | null
+          timezone?: string | null
           updated_at?: string | null
-          deleted_at?: string | null
+          whatsapp_number?: string | null
         }
         Update: {
-          id?: string
+          address?: string | null
           clinic_name?: string
           clinic_name_ar?: string | null
-          license_key?: string
-          timezone?: string | null
+          country_code?: string | null
+          created_at?: string | null
           currency?: string | null
           currency_subunit?: number | null
+          deleted_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          license_key?: string
           logo_url?: string | null
           primary_color?: string | null
           primary_phone?: string | null
-          whatsapp_number?: string | null
-          address?: string | null
-          country_code?: string | null
-          is_active?: boolean | null
-          created_at?: string | null
+          timezone?: string | null
           updated_at?: string | null
-          deleted_at?: string | null
+          whatsapp_number?: string | null
         }
         Relationships: []
       }
       users: {
         Row: {
-          id: string
-          tenant_id: string
           auth_user_id: string | null
+          avatar_url: string | null
+          created_at: string | null
+          deleted_at: string | null
+          email: string | null
+          employee_code: string | null
           full_name: string
           full_name_ar: string | null
-          role_id: string
-          email: string | null
-          phone: string | null
-          employee_code: string | null
-          pin_code: string | null
-          specialization: string | null
-          avatar_url: string | null
+          id: string
           is_active: boolean | null
           last_login_at: string | null
-          created_at: string | null
+          phone: string | null
+          pin_code: string | null
+          role_id: string
+          specialization: string | null
+          tenant_id: string
           updated_at: string | null
-          deleted_at: string | null
         }
         Insert: {
-          id?: string
-          tenant_id: string
           auth_user_id?: string | null
+          avatar_url?: string | null
+          created_at?: string | null
+          deleted_at?: string | null
+          email?: string | null
+          employee_code?: string | null
           full_name: string
           full_name_ar?: string | null
-          role_id: string
-          email?: string | null
-          phone?: string | null
-          employee_code?: string | null
-          pin_code?: string | null
-          specialization?: string | null
-          avatar_url?: string | null
+          id?: string
           is_active?: boolean | null
           last_login_at?: string | null
-          created_at?: string | null
+          phone?: string | null
+          pin_code?: string | null
+          role_id: string
+          specialization?: string | null
+          tenant_id: string
           updated_at?: string | null
-          deleted_at?: string | null
         }
         Update: {
-          id?: string
-          tenant_id?: string
           auth_user_id?: string | null
+          avatar_url?: string | null
+          created_at?: string | null
+          deleted_at?: string | null
+          email?: string | null
+          employee_code?: string | null
           full_name?: string
           full_name_ar?: string | null
-          role_id?: string
-          email?: string | null
-          phone?: string | null
-          employee_code?: string | null
-          pin_code?: string | null
-          specialization?: string | null
-          avatar_url?: string | null
+          id?: string
           is_active?: boolean | null
           last_login_at?: string | null
-          created_at?: string | null
+          phone?: string | null
+          pin_code?: string | null
+          role_id?: string
+          specialization?: string | null
+          tenant_id?: string
           updated_at?: string | null
-          deleted_at?: string | null
         }
         Relationships: [
           {
@@ -1919,24 +2022,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      can_edit_invoice: {
-        Args: {
-          p_invoice_id: string
-        }
-        Returns: boolean
+      adjust_inventory_stock: {
+        Args: { p_delta: number; p_item_id: string; p_tenant_id: string }
+        Returns: number
       }
-      cancel_invoice: {
-        Args: {
-          p_invoice_id: string
-          p_reason: string
-        }
-        Returns: Json
-      }
+      can_edit_invoice: { Args: { p_invoice_id: string }; Returns: boolean }
+      cancel_invoice: { Args: { p_invoice_id: string }; Returns: Json }
       create_invoice_from_session: {
-        Args: {
-          p_session_id: string
-          p_tenant_id: string
-        }
+        Args: { p_session_id: string }
         Returns: Json
       }
       create_tenant_with_subscription: {
@@ -1956,43 +2049,46 @@ export type Database = {
       }
       custom_access_token_hook: { Args: { event: Json }; Returns: Json }
       generate_invoice_number: {
-        Args: {
-          p_tenant_id: string
-        }
+        Args: { p_tenant_id: string }
         Returns: string
       }
       get_current_tenant_id: { Args: never; Returns: string }
       get_current_user_role: { Args: never; Returns: string }
-      issue_invoice: {
-        Args: {
-          p_invoice_id: string
-        }
-        Returns: Json
-      }
+      issue_invoice: { Args: { p_invoice_id: string }; Returns: Json }
       recalculate_invoice_totals: {
-        Args: {
-          p_invoice_id: string
-        }
-        Returns: Json
+        Args: { p_invoice_id: string }
+        Returns: undefined
       }
       record_invoice_payment: {
         Args: {
-          p_invoice_id: string
           p_amount_subunits: number
-          p_payment_method: string
-          p_reference_number?: string
+          p_collected_by?: string
+          p_invoice_id: string
           p_notes?: string
+          p_payment_method: string
+          p_payment_reference?: string
+          p_tenant_id: string
         }
         Returns: Json
       }
+      set_config: { Args: { key: string; value: string }; Returns: undefined }
       set_tenant_id: { Args: { tenant_id: string }; Returns: undefined }
-      test_jwt_claims: {
-        Args: { p_user_id: string }
-        Returns: {
-          claim_name: string
-          claim_value: string
-        }[]
-      }
+      test_jwt_claims:
+        | {
+            Args: never
+            Returns: {
+              claim: string
+              value: string
+            }[]
+          }
+        | {
+            Args: { p_user_id: string }
+            Returns: {
+              claim_name: string
+              claim_value: string
+            }[]
+          }
+      test_queue_access: { Args: never; Returns: string }
     }
     Enums: {
       [_ in never]: never
@@ -2003,9 +2099,9 @@ export type Database = {
   }
 }
 
-type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">;
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
 
-type DefaultSchema = DatabaseWithoutInternals[Extract<keyof DatabaseWithoutInternals, "public">];
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
 
 export type Tables<
   DefaultSchemaTableNameOrOptions extends
@@ -2117,7 +2213,7 @@ export type CompositeTypes<
 }
   ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
   : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
-    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+    ? DefaultSchema["CompositeTypes"][CompositeTypeName]
     : never
 
 export const Constants = {
