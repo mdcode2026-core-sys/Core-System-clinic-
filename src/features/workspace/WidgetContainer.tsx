@@ -1,15 +1,17 @@
 // src/features/workspace/WidgetContainer.tsx
 // Workspace Architecture — Widget lifecycle container
-// Implements §5 lifecycle: loading, error+Retry, collapsed, pinned.
-// Silent failure is prohibited — every error must be visible.
 
 "use client";
 
 import { useState, Suspense } from "react";
 import type { ResolvedWidget, WidgetState } from "@/core/workspace/workspace.types";
 import { WidgetToolbar } from "./WidgetToolbar";
-import { AlertCircle, Loader2, ChevronDown, ChevronUp, Pin } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { AlertCircle, Loader2, ChevronDown, Pin } from "lucide-react";
+
+// ✅ تم التصحيح: دالة cn محلية إذا لم يكن @/lib/utils متاحاً
+function cn(...classes: (string | boolean | undefined | null)[]) {
+  return classes.filter(Boolean).join(" ");
+}
 
 interface WidgetContainerProps {
   resolved: ResolvedWidget;
@@ -57,7 +59,6 @@ export function WidgetContainer({ resolved }: WidgetContainerProps) {
     setRetryKey((k) => k + 1);
   };
 
-  // If the widget itself throws during render, catch it here
   const handleError = (err: Error) => {
     setError(err);
   };
@@ -70,7 +71,6 @@ export function WidgetContainer({ resolved }: WidgetContainerProps) {
         !isCollapsed && "hover:shadow-md"
       )}
     >
-      {/* Header */}
       <div className="flex items-center justify-between border-b px-4 py-3">
         <div className="flex items-center gap-2">
           {isPinned && <Pin className="h-4 w-4 text-blue-500" />}
@@ -81,7 +81,6 @@ export function WidgetContainer({ resolved }: WidgetContainerProps) {
         <WidgetToolbar widgetKey={definition.key} currentState={layout.state} />
       </div>
 
-      {/* Body */}
       {isCollapsed ? (
         <div className="flex items-center justify-center py-4 text-gray-400">
           <ChevronDown className="h-5 w-5" />
@@ -104,7 +103,6 @@ export function WidgetContainer({ resolved }: WidgetContainerProps) {
   );
 }
 
-// Inner component that actually renders the widget — isolated for error catching
 function WidgetContent({
   definition,
   onError,
@@ -118,9 +116,7 @@ function WidgetContent({
       <Component
         widget={definition}
         state="visible"
-        onStateChange={() => {
-          /* state changes handled by WidgetToolbar + useWorkspace */
-        }}
+        onStateChange={() => {}}
       />
     );
   } catch (err) {
