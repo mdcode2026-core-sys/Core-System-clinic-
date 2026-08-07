@@ -1,18 +1,21 @@
-// src/features/workspace/widgets/queue/QueueWidget.tsx
-// Widget: queue — "Queue" (name fixed by §13)
-// Category: Workflow | Layer: 2
-// Thin wrapper around existing queue queries — zero new business logic.
-// Reproduces current behavior; does NOT fix Package 3.1.4 Open Item #1 or isDoctor hardcoding.
-
 "use client";
 
+import { useState, useEffect } from "react";
 import type { WidgetComponentProps } from "@/core/workspace/workspace.types";
 import { useQueueStats } from "@/domain/queue/queue.queries";
-import { useAuth } from "@/lib/supabase/useAuth";
-import { Users, Clock, CheckCircle, AlertCircle, Loader2 } from "lucide-react";
+import { createClient } from "@/infrastructure/supabase/client";
+import { Clock, AlertCircle, Loader2 } from "lucide-react";
 
 export function QueueWidget(_props: WidgetComponentProps) {
-  const { user } = useAuth();
+  const [user, setUser] = useState<{ user_metadata?: { tenant_id?: string } } | null>(null);
+
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data }) => {
+      setUser(data.user);
+    });
+  }, []);
+
   const tenantId = user?.user_metadata?.tenant_id;
 
   const { data: stats, isLoading, error } = useQueueStats(tenantId ?? "");
