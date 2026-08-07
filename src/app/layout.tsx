@@ -1,30 +1,13 @@
-import type { Metadata } from "next";
-import { Inter } from "next/font/google";
-import { AuthProvider } from "@/core/auth/AuthProvider";
-import { QueryClientProvider } from "@/shared/components/QueryClientProvider";
-import "./globals.css";
+// src/app/(dashboard)/layout.tsx
+// Workspace Architecture — Dashboard layout
+// Updated to import WorkspaceShell from new path.
 
-const inter = Inter({ subsets: ["latin"] });
+import { WorkspaceShell } from "@/features/workspace/WorkspaceShell";
 
-export const metadata: Metadata = {
-  title: "ClinicSaaS",
-  description: "Multi-Tenant Clinic Management",
-};
-
-export default function RootLayout({
+export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return (
-    <html lang="ar" dir="rtl">
-      <body className={inter.className}>
-        <QueryClientProvider>
-          <AuthProvider>
-            {children}
-          </AuthProvider>
-        </QueryClientProvider>
-      </body>
-    </html>
-  );
+  return <WorkspaceShell>{children}</WorkspaceShell>;
 }
