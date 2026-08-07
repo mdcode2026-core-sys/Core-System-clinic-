@@ -1,7 +1,3 @@
-// src/features/workspace/WorkspaceRenderer.tsx
-// Workspace Architecture — Root renderer
-// Reads useWorkspace(), splits into Layer 2 / Layer 3, renders WidgetContainers.
-
 "use client";
 
 import { useWorkspace } from "@/core/workspace/hooks/useWorkspace";
@@ -19,13 +15,11 @@ export function WorkspaceRenderer() {
     );
   }
 
-  // Split by layer
   const layer2 = visibleWidgets.filter((w) => w.definition.layer === 2);
   const layer3 = visibleWidgets.filter((w) => w.definition.layer === 3);
 
   return (
     <div className="space-y-6">
-      {/* Layer 2 — Quick Actions / Workflow */}
       {layer2.length > 0 && (
         <section>
           <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-gray-500">
@@ -42,7 +36,6 @@ export function WorkspaceRenderer() {
         </section>
       )}
 
-      {/* Layer 3 — Status & Analytics */}
       {layer3.length > 0 && (
         <section>
           <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-gray-500">
@@ -59,7 +52,6 @@ export function WorkspaceRenderer() {
         </section>
       )}
 
-      {/* Empty state */}
       {visibleWidgets.length === 0 && !hasErrors && (
         <div className="flex h-64 flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-200 bg-white text-gray-400">
           <p className="text-lg font-medium">لا توجد أدوات متاحة</p>
