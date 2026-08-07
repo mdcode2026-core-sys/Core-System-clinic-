@@ -1,20 +1,23 @@
-// src/features/workspace/widgets/agenda/QuickAppointmentWidget.tsx
-// Widget: quick-appointment — "Quick Appointment" (name fixed by §13)
-// Category: Interactive | Layer: 2
-// Thin wrapper around existing agenda-event-form.tsx — zero new business logic.
-
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { WidgetComponentProps } from "@/core/workspace/workspace.types";
 import { createAgendaEvent } from "@/domain/agenda/agenda.actions";
 import { useDoctors, useRooms, useProcedures } from "@/domain/agenda/agenda.queries";
-import { useAuth } from "@/lib/supabase/useAuth";
+import { createClient } from "@/infrastructure/supabase/client";
 import { toast } from "sonner";
 import { CalendarPlus, CheckCircle } from "lucide-react";
 
 export function QuickAppointmentWidget(_props: WidgetComponentProps) {
-  const { user } = useAuth();
+  const [user, setUser] = useState<{ user_metadata?: { tenant_id?: string } } | null>(null);
+
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data }) => {
+      setUser(data.user);
+    });
+  }, []);
+
   const tenantId = user?.user_metadata?.tenant_id;
 
   const { data: doctors = [] } = useDoctors();
