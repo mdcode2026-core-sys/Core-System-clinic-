@@ -1,6 +1,5 @@
 // src/core/workspace/hooks/useWidgetVisibility.ts
 // Workspace Architecture — Per-widget visibility wrapper
-// Thin wrapper around workspaceEngine.ts for single-widget consumers.
 
 import { useMemo } from "react";
 import type { WidgetDefinition, WidgetState } from "../workspace.types";
@@ -17,7 +16,7 @@ export interface UseWidgetVisibilityResult {
 
 export function useWidgetVisibility(
   widget: WidgetDefinition,
-  userHiddenKeys: Set<string>
+  userHiddenKeys: Set<string>  // ✅ تم التصحيح
 ): UseWidgetVisibilityResult {
   const { user } = useAuth();
   const { hasPermission, isLoading } = usePermissions();
