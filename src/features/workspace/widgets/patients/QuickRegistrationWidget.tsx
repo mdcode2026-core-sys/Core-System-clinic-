@@ -1,22 +1,25 @@
-// src/features/workspace/widgets/patients/QuickRegistrationWidget.tsx
-// Widget: quick-registration — "Quick Registration" (name fixed by §13)
-// Category: Interactive | Layer: 2
-// Thin wrapper around existing patient-form.tsx — zero new business logic.
-
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { WidgetComponentProps } from "@/core/workspace/workspace.types";
 import { createPatientFromObject } from "@/domain/patients/patients.actions";
-import { useAuth } from "@/lib/supabase/useAuth";
+import { createClient } from "@/infrastructure/supabase/client";
 import { toast } from "sonner";
 import { UserPlus, CheckCircle } from "lucide-react";
 
 export function QuickRegistrationWidget(_props: WidgetComponentProps) {
-  const { user } = useAuth();
-  const tenantId = user?.user_metadata?.tenant_id;
+  const [user, setUser] = useState<{ user_metadata?: { tenant_id?: string } } | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data }) => {
+      setUser(data.user);
+    });
+  }, []);
+
+  const tenantId = user?.user_metadata?.tenant_id;
 
   const [form, setForm] = useState({
     full_name: "",
