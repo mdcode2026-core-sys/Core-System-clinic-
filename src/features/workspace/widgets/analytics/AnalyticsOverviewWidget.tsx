@@ -1,18 +1,21 @@
-// src/features/workspace/widgets/analytics/AnalyticsOverviewWidget.tsx
-// Widget: analytics-overview — "Analytics Overview" (name fixed by Owner decision)
-// Category: Analytics | Layer: 3
-// Thin wrapper around existing analytics.queries.ts — zero new business logic.
-// Per §6: "Uses only the Analytics Engine. Never implements independent calculations."
-
 "use client";
 
+import { useState, useEffect } from "react";
 import type { WidgetComponentProps } from "@/core/workspace/workspace.types";
 import { useAnalyticsOverview } from "@/domain/analytics/analytics.queries";
-import { useAuth } from "@/lib/supabase/useAuth";
-import { BarChart3, TrendingUp, Users, Calendar, AlertCircle, Loader2 } from "lucide-react";
+import { createClient } from "@/infrastructure/supabase/client";
+import { BarChart3, Users, Calendar, TrendingUp, AlertCircle, Loader2 } from "lucide-react";
 
 export function AnalyticsOverviewWidget(_props: WidgetComponentProps) {
-  const { user } = useAuth();
+  const [user, setUser] = useState<{ user_metadata?: { tenant_id?: string } } | null>(null);
+
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data }) => {
+      setUser(data.user);
+    });
+  }, []);
+
   const tenantId = user?.user_metadata?.tenant_id;
 
   const { data: overview, isLoading, error } = useAnalyticsOverview(tenantId ?? "");
