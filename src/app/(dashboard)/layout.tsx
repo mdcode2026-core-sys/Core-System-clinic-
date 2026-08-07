@@ -1,5 +1,5 @@
-import { createClient } from "@/infrastructure/supabase/server";
 import { redirect } from "next/navigation";
+import { createClient } from "@/infrastructure/supabase/server";
 import { WorkspaceShell } from "@/features/workspace/WorkspaceShell";
 
 export default async function DashboardLayout({
@@ -7,7 +7,8 @@ export default async function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const supabase = createClient();
+  const supabase = await createClient();
+
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -16,5 +17,9 @@ export default async function DashboardLayout({
     redirect("/login");
   }
 
-  return <WorkspaceShell user={user}>{children}</WorkspaceShell>;
+  return (
+    <WorkspaceShell user={user}>
+      {children}
+    </WorkspaceShell>
+  );
 }
