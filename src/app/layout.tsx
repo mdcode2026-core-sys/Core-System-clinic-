@@ -1,13 +1,31 @@
 // src/app/(dashboard)/layout.tsx
 // Workspace Architecture — Dashboard layout
-// Updated to import WorkspaceShell from new path.
+// Server-side authentication guard.
+// Passes authenticated user to WorkspaceShell.
 
+import { redirect } from "next/navigation";
+import { createClient } from "@/infrastructure/supabase/server";
 import { WorkspaceShell } from "@/features/workspace/WorkspaceShell";
 
-export default function DashboardLayout({
+export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return <WorkspaceShell>{children}</WorkspaceShell>;
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser();
+
+  if (error || !user) {
+    redirect("/login");
+  }
+
+  return (
+    <WorkspaceShell user={user}>
+      {children}
+    </WorkspaceShell>
+  );
 }
