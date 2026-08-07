@@ -1,12 +1,9 @@
-// src/core/workspace/hooks/useWidgetPersistence.ts
-// Workspace Architecture — Per-user layout persistence
-// Uses localStorage (no DB table, no RLS touch).
-// Per Phase-0 finding #6: no existing preference mechanism found in codebase.
+"use client";
 
 import { useCallback, useEffect, useState } from "react";
 import type { WidgetLayoutEntry, WorkspaceUserState } from "../workspace.types";
 import { WORKSPACE_STORAGE_PREFIX } from "../workspace.constants";
-import { useAuth } from "@/lib/supabase/useAuth";
+import { createClient } from "@/infrastructure/supabase/client";
 
 const DEFAULT_STATE: WorkspaceUserState = {
   widgets: [],
@@ -47,20 +44,25 @@ export interface UseWidgetPersistenceResult {
 }
 
 export function useWidgetPersistence(): UseWidgetPersistenceResult {
-  const { user } = useAuth();
-  const userId = user?.id;
+  const [userId, setUserId] = useState<string | undefined>(undefined);
+
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data }) => {
+      setUserId(data.user?.id);
+    });
+  }, []);
+
   const storageKey = getStorageKey(userId);
 
   const [layout, setInternalLayout] = useState<WorkspaceUserState>(() =>
     readFromStorage(storageKey)
   );
 
-  // Sync to localStorage on every change
   useEffect(() => {
     writeToStorage(storageKey, layout);
   }, [storageKey, layout]);
 
-  // If user changes, re-read
   useEffect(() => {
     setInternalLayout(readFromStorage(storageKey));
   }, [storageKey]);
