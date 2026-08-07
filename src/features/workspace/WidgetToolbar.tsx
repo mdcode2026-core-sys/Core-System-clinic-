@@ -1,14 +1,9 @@
-// src/features/workspace/WidgetToolbar.tsx
-// Workspace Architecture — Per-widget controls
-// Hide / Collapse / Pin — persisted per-user via useWorkspace.
-// Per §11: controls are UI-only; persistence is handled by useWorkspace hook.
-
 "use client";
 
 import { useWorkspace } from "@/core/workspace/hooks/useWorkspace";
 import type { WidgetState } from "@/core/workspace/workspace.types";
 import { Eye, EyeOff, ChevronDown, Pin, PinOff } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/shared/utils/cn";
 
 interface WidgetToolbarProps {
   widgetKey: string;
@@ -36,7 +31,6 @@ export function WidgetToolbar({ widgetKey, currentState }: WidgetToolbarProps) {
 
   return (
     <div className="flex items-center gap-1">
-      {/* Collapse / Expand */}
       <button
         onClick={handleCollapse}
         className={cn(
@@ -53,7 +47,6 @@ export function WidgetToolbar({ widgetKey, currentState }: WidgetToolbarProps) {
         />
       </button>
 
-      {/* Pin / Unpin */}
       <button
         onClick={handlePin}
         className={cn(
@@ -68,7 +61,6 @@ export function WidgetToolbar({ widgetKey, currentState }: WidgetToolbarProps) {
         {isPinned ? <Pin className="h-4 w-4" /> : <PinOff className="h-4 w-4" />}
       </button>
 
-      {/* Hide / Show */}
       <button
         onClick={handleHide}
         className={cn(
