@@ -5,6 +5,7 @@ import type { WidgetDefinition } from "../workspace.types";
 import { resolveWidgetVisibility } from "../workspaceEngine";
 import { usePermissions } from "@/core/permissions/usePermissions";
 import { isFeatureEnabled } from "@/core/features/featureRegistry";
+import type { Permission } from "@/core/permissions/types";
 
 export interface UseWidgetVisibilityResult {
   isVisible: boolean;
@@ -18,9 +19,13 @@ export function useWidgetVisibility(
 ): UseWidgetVisibilityResult {
   const { hasPermission, isLoading } = usePermissions();
 
+  const hasPermissionWrapper = (perm: string): boolean => {
+    return hasPermission(perm as Permission);
+  };
+
   const result = useMemo(
-    () => resolveWidgetVisibility(widget, hasPermission, isFeatureEnabled, null, userHiddenKeys),
-    [widget, hasPermission, userHiddenKeys]
+    () => resolveWidgetVisibility(widget, hasPermissionWrapper, isFeatureEnabled, null, userHiddenKeys),
+    [widget, hasPermissionWrapper, userHiddenKeys]
   );
 
   return {
