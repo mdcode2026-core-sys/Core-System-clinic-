@@ -1,17 +1,21 @@
-// src/features/workspace/widgets/billing/BillingSummaryWidget.tsx
-// Widget: billing-summary — "Billing Summary" (name fixed by Owner decision)
-// Category: Informational | Layer: 3
-// Thin wrapper around existing invoicing.queries.ts — zero new business logic.
-
 "use client";
 
+import { useState, useEffect } from "react";
 import type { WidgetComponentProps } from "@/core/workspace/workspace.types";
 import { useInvoiceSummary } from "@/domain/invoicing/invoicing.queries";
-import { useAuth } from "@/lib/supabase/useAuth";
-import { DollarSign, FileText, TrendingUp, AlertCircle, Loader2 } from "lucide-react";
+import { createClient } from "@/infrastructure/supabase/client";
+import { FileText, AlertCircle, Loader2 } from "lucide-react";
 
 export function BillingSummaryWidget(_props: WidgetComponentProps) {
-  const { user } = useAuth();
+  const [user, setUser] = useState<{ user_metadata?: { tenant_id?: string } } | null>(null);
+
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data }) => {
+      setUser(data.user);
+    });
+  }, []);
+
   const tenantId = user?.user_metadata?.tenant_id;
 
   const { data: summary, isLoading, error } = useInvoiceSummary(tenantId ?? "");
