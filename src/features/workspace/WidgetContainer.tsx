@@ -1,17 +1,10 @@
-// src/features/workspace/WidgetContainer.tsx
-// Workspace Architecture — Widget lifecycle container
-
 "use client";
 
 import { useState, Suspense } from "react";
-import type { ResolvedWidget, WidgetState } from "@/core/workspace/workspace.types";
+import type { ResolvedWidget } from "@/core/workspace/workspace.types";
 import { WidgetToolbar } from "./WidgetToolbar";
 import { AlertCircle, Loader2, ChevronDown, Pin } from "lucide-react";
-
-// ✅ تم التصحيح: دالة cn محلية إذا لم يكن @/lib/utils متاحاً
-function cn(...classes: (string | boolean | undefined | null)[]) {
-  return classes.filter(Boolean).join(" ");
-}
+import { cn } from "@/shared/utils/cn";
 
 interface WidgetContainerProps {
   resolved: ResolvedWidget;
