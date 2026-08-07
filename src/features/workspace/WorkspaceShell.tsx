@@ -1,38 +1,38 @@
-// src/features/workspace/WorkspaceShell.tsx
-// Workspace Architecture — Shell Chrome (Layer 1 + Sidebar)
-// Renamed from DashboardShell.tsx per §19 (Legacy Files / Compatibility Rule).
-// Sidebar (navigationRegistry.ts-driven) treated as pre-existing shell chrome,
-// NOT a Widget, NOT part of Layer 2/3. Per Phase-0 finding: navigationRegistry.ts
-// is not listed in §4 under any layer; it lives inside the shell.
-
 "use client";
 
-import { useAuth } from "@/lib/supabase/useAuth";
+import { useState } from "react";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { LogOut, Menu, X } from "lucide-react";
 import { navigationRegistry } from "@/core/navigation/navigationRegistry";
 import { usePermissions } from "@/core/permissions/usePermissions";
-import { LogOut, Menu, X } from "lucide-react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useState } from "react";
-import { cn } from "@/lib/utils";
+import { createClient } from "@/infrastructure/supabase/client";
+import { cn } from "@/shared/utils/cn";
 
 interface WorkspaceShellProps {
   children: React.ReactNode;
+  user: { email?: string } | null;
 }
 
-export function WorkspaceShell({ children }: WorkspaceShellProps) {
-  const { user, signOut } = useAuth();
-  const { hasPermission } = usePermissions();
+export function WorkspaceShell({ children, user }: WorkspaceShellProps) {
   const pathname = usePathname();
+  const router = useRouter();
+  const { hasPermission } = usePermissions();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const supabase = createClient();
 
   const filteredNav = navigationRegistry.filter((item) =>
     hasPermission(item.requiredPermission)
   );
 
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    router.push("/login");
+    router.refresh();
+  };
+
   return (
     <div className="flex h-screen w-full bg-gray-50" dir="rtl">
-      {/* Mobile overlay */}
       {sidebarOpen && (
         <div
           className="fixed inset-0 z-40 bg-black/50 lg:hidden"
@@ -40,7 +40,6 @@ export function WorkspaceShell({ children }: WorkspaceShellProps) {
         />
       )}
 
-      {/* Sidebar — shell chrome, NOT a Widget */}
       <aside
         className={cn(
           "fixed inset-y-0 right-0 z-50 w-64 transform bg-white shadow-lg transition-transform duration-200 ease-in-out lg:static lg:translate-x-0",
@@ -48,7 +47,6 @@ export function WorkspaceShell({ children }: WorkspaceShellProps) {
         )}
       >
         <div className="flex h-full flex-col">
-          {/* Logo */}
           <div className="flex items-center justify-between border-b px-6 py-4">
             <Link href="/dashboard" className="text-xl font-bold text-blue-600">
               ClinicSaaS™
@@ -62,7 +60,6 @@ export function WorkspaceShell({ children }: WorkspaceShellProps) {
             </button>
           </div>
 
-          {/* Nav items */}
           <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4">
             {filteredNav.map((item) => {
               const isActive = pathname === item.href;
@@ -87,9 +84,7 @@ export function WorkspaceShell({ children }: WorkspaceShellProps) {
         </div>
       </aside>
 
-      {/* Main area */}
       <div className="flex flex-1 flex-col overflow-hidden">
-        {/* Global Header — Layer 1 per §4 */}
         <header className="flex items-center justify-between border-b bg-white px-4 py-3 lg:px-6">
           <div className="flex items-center gap-3">
             <button
@@ -109,7 +104,7 @@ export function WorkspaceShell({ children }: WorkspaceShellProps) {
               {user?.email}
             </span>
             <button
-              onClick={signOut}
+              onClick={handleSignOut}
               className="flex items-center gap-1.5 rounded-md bg-gray-100 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-200"
             >
               <LogOut className="h-4 w-4" />
@@ -118,7 +113,6 @@ export function WorkspaceShell({ children }: WorkspaceShellProps) {
           </div>
         </header>
 
-        {/* Content — Layer 2/3 widgets render here */}
         <main className="flex-1 overflow-y-auto p-4 lg:p-6">
           {children}
         </main>
