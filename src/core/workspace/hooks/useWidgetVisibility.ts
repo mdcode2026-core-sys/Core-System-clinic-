@@ -24,7 +24,7 @@ export function useWidgetVisibility(
   useEffect(() => {
     let cancelled = false;
     setFeatureLoading(true);
-    isFeatureEnabled(null, widget.moduleKey).then((result) => {
+    isFeatureEnabled("", widget.moduleKey).then((result) => {
       if (!cancelled) {
         setFeatureEnabled(result);
         setFeatureLoading(false);
