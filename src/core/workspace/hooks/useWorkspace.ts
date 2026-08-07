@@ -1,6 +1,5 @@
 // src/core/workspace/hooks/useWorkspace.ts
 // Workspace Architecture — Main workspace hook
-// Exposes resolved widget list + persisted layout.
 
 import { useCallback, useMemo } from "react";
 import type { WidgetLayoutEntry, WidgetState, WorkspaceUserState } from "../workspace.types";
@@ -8,25 +7,17 @@ import { useWorkspaceEngine } from "../workspaceEngine";
 import { useWidgetPersistence } from "./useWidgetPersistence";
 
 export interface UseWorkspaceResult {
-  /** All resolved widgets (visible + hidden) */
-  resolved: ReturnType<typeof useWorkspaceEngine>["resolved"];
-  /** Only visible widgets */
-  visibleWidgets: ReturnType<typeof useWorkspaceEngine>["visibleWidgets"];
-  /** Global loading state */
+  resolved: ReturnType<typeof useWorkspaceEngine>["resolved"];  // ✅ تم التصحيح
+  visibleWidgets: ReturnType<typeof useWorkspaceEngine>["visibleWidgets"];  // ✅ تم التصحيح
   isLoading: boolean;
-  /** Any widget in error state */
   hasErrors: boolean;
-  /** Update a single widget's persisted state (hide / collapse / pin) */
   updateWidgetState: (key: string, state: WidgetState) => void;
-  /** Re-order widgets (called by drag-drop or manual reorder) */
   reorderWidgets: (orderedKeys: string[]) => void;
-  /** Reset to defaults */
   resetLayout: () => void;
 }
 
 export function useWorkspace(): UseWorkspaceResult {
   const { layout, setLayout, reset } = useWidgetPersistence();
-
   const engine = useWorkspaceEngine(layout.widgets);
 
   const updateWidgetState = useCallback(
@@ -34,7 +25,6 @@ export function useWorkspace(): UseWorkspaceResult {
       setLayout((prev) => {
         const idx = prev.widgets.findIndex((w) => w.key === key);
         if (idx === -1) {
-          // New entry — append with default size
           return {
             ...prev,
             widgets: [
