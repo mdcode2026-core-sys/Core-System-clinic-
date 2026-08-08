@@ -1,25 +1,16 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import type { WidgetComponentProps } from "@/core/workspace/workspace.types";
 import { createPatientFromObject } from "@/domain/patients/patients.actions";
-import { createClient } from "@/infrastructure/supabase/client";
+import { useTenantId } from "@/core/auth/useTenantId";
 import { toast } from "sonner";
 import { UserPlus, CheckCircle } from "lucide-react";
 
 export function QuickRegistrationWidget(_props: WidgetComponentProps) {
-  const [user, setUser] = useState<{ user_metadata?: { tenant_id?: string } } | null>(null);
+  const { tenantId } = useTenantId();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
-
-  useEffect(() => {
-    const supabase = createClient();
-    supabase.auth.getUser().then(({ data }) => {
-      setUser(data.user);
-    });
-  }, []);
-
-  const tenantId = user?.user_metadata?.tenant_id;
 
   const [form, setForm] = useState({
     full_name: "",
