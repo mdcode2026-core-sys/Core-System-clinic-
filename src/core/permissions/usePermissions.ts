@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { createClient } from "@/infrastructure/supabase/client";
 import { getEffectivePermissions } from "./permissionEngine";
+import { useTenantId } from "@/core/auth/useTenantId";
 import type { Permission } from "./types";
 
 interface UsePermissionsReturn {
@@ -19,10 +20,12 @@ interface UsePermissionsReturn {
  * - hasPermission(key): boolean
  * - hasAnyPermission(keys[]): boolean
  *
- * Fix: reads tenant_id from clinic_users table directly instead of metadata,
- * to handle users whose metadata may be stale or missing.
+ * tenant_id is resolved via the shared useTenantId() hook (clinic_users
+ * table — single source of truth), not from auth user_metadata, which may
+ * be stale or missing.
  */
 export function usePermissions(): UsePermissionsReturn {
+  const { tenantId, isLoading: tenantLoading } = useTenantId();
   const [permissions, setPermissions] = useState<Permission[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -31,6 +34,10 @@ export function usePermissions(): UsePermissionsReturn {
     let cancelled = false;
 
     async function fetchPermissions() {
+      if (tenantLoading) {
+        return;
+      }
+
       setIsLoading(true);
       setError(null);
 
@@ -53,20 +60,6 @@ export function usePermissions(): UsePermissionsReturn {
         }
 
         const userId = session.user.id;
-
-        // FIX: Read tenant_id from clinic_users directly, not from metadata
-        const { data: clinicUser, error: clinicError } = await supabase
-          .from("clinic_users")
-          .select("tenant_id")
-          .eq("auth_user_id", userId)
-          .limit(1)
-          .maybeSingle();
-
-        if (clinicError) {
-          throw new Error(`Failed to fetch clinic user: ${clinicError.message}`);
-        }
-
-        const tenantId = clinicUser?.tenant_id;
 
         if (!tenantId) {
           console.warn("[usePermissions] No tenant_id found for user", userId);
@@ -100,7 +93,7 @@ export function usePermissions(): UsePermissionsReturn {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [tenantId, tenantLoading]);
 
   const hasPermission = useCallback(
     (key: Permission): boolean => {
