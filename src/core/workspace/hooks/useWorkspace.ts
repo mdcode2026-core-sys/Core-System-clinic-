@@ -1,14 +1,30 @@
 // src/core/workspace/hooks/useWorkspace.ts
-// Workspace Architecture — Main workspace hook
+// Workspace Architecture — Main workspace hook (orchestration layer)
+//
+// This hook owns everything the pure Engine (workspaceEngine.ts) is not
+// allowed to own: fetching permissions (usePermissions), fetching feature
+// flags (useFeatureFlags), and reading/writing the persisted layout
+// (useWidgetPersistence). Once all async data is resolved, it calls the
+// pure, synchronous resolveWidgetVisibility() for each registered widget.
+
+"use client";
 
 import { useCallback, useMemo } from "react";
-import type { WidgetLayoutEntry, WidgetState, WorkspaceUserState } from "../workspace.types";
-import { useWorkspaceEngine } from "../workspaceEngine";
+import type {
+  WidgetState,
+  WorkspaceUserState,
+  ResolvedWidget,
+  WidgetLayoutEntry,
+} from "../workspace.types";
+import { resolveWidgetVisibility } from "../workspaceEngine";
+import { widgetRegistry } from "../widgetRegistry";
+import { usePermissions } from "@/core/permissions/usePermissions";
+import { useFeatureFlags } from "@/core/features/useFeatureFlags";
 import { useWidgetPersistence } from "./useWidgetPersistence";
 
 export interface UseWorkspaceResult {
-  resolved: ReturnType<typeof useWorkspaceEngine>["resolved"];  // ✅ تم التصحيح
-  visibleWidgets: ReturnType<typeof useWorkspaceEngine>["visibleWidgets"];  // ✅ تم التصحيح
+  resolved: ResolvedWidget[];
+  visibleWidgets: ResolvedWidget[];
   isLoading: boolean;
   hasErrors: boolean;
   updateWidgetState: (key: string, state: WidgetState) => void;
@@ -18,11 +34,77 @@ export interface UseWorkspaceResult {
 
 export function useWorkspace(): UseWorkspaceResult {
   const { layout, setLayout, reset } = useWidgetPersistence();
-  const engine = useWorkspaceEngine(layout.widgets);
+  const { hasPermission, isLoading: permissionsLoading } = usePermissions();
+
+  // All distinct module keys referenced by the registry — fetched once.
+  const moduleKeys = useMemo(
+    () => Array.from(new Set(widgetRegistry.map((w) => w.moduleKey))),
+    []
+  );
+  const { isFeatureEnabled, isLoading: featuresLoading } = useFeatureFlags(moduleKeys);
+
+  const userHiddenKeys = useMemo(() => {
+    const hidden = new Set<string>();
+    for (const entry of layout.widgets) {
+      if (entry.state === "hidden") {
+        hidden.add(entry.key);
+      }
+    }
+    return hidden;
+  }, [layout.widgets]);
+
+  const isLoading = permissionsLoading || featuresLoading;
+
+  const resolved = useMemo(() => {
+    // Wait for both async sources before resolving — resolveWidgetVisibility
+    // itself stays pure/sync; we only decide *when* to call it here.
+    if (isLoading) {
+      return [];
+    }
+
+    const results: ResolvedWidget[] = [];
+
+    for (const def of widgetRegistry) {
+      const vis = resolveWidgetVisibility(def, hasPermission, isFeatureEnabled, userHiddenKeys);
+
+      const layoutEntry = layout.widgets.find((l) => l.key === def.key);
+      const widgetLayout: WidgetLayoutEntry = layoutEntry ?? {
+        key: def.key,
+        order: widgetRegistry.indexOf(def),
+        size: def.defaultSize,
+        state: vis.isVisible ? "visible" : "hidden",
+      };
+
+      results.push({
+        definition: def,
+        layout: widgetLayout,
+        isVisible: vis.isVisible,
+      });
+    }
+
+    results.sort((a, b) => {
+      if (a.definition.layer !== b.definition.layer) {
+        return a.definition.layer - b.definition.layer;
+      }
+      return a.layout.order - b.layout.order;
+    });
+
+    return results;
+  }, [isLoading, hasPermission, isFeatureEnabled, userHiddenKeys, layout.widgets]);
+
+  const visibleWidgets = useMemo(
+    () => resolved.filter((r) => r.isVisible),
+    [resolved]
+  );
+
+  const hasErrors = useMemo(
+    () => resolved.some((r) => r.layout.state === "error"),
+    [resolved]
+  );
 
   const updateWidgetState = useCallback(
     (key: string, state: WidgetState) => {
-      setLayout((prev) => {
+      setLayout((prev: WorkspaceUserState) => {
         const idx = prev.widgets.findIndex((w) => w.key === key);
         if (idx === -1) {
           return {
@@ -44,7 +126,7 @@ export function useWorkspace(): UseWorkspaceResult {
 
   const reorderWidgets = useCallback(
     (orderedKeys: string[]) => {
-      setLayout((prev) => {
+      setLayout((prev: WorkspaceUserState) => {
         const next = prev.widgets.map((w) => {
           const newOrder = orderedKeys.indexOf(w.key);
           return newOrder >= 0 ? { ...w, order: newOrder } : w;
@@ -60,10 +142,10 @@ export function useWorkspace(): UseWorkspaceResult {
   }, [reset]);
 
   return {
-    resolved: engine.resolved,
-    visibleWidgets: engine.visibleWidgets,
-    isLoading: engine.isLoading,
-    hasErrors: engine.hasErrors,
+    resolved,
+    visibleWidgets,
+    isLoading,
+    hasErrors,
     updateWidgetState,
     reorderWidgets,
     resetLayout,
