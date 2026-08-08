@@ -1,24 +1,15 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import type { WidgetComponentProps } from "@/core/workspace/workspace.types";
 import { createAgendaEvent } from "@/domain/agenda/agenda.actions";
 import { useDoctors, useRooms, useProcedures } from "@/domain/agenda/agenda.queries";
-import { createClient } from "@/infrastructure/supabase/client";
+import { useTenantId } from "@/core/auth/useTenantId";
 import { toast } from "sonner";
 import { CalendarPlus, CheckCircle } from "lucide-react";
 
 export function QuickAppointmentWidget(_props: WidgetComponentProps) {
-  const [user, setUser] = useState<{ user_metadata?: { tenant_id?: string } } | null>(null);
-
-  useEffect(() => {
-    const supabase = createClient();
-    supabase.auth.getUser().then(({ data }) => {
-      setUser(data.user);
-    });
-  }, []);
-
-  const tenantId = user?.user_metadata?.tenant_id;
+  const { tenantId } = useTenantId();
 
   const { data: doctors = [] } = useDoctors();
   const { data: rooms = [] } = useRooms();
