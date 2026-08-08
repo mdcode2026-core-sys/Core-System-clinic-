@@ -1,22 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import type { WidgetComponentProps } from "@/core/workspace/workspace.types";
 import { useQueueStats } from "@/domain/queue/queue.queries";
-import { createClient } from "@/infrastructure/supabase/client";
+import { useTenantId } from "@/core/auth/useTenantId";
 import { Clock, AlertCircle, Loader2 } from "lucide-react";
 
 export function QueueWidget(_props: WidgetComponentProps) {
-  const [user, setUser] = useState<{ user_metadata?: { tenant_id?: string } } | null>(null);
-
-  useEffect(() => {
-    const supabase = createClient();
-    supabase.auth.getUser().then(({ data }) => {
-      setUser(data.user);
-    });
-  }, []);
-
-  const tenantId = user?.user_metadata?.tenant_id;
+  const { tenantId } = useTenantId();
 
   const { data: stats, isLoading, error } = useQueueStats(tenantId ?? "");
 
