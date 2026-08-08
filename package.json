@@ -12,6 +12,7 @@
     "db:reset": "supabase db reset"
   },
   "dependencies": {
+    "sonner": "^1.7.4",
     "next": "16.2.10",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",

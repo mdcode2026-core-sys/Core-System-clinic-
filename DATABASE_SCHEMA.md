@@ -36,7 +36,7 @@ No migration has dropped these. `create_tenant_with_subscription()` no longer wr
 |---|---|---|
 | `roles` | **6** (seeded: `super_admin`, `clinic_admin`, `clinic_owner`, `doctor`, `nurse`, `receptionist`) | Becomes the System/Custom Permission Template registry. `is_system_role` (bool) already distinguishes default vs. tenant-defined. Not tenant-scoped (no `tenant_id` column) — global catalog, tenant-specific custom templates would need a `tenant_id` column added when that capability is built. |
 | `permissions` | 0 (empty — never populated) | `permission_key`, `permission_name`, `resource`, `action` — the master permission-key catalog. Existing app code uses a different in-code format (`resource:action`, e.g. `patients:read`) in `src/core/permissions/types.ts` — reconcile naming before populating. |
-| `role_permissions` | 0 (empty — never populated) | Join table: `role_id` → `roles.id`, `permission_id` → `permissions.id`. This is the template-to-permission mapping. |
+| `role_permissions` | ~~0 (empty — never populated)~~ **89 (populated as of 2026-08-08 — verified live query, this doc was stale)** | Join table: `role_id` → `roles.id`, `permission_id` → `permissions.id`. This is the template-to-permission mapping. |
 
 All three already have permissive `SELECT` RLS policies (`USING (true)`) — readable by any role today. No `INSERT`/`UPDATE`/`DELETE` policy exists yet for any of them.
 
@@ -115,7 +115,7 @@ Pre-aggregated daily rollup per tenant: visit counts, new/returning patients, no
 | Table | Rows | Purpose |
 |---|---|---|
 | `subscription_plans` | 4 | Plan catalog (`max_users/devices/branches`, `modules` jsonb, `ai_limits` jsonb, `storage_gb`, `api_rate_limit`). **RLS enabled, zero policies — currently unreadable by anyone. See SECURITY_AUDIT_REPORT SEC-007.** |
-| `feature_flags` | 5 → **11 after seed** (2026-08-04) | `flag_key`, `is_enabled`, `allowed_tiers` (array, e.g. `{enterprise}`), `config_json`. Can be tenant-specific (`tenant_id` nullable) or global. **Now actively used by `isFeatureEnabled()` in `src/core/features/featureRegistry.ts` (Package 3.1.7).** Seed data: 6 globally-enabled module flags (`patients`, `agenda`, `queue`, `billing`, `inventory`, `followup`). |
+| `feature_flags` | 5 → 11 after seed (2026-08-04) → **13 after seed** (2026-08-08) | `flag_key`, `is_enabled`, `allowed_tiers` (array, e.g. `{enterprise}`), `config_json`. Can be tenant-specific (`tenant_id` nullable) or global. **Now actively used by `isFeatureEnabled()` in `src/core/features/featureRegistry.ts` (Package 3.1.7).** Seed data: 8 globally-enabled module flags (`patients`, `agenda`, `queue`, `billing`, `inventory`, `followup` — 2026-08-04; `analytics`, `reports` added 2026-08-08 during Session 11 Recovery, per `WORKSPACE_ARCHITECTURE_SPECIFICATION.md` §9 — see `supabase/migrations/20260808_seed_analytics_reports_feature_flags.sql`). |
 | `billing_events` | 0 | Audit trail of subscription lifecycle events (trial_started, upgraded, tier_override_by_admin, etc.), separate from `audit_trail`. |
 | `tenant_devices` | 0 | Device registration/fingerprinting per tenant, ties to `master_tenants.max_devices` limit enforcement. |
 

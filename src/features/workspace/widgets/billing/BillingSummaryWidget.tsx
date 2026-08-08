@@ -1,14 +1,21 @@
 "use client";
 
 import type { WidgetComponentProps } from "@/core/workspace/workspace.types";
-import { useInvoiceSummary } from "@/domain/invoicing/invoicing.queries";
+import { useBillingSummary } from "@/domain/invoicing/useBillingSummary";
 import { useTenantId } from "@/core/auth/useTenantId";
 import { FileText, AlertCircle, Loader2 } from "lucide-react";
 
+// NOTE: this widget shows 3 figures backed by existing, documented report
+// queries (ARCHITECTURE_DECISIONS.md — Reports catalog: Revenue Summary,
+// Paid Invoices, Outstanding Invoices). A 4th figure the original widget
+// showed — "average invoice" — has no defined calculation anywhere in the
+// codebase or documentation (average of paid invoices? of all issued
+// invoices? weighted how?) and was removed rather than invented. See final
+// report: BLOCKED / DECISION REQUIRED.
+
 export function BillingSummaryWidget(_props: WidgetComponentProps) {
   const { tenantId } = useTenantId();
-
-  const { data: summary, isLoading, error } = useInvoiceSummary(tenantId ?? "");
+  const { data: summary, isLoading, error } = useBillingSummary(tenantId);
 
   if (isLoading) {
     return (
@@ -22,7 +29,7 @@ export function BillingSummaryWidget(_props: WidgetComponentProps) {
     return (
       <div className="flex flex-col items-center gap-2 py-4 text-red-600">
         <AlertCircle className="h-8 w-8" />
-        <p className="text-sm">{error.message || "فشل تحميل بيانات الفواتير"}</p>
+        <p className="text-sm">{error instanceof Error ? error.message : "فشل تحميل بيانات الفواتير"}</p>
       </div>
     );
   }
@@ -38,39 +45,29 @@ export function BillingSummaryWidget(_props: WidgetComponentProps) {
 
   return (
     <div className="space-y-3">
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-3 gap-3">
         <div className="rounded-lg bg-green-50 p-3 text-center">
-          <p className="text-2xl font-bold text-green-700">
-            {summary.total_revenue?.toLocaleString("ar-SA") ?? 0}
+          <p className="text-xl font-bold text-green-700">
+            {(summary.totalRevenue / 100).toLocaleString("ar-SA")}
           </p>
-          <p className="text-xs text-green-600">إجمالي الإيرادات</p>
+          <p className="text-xs text-green-600">الإيرادات المحصّلة</p>
         </div>
         <div className="rounded-lg bg-blue-50 p-3 text-center">
-          <p className="text-2xl font-bold text-blue-700">
-            {summary.total_invoices ?? 0}
-          </p>
-          <p className="text-xs text-blue-600">عدد الفواتير</p>
+          <p className="text-xl font-bold text-blue-700">{summary.paidInvoicesCount}</p>
+          <p className="text-xs text-blue-600">فواتير مدفوعة</p>
         </div>
         <div className="rounded-lg bg-yellow-50 p-3 text-center">
-          <p className="text-2xl font-bold text-yellow-700">
-            {summary.pending_amount?.toLocaleString("ar-SA") ?? 0}
+          <p className="text-xl font-bold text-yellow-700">
+            {(summary.outstandingAmount / 100).toLocaleString("ar-SA")}
           </p>
-          <p className="text-xs text-yellow-600">مبالغ معلقة</p>
-        </div>
-        <div className="rounded-lg bg-purple-50 p-3 text-center">
-          <p className="text-2xl font-bold text-purple-700">
-            {summary.average_invoice?.toLocaleString("ar-SA") ?? 0}
-          </p>
-          <p className="text-xs text-purple-600">متوسط الفاتورة</p>
+          <p className="text-xs text-yellow-600">مستحق ({summary.outstandingCount})</p>
         </div>
       </div>
 
-      {summary.period && (
-        <div className="flex items-center justify-between rounded-lg bg-gray-50 px-3 py-2">
-          <span className="text-xs text-gray-600">الفترة</span>
-          <span className="text-xs font-medium text-gray-800">{summary.period}</span>
-        </div>
-      )}
+      <div className="flex items-center justify-between rounded-lg bg-gray-50 px-3 py-2">
+        <span className="text-xs text-gray-600">الفترة</span>
+        <span className="text-xs font-medium text-gray-800">{summary.periodLabel}</span>
+      </div>
     </div>
   );
 }

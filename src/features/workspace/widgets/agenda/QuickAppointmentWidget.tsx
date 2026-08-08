@@ -9,11 +9,11 @@ import { toast } from "sonner";
 import { CalendarPlus, CheckCircle } from "lucide-react";
 
 export function QuickAppointmentWidget(_props: WidgetComponentProps) {
-  const { tenantId } = useTenantId();
+  const { tenantId, userId } = useTenantId();
 
-  const { data: doctors = [] } = useDoctors();
-  const { data: rooms = [] } = useRooms();
-  const { data: procedures = [] } = useProcedures();
+  const { data: doctors = [] } = useDoctors(tenantId);
+  const { data: rooms = [] } = useRooms(tenantId);
+  const { data: procedures = [] } = useProcedures(tenantId);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -30,8 +30,8 @@ export function QuickAppointmentWidget(_props: WidgetComponentProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!tenantId) {
-      toast.error("لم يتم تحديد العيادة");
+    if (!tenantId || !userId) {
+      toast.error("لم يتم تحديد العيادة أو المستخدم");
       return;
     }
     if (!form.patient_id || !form.doctor_id || !form.start_time) {
@@ -41,16 +41,25 @@ export function QuickAppointmentWidget(_props: WidgetComponentProps) {
 
     setIsSubmitting(true);
     try {
-      await createAgendaEvent({
-        patient_id: form.patient_id,
-        doctor_id: form.doctor_id,
-        room_id: form.room_id || undefined,
-        procedure_id: form.procedure_id || undefined,
-        start_time: new Date(form.start_time).toISOString(),
-        end_time: form.end_time ? new Date(form.end_time).toISOString() : undefined,
-        notes: form.notes || undefined,
-        tenant_id: tenantId,
-      });
+      const fd = new FormData();
+      fd.set("tenant_id", tenantId);
+      fd.set("patient_id", form.patient_id);
+      fd.set("doctor_id", form.doctor_id);
+      if (form.room_id) fd.set("room_id", form.room_id);
+      if (form.procedure_id) fd.set("procedure_id", form.procedure_id);
+      fd.set("scheduled_start", new Date(form.start_time).toISOString());
+      fd.set(
+        "scheduled_end",
+        form.end_time
+          ? new Date(form.end_time).toISOString()
+          : new Date(form.start_time).toISOString()
+      );
+      fd.set("created_by", userId);
+
+      const result = await createAgendaEvent(fd);
+      if (result?.error) {
+        throw new Error(result.error);
+      }
       toast.success("تم إنشاء الموعد بنجاح");
       setSubmitted(true);
       setForm({
@@ -120,7 +129,7 @@ export function QuickAppointmentWidget(_props: WidgetComponentProps) {
                 <option value="">اختر غرفة</option>
                 {rooms.map((r) => (
                   <option key={r.id} value={r.id}>
-                    {r.name}
+                    {r.room_name}
                   </option>
                 ))}
               </select>
@@ -135,7 +144,7 @@ export function QuickAppointmentWidget(_props: WidgetComponentProps) {
                 <option value="">اختر إجراءً</option>
                 {procedures.map((p) => (
                   <option key={p.id} value={p.id}>
-                    {p.name}
+                    {p.procedure_name}
                   </option>
                 ))}
               </select>

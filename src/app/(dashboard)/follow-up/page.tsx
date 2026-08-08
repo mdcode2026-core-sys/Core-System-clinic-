@@ -5,6 +5,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/infrastructure/supabase/server";
 import { getEffectivePermissions } from "@/core/permissions/permissionEngine";
+import { resolveTenantId } from "@/core/auth/resolveTenantId";
 import { listFollowups, getScheduledFollowups } from "@/domain/followup/followup.queries";
 import { FollowupShell } from "@/features/followup/followup-shell";
 
@@ -16,7 +17,7 @@ export default async function FollowUpPage() {
     redirect("/login");
   }
 
-  const tenantId = user.user_metadata?.tenant_id as string | undefined;
+  const tenantId = await resolveTenantId(user.id);
   if (!tenantId) {
     redirect("/login");
   }

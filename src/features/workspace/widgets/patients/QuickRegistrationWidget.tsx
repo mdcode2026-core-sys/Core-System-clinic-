@@ -32,13 +32,18 @@ export function QuickRegistrationWidget(_props: WidgetComponentProps) {
 
     setIsSubmitting(true);
     try {
-      await createPatientFromObject({
-        full_name: form.full_name,
-        phone: form.phone,
-        gender: form.gender,
-        date_of_birth: form.date_of_birth || undefined,
-        tenant_id: tenantId,
-      });
+      const nameParts = form.full_name.trim().split(/\s+/);
+  const first_name = nameParts.shift() || "";
+  const last_name = nameParts.join(" ") || first_name;
+
+  await createPatientFromObject({
+    first_name,
+    last_name,
+    phone_primary: form.phone,
+    gender: form.gender,
+    date_of_birth: form.date_of_birth || undefined,
+    tenant_id: tenantId,
+  });
       toast.success("تم تسجيل المريض بنجاح");
       setSubmitted(true);
       setForm({ full_name: "", phone: "", gender: "male", date_of_birth: "" });

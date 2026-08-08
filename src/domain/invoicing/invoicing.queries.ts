@@ -3,6 +3,8 @@
 // Phase 5 — Invoice Query Functions
 // ================================================================
 
+"use server";
+
 import { createClient } from "@/infrastructure/supabase/server";
 import type {
   InvoiceListFilters,

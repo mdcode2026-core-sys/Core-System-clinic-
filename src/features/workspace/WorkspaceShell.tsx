@@ -75,7 +75,7 @@ export function WorkspaceShell({ children, user }: WorkspaceShellProps) {
                       : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
                   )}
                 >
-                  {item.icon}
+                  <item.icon className="h-4 w-4" />
                   <span>{item.labelAr}</span>
                 </Link>
               );

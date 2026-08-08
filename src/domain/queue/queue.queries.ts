@@ -5,6 +5,7 @@
 "use server";
 
 import { createClient } from "@/infrastructure/supabase/server";
+import { resolveTenantId } from "@/core/auth/resolveTenantId";
 import { QueueSession, EnrichedSession, QueueStats, QueueFilters, SessionStatus } from "./queue.types";
 
 // ── Helper: حساب وقت الانتظار بالدقائق ───────────────────
@@ -27,10 +28,10 @@ async function getTenantId(): Promise<string> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("Not authenticated");
-  
-  const tenantId = user.user_metadata?.tenant_id as string | undefined;
+
+  const tenantId = await resolveTenantId(user.id);
   if (!tenantId) throw new Error("No tenant assigned");
-  
+
   return tenantId;
 }
 

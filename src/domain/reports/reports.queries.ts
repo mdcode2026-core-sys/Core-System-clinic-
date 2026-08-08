@@ -1,14 +1,15 @@
 "use server";
 
 import { createClient } from "@/infrastructure/supabase/server";
+import { resolveTenantId } from "@/core/auth/resolveTenantId";
 import type { DataSource } from "./reportRegistry";
 
 // ── Shared helper: resolve tenant_id from auth context ──
 async function getTenantId(): Promise<string | null> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  const tenantId = user?.app_metadata?.tenant_id || user?.user_metadata?.tenant_id;
-  return tenantId ?? null;
+  if (!user) return null;
+  return resolveTenantId(user.id);
 }
 
 // ── Type-safe report result shape ──

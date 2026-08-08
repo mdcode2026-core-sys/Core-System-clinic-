@@ -2,7 +2,7 @@
 
 **Project:** CORE SYSTEM — ClinicSaaS™
 **Purpose:** Single, living handoff document. Updated in place going forward — supersedes dated snapshot files (`Handoff_Daily_Report_2026-07-29.md`, `QUEUE_DEBUG_PROGRESS.md`, `QUEUE_FIX_PROGRESS.md`, `ANALYTICS_BUILD_PROGRESS.md`), which are archived under `/archive/` for historical reference.
-**Last Updated:** 2026-07-31
+**Last Updated:** 2026-08-08
 
 ---
 
@@ -23,7 +23,7 @@
 | Inventory | ⚠️ Consumption log only (`inventory_ledger`); no stock/catalog model |
 | Reports | ❌ Not started |
 | Follow-up | ⚠️ Database fully modeled (`retention_followups`); no domain layer or UI |
-| Dashboard (Unified Workspace) | Partial shell exists (`DashboardShell.tsx`) |
+| Dashboard (Unified Workspace) | 🟡 Session 11 build blockers fixed 2026-08-08 (see Open Item #9) — code-complete pending real `npm run build` verification, not yet re-deployed |
 | Permission Engine (dynamic, per ADR-001) | 🟡 Runtime complete (Package 3.0.1, 2026-08-02) — DB populated, permissionEngine.ts + usePermissions.ts live, build green. Navigation/UI wiring next (Package 3.0.2). |
 | Tenant Administration Center / Settings Dashboard | Not started |
 
@@ -32,6 +32,20 @@ Authoritative next milestone: **Milestone 3 — Unified Workspace** (confirmed 2
 ---
 
 ## 2. Open Items Requiring Attention
+
+### Open Item #9 — Session 11 (Workspace) Recovery — code fixed, build not yet re-verified live (2026-08-08)
+Session 11 had never reached a successful build. Direct repository + Vercel build log + live Supabase inspection identified the actual chain of failures (not guessed): a Promise passed where `resolveWidgetVisibility` expected a synchronous boolean (rejected by `tsconfig strict:true`), then — once that was fixed and the build progressed further than ever before — a missing `sonner` dependency, a Server/Client boundary violation in `invoicing.queries.ts`, and a root `layout.tsx` that was a mistaken verbatim copy of `(dashboard)/layout.tsx` (missing `<html>`/`<body>`, wrapping even public `/login` in an auth guard). All fixed directly; see `CHANGELOG.md` 2026-08-08 entry for the full file-by-file list.
+
+**Also found and fixed in the same pass, not limited to the 5 Session 11 widget files:**
+- `AuthProvider` (`src/core/auth/AuthProvider.tsx`) was fully implemented but never mounted anywhere — 6 real components (`patient-form`, `patient-list`, `MyQueueView`, `LiveQueueBoard`, `AmbientKioskView`, `AnalyticsDashboard`) call `useAuth()` and would throw at render. Now mounted in `(dashboard)/layout.tsx`.
+- `user_metadata.tenant_id` (the exact anti-pattern `analytics.actions.ts` already warns against in a code comment) was still in use in 12 places project-wide, not just the 5 Session 11 widgets — 4 dashboard route pages and 3 domain query/action files. Consolidated onto a shared `resolveTenantId()`/`useTenantId()` resolver reading `clinic_users`.
+- `feature_flags` seed (2026-08-04, Package 3.1.7) covered only 6 of the 8 module keys `WORKSPACE_ARCHITECTURE_SPECIFICATION.md` §9 documents — `analytics` and `reports` were missing, silently hiding the Analytics widget for every tenant regardless of subscription. Seeded via `supabase/migrations/20260808_seed_analytics_reports_feature_flags.sql`, same pattern as the existing 6 rows.
+
+**Found stale, corrected in `DATABASE_SCHEMA.md`:** that document claimed `role_permissions` was empty (0 rows, never populated) — a live query found 89 rows. The document itself was out of date, not the system; corrected in place.
+
+**Not fixed — flagged, needs an Owner/Architect decision, not mechanical:** `src/infrastructure/supabase/server.ts` still resolves the RLS tenant context (`set_tenant_id` RPC) from `user_metadata`/`app_metadata` internally rather than `clinic_users`. This function is imported by 19+ files across the whole app (effectively every server action) — correcting it touches the RLS-setting mechanism for the entire application, not an isolated fix. Until decided, any user whose JWT metadata has drifted from `clinic_users.tenant_id` risks RLS being applied under the wrong tenant context (or none).
+
+**Still unverified — the actual blocker to closing this item:** `npm run build` / `npm run lint` have not been run against these changes in a real Node environment (the working environment used for this recovery had no `node_modules` or network access). Every fix above was verified by manual cross-referencing of imports, function signatures, and types against the real source, plus live Supabase queries — not by a real compiler. **Action needed: run `npm ci && npm run build && npm run lint` in a real environment, then a manual smoke test of `/`, `/login`, `/queue`, `/invoices`, before formally closing this item and re-deploying.**
 
 ### Open Item #8 — Deep audit across Sessions 3–7 (2026-08-04)
 Full direct repository + live database inspection performed after Kimi self-reported cascading failures in Session 6.

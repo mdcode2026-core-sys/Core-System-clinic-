@@ -6,6 +6,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/infrastructure/supabase/server";
+import { resolveTenantId } from "@/core/auth/resolveTenantId";
 import { QueueSession, SessionStatus, EnrichedSession } from "./queue.types";
 import { queueEngine } from "./queue.engine";
 
@@ -15,7 +16,7 @@ async function getAuthContext() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("Not authenticated");
 
-  const tenantId = user.user_metadata?.tenant_id as string | undefined;
+  const tenantId = await resolveTenantId(user.id);
   if (!tenantId) throw new Error("No tenant assigned");
 
   return { supabase, user, tenantId, userId: user.id };

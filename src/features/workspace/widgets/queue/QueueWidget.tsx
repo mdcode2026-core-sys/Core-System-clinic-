@@ -1,7 +1,7 @@
 "use client";
 
 import type { WidgetComponentProps } from "@/core/workspace/workspace.types";
-import { useQueueStats } from "@/domain/queue/queue.queries";
+import { useQueueStats } from "@/domain/queue/queue.hooks";
 import { useTenantId } from "@/core/auth/useTenantId";
 import { Clock, AlertCircle, Loader2 } from "lucide-react";
 
@@ -44,24 +44,24 @@ export function QueueWidget(_props: WidgetComponentProps) {
           <p className="text-xs text-blue-600">في الانتظار</p>
         </div>
         <div className="rounded-lg bg-green-50 p-3 text-center">
-          <p className="text-2xl font-bold text-green-700">{stats.total_in_progress ?? 0}</p>
+          <p className="text-2xl font-bold text-green-700">{stats.total_in_consultation ?? 0}</p>
           <p className="text-xs text-green-600">قيد التنفيذ</p>
         </div>
         <div className="rounded-lg bg-purple-50 p-3 text-center">
-          <p className="text-2xl font-bold text-purple-700">{stats.total_completed ?? 0}</p>
+          <p className="text-2xl font-bold text-purple-700">{stats.total_completed_today ?? 0}</p>
           <p className="text-xs text-purple-600">مكتمل</p>
         </div>
         <div className="rounded-lg bg-orange-50 p-3 text-center">
-          <p className="text-2xl font-bold text-orange-700">{stats.total_noshow ?? 0}</p>
+          <p className="text-2xl font-bold text-orange-700">{stats.total_no_show_today ?? 0}</p>
           <p className="text-xs text-orange-600">لم يحضر</p>
         </div>
       </div>
 
-      {stats.avg_wait_minutes !== undefined && (
+      {stats.avg_wait_time_minutes !== undefined && (
         <div className="flex items-center justify-between rounded-lg bg-gray-50 px-3 py-2">
           <span className="text-xs text-gray-600">متوسط وقت الانتظار</span>
           <span className="text-sm font-semibold text-gray-800">
-            {stats.avg_wait_minutes} دقيقة
+            {stats.avg_wait_time_minutes} دقيقة
           </span>
         </div>
       )}

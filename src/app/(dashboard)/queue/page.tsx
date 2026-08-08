@@ -5,6 +5,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/infrastructure/supabase/server";
 import { getEffectivePermissions } from "@/core/permissions/permissionEngine";
+import { resolveTenantId } from "@/core/auth/resolveTenantId";
 import { getQueue, getQueueStats, getActiveDoctors } from "@/domain/queue/queue.queries";
 import { LiveQueueBoard } from "@/features/reception/LiveQueueBoard";
 import { MyQueueView } from "@/features/doctor/MyQueueView";
@@ -21,7 +22,7 @@ export default async function QueuePage() {
     redirect("/login");
   }
 
-  const tenantId = user.user_metadata?.tenant_id as string | undefined;
+  const tenantId = await resolveTenantId(user.id);
 
   if (!tenantId) {
     redirect("/login");

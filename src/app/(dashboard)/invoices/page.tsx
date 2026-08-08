@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/infrastructure/supabase/server";
 import { getEffectivePermissions } from "@/core/permissions/permissionEngine";
+import { resolveTenantId } from "@/core/auth/resolveTenantId";
 import { InvoiceList } from "@/features/invoicing/invoice-list";
 import { listInvoices } from "@/domain/invoicing/invoicing.queries";
 
@@ -12,7 +13,7 @@ export default async function InvoicesPage() {
     redirect("/login");
   }
 
-  const tenantId = user.user_metadata?.tenant_id as string | undefined;
+  const tenantId = await resolveTenantId(user.id);
 
   if (!tenantId) {
     redirect("/login");

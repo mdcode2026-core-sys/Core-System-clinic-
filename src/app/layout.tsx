@@ -1,31 +1,33 @@
-// src/app/(dashboard)/layout.tsx
-// Workspace Architecture — Dashboard layout
-// Server-side authentication guard.
-// Passes authenticated user to WorkspaceShell.
+// src/app/layout.tsx
+// Root layout — required by Next.js App Router (must render <html>/<body>).
+//
+// FIX: this file previously contained a verbatim copy of the Dashboard
+// route-group layout (auth guard + <WorkspaceShell> wrapper), which is
+// already correctly implemented in src/app/(dashboard)/layout.tsx.
+// Duplicating that logic here broke every route in the app, including
+// public routes like (auth)/login, and was missing the mandatory
+// <html>/<body> tags required of a root layout.
 
-import { redirect } from "next/navigation";
-import { createClient } from "@/infrastructure/supabase/server";
-import { WorkspaceShell } from "@/features/workspace/WorkspaceShell";
+import type { Metadata } from "next";
+import { Toaster } from "sonner";
+import "./globals.css";
 
-export default async function DashboardLayout({
+export const metadata: Metadata = {
+  title: "ClinicSaaS",
+  description: "ClinicSaaS Multi-Tenant Platform",
+};
+
+export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const supabase = await createClient();
-
-  const {
-    data: { user },
-    error,
-  } = await supabase.auth.getUser();
-
-  if (error || !user) {
-    redirect("/login");
-  }
-
   return (
-    <WorkspaceShell user={user}>
-      {children}
-    </WorkspaceShell>
+    <html lang="ar" dir="rtl">
+      <body>
+        {children}
+        <Toaster richColors position="top-center" />
+      </body>
+    </html>
   );
 }

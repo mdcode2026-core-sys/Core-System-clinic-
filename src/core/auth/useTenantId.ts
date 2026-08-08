@@ -5,6 +5,7 @@ import { createClient } from "@/infrastructure/supabase/client";
 
 interface UseTenantIdReturn {
   tenantId: string | null;
+  userId: string | null;
   isLoading: boolean;
   error: string | null;
 }
@@ -21,6 +22,7 @@ interface UseTenantIdReturn {
  */
 export function useTenantId(): UseTenantIdReturn {
   const [tenantId, setTenantId] = useState<string | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -46,9 +48,14 @@ export function useTenantId(): UseTenantIdReturn {
         if (!session?.user) {
           if (!cancelled) {
             setTenantId(null);
+            setUserId(null);
             setIsLoading(false);
           }
           return;
+        }
+
+        if (!cancelled) {
+          setUserId(session.user.id);
         }
 
         const { data: clinicUser, error: clinicError } = await supabase
@@ -86,5 +93,5 @@ export function useTenantId(): UseTenantIdReturn {
     };
   }, []);
 
-  return { tenantId, isLoading, error };
+  return { tenantId, userId, isLoading, error };
 }
