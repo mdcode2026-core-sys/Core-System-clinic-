@@ -21,8 +21,8 @@ export function WorkspaceShell({ children, user }: WorkspaceShellProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const supabase = createClient();
 
-  const filteredNav = navigationRegistry.filter((item) =>
-    hasPermission(item.requiredPermission)
+  const filteredNav = navigationRegistry.filter(
+    (item) => item.requiredPermission === null || hasPermission(item.requiredPermission)
   );
 
   const handleSignOut = async () => {
@@ -48,7 +48,7 @@ export function WorkspaceShell({ children, user }: WorkspaceShellProps) {
       >
         <div className="flex h-full flex-col">
           <div className="flex items-center justify-between border-b px-6 py-4">
-            <Link href="/dashboard" className="text-xl font-bold text-blue-600">
+            <Link href="/" className="text-xl font-bold text-blue-600">
               ClinicSaaS™
             </Link>
             <button
