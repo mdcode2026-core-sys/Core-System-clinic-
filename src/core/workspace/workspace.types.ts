@@ -3,6 +3,8 @@
 // Per WORKSPACE_ARCHITECTURE_SPECIFICATION.md §7
 
 import type { ComponentType } from "react";
+import type { Permission } from "@/core/permissions/types";
+import type { FeatureModuleKey } from "@/core/features/types";
 
 // §6 — Widget categories
 export type WidgetCategory =
@@ -48,9 +50,9 @@ export interface WidgetDefinition {
   /** Default render size */
   defaultSize: WidgetSize;
   /** Permission key required to see this widget */
-  requiredPermission: string;
+  requiredPermission: Permission;
   /** Feature module key for feature-flag gating */
-  moduleKey: string;
+  moduleKey: FeatureModuleKey;
   /** Lazy-loaded component reference */
   component: ComponentType<WidgetComponentProps>;
 }
