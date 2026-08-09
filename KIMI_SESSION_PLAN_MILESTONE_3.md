@@ -1,5 +1,7 @@
 # KIMI_SESSION_PLAN_MILESTONE_3.md
 
+> **Completion status (2026-08-08):** All 13 sessions this document plans for are complete; the result required a separate recovery pass (build/integration defects) before it built successfully — see `CHANGELOG.md` 2026-08-08 and `PROJECT_HANDOFF.md` Open Item #9. Kept below as historical record, per `DOCUMENTATION_CONSOLIDATION_PLAN.md`.
+
 **Purpose:** The complete, ready-to-send prompt set for Kimi's execution of Milestone 3 (Unified Workspace), divided into 13 self-contained sessions. Each session assumes Kimi has no memory of any previous session — every session re-establishes what it needs by reading the repository, never by being reminded verbally.
 
 **How to use this document:** Send the "Universal Preamble" once at the start of every session, immediately followed by that session's block. Do not skip the preamble even if it feels repetitive — it is what makes each session self-sufficient.
