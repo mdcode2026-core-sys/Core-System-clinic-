@@ -2,6 +2,8 @@
 
 **Status:** Foundational Architecture (Architecture Freeze)
 
+**Implementation status (2026-08-08):** Implemented — Session 11 delivered this architecture; Session 11 Recovery (2026-08-08) fixed build/integration defects without altering the design described below. See `CHANGELOG.md` 2026-08-08 and `PROJECT_HANDOFF.md` Open Item #9. §9's example moduleKey list (`patients, agenda, queue, billing, inventory, followup, reports, analytics`) is now fully seeded in `feature_flags` — the last two (`reports`, `analytics`) were missing until this recovery; see `supabase/migrations/20260808_seed_analytics_reports_feature_flags.sql`.
+
 **Authority:** Equal to `MASTER_ROADMAP.md`, `ARCHITECTURE_DECISIONS.md` and `ENGINEERING_CONSTITUTION.md`.
 
 This document defines the permanent architecture of the CORE SYSTEM Workspace.
