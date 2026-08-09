@@ -65,6 +65,8 @@ Live inspection also found `roles`, `permissions`, and `role_permissions` tables
 
 **Consequence:** The Software Engineering Execution Plan for Milestone 3 proceeds as the active plan. Milestone 2 content is still pending (see EN-001, unresolved — Sections 8–16 of the roadmap are not present even in the canonical repository copy).
 
+**Implementation status (2026-08-08):** Milestone 3 (Unified Workspace) is implemented and builds successfully — see `CHANGELOG.md` 2026-08-08 entry and `PROJECT_HANDOFF.md` Open Item #9 for the full recovery record. `src/features/dashboard/DashboardShell.tsx` (the pre-Workspace static shell referenced throughout `IMPLEMENTATION_PACKAGE_MILESTONE_3.md`) is now confirmed dead code — zero imports anywhere in the repository — superseded by `src/features/workspace/WorkspaceShell.tsx`. Not deleted; retained pending an explicit cleanup decision.
+
 ---
 
 ## ADR-003 — Four-Layer Subscription & License Architecture
