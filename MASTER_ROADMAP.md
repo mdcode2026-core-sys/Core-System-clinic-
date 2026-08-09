@@ -7,6 +7,8 @@
 > Status: APPROVED (architecture) · Milestone 3 confirmed as current (ADR-002)
 > Version: 3.0 (supersedes v2.0)
 > Last Updated: 2026-07-31
+>
+> **Status update (2026-08-08):** Milestone 3 (Unified Workspace) is implemented. Build was broken through several recovery passes (Session 11 → Session 11 Recovery, see `CHANGELOG.md` 2026-08-08 and `PROJECT_HANDOFF.md` Open Item #9) — root causes included a Promise/sync contract violation in the Workspace Engine, a missing dependency, a Server/Client boundary violation, a malformed root layout, `user_metadata`-based tenant resolution scattered across 12 files, and two widgets (`BillingSummaryWidget`, `AnalyticsOverviewWidget`) referencing hooks that didn't exist. All fixed; a real `npm run build` has since succeeded (confirmed by the Owner directly, 2026-08-08). Milestone 3 is code-complete. Next: Milestone 2 (Tenant Administration Center) per `MILESTONE_2_SCOPE_PROPOSAL.md`, or closing the two remaining Workspace decision points (see `PROJECT_HANDOFF.md` Open Item #9) — Owner's call.
 
 ---
 
