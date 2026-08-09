@@ -1,5 +1,7 @@
 # KIMI_IMPLEMENTATION_PACKAGE.md — Milestone 3 (Unified Workspace)
 
+> **Completion status (2026-08-08):** Execution of this package is complete; the result required a separate recovery pass (build/integration defects, not scope changes) before it built successfully. See `CHANGELOG.md` 2026-08-08 and `PROJECT_HANDOFF.md` Open Item #9. Kept below as historical record, per `DOCUMENTATION_CONSOLIDATION_PLAN.md`.
+
 **Read `KIMI_IMPLEMENTATION_CONTRACT.md` first** — the general rules there apply to everything below without repetition. This document is the Milestone-3-specific execution order and checklist.
 
 ---
