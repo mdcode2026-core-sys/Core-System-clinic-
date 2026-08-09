@@ -1,26 +1,44 @@
+PROJECT_TREE.txt
+Regenerated: 2026-08-08 (Session 11 Recovery) — full re-scan of the actual repository.
+Previous version was stale: listed files that no longer exist (Apendix A/B .md files,
+Handoff_Daily_Report_2026-07-17/30.md) and was missing dozens of files added since
+(Session 11 Workspace layer, Reports module, useTenantId/useFeatureFlags, etc).
+
 ├── .env.example
 ├── .env.local
+├── .eslintrc.json
 ├── .gitignore
-├── Apendix A — Folder Structure Standard.md
-├── Appendix B — Definition of Project Phases.md
-├── CORE_SYSTEM_INDEX.md
-├── ENGINEERING_CONSTITUTION.md
-├── Handoff_Daily_Report_2026-07-17.md
-├── Handoff_Daily_Report_2026-07-29.md
-├── Handoff_Daily_Report_2026-07-30.md
 ├── ANALYTICS_BUILD_PROGRESS.md
-├── PROJECT_TREE.txt
-├── REVISED_DESIGN_DOCUMENT_v2.md
-├── clinic-saas@1.0.0
+├── ARCHITECTURE_DECISIONS.md
+├── CHANGELOG.md
 ├── components.json
+├── CORE_SYSTEM_INDEX.md
+├── DATABASE_SCHEMA.md
+├── DOCUMENTATION_CONSOLIDATION_PLAN.md
+├── ENGINEERING_CONSTITUTION.md
 ├── fix.sh
+├── Handoff_Daily_Report_2026-07-29.md
+├── IMPLEMENTATION_PACKAGE_MILESTONE_3.md
+├── KIMI_IMPLEMENTATION_CONTRACT.md
+├── KIMI_IMPLEMENTATION_PACKAGE.md
+├── KIMI_SESSION_PLAN_MILESTONE_3.md
+├── MASTER_ROADMAP.md
 ├── middleware.ts
+├── MILESTONE_2_SCOPE_PROPOSAL.md
 ├── next
-├── next-env.d.ts
 ├── next.config.ts
 ├── package-lock.json
 ├── package.json
 ├── postcss.config.js
+├── PRODUCT_COMPLETION_ROADMAP_V2.md
+├── PROJECT_HANDOFF.md
+├── PROJECT_TREE.txt
+├── QUEUE_DEBUG_PROGRESS.md 
+├── QUEUE_FIX_PROGRESS.md
+├── REVISED_DESIGN_DOCUMENT_v2.md
+├── SECURITY_AUDIT_REPORT.md
+├── SECURITY_HOTFIX_MIGRATION.sql
+├── SECURITY_HOTFIX_PLAN.md
 ├── src
 │   ├── app
 │   │   ├── (auth)
@@ -34,6 +52,10 @@
 │   │   │   │   └── page.tsx
 │   │   │   ├── analytics
 │   │   │   │   └── page.tsx
+│   │   │   ├── follow-up
+│   │   │   │   └── page.tsx
+│   │   │   ├── inventory
+│   │   │   │   └── page.tsx
 │   │   │   ├── invoices
 │   │   │   │   ├── [id]
 │   │   │   │   │   └── page.tsx
@@ -41,33 +63,53 @@
 │   │   │   │   │   └── page.tsx
 │   │   │   │   └── page.tsx
 │   │   │   ├── layout.tsx
+│   │   │   ├── page.tsx
 │   │   │   ├── patients
 │   │   │   │   └── page.tsx
 │   │   │   ├── queue
 │   │   │   │   └── page.tsx
+│   │   │   ├── reports
+│   │   │   │   └── page.tsx
 │   │   │   └── settings
 │   │   │       └── page.tsx
 │   │   ├── api
-│   │   │   ├── analytics
-│   │   │   │   ├── category
-│   │   │   │   │   └── route.ts
-│   │   │   │   └── overview
-│   │   │   │       └── route.ts
-│   │   │   └── ... (other API routes)
+│   │   │   └── analytics
+│   │   │       ├── category
+│   │   │       │   └── route.ts
+│   │   │       └── overview
+│   │   │           └── route.ts
 │   │   ├── globals.css
-│   │   ├── layout.tsx
-│   │   └── page.tsx
+│   │   └── layout.tsx
 │   ├── core
 │   │   ├── auth
+│   │   │   ├── actions.ts
 │   │   │   ├── AuthContext.ts
 │   │   │   ├── AuthProvider.tsx
-│   │   │   └── actions.ts
+│   │   │   ├── resolveTenantId.ts
+│   │   │   └── useTenantId.ts
+│   │   ├── features
+│   │   │   ├── featureRegistry.ts
+│   │   │   ├── types.ts
+│   │   │   └── useFeatureFlags.ts
+│   │   ├── navigation
+│   │   │   └── navigationRegistry.ts
 │   │   ├── permissions
+│   │   │   ├── permissionEngine.ts
 │   │   │   ├── PermissionGuard.tsx
 │   │   │   ├── permissionMatrix.ts
-│   │   │   └── types.ts
-│   │   └── realtime
-│   │       └── RealtimeProvider.tsx
+│   │   │   ├── types.ts
+│   │   │   ├── usePermissions.ts
+│   │   │   └── verification-checklist.ts
+│   │   ├── realtime
+│   │   │   └── RealtimeProvider.tsx
+│   │   └── workspace
+│   │       ├── hooks
+│   │       │   ├── useWidgetPersistence.ts
+│   │       │   └── useWorkspace.ts
+│   │       ├── widgetRegistry.ts
+│   │       ├── workspace.constants.ts
+│   │       ├── workspace.types.ts
+│   │       └── workspaceEngine.ts
 │   ├── domain
 │   │   ├── agenda
 │   │   │   ├── agenda.actions.ts
@@ -86,26 +128,42 @@
 │   │   │       ├── kpi.calculator.ts
 │   │   │       ├── kpi.definitions
 │   │   │       │   ├── appointment.kpis.ts
+│   │   │       │   ├── followup.kpis.ts
+│   │   │       │   ├── inventory.kpis.ts
 │   │   │       │   ├── invoice.kpis.ts
 │   │   │       │   ├── patient.kpis.ts
 │   │   │       │   ├── queue.kpis.ts
 │   │   │       │   └── revenue.kpis.ts
 │   │   │       ├── kpi.formatter.ts
 │   │   │       └── kpi.registry.ts
+│   │   ├── followup
+│   │   │   ├── followup.queries.ts
+│   │   │   └── followup.types.ts
+│   │   ├── inventory
+│   │   │   ├── inventory.actions.ts
+│   │   │   ├── inventory.queries.ts
+│   │   │   └── inventory.types.ts
 │   │   ├── invoicing
 │   │   │   ├── invoicing.actions.ts
 │   │   │   ├── invoicing.calculator.ts
+│   │   │   ├── invoicing.client.ts
 │   │   │   ├── invoicing.queries.ts
-│   │   │   └── invoicing.types.ts
+│   │   │   ├── invoicing.types.ts
+│   │   │   └── useBillingSummary.ts
 │   │   ├── patients
 │   │   │   ├── patients.actions.ts
 │   │   │   ├── patients.queries.ts
 │   │   │   └── patients.types.ts
-│   │   └── queue
-│   │       ├── queue.actions.ts
-│   │       ├── queue.engine.ts
-│   │       ├── queue.queries.ts
-│   │       └── queue.types.ts
+│   │   ├── queue
+│   │   │   ├── queue.actions.ts
+│   │   │   ├── queue.engine.ts
+│   │   │   ├── queue.hooks.ts
+│   │   │   ├── queue.queries.ts
+│   │   │   └── queue.types.ts
+│   │   └── reports
+│   │       ├── moduleRegistry.ts
+│   │       ├── reportRegistry.ts
+│   │       └── reports.queries.ts
 │   ├── features
 │   │   ├── agenda
 │   │   │   ├── agenda-calendar.tsx
@@ -119,6 +177,13 @@
 │   │   │   └── DashboardShell.tsx
 │   │   ├── doctor
 │   │   │   └── MyQueueView.tsx
+│   │   ├── followup
+│   │   │   ├── followup-list-view.tsx
+│   │   │   ├── followup-scheduled-view.tsx
+│   │   │   └── followup-shell.tsx
+│   │   ├── inventory
+│   │   │   ├── inventory-form.tsx
+│   │   │   └── inventory-list.tsx
 │   │   ├── invoicing
 │   │   │   ├── invoice-detail.tsx
 │   │   │   ├── invoice-form.tsx
@@ -131,8 +196,27 @@
 │   │   │   └── patient-list.tsx
 │   │   ├── reception
 │   │   │   └── LiveQueueBoard.tsx
-│   │   └── super-admin
-│   │       └── TenantRegistry.tsx
+│   │   ├── reports
+│   │   │   ├── report-viewer.tsx
+│   │   │   └── reports-shell.tsx
+│   │   ├── super-admin
+│   │   │   └── TenantRegistry.tsx
+│   │   └── workspace
+│   │       ├── WidgetContainer.tsx
+│   │       ├── widgets
+│   │       │   ├── agenda
+│   │       │   │   └── QuickAppointmentWidget.tsx
+│   │       │   ├── analytics
+│   │       │   │   └── AnalyticsOverviewWidget.tsx
+│   │       │   ├── billing
+│   │       │   │   └── BillingSummaryWidget.tsx
+│   │       │   ├── patients
+│   │       │   │   └── QuickRegistrationWidget.tsx
+│   │       │   └── queue
+│   │       │       └── QueueWidget.tsx
+│   │       ├── WidgetToolbar.tsx
+│   │       ├── WorkspaceRenderer.tsx
+│   │       └── WorkspaceShell.tsx
 │   ├── infrastructure
 │   │   ├── pwa
 │   │   │   └── OfflineBanner.tsx
@@ -164,21 +248,17 @@
 │           ├── currency.ts
 │           └── dateTime.ts
 ├── supabase
-│   ├── .temp
-│   │   ├── cli-latest
-│   │   ├── gotrue-version
-│   │   ├── linked-project.json
-│   │   ├── pooler-url
-│   │   ├── postgres-version
-│   │   ├── project-ref
-│   │   ├── rest-version
-│   │   ├── storage-migration
-│   │   └── storage-version
 │   └── migrations
 │       ├── 20260721100539_remote_schema.sql
-│       └── 20260721112514_remote_schema.sql
+│       ├── 20260721112514_remote_schema.sql
+│       ├── 20260729100000_capture_invoice_items_and_payments.sql
+│       ├── 20260729120000_add_file_number_to_clinic_patients.sql
+│       ├── 20260803_sync_inventory.sql
+│       ├── 20260804000000_inventory_items_and_ledger_fk.sql
+│       ├── 20260804_add_reports_read_permission.sql
+│       ├── 20260808_seed_analytics_reports_feature_flags.sql
+│       └── seed_feature_flags.sql
 ├── supabase Data info.md
 ├── tailwind.config.ts
-└── tsconfig.json
-
-52 directories, 118 files
+├── tsconfig.json
+└── WORKSPACE_ARCHITECTURE_SPECIFICATION.md
