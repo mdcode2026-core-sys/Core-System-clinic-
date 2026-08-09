@@ -658,6 +658,8 @@ src/app/(dashboard)/dashboard/page.tsx
 
 This mistake already consumed many development hours.
 
+**Update (2026-08-08):** the route itself was never wrong — what renders at it changed. `src/app/(dashboard)/page.tsx` now renders `WorkspaceRenderer` (Session 11, Unified Workspace) instead of the old static shell. `src/features/dashboard/DashboardShell.tsx` is confirmed dead code (zero imports anywhere in the repository) as of this date — superseded by `src/features/workspace/WorkspaceShell.tsx`. Not deleted; retained pending an explicit cleanup decision. This exact mistake (a route pointing to `/dashboard`, which does not exist under this route-group convention) recurred once during Session 11 itself, in `src/app/page.tsx`'s redirect and in `WorkspaceShell.tsx`'s own logo link — both fixed 2026-08-08. See `CHANGELOG.md`.
+
 Before changing routing
 
 Verify repository.
