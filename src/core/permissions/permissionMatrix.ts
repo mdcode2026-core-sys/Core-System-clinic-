@@ -1,6 +1,6 @@
 import type { UserRole, Permission } from "./types";
 
-export const permissionMatrix: Record<UserRole, Permission[]> = {
+export const permissionMatrix: Record<string, Permission[]> = {
   super_admin: [
     "patients:read", "patients:create", "patients:update", "patients:delete",
     "sessions:read", "sessions:create", "sessions:update", "sessions:delete",

@@ -48,7 +48,7 @@ export async function getQueue(filters?: QueueFilters): Promise<EnrichedSession[
       *,
       clinic_patients(first_name, last_name, phone_primary, file_number),
       clinic_users!clinic_visit_sessions_doctor_id_fkey(full_name),
-      clinic_rooms(name)
+      clinic_rooms(room_name)
     `)
     .eq("tenant_id", tenantId)
     .gte("created_at", start)
@@ -75,7 +75,7 @@ export async function getQueue(filters?: QueueFilters): Promise<EnrichedSession[
     patient_phone: session.clinic_patients?.phone_primary,
     patient_file_number: session.clinic_patients?.file_number,
     doctor_name: session.clinic_users?.full_name,
-    room_name: session.clinic_rooms?.name,
+    room_name: session.clinic_rooms?.room_name,
     wait_time_minutes: computeWaitTimeMinutes(session.created_at),
   })) as EnrichedSession[];
 }
@@ -129,7 +129,7 @@ export async function getSessionById(sessionId: string): Promise<EnrichedSession
       *,
       clinic_patients(first_name, last_name, phone_primary, file_number),
       clinic_users!clinic_visit_sessions_doctor_id_fkey(full_name),
-      clinic_rooms(name)
+      clinic_rooms(room_name)
     `)
     .eq("id", sessionId)
     .eq("tenant_id", tenantId)
@@ -145,7 +145,7 @@ export async function getSessionById(sessionId: string): Promise<EnrichedSession
     patient_phone: data.clinic_patients?.phone_primary,
     patient_file_number: data.clinic_patients?.file_number,
     doctor_name: data.clinic_users?.full_name,
-    room_name: data.clinic_rooms?.name,
+    room_name: data.clinic_rooms?.room_name,
     wait_time_minutes: computeWaitTimeMinutes(data.created_at),
   } as EnrichedSession;
 }
@@ -174,11 +174,14 @@ export async function getAvailableRooms(): Promise<{ id: string; name: string }[
 
   const { data, error } = await supabase
     .from("clinic_rooms")
-    .select("id, name")
+    .select("id, room_name")
     .eq("tenant_id", tenantId)
     .eq("is_active", true)
-    .order("name");
+    .order("room_name");
 
   if (error) throw new Error(`Room fetch failed: ${error.message}`);
-  return data || [];
+  return (data || []).map((r: any) => ({
+    id: r.id,
+    name: r.room_name,
+  }));
 }

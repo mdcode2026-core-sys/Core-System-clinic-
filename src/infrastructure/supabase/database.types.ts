@@ -137,7 +137,57 @@ export type Database = {
           },
         ]
       }
-      billing_events: {
+      branches: {
+        Row: {
+          address: string | null
+          branch_name: string
+          branch_name_ar: string | null
+          created_at: string
+          deleted_at: string | null
+          id: string
+          is_active: boolean
+          is_default: boolean
+          phone: string | null
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          branch_name: string
+          branch_name_ar?: string | null
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          is_active?: boolean
+          is_default?: boolean
+          phone?: string | null
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          branch_name?: string
+          branch_name_ar?: string | null
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          is_active?: boolean
+          is_default?: boolean
+          phone?: string | null
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "branches_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "master_tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+            billing_events: {
         Row: {
           activated_by: string | null
           activation_notes: string | null
@@ -518,7 +568,6 @@ export type Database = {
           floor_number: number | null
           id: string
           is_active: boolean
-          name: string | null
           room_name: string
           room_type: string
           tenant_id: string
@@ -530,7 +579,6 @@ export type Database = {
           floor_number?: number | null
           id?: string
           is_active?: boolean
-          name?: string | null
           room_name: string
           room_type: string
           tenant_id: string
@@ -542,7 +590,6 @@ export type Database = {
           floor_number?: number | null
           id?: string
           is_active?: boolean
-          name?: string | null
           room_name?: string
           room_type?: string
           tenant_id?: string
@@ -633,6 +680,7 @@ export type Database = {
           phone: string | null
           pin_code: string
           role: string
+          role_template_id: string | null
           specialization: string | null
           tenant_id: string
           updated_at: string
@@ -671,6 +719,7 @@ export type Database = {
           phone?: string | null
           pin_code?: string
           role?: string
+          role_template_id?: string | null
           specialization?: string | null
           tenant_id?: string
           updated_at?: string
@@ -1635,6 +1684,7 @@ export type Database = {
           role_key: string
           role_name: string
           role_name_ar: string | null
+          tenant_id: string | null
         }
         Insert: {
           created_at?: string | null
@@ -1644,6 +1694,7 @@ export type Database = {
           role_key: string
           role_name: string
           role_name_ar?: string | null
+          tenant_id?: string | null
         }
         Update: {
           created_at?: string | null
@@ -1653,6 +1704,7 @@ export type Database = {
           role_key?: string
           role_name?: string
           role_name_ar?: string | null
+          tenant_id?: string | null
         }
         Relationships: []
       }
@@ -1880,7 +1932,42 @@ export type Database = {
           },
         ]
       }
-      tenants: {
+      tenant_notification_channel_prefs: {
+        Row: {
+          channel: string
+          created_at: string
+          id: string
+          is_enabled: boolean
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          channel: string
+          created_at?: string
+          id?: string
+          is_enabled?: boolean
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          channel?: string
+          created_at?: string
+          id?: string
+          is_enabled?: boolean
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tenant_notification_channel_prefs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "master_tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+            tenants: {
         Row: {
           address: string | null
           clinic_name: string

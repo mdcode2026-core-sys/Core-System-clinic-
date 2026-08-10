@@ -1,4 +1,11 @@
-export type UserRole = "super_admin" | "clinic_admin" | "doctor" | "receptionist";
+export type UserRole = 
+  | "super_admin" 
+  | "clinic_admin" 
+  | "clinic_owner" 
+  | "doctor" 
+  | "nurse" 
+  | "receptionist"
+  | "accounting";
 
 export type Permission =
   | "patients:read" | "patients:create" | "patients:update" | "patients:delete"
@@ -11,7 +18,12 @@ export type Permission =
   | "settings:read" | "settings:update"
   | "audit:read"
   | "reports:read"
-  | "followup:read" | "followup:create" | "followup:update";
+  | "followup:read" | "followup:create" | "followup:update"
+  | "roles:read" | "roles:manage"
+  | "templates:manage"
+  | "overrides:manage"
+  | "subscription:read"
+  | "notifications:manage";
 
 export interface PermissionGuardProps {
   permission: Permission;
