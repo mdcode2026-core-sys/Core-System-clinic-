@@ -59,13 +59,13 @@ export function useRoleWithPermissions(roleId: string | null) {
       // Fetch permissions via role_permissions join
       const { data: permData, error: permError } = await supabase
         .from("role_permissions")
-        .select("""
+        .select(`
           id,
           permission_id,
           permissions:permission_id (
             id, permission_key, permission_name, resource, action, description
           )
-        """)
+        `)
         .eq("role_id", roleId);
 
       if (permError) {

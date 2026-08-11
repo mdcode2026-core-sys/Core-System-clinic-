@@ -17,6 +17,8 @@ import {
   Settings,
 } from "lucide-react";
 
+import { RolesManager } from "@/features/settings/roles/RolesManager";
+
 const tabs = [
   { id: "overview", label: "نظرة عامة", icon: LayoutDashboard, permission: null },
   { id: "clinic-profile", label: "ملف العيادة", icon: Building2, permission: "settings:read" },
@@ -107,12 +109,7 @@ function UsersTab() {
 }
 
 function RolesTab() {
-  return (
-    <div className="space-y-4">
-      <h2 className="text-xl font-semibold">الأدوار والصلاحيات</h2>
-      <p className="text-muted-foreground">M2.2 — Roles & Permissions implementation placeholder.</p>
-    </div>
-  );
+  return <RolesManager />;
 }
 
 function TemplatesTab() {

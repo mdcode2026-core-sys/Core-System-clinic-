@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { useRoleWithPermissions, usePermissionsCatalog } from "@/domain/roles/roles.queries";
 import { updateRolePermissions } from "@/domain/roles/roles.actions";
 import { PERMISSION_GROUPS, ACTION_LABELS } from "@/domain/roles/roles.types";
@@ -22,25 +22,19 @@ export function RolePermissionsEditor({ roleId, onClose }: RolePermissionsEditor
   const { data: catalog, isLoading: catalogLoading } = usePermissionsCatalog();
 
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [originalIds, setOriginalIds] = useState<Set<string>>(new Set());
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saveSuccess, setSaveSuccess] = useState(false);
 
   // Initialize selected IDs when role data loads
-  const rolePermissionsLoaded = roleData?.permissions.map((p) => p.id) ?? [];
-  const initialSet = new Set(rolePermissionsLoaded);
-
-  // Only set initial selection once
-  const handleInit = useCallback(() => {
-    if (selectedIds.size === 0 && rolePermissionsLoaded.length > 0) {
-      setSelectedIds(new Set(rolePermissionsLoaded));
+  useEffect(() => {
+    if (roleData && roleData.permissions) {
+      const ids = new Set(roleData.permissions.map((p) => p.id));
+      setOriginalIds(ids);
+      setSelectedIds(ids);
     }
-  }, [rolePermissionsLoaded.length, selectedIds.size]);
-
-  // Call init via effect-like pattern
-  if (roleData && selectedIds.size === 0 && rolePermissionsLoaded.length > 0) {
-    setSelectedIds(new Set(rolePermissionsLoaded));
-  }
+  }, [roleData?.id]);
 
   const togglePermission = (permissionId: string) => {
     setSelectedIds((prev) => {
@@ -66,6 +60,7 @@ export function RolePermissionsEditor({ roleId, onClose }: RolePermissionsEditor
     setIsSaving(false);
     if (result.success) {
       setSaveSuccess(true);
+      setOriginalIds(new Set(selectedIds));
     } else {
       setSaveError(result.error || "Failed to save");
     }
@@ -99,9 +94,9 @@ export function RolePermissionsEditor({ roleId, onClose }: RolePermissionsEditor
   }, {});
 
   const hasChanges =
-    selectedIds.size !== initialSet.size ||
-    !Array.from(selectedIds).every((id) => initialSet.has(id)) ||
-    !Array.from(initialSet).every((id) => selectedIds.has(id));
+    selectedIds.size !== originalIds.size ||
+    !Array.from(selectedIds).every((id) => originalIds.has(id)) ||
+    !Array.from(originalIds).every((id) => selectedIds.has(id));
 
   return (
     <div className="space-y-4" dir="rtl">
