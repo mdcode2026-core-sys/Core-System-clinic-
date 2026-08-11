@@ -1,0 +1,218 @@
+"use client";
+
+import { useState } from "react";
+import { useAuth } from "@/core/auth/AuthContext";
+import { usePermissions } from "@/core/permissions/usePermissions";
+import { useRoles } from "@/domain/roles/roles.queries";
+import { useRoleWithPermissions } from "@/domain/roles/roles.queries";
+import { RoleCard } from "./RoleCard";
+import { RolePermissionsEditor } from "./RolePermissionsEditor";
+import { Button } from "@/shared/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
+import { Badge } from "@/shared/components/ui/badge";
+import { Separator } from "@/shared/components/ui/separator";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/shared/components/ui/dialog";
+import { Shield, Plus, Loader2, Info } from "lucide-react";
+
+export function RolesManager() {
+  const { tenantId } = useAuth();
+  const { hasPermission, isLoading: permsLoading } = usePermissions();
+
+  const canReadRoles = hasPermission("roles:read");
+  const canManageRoles = hasPermission("roles:manage");
+
+  const { data: roles, isLoading: rolesLoading, error: rolesError } = useRoles(tenantId);
+
+  const [editingRoleId, setEditingRoleId] = useState<string | null>(null);
+  const [isEditorOpen, setIsEditorOpen] = useState(false);
+
+  const handleEdit = (roleId: string) => {
+    setEditingRoleId(roleId);
+    setIsEditorOpen(true);
+  };
+
+  const handleCloseEditor = () => {
+    setIsEditorOpen(false);
+    setEditingRoleId(null);
+  };
+
+  if (permsLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="h-6 w-6 animate-spin text-primary" />
+        <span className="mr-3 text-muted-foreground">جاري التحقق من الصلاحيات...</span>
+      </div>
+    );
+  }
+
+  if (!canReadRoles) {
+    return (
+      <div className="text-center py-12">
+        <Shield className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+        <h3 className="text-lg font-semibold mb-2">غير مصرح</h3>
+        <p className="text-muted-foreground">
+          ليس لديك صلاحية عرض الأدوار والصلاحيات.
+        </p>
+      </div>
+    );
+  }
+
+  if (rolesLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="h-6 w-6 animate-spin text-primary" />
+        <span className="mr-3 text-muted-foreground">جاري تحميل الأدوار...</span>
+      </div>
+    );
+  }
+
+  if (rolesError) {
+    return (
+      <div className="text-center py-12">
+        <Info className="h-12 w-12 mx-auto mb-4 text-destructive" />
+        <h3 className="text-lg font-semibold mb-2">خطأ في التحميل</h3>
+        <p className="text-muted-foreground">{rolesError.message}</p>
+      </div>
+    );
+  }
+
+  const systemRoles = roles?.filter((r) => r.is_system_role) ?? [];
+  const customRoles = roles?.filter((r) => !r.is_system_role) ?? [];
+
+  return (
+    <div className="space-y-6" dir="rtl">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-xl font-semibold">الأدوار والصلاحيات</h2>
+          <p className="text-sm text-muted-foreground">
+            إدارة أدوار العيادة والصلاحيات المرتبطة بها
+          </p>
+        </div>
+        {canManageRoles && (
+          <Button disabled className="gap-2">
+            <Plus className="h-4 w-4" />
+            دور جديد
+          </Button>
+        )}
+      </div>
+
+      {/* Info Card */}
+      <Card className="bg-muted/50 border-border">
+        <CardContent className="py-4">
+          <div className="flex items-start gap-3">
+            <Info className="h-5 w-5 text-muted-foreground shrink-0 mt-0.5" />
+            <div className="space-y-1">
+              <p className="text-sm text-muted-foreground">
+                <span className="font-medium text-foreground">أدوار النظام</span> — قوالب جاهزة
+                يوفرها CORE SYSTEM كبداية للعيادة. لا يمكن تعديلها، لكن يمكن استخدامها كنقطة
+                انطلاق لإنشاء أدوار مخصصة.
+              </p>
+              <p className="text-sm text-muted-foreground">
+                <span className="font-medium text-foreground">الأدوار المخصصة</span> — أدوار
+                تنشئها العيادة وتتحكم في صلاحياتها بالكامل. (يتطلب M2.5 — قوالب مخصصة)
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Separator />
+
+      {/* System Roles */}
+      <div className="space-y-3">
+        <div className="flex items-center gap-2">
+          <h3 className="text-lg font-medium">أدوار النظام</h3>
+          <Badge variant="default" className="text-xs">{systemRoles.length}</Badge>
+        </div>
+        <div className="grid gap-4 md:grid-cols-2">
+          {systemRoles.map((role) => (
+            <RoleCardWrapper
+              key={role.id}
+              role={role}
+              canManage={canManageRoles}
+              onEdit={handleEdit}
+            />
+          ))}
+        </div>
+      </div>
+
+      <Separator />
+
+      {/* Custom Roles */}
+      <div className="space-y-3">
+        <div className="flex items-center gap-2">
+          <h3 className="text-lg font-medium">الأدوار المخصصة</h3>
+          <Badge variant="secondary" className="text-xs">{customRoles.length}</Badge>
+        </div>
+        {customRoles.length > 0 ? (
+          <div className="grid gap-4 md:grid-cols-2">
+            {customRoles.map((role) => (
+              <RoleCardWrapper
+                key={role.id}
+                role={role}
+                canManage={canManageRoles}
+                onEdit={handleEdit}
+              />
+            ))}
+          </div>
+        ) : (
+          <Card className="border-dashed border-border">
+            <CardContent className="py-8 text-center">
+              <p className="text-muted-foreground text-sm">
+                لا توجد أدوار مخصصة حالياً.
+                <br />
+                سيتم إتاحة إنشاء أدوار مخصصة في M2.5 — إدارة القوالب.
+              </p>
+            </CardContent>
+          </Card>
+        )}
+      </div>
+
+      {/* Editor Dialog */}
+      <Dialog open={isEditorOpen} onOpenChange={setIsEditorOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto" dir="rtl">
+          <DialogHeader>
+            <DialogTitle>تعديل الصلاحيات</DialogTitle>
+          </DialogHeader>
+          {editingRoleId && (
+            <RolePermissionsEditor
+              roleId={editingRoleId}
+              onClose={handleCloseEditor}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
+
+/**
+ * Wrapper that fetches permissions for a single role.
+ * Isolates per-role query so the grid doesn't re-fetch everything on every interaction.
+ */
+function RoleCardWrapper({
+  role,
+  canManage,
+  onEdit,
+}: {
+  role: { id: string; role_key: string; role_name: string; role_name_ar: string | null; description: string | null; is_system_role: boolean; tenant_id: string | null; created_at: string | null };
+  canManage: boolean;
+  onEdit: (roleId: string) => void;
+}) {
+  const { data: roleWithPerms } = useRoleWithPermissions(role.id);
+
+  return (
+    <RoleCard
+      role={role}
+      permissions={roleWithPerms?.permissions ?? []}
+      onEdit={canManage ? onEdit : undefined}
+      canManage={canManage}
+    />
+  );
+}
