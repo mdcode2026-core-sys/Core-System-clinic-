@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { usePermissions } from "@/core/permissions/usePermissions";
 import { ClinicProfileForm } from "@/features/settings/ClinicProfileForm";
+import { RolesManager } from "@/features/settings/roles/RolesManager";
+import { UsersManager } from "@/features/settings/users/UsersManager";
 
 import {
   LayoutDashboard,
@@ -16,8 +18,6 @@ import {
   ClipboardList,
   Settings,
 } from "lucide-react";
-
-import { RolesManager } from "@/features/settings/roles/RolesManager";
 
 const tabs = [
   { id: "overview", label: "نظرة عامة", icon: LayoutDashboard, permission: null },
@@ -75,8 +75,8 @@ export default function SettingsPage() {
       <div className="rounded-lg border border-border bg-card p-6 shadow-sm">
         {activeTab === "overview" && <OverviewTab />}
         {activeTab === "clinic-profile" && <ClinicProfileForm />}
-        {activeTab === "users" && <UsersTab />}
-        {activeTab === "roles" && <RolesTab />}
+        {activeTab === "users" && <UsersManager />}
+        {activeTab === "roles" && <RolesManager />}
         {activeTab === "templates" && <TemplatesTab />}
         {activeTab === "overrides" && <OverridesTab />}
         {activeTab === "notifications" && <NotificationsTab />}
@@ -97,19 +97,6 @@ function OverviewTab() {
       </p>
     </div>
   );
-}
-
-function UsersTab() {
-  return (
-    <div className="space-y-4">
-      <h2 className="text-xl font-semibold">إدارة المستخدمين</h2>
-      <p className="text-muted-foreground">M2.3 — User Management implementation placeholder.</p>
-    </div>
-  );
-}
-
-function RolesTab() {
-  return <RolesManager />;
 }
 
 function TemplatesTab() {
