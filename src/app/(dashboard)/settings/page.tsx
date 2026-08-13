@@ -5,6 +5,7 @@ import { usePermissions } from "@/core/permissions/usePermissions";
 import { ClinicProfileForm } from "@/features/settings/ClinicProfileForm";
 import { RolesManager } from "@/features/settings/roles/RolesManager";
 import { UsersManager } from "@/features/settings/users/UsersManager";
+import { OverridesManager } from "@/features/settings/overrides/OverridesManager";
 
 import {
   LayoutDashboard,
@@ -109,12 +110,7 @@ function TemplatesTab() {
 }
 
 function OverridesTab() {
-  return (
-    <div className="space-y-4">
-      <h2 className="text-xl font-semibold">تجاوزات الصلاحيات الفردية</h2>
-      <p className="text-muted-foreground">M2.4 — Permission Overrides implementation placeholder.</p>
-    </div>
-  );
+  return <OverridesManager />;
 }
 
 function NotificationsTab() {

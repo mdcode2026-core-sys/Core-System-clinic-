@@ -11,7 +11,12 @@ export const permissionMatrix: Record<string, Permission[]> = {
     "users:read", "users:create", "users:update",
     "settings:read", "settings:update",
     "audit:read",
-    "reports:read"
+    "reports:read",
+    "roles:read", "roles:manage",
+    "templates:manage",
+    "overrides:manage",
+    "subscription:read",
+    "notifications:manage"
   ],
   doctor: [
     "patients:read", "patients:update",
