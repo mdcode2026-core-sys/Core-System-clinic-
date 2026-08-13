@@ -11,7 +11,7 @@ export async function getEffectivePermissions(
 
   const { data: clinicUsers, error: userError } = await supabase
     .from("clinic_users")
-    .select("role, tenant_id, role_template_id")
+    .select("id, role, tenant_id, role_template_id")
     .eq("auth_user_id", userId)
     .limit(1);
 
@@ -90,7 +90,7 @@ export async function getEffectivePermissions(
   const { data: overrides, error: ovError } = await supabase
     .from("clinic_user_permission_overrides")
     .select("granted, permissions(permission_key)")
-    .eq("user_id", userId)
+    .eq("user_id", clinicUser.id)
     .eq("tenant_id", tenantId);
 
   if (ovError) {

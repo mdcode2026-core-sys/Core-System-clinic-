@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { createClient } from "@/infrastructure/supabase/client";
+import { createClient, setTenantId } from "@/infrastructure/supabase/client";
 import type { PermissionOverride, UserWithOverrides } from "./overrides.types";
 
 const supabase = createClient();
@@ -14,6 +14,8 @@ export function useUserPermissionOverrides(userId: string | null, tenantId: stri
     queryKey: ["user-permission-overrides", userId, tenantId],
     queryFn: async (): Promise<PermissionOverride[]> => {
       if (!userId || !tenantId) return [];
+
+      await setTenantId(supabase, tenantId);
 
       const { data, error } = await supabase
         .from("clinic_user_permission_overrides")
@@ -65,6 +67,8 @@ export function useClinicUsersWithOverrides(tenantId: string | null) {
     queryKey: ["clinic-users-with-overrides", tenantId],
     queryFn: async (): Promise<UserWithOverrides[]> => {
       if (!tenantId) return [];
+
+      await setTenantId(supabase, tenantId);
 
       // Fetch users with role info
       const { data: usersData, error: usersError } = await supabase
