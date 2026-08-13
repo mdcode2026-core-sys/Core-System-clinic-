@@ -91,7 +91,7 @@ const SelectContent = ({ className, children }: { className?: string; children?:
   return (
     <div
       className={cn(
-        "absolute z-50 min-w-[8rem] overflow-hidden rounded-md border bg-popover text-popover-foreground shadow-md mt-1 w-full",
+        "absolute z-50 min-w-[8rem] max-h-60 overflow-y-auto rounded-md border bg-popover text-popover-foreground shadow-md mt-1 w-full",
         className
       )}
     >
