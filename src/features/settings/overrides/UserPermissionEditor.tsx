@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { useUserPermissionOverrides } from "@/domain/overrides/overrides.queries";
 import { setPermissionOverride, removePermissionOverride } from "@/domain/overrides/overrides.actions";
 import { useTenantId } from "@/core/auth/useTenantId";
@@ -35,11 +35,14 @@ export function UserPermissionEditor({ user, catalog, onClose }: UserPermissionE
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saveSuccess, setSaveSuccess] = useState(false);
 
-  // Build a lookup of existing overrides by permission_id
-  const existingByPermId = new Map<string, PermissionOverride>();
-  for (const ov of existingOverrides) {
-    existingByPermId.set(ov.permission_id, ov);
-  }
+  // Build a stable lookup of existing overrides by permission_id
+  const existingByPermId = useMemo(() => {
+    const map = new Map<string, PermissionOverride>();
+    for (const ov of existingOverrides) {
+      map.set(ov.permission_id, ov);
+    }
+    return map;
+  }, [existingOverrides]);
 
   // Determine effective state for each permission
   const getEffectiveState = useCallback(
