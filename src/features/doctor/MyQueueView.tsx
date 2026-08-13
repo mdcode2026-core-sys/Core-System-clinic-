@@ -38,26 +38,58 @@ export function MyQueueView() {
 
   useQueueSubscription(tenantId);
 
+  // Pure data-loading helper with no setState calls, shared by the initial
+  // mount load and the manual post-action refresh below.
+  const loadMySessions = useCallback(async (currentUserId: string) => {
+    const allSessions = await getQueue();
+    return allSessions.filter(
+      (s) => s.doctor_id === currentUserId || s.lock_holder_id === currentUserId
+    );
+  }, []);
+
+  // Reusable refresh for explicit, user-triggered reloads (e.g. after an
+  // action completes). Called from an event handler, never from an effect.
   const fetchData = useCallback(async () => {
     if (!tenantId || !user) return;
     setIsLoading(true);
     setErrorMessage(null);
     try {
-      const allSessions = await getQueue();
-      const mySessions = allSessions.filter(
-        (s) => s.doctor_id === user.id || s.lock_holder_id === user.id
-      );
+      const mySessions = await loadMySessions(user.id);
       setSessions(mySessions);
     } catch (error: any) {
       setErrorMessage(error.message || "Failed to load queue");
     } finally {
       setIsLoading(false);
     }
-  }, [tenantId, user]);
+  }, [tenantId, user, loadMySessions]);
 
+  // Initial load on mount / whenever the tenant or user changes. The fetch
+  // logic is declared locally so the effect synchronizes with an external
+  // system (the network request) instead of synchronously calling setState
+  // through an outer callback reference.
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    if (!tenantId || !user) return;
+    let cancelled = false;
+
+    async function load() {
+      setIsLoading(true);
+      setErrorMessage(null);
+      try {
+        const mySessions = await loadMySessions(user!.id);
+        if (!cancelled) setSessions(mySessions);
+      } catch (error: any) {
+        if (!cancelled) setErrorMessage(error.message || "Failed to load queue");
+      } finally {
+        if (!cancelled) setIsLoading(false);
+      }
+    }
+
+    load();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [tenantId, user, loadMySessions]);
 
   const handleAction = async (action: string, sessionId: string) => {
     setIsProcessing((prev) => ({ ...prev, [sessionId]: true }));

@@ -14,35 +14,25 @@ import { getEffectivePermissions } from "./permissionEngine";
 import { permissionMatrix } from "./permissionMatrix";
 
 // ============================================================
-// CHECK 1: super_admin includes all 30 permissions
+// CHECK 1: clinic_admin includes the full administrative permission set
 // ============================================================
-// Input:  A user whose clinic_users.role = 'super_admin'
-// Expected: The returned array MUST include ALL of the following 30 keys:
-//   patients:read, patients:create, patients:update, patients:delete,
-//   sessions:read, sessions:create, sessions:update, sessions:delete,
-//   agenda:read, agenda:create, agenda:update, agenda:delete,
-//   invoices:read, invoices:create, invoices:update,
-//   inventory:read, inventory:create, inventory:update,
-//   analytics:read,
-//   users:read, users:create, users:update, users:delete,
-//   settings:read, settings:update,
-//   audit:read,
-//   reports:read,
-//   followup:read, followup:create, followup:update
+// Input:  A user whose clinic_users.role = 'clinic_admin'
+// Expected: The returned array MUST include every permission granted to
+//   clinic_admin in the roles/role_permissions tables (the DB is the
+//   source of truth — see permissionMatrix.clinic_admin for the
+//   client-side reference copy).
 //
 // Verification:
 //   const result = await getEffectivePermissions(userId, tenantId);
-//   const expected = [
-//     ...permissionMatrix.super_admin,  // 26 original keys
-//     "reports:read",
-//     "followup:read", "followup:create", "followup:update"
-//   ];
+//   const expected = permissionMatrix.clinic_admin;
 //   const sortedResult = [...result].sort();
 //   const sortedExpected = [...expected].sort();
-//   console.assert(sortedResult.length === 30, "super_admin must have 30 permissions");
-//   for (const key of sortedExpected) {
-//     console.assert(sortedResult.includes(key), `super_admin missing: ${key}`);
-//   }
+//   console.assert(JSON.stringify(sortedResult) === JSON.stringify(sortedExpected),
+//     "clinic_admin must exactly match permissionMatrix");
+//
+// Note: "super_admin" is not part of the approved M2 role model and must
+// never appear as an assignable role or a basis for authorization — see
+// the M2 role-authorization trigger on clinic_users for the enforced rule.
 
 // ============================================================
 // CHECK 2: clinic_admin matches permissionMatrix.clinic_admin exactly
@@ -111,8 +101,7 @@ import { permissionMatrix } from "./permissionMatrix";
 //   VALUES
 //     (tenantId, userId, (SELECT id FROM permissions WHERE permission_key='patients:delete'), false, creatorId);
 //
-// Input:  A user whose clinic_users.role = 'super_admin'
-// Expected: The returned array does NOT include "patients:delete"
+// Input:  The same user from Check 2 (clinic_admin)
 //
 // Verification:
 //   const result = await getEffectivePermissions(userId, tenantId);

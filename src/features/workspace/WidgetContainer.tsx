@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, Suspense } from "react";
+import { useState, Suspense, Component as ReactComponent, type ReactNode } from "react";
 import type { ResolvedWidget } from "@/core/workspace/workspace.types";
 import { WidgetToolbar } from "./WidgetToolbar";
 import { AlertCircle, Loader2, ChevronDown, Pin } from "lucide-react";
@@ -37,6 +37,36 @@ function WidgetLoading() {
       <Loader2 className="h-6 w-6 animate-spin text-blue-500" />
     </div>
   );
+}
+
+// A real React error boundary. React only defers rendering of child
+// components until the reconciler actually invokes them, so a try/catch
+// wrapped around JSX (the previous implementation) can never catch errors
+// thrown while rendering a widget — only an actual error boundary
+// (getDerivedStateFromError / componentDidCatch) can.
+class WidgetRenderBoundary extends ReactComponent<
+  { onError: (err: Error) => void; children: ReactNode },
+  { hasError: boolean }
+> {
+  constructor(props: { onError: (err: Error) => void; children: ReactNode }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error: unknown) {
+    this.props.onError(error instanceof Error ? error : new Error(String(error)));
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return null;
+    }
+    return this.props.children;
+  }
 }
 
 export function WidgetContainer({ resolved }: WidgetContainerProps) {
@@ -83,13 +113,11 @@ export function WidgetContainer({ resolved }: WidgetContainerProps) {
         <WidgetErrorBoundary error={error} onRetry={handleRetry} />
       ) : (
         <div className="p-4">
-          <Suspense fallback={<WidgetLoading />}>
-            <WidgetContent
-              key={retryKey}
-              definition={definition}
-              onError={handleError}
-            />
-          </Suspense>
+          <WidgetRenderBoundary key={retryKey} onError={handleError}>
+            <Suspense fallback={<WidgetLoading />}>
+              <WidgetContent definition={definition} />
+            </Suspense>
+          </WidgetRenderBoundary>
         </div>
       )}
     </div>
@@ -98,24 +126,17 @@ export function WidgetContainer({ resolved }: WidgetContainerProps) {
 
 function WidgetContent({
   definition,
-  onError,
 }: {
   definition: ResolvedWidget["definition"];
-  onError: (err: Error) => void;
 }) {
-  try {
-    const Component = definition.component;
-    return (
-      <Component
-        widget={definition}
-        state="visible"
-        onStateChange={() => {}}
-      />
-    );
-  } catch (err) {
-    onError(err instanceof Error ? err : new Error(String(err)));
-    return null;
-  }
+  const Component = definition.component;
+  return (
+    <Component
+      widget={definition}
+      state="visible"
+      onStateChange={() => {}}
+    />
+  );
 }
 
 export default WidgetContainer;

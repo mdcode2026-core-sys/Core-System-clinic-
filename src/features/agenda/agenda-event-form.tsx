@@ -7,7 +7,7 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
@@ -119,26 +119,20 @@ export function AgendaEventForm({
   const [notes, setNotes] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
-  const [permError, setPermError] = useState("");
 
   // ─────────────────────────────────────────
-  // PERMISSION GUARD
+  // PERMISSION GUARD — derived directly during render, not via
+  // setState-in-effect. There's nothing external to synchronize with;
+  // it's a pure function of permsLoading/isOpen/isEditMode/hasPermission.
   // ─────────────────────────────────────────
 
-  useEffect(() => {
-    if (!permsLoading && isOpen) {
-      const requiredPerm = isEditMode ? "agenda:update" : "agenda:create";
-      if (!hasPermission(requiredPerm)) {
-        setPermError(
-          isEditMode
-            ? "ليس لديك صلاحية تعديل المواعيد"
-            : "ليس لديك صلاحية إنشاء مواعيد جديدة"
-        );
-      } else {
-        setPermError("");
-      }
-    }
-  }, [permsLoading, isOpen, isEditMode, hasPermission]);
+  const requiredPermission = isEditMode ? "agenda:update" : "agenda:create";
+  const permError =
+    !permsLoading && isOpen && !hasPermission(requiredPermission)
+      ? isEditMode
+        ? "ليس لديك صلاحية تعديل المواعيد"
+        : "ليس لديك صلاحية إنشاء مواعيد جديدة"
+      : "";
 
   // ─────────────────────────────────────────
   // FILTER PATIENTS BY SEARCH
@@ -155,9 +149,20 @@ export function AgendaEventForm({
 
   // ─────────────────────────────────────────
   // LOAD EXISTING DATA IN EDIT MODE
+  // Resetting all form state when the dialog opens for a different event
+  // (or for create mode) is "adjusting state when a prop changes" — React's
+  // documented fix is a render-phase state adjustment guarded by a
+  // signature comparison, not a setState-in-effect. This also removes an
+  // extra render+repaint cycle: previously the dialog could flash the
+  // previous event's values for one frame before the effect corrected them.
   // ─────────────────────────────────────────
 
-  useEffect(() => {
+  const resetSignature = `${isOpen ? "open" : "closed"}:${event?.id ?? "new"}:${defaultDate ?? ""}`;
+  const [lastResetSignature, setLastResetSignature] = useState(resetSignature);
+
+  if (resetSignature !== lastResetSignature) {
+    setLastResetSignature(resetSignature);
+
     if (event) {
       // In edit mode, always use existing patient
       setPatientMode("search");
@@ -190,26 +195,44 @@ export function AgendaEventForm({
       setNotes("");
     }
     setError("");
-  }, [event, defaultDate, isOpen]);
+  }
 
   // ─────────────────────────────────────────
   // AUTO-SET END TIME
+  // Computed inline from the change handlers that can affect it (procedure
+  // or start time), instead of an effect watching state. endTime remains a
+  // normal, independently user-editable field: typing a custom end time no
+  // longer risks being overwritten by an effect re-run for unrelated reasons.
   // ─────────────────────────────────────────
 
-  useEffect(() => {
-    if (!isEditMode && procedureId && startTime) {
-      const proc = procedures.find((p) => p.id === procedureId);
-      if (proc) {
-        const [hours, minutes] = startTime.split(":").map(Number);
-        const startDate = new Date();
-        startDate.setHours(hours, minutes);
-        const endDate = new Date(startDate.getTime() + proc.duration * 60000);
-        const endHours = String(endDate.getHours()).padStart(2, "0");
-        const endMinutes = String(endDate.getMinutes()).padStart(2, "0");
-        setEndTime(`${endHours}:${endMinutes}`);
-      }
+  function computeAutoEndTime(nextStartTime: string, nextProcedureId: string): string | null {
+    const proc = procedures.find((p) => p.id === nextProcedureId);
+    if (!proc) return null;
+    const [hours, minutes] = nextStartTime.split(":").map(Number);
+    if (Number.isNaN(hours) || Number.isNaN(minutes)) return null;
+    const startDate = new Date();
+    startDate.setHours(hours, minutes);
+    const endDate = new Date(startDate.getTime() + proc.duration * 60000);
+    const endHours = String(endDate.getHours()).padStart(2, "0");
+    const endMinutes = String(endDate.getMinutes()).padStart(2, "0");
+    return `${endHours}:${endMinutes}`;
+  }
+
+  function handleProcedureChange(nextProcedureId: string) {
+    setProcedureId(nextProcedureId);
+    if (!isEditMode) {
+      const computed = computeAutoEndTime(startTime, nextProcedureId);
+      if (computed) setEndTime(computed);
     }
-  }, [procedureId, startTime, isEditMode, procedures]);
+  }
+
+  function handleStartTimeChange(nextStartTime: string) {
+    setStartTime(nextStartTime);
+    if (!isEditMode && procedureId) {
+      const computed = computeAutoEndTime(nextStartTime, procedureId);
+      if (computed) setEndTime(computed);
+    }
+  }
 
   // ─────────────────────────────────────────
   // SUBMIT HANDLER
@@ -219,13 +242,7 @@ export function AgendaEventForm({
     e.preventDefault();
 
     // Permission check before submit
-    const requiredPerm = isEditMode ? "agenda:update" : "agenda:create";
-    if (!permsLoading && !hasPermission(requiredPerm)) {
-      setPermError(
-        isEditMode
-          ? "ليس لديك صلاحية تعديل المواعيد"
-          : "ليس لديك صلاحية إنشاء مواعيد جديدة"
-      );
+    if (permError) {
       return;
     }
 
@@ -491,7 +508,7 @@ export function AgendaEventForm({
               <FileText className="w-4 h-4" />
               الإجراء
             </Label>
-            <Select value={procedureId} onValueChange={setProcedureId}>
+            <Select value={procedureId} onValueChange={handleProcedureChange}>
               <SelectTrigger>
                 <SelectValue placeholder="اختر الإجراء (اختياري)" />
               </SelectTrigger>
@@ -529,7 +546,7 @@ export function AgendaEventForm({
               <Input
                 type="time"
                 value={startTime}
-                onChange={(e) => setStartTime(e.target.value)}
+                onChange={(e) => handleStartTimeChange(e.target.value)}
                 required
               />
             </div>
@@ -572,10 +589,7 @@ export function AgendaEventForm({
             </Button>
             <Button
               type="submit"
-              disabled={
-                isLoading ||
-                (!permsLoading && !hasPermission(isEditMode ? "agenda:update" : "agenda:create"))
-              }
+              disabled={isLoading || !!permError}
             >
               {isLoading
                 ? "جاري الحفظ..."

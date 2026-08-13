@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRoleWithPermissions, usePermissionsCatalog } from "@/domain/roles/roles.queries";
 import { updateRolePermissions } from "@/domain/roles/roles.actions";
 import { PERMISSION_GROUPS, ACTION_LABELS } from "@/domain/roles/roles.types";
@@ -27,14 +27,17 @@ export function RolePermissionsEditor({ roleId, onClose }: RolePermissionsEditor
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saveSuccess, setSaveSuccess] = useState(false);
 
-  // Initialize selected IDs when role data loads
-  useEffect(() => {
-    if (roleData && roleData.permissions) {
-      const ids = new Set(roleData.permissions.map((p) => p.id));
-      setOriginalIds(ids);
-      setSelectedIds(ids);
-    }
-  }, [roleData?.id]);
+  // Initialize selected IDs when role data loads — render-phase adjustment
+  // guarded by an identity check instead of setState-in-effect. This also
+  // resolves the missing-dependency warning the effect version had, since
+  // there's no dependency array to get out of sync with the values used.
+  const [loadedRoleId, setLoadedRoleId] = useState<string | undefined>(undefined);
+  if (roleData && roleData.permissions && roleData.id !== loadedRoleId) {
+    const ids = new Set(roleData.permissions.map((p) => p.id));
+    setLoadedRoleId(roleData.id);
+    setOriginalIds(ids);
+    setSelectedIds(ids);
+  }
 
   const togglePermission = (permissionId: string) => {
     setSelectedIds((prev) => {

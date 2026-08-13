@@ -29,9 +29,15 @@ const Select = ({ value = "", onValueChange, children }: SelectProps) => {
   const [open, setOpen] = React.useState(false)
   const [selectedValue, setSelectedValue] = React.useState(value)
 
-  React.useEffect(() => {
+  // Mirrors the controlled `value` prop into local state so a click can
+  // update the UI immediately without waiting on the parent's re-render.
+  // Adjusted during render (guarded by comparing against the previous
+  // prop value) rather than via setState-in-effect.
+  const [prevValue, setPrevValue] = React.useState(value)
+  if (value !== prevValue) {
+    setPrevValue(value)
     setSelectedValue(value)
-  }, [value])
+  }
 
   const handleValueChange = (newValue: string) => {
     setSelectedValue(newValue)

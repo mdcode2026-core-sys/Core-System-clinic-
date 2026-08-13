@@ -7,7 +7,7 @@
 
 "use client";
 
-import { useState, useCallback, useEffect, useContext } from "react";
+import { useState, useCallback, useMemo, useContext } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/shared/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
@@ -43,7 +43,6 @@ export default function AgendaPage() {
   // ─────────────────────────────────────────
 
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [calendarRange, setCalendarRange] = useState<CalendarRange | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<AgendaEventWithRelations | null>(null);
@@ -58,9 +57,11 @@ export default function AgendaPage() {
 
   // ─────────────────────────────────────────
   // CALCULATE WEEK RANGE
+  // Derived purely from currentDate — computed during render instead of
+  // via a state+effect pair, so there is no extra render/fetch cycle.
   // ─────────────────────────────────────────
 
-  useEffect(() => {
+  const calendarRange = useMemo<CalendarRange>(() => {
     const startOfWeek = new Date(currentDate);
     const day = startOfWeek.getDay();
     const diff = startOfWeek.getDate() - day;
@@ -71,10 +72,10 @@ export default function AgendaPage() {
     endOfWeek.setDate(startOfWeek.getDate() + 6);
     endOfWeek.setHours(23, 59, 59, 999);
 
-    setCalendarRange({
+    return {
       start: startOfWeek.toISOString(),
       end: endOfWeek.toISOString(),
-    });
+    };
   }, [currentDate]);
 
   // ─────────────────────────────────────────

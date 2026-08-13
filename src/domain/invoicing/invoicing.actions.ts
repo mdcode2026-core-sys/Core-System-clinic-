@@ -55,7 +55,7 @@ export async function createInvoiceFromSession(
 
   const { supabase, tenantId, role } = ctx;
 
-  if (!["receptionist", "admin", "super_admin"].includes(role)) {
+  if (!["receptionist", "clinic_admin"].includes(role)) {
     return { success: false, error: "Permission denied" };
   }
 
@@ -99,7 +99,7 @@ export async function createManualInvoice(
 
   const { supabase, tenantId, role } = ctx;
 
-  if (!["receptionist", "admin", "super_admin"].includes(role)) {
+  if (!["receptionist", "clinic_admin"].includes(role)) {
     return { success: false, error: "Permission denied" };
   }
 
@@ -185,7 +185,7 @@ export async function issueInvoice(
 
   const { supabase, tenantId, role } = ctx;
 
-  if (!["receptionist", "admin", "super_admin"].includes(role)) {
+  if (!["receptionist", "clinic_admin"].includes(role)) {
     return { success: false, error: "Permission denied" };
   }
 
@@ -229,7 +229,7 @@ export async function recordPayment(
 
   const { supabase, tenantId, role, user } = ctx;
 
-  if (!["receptionist", "admin", "super_admin"].includes(role)) {
+  if (!["receptionist", "clinic_admin"].includes(role)) {
     return { success: false, error: "Permission denied" };
   }
 
@@ -286,7 +286,7 @@ export async function applyDiscount(
 
   const { supabase, tenantId, role, user } = ctx;
 
-  if (!["admin", "super_admin"].includes(role)) {
+  if (!["clinic_admin"].includes(role)) {
     return { success: false, error: "Only admin can approve discounts" };
   }
 
@@ -347,7 +347,7 @@ export async function cancelInvoice(
 
   const { supabase, tenantId, role } = ctx;
 
-  if (!["admin", "super_admin"].includes(role)) {
+  if (!["clinic_admin"].includes(role)) {
     return { success: false, error: "Only admin can cancel invoices" };
   }
 

@@ -91,8 +91,16 @@ export function ReportsShell() {
 
   const [selectedModuleKey, setSelectedModuleKey] = useState("");
   const [selectedReportKey, setSelectedReportKey] = useState("");
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
+  const [startDate, setStartDate] = useState(() => {
+    const now = new Date();
+    const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+    return firstDay.toISOString().split("T")[0];
+  });
+  const [endDate, setEndDate] = useState(() => {
+    const now = new Date();
+    const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    return lastDay.toISOString().split("T")[0];
+  });
 
   const [availableModules, setAvailableModules] = useState<typeof reportModules>([]);
   const [availableReports, setAvailableReports] = useState<ReportDefinition[]>([]);
@@ -136,28 +144,25 @@ export function ReportsShell() {
     filterModules();
   }, [permsLoading, tenantId, hasPermission]);
 
-  // When module changes, update available reports
-  useEffect(() => {
+  // When module changes, update available reports. This is "adjusting
+  // state when a value changes" — done during render, guarded by a
+  // signature comparison, instead of via setState-in-effect. It also
+  // removes the one-frame flash of the previous module's reports that the
+  // effect version allowed before it corrected itself.
+  const [lastModuleKey, setLastModuleKey] = useState(selectedModuleKey);
+  if (selectedModuleKey !== lastModuleKey) {
+    setLastModuleKey(selectedModuleKey);
     if (!selectedModuleKey) {
       setAvailableReports([]);
       setSelectedReportKey("");
-      return;
+    } else {
+      const reports = getReportsByModule(selectedModuleKey);
+      setAvailableReports(reports);
+      setSelectedReportKey("");
+      setReportResult(null);
+      setReportError(null);
     }
-    const reports = getReportsByModule(selectedModuleKey);
-    setAvailableReports(reports);
-    setSelectedReportKey("");
-    setReportResult(null);
-    setReportError(null);
-  }, [selectedModuleKey]);
-
-  // Default date range: current calendar month
-  useEffect(() => {
-    const now = new Date();
-    const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
-    const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-    setStartDate(firstDay.toISOString().split("T")[0]);
-    setEndDate(lastDay.toISOString().split("T")[0]);
-  }, []);
+  }
 
   const selectedReport = availableReports.find((r) => r.key === selectedReportKey);
 

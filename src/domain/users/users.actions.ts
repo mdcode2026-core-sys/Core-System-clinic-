@@ -104,6 +104,15 @@ export async function createClinicUser(input: CreateUserInput): Promise<UserActi
     const { user, tenantId } = await resolveCaller();
     await requirePermission(user.id, tenantId, "users:create");
 
+    // "super_admin" is not part of the approved M2 role model and can
+    // never be assigned. The database enforces this independently (see
+    // the M2 role-authorization trigger on clinic_users), but rejecting
+    // it here too gives a clear, immediate error instead of a raw
+    // database exception.
+    if ((input.role as string) === "super_admin") {
+      return { success: false, error: "الدور المحدد غير متاح للتخصيص" };
+    }
+
     // Validate role exists (system role by key, or custom role by template_id)
     if (input.role_template_id) {
       const { data: roleData, error: roleError } = await supabase
@@ -166,26 +175,26 @@ export async function createClinicUser(input: CreateUserInput): Promise<UserActi
  * Update an existing clinic user's details.
  *
  * Authorization: requires `users:update`.
- * Cannot modify system-protected users (clinic_owner) unless caller is clinic_owner.
- * Cannot change role to/from clinic_owner.
+ * clinic_admin is the sole full operational administrator of the clinic
+ * per the approved M2 role model — there is no higher-privileged role
+ * inside the clinic whose account requires special protection here.
  */
 export async function updateClinicUser(input: UpdateUserInput): Promise<UserActionResult> {
   try {
     const supabase = await createClient();
-    const { user, tenantId, callerRole } = await resolveCaller();
+    const { user, tenantId } = await resolveCaller();
     await requirePermission(user.id, tenantId, "users:update");
 
     // Verify ownership
-    const target = await verifyTenantOwnership(supabase, input.id, tenantId);
+    await verifyTenantOwnership(supabase, input.id, tenantId);
 
-    // System role protection: prevent ordinary admins from modifying clinic_owner
-    if (target.role === "clinic_owner" && callerRole !== "clinic_owner") {
-      return { success: false, error: "Cannot modify clinic owner account" };
-    }
-
-    // Prevent assigning clinic_owner role
-    if (input.role === "clinic_owner" && callerRole !== "clinic_owner") {
-      return { success: false, error: "Cannot assign clinic owner role" };
+    // "super_admin" is not part of the approved M2 role model and can
+    // never be assigned. The database enforces this independently (see
+    // the M2 role-authorization trigger on clinic_users), but rejecting
+    // it here too gives a clear, immediate error instead of a raw
+    // database exception.
+    if ((input.role as string) === "super_admin") {
+      return { success: false, error: "الدور المحدد غير متاح للتخصيص" };
     }
 
     // Build update payload (omit id)
@@ -224,7 +233,6 @@ export async function updateClinicUser(input: UpdateUserInput): Promise<UserActi
  * Activate or deactivate a clinic user.
  *
  * Authorization: requires `users:delete`.
- * Cannot deactivate clinic_owner.
  * Cannot deactivate self.
  */
 export async function toggleClinicUserActive(
@@ -237,12 +245,7 @@ export async function toggleClinicUserActive(
     await requirePermission(user.id, tenantId, "users:delete");
 
     // Verify ownership
-    const target = await verifyTenantOwnership(supabase, userId, tenantId);
-
-    // Cannot deactivate clinic_owner
-    if (target.role === "clinic_owner" && !isActive) {
-      return { success: false, error: "Cannot deactivate clinic owner" };
-    }
+    await verifyTenantOwnership(supabase, userId, tenantId);
 
     // Cannot deactivate self
     const { data: callerClinicUser } = await supabase

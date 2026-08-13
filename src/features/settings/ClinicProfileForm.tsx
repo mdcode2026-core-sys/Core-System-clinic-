@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition, useEffect } from "react";
+import { useState, useTransition } from "react";
 import { useAuth } from "@/core/auth/AuthContext";
 import { usePermissions } from "@/core/permissions/usePermissions";
 import { useClinicProfile } from "@/domain/settings/settings.queries";
@@ -75,23 +75,26 @@ export function ClinicProfileForm() {
     country_code: tenant?.country_code ?? "",
   });
 
-  // Sync form when tenant data loads
-  useEffect(() => {
-    if (tenant) {
-      setFormData({
-        clinic_name: tenant.clinic_name ?? "",
-        clinic_name_ar: tenant.clinic_name_ar ?? "",
-        primary_phone: tenant.primary_phone ?? "",
-        whatsapp_number: tenant.whatsapp_number ?? "",
-        address: tenant.address ?? "",
-        timezone: tenant.timezone ?? "",
-        currency: tenant.currency ?? "",
-        logo_url: tenant.logo_url ?? "",
-        primary_color: tenant.primary_color ?? "",
-        country_code: tenant.country_code ?? "",
-      });
-    }
-  }, [tenant]);
+  // Sync form when tenant data loads/changes — a render-phase adjustment
+  // guarded by an identity check, rather than setState-in-effect. This also
+  // removes the one-frame flash of empty fields that the effect version
+  // allowed before it corrected itself once the query resolved.
+  const [syncedTenant, setSyncedTenant] = useState(tenant);
+  if (tenant && tenant !== syncedTenant) {
+    setSyncedTenant(tenant);
+    setFormData({
+      clinic_name: tenant.clinic_name ?? "",
+      clinic_name_ar: tenant.clinic_name_ar ?? "",
+      primary_phone: tenant.primary_phone ?? "",
+      whatsapp_number: tenant.whatsapp_number ?? "",
+      address: tenant.address ?? "",
+      timezone: tenant.timezone ?? "",
+      currency: tenant.currency ?? "",
+      logo_url: tenant.logo_url ?? "",
+      primary_color: tenant.primary_color ?? "",
+      country_code: tenant.country_code ?? "",
+    });
+  }
 
   const handleChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));

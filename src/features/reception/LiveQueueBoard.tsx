@@ -4,7 +4,7 @@
 // Phase 4 — Queue Management Module
 // Full queue board for reception staff
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { useAuth } from "@/core/auth/AuthContext";
 import { getQueue, getQueueStats, getActiveDoctors } from "@/domain/queue/queue.queries";
 import {
@@ -54,14 +54,21 @@ export function LiveQueueBoard({ tenantId: propTenantId, initialQueue = [], init
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedDoctor, setSelectedDoctor] = useState<string>("all");
   const [activeFilter, setActiveFilter] = useState<"all" | "waiting" | "in_consultation" | "completed">("all");
-  const [isLoading, setIsLoading] = useState(initialQueue.length === 0);
+  const [isLoading, setIsLoading] = useState(false);
   const [isProcessing, setIsProcessing] = useState<Record<string, boolean>>({});
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // Realtime subscription
   useQueueSubscription(tenantId || "");
 
-  // Fetch data
+  // Manual refresh, used after an action completes below. The single
+  // caller of this component (the queue page, a server component) always
+  // supplies real server-fetched data as props, including a genuinely
+  // empty array when the queue is empty — so there is no "fetch again on
+  // mount if empty" case here anymore. That previous behavior caused a
+  // duplicate Supabase round trip (plus a loading-state flash) every time
+  // the queue was legitimately empty, since an empty initial queue is
+  // indistinguishable from "no data was provided".
   const fetchData = useCallback(async () => {
     if (!tenantId) return;
     setIsLoading(true);
@@ -81,13 +88,6 @@ export function LiveQueueBoard({ tenantId: propTenantId, initialQueue = [], init
       setIsLoading(false);
     }
   }, [tenantId]);
-
-  useEffect(() => {
-    if (!tenantId) return;
-    if (initialQueue.length === 0) {
-      fetchData();
-    }
-  }, [fetchData, initialQueue.length, tenantId]);
 
   // Handle actions
   const handleAction = async (action: string, sessionId: string) => {

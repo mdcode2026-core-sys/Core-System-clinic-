@@ -209,7 +209,6 @@ export function UsersManager() {
                                   refetch();
                                 }
                               }}
-                              disabled={user.role === "clinic_owner"}
                             />
                           </div>
                         )}
@@ -269,7 +268,12 @@ function CreateUserDialog({
   const [roleTemplateId, setRoleTemplateId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  const systemRoles = roles.filter((r) => r.is_system_role);
+  const systemRoles = roles.filter(
+    // "super_admin" is not part of the approved M2 role model and must
+    // never be selectable here, even though it exists as a system role
+    // row in the database (see the M2 role-authorization trigger).
+    (r) => r.is_system_role && r.role_key !== "super_admin"
+  );
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -404,8 +408,12 @@ function EditUserDialog({
   const [roleTemplateId, setRoleTemplateId] = useState<string | null>(user.role_template_id);
   const [submitting, setSubmitting] = useState(false);
 
-  const systemRoles = roles.filter((r) => r.is_system_role);
-  const isClinicOwner = user.role === "clinic_owner";
+  const systemRoles = roles.filter(
+    // "super_admin" is not part of the approved M2 role model and must
+    // never be selectable here, even though it exists as a system role
+    // row in the database (see the M2 role-authorization trigger).
+    (r) => r.is_system_role && r.role_key !== "super_admin"
+  );
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -482,7 +490,6 @@ function EditUserDialog({
                 const matched = systemRoles.find((r) => r.role_key === v);
                 setRoleTemplateId(matched ? matched.id : null);
               }}
-              disabled={isClinicOwner}
             >
               <SelectTrigger id="edit-role">
                 <SelectValue placeholder="اختر الدور" />
@@ -495,11 +502,6 @@ function EditUserDialog({
                 ))}
               </SelectContent>
             </Select>
-            {isClinicOwner && (
-              <p className="text-xs text-muted-foreground">
-                لا يمكن تغيير دور مالك العيادة
-              </p>
-            )}
           </div>
           <DialogFooter className="gap-2">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>

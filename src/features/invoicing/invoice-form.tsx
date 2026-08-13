@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useId, useEffect } from "react";
+import { useState, useId } from "react";
 import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { Button } from "@/shared/components/ui/button";
@@ -48,7 +48,6 @@ export function InvoiceForm({
   const [error, setError] = useState<string | null>(
     initialPatientsError || initialProceduresError || initialSessionsError
   );
-  const [permError, setPermError] = useState<string | null>(null);
   const [form, setForm] = useState<InvoiceFormState>({
     patient_id: "",
     session_id: null,
@@ -57,12 +56,13 @@ export function InvoiceForm({
     items: [],
   });
 
-  // Permission guard on mount
-  useEffect(() => {
-    if (!permLoading && !hasPermission("invoices:create")) {
-      setPermError("ليس لديك صلاحية إنشاء فواتير. تواصل مع مسؤول العيادة.");
-    }
-  }, [permLoading, hasPermission]);
+  // Permission guard — derived directly during render. It's a pure function
+  // of permLoading/hasPermission, so no effect/setState is needed to
+  // "synchronize" it.
+  const permError =
+    !permLoading && !hasPermission("invoices:create")
+      ? "ليس لديك صلاحية إنشاء فواتير. تواصل مع مسؤول العيادة."
+      : null;
 
   function addItem() {
     const newItem: InvoiceFormItem = {
@@ -123,8 +123,7 @@ export function InvoiceForm({
   }
 
   async function handleSubmit() {
-    if (!hasPermission("invoices:create")) {
-      setPermError("ليس لديك صلاحية إنشاء فواتير.");
+    if (permError) {
       return;
     }
 
@@ -283,7 +282,7 @@ export function InvoiceForm({
         <CardContent className="space-y-4">
           {form.items.length === 0 && (
             <div className="text-center text-muted-foreground py-4">
-              لا توجد بنود. اضغط "إضافة بند"
+              لا توجد بنود. اضغط &quot;إضافة بند&quot;
             </div>
           )}
 
