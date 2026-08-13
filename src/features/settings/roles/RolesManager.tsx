@@ -7,8 +7,11 @@ import { useRoles } from "@/domain/roles/roles.queries";
 import { useRoleWithPermissions } from "@/domain/roles/roles.queries";
 import { RoleCard } from "./RoleCard";
 import { RolePermissionsEditor } from "./RolePermissionsEditor";
+import { CreateRoleDialog } from "./CreateRoleDialog";
+import { EditRoleDialog } from "./EditRoleDialog";
+import type { Role } from "@/domain/roles/roles.types";
 import { Button } from "@/shared/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
+import { Card, CardContent } from "@/shared/components/ui/card";
 import { Badge } from "@/shared/components/ui/badge";
 import { Separator } from "@/shared/components/ui/separator";
 import {
@@ -26,19 +29,48 @@ export function RolesManager() {
   const canReadRoles = hasPermission("roles:read");
   const canManageRoles = hasPermission("roles:manage");
 
-  const { data: roles, isLoading: rolesLoading, error: rolesError } = useRoles(tenantId);
+  const {
+    data: roles,
+    isLoading: rolesLoading,
+    error: rolesError,
+    refetch: refetchRoles,
+  } = useRoles(tenantId);
 
   const [editingRoleId, setEditingRoleId] = useState<string | null>(null);
   const [isEditorOpen, setIsEditorOpen] = useState(false);
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [editingRoleMeta, setEditingRoleMeta] = useState<Role | null>(null);
+  const [isEditMetaOpen, setIsEditMetaOpen] = useState(false);
 
-  const handleEdit = (roleId: string) => {
+  const handleEditPermissions = (roleId: string) => {
     setEditingRoleId(roleId);
     setIsEditorOpen(true);
+  };
+
+  const handleEditMetadata = (role: Role) => {
+    setEditingRoleMeta(role);
+    setIsEditMetaOpen(true);
+  };
+
+  const handleDeleteRole = (role: Role) => {
+    setEditingRoleMeta(role);
+    setIsEditMetaOpen(true);
   };
 
   const handleCloseEditor = () => {
     setIsEditorOpen(false);
     setEditingRoleId(null);
+  };
+
+  const handleCreateSuccess = () => {
+    setIsCreateOpen(false);
+    refetchRoles();
+  };
+
+  const handleEditSuccess = () => {
+    setIsEditMetaOpen(false);
+    setEditingRoleMeta(null);
+    refetchRoles();
   };
 
   if (permsLoading) {
@@ -95,7 +127,7 @@ export function RolesManager() {
           </p>
         </div>
         {canManageRoles && (
-          <Button disabled className="gap-2">
+          <Button onClick={() => setIsCreateOpen(true)} className="gap-2">
             <Plus className="h-4 w-4" />
             دور جديد
           </Button>
@@ -109,13 +141,12 @@ export function RolesManager() {
             <Info className="h-5 w-5 text-muted-foreground shrink-0 mt-0.5" />
             <div className="space-y-1">
               <p className="text-sm text-muted-foreground">
-                <span className="font-medium text-foreground">أدوار النظام</span> — قوالب جاهزة
-                يوفرها CORE SYSTEM كبداية للعيادة. لا يمكن تعديلها، لكن يمكن استخدامها كنقطة
-                انطلاق لإنشاء أدوار مخصصة.
+                <span className="font-medium text-foreground">أدوار النظام</span> — قوالب
+                جاهزة يوفرها CORE SYSTEM. لا يمكن تعديلها، لكن يمكن عرض صلاحياتها.
               </p>
               <p className="text-sm text-muted-foreground">
                 <span className="font-medium text-foreground">الأدوار المخصصة</span> — أدوار
-                تنشئها العيادة وتتحكم في صلاحياتها بالكامل. (يتطلب M2.5 — قوالب مخصصة)
+                تنشئها العيادة وتتحكم في بياناتها وصلاحياتها بالكامل.
               </p>
             </div>
           </div>
@@ -136,7 +167,7 @@ export function RolesManager() {
               key={role.id}
               role={role}
               canManage={canManageRoles}
-              onEdit={handleEdit}
+              onEditPermissions={handleEditPermissions}
             />
           ))}
         </div>
@@ -157,7 +188,9 @@ export function RolesManager() {
                 key={role.id}
                 role={role}
                 canManage={canManageRoles}
-                onEdit={handleEdit}
+                onEditPermissions={handleEditPermissions}
+                onEditMetadata={handleEditMetadata}
+                onDelete={handleDeleteRole}
               />
             ))}
           </div>
@@ -167,14 +200,14 @@ export function RolesManager() {
               <p className="text-muted-foreground text-sm">
                 لا توجد أدوار مخصصة حالياً.
                 <br />
-                سيتم إتاحة إنشاء أدوار مخصصة في M2.5 — إدارة القوالب.
+                اضغط "دور جديد" لإنشاء أول دور مخصص للعيادة.
               </p>
             </CardContent>
           </Card>
         )}
       </div>
 
-      {/* Editor Dialog */}
+      {/* Permissions Editor Dialog */}
       <Dialog open={isEditorOpen} onOpenChange={setIsEditorOpen}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto" dir="rtl">
           <DialogHeader>
@@ -188,22 +221,43 @@ export function RolesManager() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Create Role Dialog */}
+      <CreateRoleDialog
+        open={isCreateOpen}
+        onClose={() => setIsCreateOpen(false)}
+        onSuccess={handleCreateSuccess}
+      />
+
+      {/* Edit Role Metadata Dialog */}
+      <EditRoleDialog
+        role={editingRoleMeta}
+        open={isEditMetaOpen}
+        onClose={() => {
+          setIsEditMetaOpen(false);
+          setEditingRoleMeta(null);
+        }}
+        onSuccess={handleEditSuccess}
+      />
     </div>
   );
 }
 
 /**
  * Wrapper that fetches permissions for a single role.
- * Isolates per-role query so the grid doesn't re-fetch everything on every interaction.
  */
 function RoleCardWrapper({
   role,
   canManage,
-  onEdit,
+  onEditPermissions,
+  onEditMetadata,
+  onDelete,
 }: {
-  role: { id: string; role_key: string; role_name: string; role_name_ar: string | null; description: string | null; is_system_role: boolean; tenant_id: string | null; created_at: string | null };
+  role: Role;
   canManage: boolean;
-  onEdit: (roleId: string) => void;
+  onEditPermissions: (roleId: string) => void;
+  onEditMetadata?: (role: Role) => void;
+  onDelete?: (role: Role) => void;
 }) {
   const { data: roleWithPerms } = useRoleWithPermissions(role.id);
 
@@ -211,7 +265,9 @@ function RoleCardWrapper({
     <RoleCard
       role={role}
       permissions={roleWithPerms?.permissions ?? []}
-      onEdit={canManage ? onEdit : undefined}
+      onEditPermissions={canManage ? onEditPermissions : undefined}
+      onEditMetadata={canManage ? onEditMetadata : undefined}
+      onDelete={canManage ? onDelete : undefined}
       canManage={canManage}
     />
   );

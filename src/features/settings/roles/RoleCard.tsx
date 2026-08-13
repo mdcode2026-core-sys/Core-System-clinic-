@@ -1,6 +1,6 @@
 "use client";
 
-import { Shield, ShieldCheck, Pencil, Users } from "lucide-react";
+import { Shield, ShieldCheck, Pencil, Users, Trash2, Settings2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { Button } from "@/shared/components/ui/button";
 import { Badge } from "@/shared/components/ui/badge";
@@ -10,11 +10,20 @@ import { PERMISSION_GROUPS, ACTION_LABELS } from "@/domain/roles/roles.types";
 interface RoleCardProps {
   role: Role;
   permissions: PermissionRow[];
-  onEdit?: (roleId: string) => void;
+  onEditPermissions?: (roleId: string) => void;
+  onEditMetadata?: (role: Role) => void;
+  onDelete?: (role: Role) => void;
   canManage: boolean;
 }
 
-export function RoleCard({ role, permissions, onEdit, canManage }: RoleCardProps) {
+export function RoleCard({
+  role,
+  permissions,
+  onEditPermissions,
+  onEditMetadata,
+  onDelete,
+  canManage,
+}: RoleCardProps) {
   const isSystem = role.is_system_role;
 
   // Group permissions by resource for display
@@ -47,12 +56,50 @@ export function RoleCard({ role, permissions, onEdit, canManage }: RoleCardProps
             <Badge variant={isSystem ? "default" : "secondary"} className="text-xs">
               {isSystem ? "نظام" : "مخصص"}
             </Badge>
-            {canManage && !isSystem && onEdit && (
+            {canManage && !isSystem && (
+              <div className="flex items-center gap-1">
+                {onEditMetadata && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => onEditMetadata(role)}
+                    className="h-8 w-8 p-0"
+                    title="تعديل بيانات الدور"
+                  >
+                    <Settings2 className="h-4 w-4" />
+                  </Button>
+                )}
+                {onDelete && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => onDelete(role)}
+                    className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                    title="حذف الدور"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                )}
+                {onEditPermissions && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => onEditPermissions(role.id)}
+                    className="h-8 w-8 p-0"
+                    title="تعديل الصلاحيات"
+                  >
+                    <Pencil className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
+            )}
+            {canManage && isSystem && onEditPermissions && (
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => onEdit(role.id)}
+                onClick={() => onEditPermissions(role.id)}
                 className="h-8 w-8 p-0"
+                title="عرض الصلاحيات"
               >
                 <Pencil className="h-4 w-4" />
               </Button>
@@ -79,9 +126,7 @@ export function RoleCard({ role, permissions, onEdit, canManage }: RoleCardProps
                     <span className="text-sm font-medium">
                       {groupInfo?.labelAr || resource}
                     </span>
-                    <span className="text-xs text-muted-foreground">
-                      {perms.length}
-                    </span>
+                    <span className="text-xs text-muted-foreground">{perms.length}</span>
                   </div>
                   <div className="flex flex-wrap gap-1.5">
                     {perms.map((perm) => (

@@ -103,8 +103,12 @@ function OverviewTab() {
 function TemplatesTab() {
   return (
     <div className="space-y-4">
-      <h2 className="text-xl font-semibold">قوالب الصلاحيات المخصصة</h2>
-      <p className="text-muted-foreground">M2.5 — Custom Templates implementation placeholder.</p>
+      <h2 className="text-xl font-semibold">قوالب الأدوار</h2>
+      <p className="text-muted-foreground">
+        تم دمج إدارة قوالب الأدوار في قسم{" "}
+        <span className="font-medium text-foreground">"الأدوار"</span>.
+        انتقل إلى تبويب "الأدوار" لإنشاء وإدارة الأدوار المخصصة وصلاحياتها.
+      </p>
     </div>
   );
 }
