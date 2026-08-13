@@ -36,17 +36,5 @@ export async function createClient() {
     }
   );
 
-  // ضبط tenant_id في current_setting ليكون متاحاً لـ RLS
-  const { data: { user } } = await supabase.auth.getUser();
-  const tenantId = user?.app_metadata?.tenant_id || user?.user_metadata?.tenant_id;
-  if (tenantId) {
-    const { error: setTenantError } = await supabase.rpc("set_tenant_id", {
-      tenant_id: tenantId,
-    });
-    if (setTenantError) {
-      console.error("[server.ts] set_tenant_id RPC failed:", setTenantError.message);
-    }
-  }
-
   return supabase;
 }
