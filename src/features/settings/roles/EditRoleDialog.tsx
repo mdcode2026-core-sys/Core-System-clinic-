@@ -145,7 +145,7 @@ export function EditRoleDialog({ role, open, onClose, onSuccess }: EditRoleDialo
                   </span>
                 </p>
                 <p className="text-xs text-muted-foreground mt-1">
-                  لتعديل الصلاحيات، استخدم زر "تعديل الصلاحيات" في بطاقة الدور.
+                  لتعديل الصلاحيات، استخدم زر &quot;تعديل الصلاحيات&quot; في بطاقة الدور.
                 </p>
               </div>
             )}
@@ -192,7 +192,7 @@ export function EditRoleDialog({ role, open, onClose, onSuccess }: EditRoleDialo
           <DialogHeader>
             <DialogTitle>تأكيد حذف الدور</DialogTitle>
             <DialogDescription>
-              هل أنت متأكد من حذف الدور "{role?.role_name_ar || role?.role_name}"؟
+              هل أنت متأكد من حذف الدور &quot;{role?.role_name_ar || role?.role_name}&quot;؟
               <br />
               لا يمكن التراجع عن هذا الإجراء.
             </DialogDescription>

@@ -8,6 +8,7 @@ import { UsersManager } from "@/features/settings/users/UsersManager";
 import { OverridesManager } from "@/features/settings/overrides/OverridesManager";
 
 import { SystemPreferencesManager } from "@/features/settings/system";
+import { NotificationsManager } from "@/features/settings/notifications";
 import {
   LayoutDashboard,
   Building2,
@@ -107,8 +108,8 @@ function TemplatesTab() {
       <h2 className="text-xl font-semibold">قوالب الأدوار</h2>
       <p className="text-muted-foreground">
         تم دمج إدارة قوالب الأدوار في قسم{" "}
-        <span className="font-medium text-foreground">"الأدوار"</span>.
-        انتقل إلى تبويب "الأدوار" لإنشاء وإدارة الأدوار المخصصة وصلاحياتها.
+        <span className="font-medium text-foreground">&quot;الأدوار&quot;</span>.
+        انتقل إلى تبويب &quot;الأدوار&quot; لإنشاء وإدارة الأدوار المخصصة وصلاحياتها.
       </p>
     </div>
   );
@@ -119,12 +120,7 @@ function OverridesTab() {
 }
 
 function NotificationsTab() {
-  return (
-    <div className="space-y-4">
-      <h2 className="text-xl font-semibold">تفضيلات التنبيهات</h2>
-      <p className="text-muted-foreground">M2.7 — Notification Preferences implementation placeholder.</p>
-    </div>
-  );
+  return <NotificationsManager />;
 }
 
 function SubscriptionTab() {

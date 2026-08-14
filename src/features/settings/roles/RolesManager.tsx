@@ -200,7 +200,7 @@ export function RolesManager() {
               <p className="text-muted-foreground text-sm">
                 لا توجد أدوار مخصصة حالياً.
                 <br />
-                اضغط "دور جديد" لإنشاء أول دور مخصص للعيادة.
+                اضغط &quot;دور جديد&quot; لإنشاء أول دور مخصص للعيادة.
               </p>
             </CardContent>
           </Card>
