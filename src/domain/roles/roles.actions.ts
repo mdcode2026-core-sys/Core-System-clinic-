@@ -195,10 +195,15 @@ export async function createRole(
 
     // Optionally assign initial permissions
     if (input.permissionIds && input.permissionIds.length > 0) {
-      const { data: validPerms } = await supabase
+      const { data: validPerms, error: permCheckError } = await supabase
         .from("permissions")
         .select("id")
         .in("id", input.permissionIds);
+
+      if (permCheckError) {
+        console.error("[createRole] permission validation error:", permCheckError.message);
+        return { success: false, error: "Failed to validate permissions" };
+      }
 
       const validIds = (validPerms ?? []).map((p) => p.id);
       if (validIds.length > 0) {
@@ -206,7 +211,13 @@ export async function createRole(
           role_id: roleData.id,
           permission_id: permissionId,
         }));
-        await supabase.from("role_permissions").insert(inserts);
+
+        const { error: permInsertError } = await supabase.from("role_permissions").insert(inserts);
+
+        if (permInsertError) {
+          console.error("[createRole] permission insert error:", permInsertError.message);
+          return { success: false, error: "Failed to assign initial permissions" };
+        }
       }
     }
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { updateRole, deleteRole } from "@/domain/roles/roles.actions";
 import { useRoleWithPermissions } from "@/domain/roles/roles.queries";
 import type { Role } from "@/domain/roles/roles.types";
@@ -38,16 +38,19 @@ export function EditRoleDialog({ role, open, onClose, onSuccess }: EditRoleDialo
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (role) {
-      setRoleName(role.role_name);
-      setRoleNameAr(role.role_name_ar ?? "");
-      setDescription(role.description ?? "");
-      setSaveError(null);
-      setDeleteError(null);
-      setShowDeleteConfirm(false);
-    }
-  }, [role]);
+  // Sync form state to the current role — render-phase adjustment guarded
+  // by an identity check instead of setState-in-effect, matching the
+  // pattern established in RolePermissionsEditor.tsx.
+  const [loadedRoleId, setLoadedRoleId] = useState<string | undefined>(undefined);
+  if (role && role.id !== loadedRoleId) {
+    setLoadedRoleId(role.id);
+    setRoleName(role.role_name);
+    setRoleNameAr(role.role_name_ar ?? "");
+    setDescription(role.description ?? "");
+    setSaveError(null);
+    setDeleteError(null);
+    setShowDeleteConfirm(false);
+  }
 
   const handleSave = async () => {
     if (!role) return;
