@@ -1327,6 +1327,8 @@ export type Database = {
           currency: string
           currency_subunit: number
           deleted_at: string | null
+          direction: string
+          language: string
           id: string
           is_active: boolean
           license_key: string
@@ -1351,6 +1353,8 @@ export type Database = {
           currency?: string
           currency_subunit?: number
           deleted_at?: string | null
+          direction?: string
+          language?: string
           id?: string
           is_active?: boolean
           license_key: string
@@ -1375,6 +1379,8 @@ export type Database = {
           currency?: string
           currency_subunit?: number
           deleted_at?: string | null
+          direction?: string
+          language?: string
           id?: string
           is_active?: boolean
           license_key?: string

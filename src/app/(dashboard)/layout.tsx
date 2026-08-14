@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/infrastructure/supabase/server";
 import { WorkspaceShell } from "@/features/workspace/WorkspaceShell";
 import { AuthProvider } from "@/core/auth/AuthProvider";
+import { DirectionProvider } from "@/components/DirectionProvider";
 
 export default async function DashboardLayout({
   children,
@@ -20,9 +21,11 @@ export default async function DashboardLayout({
 
   return (
     <AuthProvider>
-      <WorkspaceShell user={user}>
-        {children}
-      </WorkspaceShell>
+      <DirectionProvider>
+        <WorkspaceShell user={user}>
+          {children}
+        </WorkspaceShell>
+      </DirectionProvider>
     </AuthProvider>
   );
 }

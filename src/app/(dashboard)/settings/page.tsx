@@ -7,6 +7,7 @@ import { RolesManager } from "@/features/settings/roles/RolesManager";
 import { UsersManager } from "@/features/settings/users/UsersManager";
 import { OverridesManager } from "@/features/settings/overrides/OverridesManager";
 
+import { SystemPreferencesManager } from "@/features/settings/system";
 import {
   LayoutDashboard,
   Building2,
@@ -49,7 +50,7 @@ export default function SettingsPage() {
   const visibleTabs = tabs.filter((t) => t.permission === null || hasPermission(t.permission as any));
 
   return (
-    <div className="space-y-6" dir="rtl">
+    <div className="space-y-6">
       <h1 className="text-2xl font-bold">الإعدادات</h1>
 
       <div className="flex flex-wrap gap-2 border-b border-border pb-2">
@@ -145,10 +146,5 @@ function AuditTab() {
 }
 
 function SystemPreferencesTab() {
-  return (
-    <div className="space-y-4">
-      <h2 className="text-xl font-semibold">تفضيلات النظام</h2>
-      <p className="text-muted-foreground">M2.6 — System Preferences (integrated into M2.1) placeholder.</p>
-    </div>
-  );
+  return <SystemPreferencesManager />;
 }
