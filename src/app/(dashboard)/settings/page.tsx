@@ -9,6 +9,7 @@ import { OverridesManager } from "@/features/settings/overrides/OverridesManager
 
 import { SystemPreferencesManager } from "@/features/settings/system";
 import { NotificationsManager } from "@/features/settings/notifications";
+import { SubscriptionCenter } from "@/features/settings/subscriptions";
 import {
   LayoutDashboard,
   Building2,
@@ -124,12 +125,7 @@ function NotificationsTab() {
 }
 
 function SubscriptionTab() {
-  return (
-    <div className="space-y-4">
-      <h2 className="text-xl font-semibold">مركز الاشتراك</h2>
-      <p className="text-muted-foreground">M2.8 — Subscription Center implementation placeholder.</p>
-    </div>
-  );
+  return <SubscriptionCenter />;
 }
 
 function AuditTab() {
