@@ -7,6 +7,7 @@ import { RolesManager } from "@/features/settings/roles/RolesManager";
 import { UsersManager } from "@/features/settings/users/UsersManager";
 import { OverridesManager } from "@/features/settings/overrides/OverridesManager";
 
+import { AuditLogManager } from "@/features/settings/audit";
 import { SystemPreferencesManager } from "@/features/settings/system";
 import { NotificationsManager } from "@/features/settings/notifications";
 import { SubscriptionCenter } from "@/features/settings/subscriptions";
@@ -129,12 +130,7 @@ function SubscriptionTab() {
 }
 
 function AuditTab() {
-  return (
-    <div className="space-y-4">
-      <h2 className="text-xl font-semibold">سجل النشاط والتدقيق</h2>
-      <p className="text-muted-foreground">M2.9 — Audit / Activity implementation placeholder.</p>
-    </div>
-  );
+  return <AuditLogManager />;
 }
 
 function SystemPreferencesTab() {
