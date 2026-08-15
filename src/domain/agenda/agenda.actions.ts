@@ -19,7 +19,6 @@ export async function createAgendaEvent(formData: FormData) {
     return { error: "لم يتم التعرف على العيادة" };
   }
 
-  await supabase.rpc("set_tenant_id", { tenant_id: tenantId });
 
   const patientId = String(formData.get("patient_id"));
   const doctorId = String(formData.get("doctor_id"));
@@ -91,7 +90,6 @@ export async function updateAgendaEvent(formData: FormData) {
     return { error: "لم يتم التعرف على العيادة" };
   }
 
-  await supabase.rpc("set_tenant_id", { tenant_id: tenantId });
 
   const eventId = String(formData.get("id"));
   const patientId = String(formData.get("patient_id"));
@@ -159,7 +157,6 @@ export async function updateAgendaEventStatus(formData: FormData) {
     return { error: "لم يتم التعرف على العيادة" };
   }
 
-  await supabase.rpc("set_tenant_id", { tenant_id: tenantId });
 
   const eventId = String(formData.get("id"));
   const newStatus = String(formData.get("status")) as AgendaEventStatusValue;
@@ -199,7 +196,6 @@ export async function cancelAgendaEvent(formData: FormData) {
     return { error: "لم يتم التعرف على العيادة" };
   }
 
-  await supabase.rpc("set_tenant_id", { tenant_id: tenantId });
 
   const eventId = String(formData.get("id"));
   const currentStatus = String(formData.get("current_status")) as AgendaEventStatusValue;

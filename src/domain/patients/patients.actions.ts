@@ -12,7 +12,6 @@ export async function createPatient(formData: FormData) {
     return { error: "لم يتم التعرف على العيادة" };
   }
 
-  await supabase.rpc('set_tenant_id', { tenant_id: tenantId });
 
   const dateOfBirth = formData.get("date_of_birth");
   const firstVisitDate = formData.get("first_visit_date");
@@ -57,7 +56,6 @@ export async function createPatientFromObject(patientData: PatientInsert) {
     return { error: "لم يتم التعرف على العيادة" };
   }
 
-  await supabase.rpc('set_tenant_id', { tenant_id: tenantId });
 
   const { data, error } = await supabase
     .from("clinic_patients")
@@ -81,7 +79,6 @@ export async function updatePatient(formData: FormData) {
     return { error: "لم يتم التعرف على العيادة" };
   }
 
-  await supabase.rpc('set_tenant_id', { tenant_id: tenantId });
 
   const id = String(formData.get("id"));
   const dateOfBirth = formData.get("date_of_birth");
@@ -134,7 +131,6 @@ export async function deletePatient(formData: FormData) {
     return { error: "لم يتم التعرف على العيادة" };
   }
 
-  await supabase.rpc('set_tenant_id', { tenant_id: tenantId });
 
   const id = String(formData.get("id"));
 

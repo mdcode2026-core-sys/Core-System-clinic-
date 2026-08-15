@@ -22,7 +22,6 @@ export async function createInventoryItem(formData: FormData) {
   const tenantId = String(formData.get("tenant_id"));
   if (!tenantId) return { error: "لم يتم التعرف على العيادة" };
 
-  await supabase.rpc("set_tenant_id", { tenant_id: tenantId });
 
   const name = String(formData.get("name") || "").trim();
   if (!name) return { error: "اسم الصنف مطلوب" };
@@ -53,7 +52,6 @@ export async function updateInventoryItem(formData: FormData) {
   const id = String(formData.get("id"));
   if (!tenantId || !id) return { error: "بيانات ناقصة" };
 
-  await supabase.rpc("set_tenant_id", { tenant_id: tenantId });
 
   const name = String(formData.get("name") || "").trim();
   if (!name) return { error: "اسم الصنف مطلوب" };
@@ -97,7 +95,6 @@ export async function adjustStock(formData: FormData) {
     return { error: "نوع المعاملة غير صالح" };
   }
 
-  await supabase.rpc("set_tenant_id", { tenant_id: tenantId });
 
   // Derive quantity_delta from transaction type (system derives +/-, user never chooses)
   const effect = TRANSACTION_EFFECT[transactionType];
@@ -149,7 +146,6 @@ export async function softDeleteInventoryItem(formData: FormData) {
   const id = String(formData.get("id"));
   if (!tenantId || !id) return { error: "بيانات ناقصة" };
 
-  await supabase.rpc("set_tenant_id", { tenant_id: tenantId });
 
   const { error } = await supabase
     .from("inventory_items")

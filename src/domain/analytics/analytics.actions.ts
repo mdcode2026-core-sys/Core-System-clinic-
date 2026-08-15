@@ -34,7 +34,6 @@ export async function getAnalyticsOverview(
   }
 
   const supabase = await createClient();
-  await supabase.rpc("set_tenant_id", { tenant_id: tenantId });
 
   return getAllKpiData(supabase, tenantId, datePreset);
 }
@@ -50,7 +49,6 @@ export async function getAnalyticsByCategory(
   }
 
   const supabase = await createClient();
-  await supabase.rpc("set_tenant_id", { tenant_id: tenantId });
 
   return getKpiDataByCategory(category, supabase, tenantId, datePreset);
 }
