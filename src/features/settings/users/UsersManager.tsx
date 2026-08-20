@@ -272,7 +272,7 @@ function CreateUserDialog({
     // "super_admin" is not part of the approved M2 role model and must
     // never be selectable here, even though it exists as a system role
     // row in the database (see the M2 role-authorization trigger).
-    (r) => r.is_system_role && r.role_key !== "super_admin"
+    (r) => r.is_system_role && r.role_key !== "super_admin" && r.role_key !== "clinic_owner"
   );
 
   async function handleSubmit(e: React.FormEvent) {
@@ -412,7 +412,7 @@ function EditUserDialog({
     // "super_admin" is not part of the approved M2 role model and must
     // never be selectable here, even though it exists as a system role
     // row in the database (see the M2 role-authorization trigger).
-    (r) => r.is_system_role && r.role_key !== "super_admin"
+    (r) => r.is_system_role && r.role_key !== "super_admin" && r.role_key !== "clinic_owner"
   );
 
   async function handleSubmit(e: React.FormEvent) {

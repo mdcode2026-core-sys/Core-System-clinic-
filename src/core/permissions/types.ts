@@ -1,6 +1,5 @@
 export type UserRole = 
   | "clinic_admin" 
-  | "clinic_owner" 
   | "doctor" 
   | "nurse" 
   | "receptionist"

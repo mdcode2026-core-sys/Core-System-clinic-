@@ -15,7 +15,7 @@ export type FeatureModuleKey =
   | "billing"
   | "followup"
   | "inventory"
-  | "ADVANCED_ANALYTICS"
+  | "analytics"
   | "AUDIT_TRAIL"
   | "INVENTORY_MODULE"
   | "MULTI_BRANCH"
