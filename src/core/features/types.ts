@@ -6,7 +6,7 @@
 // Verified against the live `feature_flags` table (project: core-system-clinic,
 // gobdznqbdaklkkqbkynx / qaslsjyxjwvdoiczmhgq) — flag_key values in production:
 //   patients, agenda, queue, billing, followup, inventory,
-//   ADVANCED_ANALYTICS, AUDIT_TRAIL, INVENTORY_MODULE, MULTI_BRANCH, WHATSAPP_AUTOMATION
+//   AUDIT_TRAIL, INVENTORY_MODULE, MULTI_BRANCH, WHATSAPP_AUTOMATION
 
 export type FeatureModuleKey =
   | "patients"

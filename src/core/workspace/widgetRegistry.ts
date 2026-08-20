@@ -71,7 +71,7 @@ export const widgetRegistry: WidgetDefinition[] = [
     layer: 3,
     defaultSize: { width: "half", height: "tall" },
     requiredPermission: "analytics:read",
-    moduleKey: "ADVANCED_ANALYTICS",
+    moduleKey: "analytics",
     component: AnalyticsOverviewWidget,
   },
 ];
