@@ -11,6 +11,7 @@ import { AuditLogManager } from "@/features/settings/audit";
 import { SystemPreferencesManager } from "@/features/settings/system";
 import { NotificationsManager } from "@/features/settings/notifications";
 import { SubscriptionCenter } from "@/features/settings/subscriptions";
+import { ProceduresManager } from "@/features/settings/procedures";
 import {
   LayoutDashboard,
   Building2,
@@ -22,6 +23,7 @@ import {
   CreditCard,
   ClipboardList,
   Settings,
+  Stethoscope,
 } from "lucide-react";
 
 const tabs = [
@@ -34,6 +36,7 @@ const tabs = [
   { id: "notifications", label: "التنبيهات", icon: Bell, permission: "notifications:manage" },
   { id: "subscription", label: "الاشتراك", icon: CreditCard, permission: "subscription:read" },
   { id: "audit", label: "السجل", icon: ClipboardList, permission: "audit:read" },
+  { id: "procedures", label: "الخدمات الطبية", icon: Stethoscope, permission: "procedures:read" },
   { id: "system", label: "النظام", icon: Settings, permission: "settings:update" },
 ];
 
@@ -87,6 +90,7 @@ export default function SettingsPage() {
         {activeTab === "notifications" && <NotificationsTab />}
         {activeTab === "subscription" && <SubscriptionTab />}
         {activeTab === "audit" && <AuditTab />}
+        {activeTab === "procedures" && <ProceduresTab />}
         {activeTab === "system" && <SystemPreferencesTab />}
       </div>
     </div>
@@ -131,6 +135,10 @@ function SubscriptionTab() {
 
 function AuditTab() {
   return <AuditLogManager />;
+}
+
+function ProceduresTab() {
+  return <ProceduresManager />;
 }
 
 function SystemPreferencesTab() {

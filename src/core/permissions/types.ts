@@ -21,7 +21,8 @@ export type Permission =
   | "templates:manage"
   | "overrides:manage"
   | "subscription:read"
-  | "notifications:manage";
+  | "notifications:manage"
+  | "procedures:read" | "procedures:create" | "procedures:update" | "procedures:delete";
 
 export interface PermissionGuardProps {
   permission: Permission;

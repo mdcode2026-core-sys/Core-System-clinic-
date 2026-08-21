@@ -7,6 +7,8 @@ export type Json =
   | Json[]
 
 export type Database = {
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "14.5"
   }
@@ -137,57 +139,7 @@ export type Database = {
           },
         ]
       }
-      branches: {
-        Row: {
-          address: string | null
-          branch_name: string
-          branch_name_ar: string | null
-          created_at: string
-          deleted_at: string | null
-          id: string
-          is_active: boolean
-          is_default: boolean
-          phone: string | null
-          tenant_id: string
-          updated_at: string
-        }
-        Insert: {
-          address?: string | null
-          branch_name: string
-          branch_name_ar?: string | null
-          created_at?: string
-          deleted_at?: string | null
-          id?: string
-          is_active?: boolean
-          is_default?: boolean
-          phone?: string | null
-          tenant_id: string
-          updated_at?: string
-        }
-        Update: {
-          address?: string | null
-          branch_name?: string
-          branch_name_ar?: string | null
-          created_at?: string
-          deleted_at?: string | null
-          id?: string
-          is_active?: boolean
-          is_default?: boolean
-          phone?: string | null
-          tenant_id?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "branches_tenant_id_fkey"
-            columns: ["tenant_id"]
-            isOneToOne: false
-            referencedRelation: "master_tenants"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-            billing_events: {
+      billing_events: {
         Row: {
           activated_by: string | null
           activation_notes: string | null
@@ -237,6 +189,56 @@ export type Database = {
           },
           {
             foreignKeyName: "billing_events_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "master_tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      branches: {
+        Row: {
+          address: string | null
+          branch_name: string
+          branch_name_ar: string | null
+          created_at: string
+          deleted_at: string | null
+          id: string
+          is_active: boolean
+          is_default: boolean
+          phone: string | null
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          branch_name: string
+          branch_name_ar?: string | null
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          is_active?: boolean
+          is_default?: boolean
+          phone?: string | null
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          branch_name?: string
+          branch_name_ar?: string | null
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          is_active?: boolean
+          is_default?: boolean
+          phone?: string | null
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "branches_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "master_tenants"
@@ -508,11 +510,15 @@ export type Database = {
           buffer_time_minutes: number
           category: string | null
           created_at: string
+          display_order: number | null
           id: string
           is_active: boolean
           procedure_code: string | null
           procedure_name: string
           procedure_name_ar: string | null
+          provider_type: string | null
+          service_type: string | null
+          specialty: string | null
           standard_duration_minutes: number
           tax_included: boolean
           tax_rate_percent: number
@@ -524,11 +530,15 @@ export type Database = {
           buffer_time_minutes?: number
           category?: string | null
           created_at?: string
+          display_order?: number | null
           id?: string
           is_active?: boolean
           procedure_code?: string | null
           procedure_name: string
           procedure_name_ar?: string | null
+          provider_type?: string | null
+          service_type?: string | null
+          specialty?: string | null
           standard_duration_minutes?: number
           tax_included?: boolean
           tax_rate_percent?: number
@@ -540,11 +550,15 @@ export type Database = {
           buffer_time_minutes?: number
           category?: string | null
           created_at?: string
+          display_order?: number | null
           id?: string
           is_active?: boolean
           procedure_code?: string | null
           procedure_name?: string
           procedure_name_ar?: string | null
+          provider_type?: string | null
+          service_type?: string | null
+          specialty?: string | null
           standard_duration_minutes?: number
           tax_included?: boolean
           tax_rate_percent?: number
@@ -613,6 +627,7 @@ export type Database = {
           id: string
           permission_id: string
           tenant_id: string
+          updated_at: string | null
           user_id: string
         }
         Insert: {
@@ -622,6 +637,7 @@ export type Database = {
           id?: string
           permission_id: string
           tenant_id: string
+          updated_at?: string | null
           user_id: string
         }
         Update: {
@@ -631,6 +647,7 @@ export type Database = {
           id?: string
           permission_id?: string
           tenant_id?: string
+          updated_at?: string | null
           user_id?: string
         }
         Relationships: [
@@ -700,6 +717,7 @@ export type Database = {
           phone?: string | null
           pin_code: string
           role: string
+          role_template_id?: string | null
           specialization?: string | null
           tenant_id: string
           updated_at?: string
@@ -725,6 +743,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "clinic_users_role_template_id_fkey"
+            columns: ["role_template_id"]
+            isOneToOne: false
+            referencedRelation: "roles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "clinic_users_tenant_id_fkey"
             columns: ["tenant_id"]
@@ -1328,9 +1353,9 @@ export type Database = {
           currency_subunit: number
           deleted_at: string | null
           direction: string
-          language: string
           id: string
           is_active: boolean
+          language: string
           license_key: string
           logo_url: string | null
           max_devices: number
@@ -1354,9 +1379,9 @@ export type Database = {
           currency_subunit?: number
           deleted_at?: string | null
           direction?: string
-          language?: string
           id?: string
           is_active?: boolean
+          language?: string
           license_key: string
           logo_url?: string | null
           max_devices?: number
@@ -1380,9 +1405,9 @@ export type Database = {
           currency_subunit?: number
           deleted_at?: string | null
           direction?: string
-          language?: string
           id?: string
           is_active?: boolean
+          language?: string
           license_key?: string
           logo_url?: string | null
           max_devices?: number
@@ -1712,7 +1737,15 @@ export type Database = {
           role_name_ar?: string | null
           tenant_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "roles_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "master_tenants"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       subscription_events: {
         Row: {
@@ -1973,7 +2006,7 @@ export type Database = {
           },
         ]
       }
-            tenants: {
+      tenants: {
         Row: {
           address: string | null
           clinic_name: string

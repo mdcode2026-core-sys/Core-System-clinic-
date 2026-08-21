@@ -94,6 +94,7 @@ export const PERMISSION_GROUPS: Record<string, { labelAr: string; description?: 
   overrides: { labelAr: "التجاوزات", description: "تجاوزات الصلاحيات الفردية" },
   subscription: { labelAr: "الاشتراك", description: "معلومات الاشتراك" },
   notifications: { labelAr: "التنبيهات", description: "إعدادات التنبيهات" },
+  procedures: { labelAr: "الخدمات الطبية", description: "إدارة كتالوج الخدمات والإجراءات" },
 };
 
 /**
