@@ -8,16 +8,18 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
 import { Badge } from "@/shared/components/ui/badge";
-import { Search, Pencil, Trash2, Phone, Mail, Eye } from "lucide-react";
+import { Search, Pencil, Trash2, Phone, Mail, Eye, LogIn } from "lucide-react";
+import { checkInPatient } from "@/domain/queue/queue.actions";
 import { PatientForm } from "./patient-form";
 import { PatientDetail } from "./patient-detail";
 import type { Patient } from "@/domain/patients/patients.types";
 
 interface PatientListProps {
   onAdd?: () => void;
+  onBookAppointment?: (patientId: string) => void;
 }
 
-export function PatientList({ onAdd }: PatientListProps) {
+export function PatientList({ onAdd, onBookAppointment }: PatientListProps) {
   const { tenantId } = useAuth();
   const { data: patients, isLoading } = usePatients(tenantId);
   const deletePatient = useDeletePatient();
@@ -27,6 +29,7 @@ export function PatientList({ onAdd }: PatientListProps) {
   const [detailPatientId, setDetailPatientId] = useState<string | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
+  const [checkingInId, setCheckingInId] = useState<string | null>(null);
 
   const filteredPatients = patients?.filter((patient) => {
     const query = searchQuery.toLowerCase();
@@ -63,6 +66,17 @@ export function PatientList({ onAdd }: PatientListProps) {
     setDetailPatientId(patientId);
     setIsDetailOpen(true);
   };
+
+  async function handleQuickCheckIn(patientId: string) {
+    setCheckingInId(patientId);
+    try {
+      await checkInPatient({ patient_id: patientId });
+    } catch (err: any) {
+      console.error("Check-in failed:", err);
+    } finally {
+      setCheckingInId(null);
+    }
+  }
 
   const handleDelete = (patient: Patient) => {
     if (confirm("هل أنت متأكد من حذف هذا المريض؟")) {
@@ -135,6 +149,18 @@ export function PatientList({ onAdd }: PatientListProps) {
                       {getStatusBadge(patient.patient_status)}
                     </div>
                     <div className="flex items-center gap-1">
+                      {!permsLoading && hasPermission("sessions:create") && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-10 w-10 p-0"
+                          onClick={() => handleQuickCheckIn(patient.id)}
+                          disabled={checkingInId === patient.id}
+                          title="تسجيل حضور"
+                        >
+                          <LogIn className="w-5 h-5" />
+                        </Button>
+                      )}
                       <Button
                         variant="ghost"
                         size="sm"
@@ -194,6 +220,7 @@ export function PatientList({ onAdd }: PatientListProps) {
           setIsDetailOpen(false);
           setDetailPatientId(null);
         }}
+        onBookAppointment={onBookAppointment}
       />
     </div>
   );

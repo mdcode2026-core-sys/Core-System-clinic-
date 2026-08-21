@@ -70,6 +70,7 @@ interface AgendaEventFormProps {
   rooms: RoomOption[];
   procedures: ProcedureOption[];
   defaultDate?: string;
+  defaultPatientId?: string;
 }
 
 // ─────────────────────────────────────────
@@ -93,6 +94,7 @@ export function AgendaEventForm({
   rooms,
   procedures,
   defaultDate,
+  defaultPatientId,
 }: AgendaEventFormProps) {
   const router = useRouter();
   const isEditMode = !!event;
@@ -157,7 +159,7 @@ export function AgendaEventForm({
   // previous event's values for one frame before the effect corrected them.
   // ─────────────────────────────────────────
 
-  const resetSignature = `${isOpen ? "open" : "closed"}:${event?.id ?? "new"}:${defaultDate ?? ""}`;
+  const resetSignature = `${isOpen ? "open" : "closed"}:${event?.id ?? "new"}:${defaultDate ?? ""}:${defaultPatientId ?? ""}`;
   const [lastResetSignature, setLastResetSignature] = useState(resetSignature);
 
   if (resetSignature !== lastResetSignature) {
@@ -181,7 +183,7 @@ export function AgendaEventForm({
     } else {
       // Reset for create mode
       setPatientMode("search");
-      setPatientId(null);
+      setPatientId(defaultPatientId || null);
       setTempPatientName("");
       setTempPatientPhone("");
       setSearchQuery("");

@@ -25,7 +25,9 @@ import {
   History,
   TrendingUp,
   AlertTriangle,
+  LogIn,
 } from "lucide-react";
+import { checkInPatient } from "@/domain/queue/queue.actions";
 import { PatientForm } from "./patient-form";
 import type { Patient } from "@/domain/patients/patients.types";
 
@@ -33,13 +35,16 @@ interface PatientDetailProps {
   patientId: string | null;
   isOpen: boolean;
   onClose: () => void;
+  onBookAppointment?: (patientId: string) => void;
 }
 
-export function PatientDetail({ patientId, isOpen, onClose }: PatientDetailProps) {
+export function PatientDetail({ patientId, isOpen, onClose, onBookAppointment }: PatientDetailProps) {
   const { data: patient, isLoading: patientLoading } = usePatientById(patientId);
   const { data: history, isLoading: historyLoading } = usePatientHistory(patientId);
   const { hasPermission, isLoading: permsLoading } = usePermissions();
   const [showEditForm, setShowEditForm] = useState(false);
+  const [isCheckingIn, setIsCheckingIn] = useState(false);
+  const [checkInError, setCheckInError] = useState('');
 
   const getStatusBadge = (status: string) => {
     const variants: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
@@ -84,6 +89,28 @@ export function PatientDetail({ patientId, isOpen, onClose }: PatientDetailProps
       return dateStr;
     }
   };
+
+
+
+  async function handleCheckIn() {
+    if (!patient) return;
+    setIsCheckingIn(true);
+    setCheckInError("");
+    try {
+      await checkInPatient({ patient_id: patient.id });
+      onClose();
+    } catch (err: any) {
+      setCheckInError(err.message || "فشل تسجيل الحضور");
+    } finally {
+      setIsCheckingIn(false);
+    }
+  }
+
+  function handleBookAppointment() {
+    if (!patient || !onBookAppointment) return;
+    onBookAppointment(patient.id);
+    onClose();
+  }
 
   if (showEditForm && patient) {
     return (
@@ -141,15 +168,40 @@ export function PatientDetail({ patientId, isOpen, onClose }: PatientDetailProps
                       <div className="mt-2">{getStatusBadge(patient.patient_status)}</div>
                     </div>
                   </div>
-                  {!permsLoading && hasPermission("patients:update") && (
-                    <Button variant="outline" size="sm" onClick={() => setShowEditForm(true)}>
-                      <Edit className="w-4 h-4 ml-2" />
-                      تعديل
-                    </Button>
-                  )}
+                  <div className="flex items-center gap-2">
+                    {!permsLoading && hasPermission("agenda:create") && onBookAppointment && (
+                      <Button variant="outline" size="sm" onClick={handleBookAppointment}>
+                        <Calendar className="w-4 h-4 ml-2" />
+                        حجز موعد
+                      </Button>
+                    )}
+                    {!permsLoading && hasPermission("sessions:create") && (
+                      <Button
+                        variant="default"
+                        size="sm"
+                        onClick={handleCheckIn}
+                        disabled={isCheckingIn}
+                      >
+                        <LogIn className="w-4 h-4 ml-2" />
+                        {isCheckingIn ? "جاري..." : "تسجيل في الطابور"}
+                      </Button>
+                    )}
+                    {!permsLoading && hasPermission("patients:update") && (
+                      <Button variant="outline" size="sm" onClick={() => setShowEditForm(true)}>
+                        <Edit className="w-4 h-4 ml-2" />
+                        تعديل
+                      </Button>
+                    )}
+                  </div>
                 </div>
               </CardContent>
             </Card>
+
+            {checkInError && (
+              <div className="p-3 text-sm text-red-700 bg-red-50 border border-red-200 rounded-md">
+                {checkInError}
+              </div>
+            )}
 
             {/* Contact Info */}
             <Card>
