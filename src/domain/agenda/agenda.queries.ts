@@ -55,7 +55,7 @@ export function useRooms(tenantId: string | null) {
       if (!tenantId) return [];
       const { data, error } = await supabase
         .from("clinic_rooms")
-        .select("id, room_name, room_name_ar")
+        .select("id, room_name")
         .eq("tenant_id", tenantId)
         .eq("is_active", true)
         .order("room_name");

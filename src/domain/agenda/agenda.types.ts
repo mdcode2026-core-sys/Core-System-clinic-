@@ -203,7 +203,6 @@ export interface AgendaEventWithRelations extends AgendaEventRow {
   room?: {
     id: string;
     room_name: string;
-    room_name_ar: string | null;
   } | null;
   procedure?: {
     id: string;

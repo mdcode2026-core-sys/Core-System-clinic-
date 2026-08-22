@@ -12,6 +12,7 @@ import { SystemPreferencesManager } from "@/features/settings/system";
 import { NotificationsManager } from "@/features/settings/notifications";
 import { SubscriptionCenter } from "@/features/settings/subscriptions";
 import { ProceduresManager } from "@/features/settings/procedures";
+import { RoomsManager } from "@/features/settings/rooms";
 import {
   LayoutDashboard,
   Building2,
@@ -24,6 +25,7 @@ import {
   ClipboardList,
   Settings,
   Stethoscope,
+  DoorOpen,
 } from "lucide-react";
 
 const tabs = [
@@ -37,6 +39,7 @@ const tabs = [
   { id: "subscription", label: "الاشتراك", icon: CreditCard, permission: "subscription:read" },
   { id: "audit", label: "السجل", icon: ClipboardList, permission: "audit:read" },
   { id: "procedures", label: "الخدمات الطبية", icon: Stethoscope, permission: "procedures:read" },
+  { id: "rooms", label: "الغرف والموارد", icon: DoorOpen, permission: "settings:read" },
   { id: "system", label: "النظام", icon: Settings, permission: "settings:update" },
 ];
 
@@ -91,6 +94,7 @@ export default function SettingsPage() {
         {activeTab === "subscription" && <SubscriptionTab />}
         {activeTab === "audit" && <AuditTab />}
         {activeTab === "procedures" && <ProceduresTab />}
+        {activeTab === "rooms" && <RoomsManager />}
         {activeTab === "system" && <SystemPreferencesTab />}
       </div>
     </div>
