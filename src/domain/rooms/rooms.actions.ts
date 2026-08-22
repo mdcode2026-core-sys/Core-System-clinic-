@@ -33,6 +33,17 @@ async function requireSettingsUpdate(userId: string, tenantId: string) {
   }
 }
 
+const VALID_ROOM_TYPES = new Set([
+  "consultation",
+  "examination",
+  "treatment",
+  "laser",
+  "procedure",
+  "dental_chair",
+  "waiting",
+  "reception",
+]);
+
 function validateRoom(input: {
   room_name?: string | null;
   room_type?: string | null;
@@ -44,6 +55,9 @@ function validateRoom(input: {
   }
   if (input.room_type !== undefined && !input.room_type) {
     throw "Room type is required";
+  }
+  if (input.room_type !== undefined && input.room_type !== null && !VALID_ROOM_TYPES.has(input.room_type)) {
+    throw "Invalid room type";
   }
   if (input.floor_number !== undefined && input.floor_number !== null && (!Number.isInteger(input.floor_number) || input.floor_number < 0)) {
     throw "Floor number must be a non-negative integer";
@@ -60,9 +74,18 @@ export async function createRoom(input: Omit<ClinicRoomInsert, "tenant_id">): Pr
     await requireSettingsUpdate(user.id, tenantId);
     validateRoom(input);
 
+    const { room_name, room_type, floor_number, capacity, is_active } = input;
+
     const { data, error } = await supabase
       .from("clinic_rooms")
-      .insert({ ...input, tenant_id: tenantId })
+      .insert({
+        room_name,
+        room_type,
+        floor_number,
+        capacity,
+        is_active,
+        tenant_id: tenantId,
+      })
       .select()
       .single();
 
@@ -81,12 +104,25 @@ export async function createRoom(input: Omit<ClinicRoomInsert, "tenant_id">): Pr
   }
 }
 
-export async function updateRoom(id: string, updates: ClinicRoomUpdate): Promise<RoomActionResult> {
+export async function updateRoom(
+  id: string,
+  updates: ClinicRoomUpdate
+): Promise<RoomActionResult> {
   try {
     const supabase = await createClient();
     const { user, tenantId } = await resolveCaller();
     await requireSettingsUpdate(user.id, tenantId);
     validateRoom(updates);
+
+    const { room_name, room_type, floor_number, capacity, is_active } = updates;
+    const safeUpdates: ClinicRoomUpdate = {
+      ...(room_name !== undefined ? { room_name } : {}),
+      ...(room_type !== undefined ? { room_type } : {}),
+      ...(floor_number !== undefined ? { floor_number } : {}),
+      ...(capacity !== undefined ? { capacity } : {}),
+      ...(is_active !== undefined ? { is_active } : {}),
+      updated_at: new Date().toISOString(),
+    };
 
     const { data: existing } = await supabase
       .from("clinic_rooms")
@@ -99,7 +135,7 @@ export async function updateRoom(id: string, updates: ClinicRoomUpdate): Promise
 
     const { data, error } = await supabase
       .from("clinic_rooms")
-      .update({ ...updates, updated_at: new Date().toISOString() })
+      .update(safeUpdates)
       .eq("id", id)
       .eq("tenant_id", tenantId)
       .select()
