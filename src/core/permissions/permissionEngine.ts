@@ -3,6 +3,12 @@
 import { createClient } from "@/infrastructure/supabase/server";
 import type { Permission } from "./types";
 
+const CLINIC_ADMIN_WORKSPACE_PERMISSIONS: Permission[] = [
+  "workspace:operation",
+  "workspace:clinical",
+  "workspace:administration",
+];
+
 export async function getEffectivePermissions(
   userId: string,
   tenantId: string
@@ -105,6 +111,14 @@ export async function getEffectivePermissions(
       basePermissions.add(key);
     } else if (ov.granted === false) {
       basePermissions.delete(key);
+    }
+  }
+
+  // Clinic Admin is the tenant administrator and must retain access to all
+  // three tenant workspaces regardless of user-level permission overrides.
+  if (roleKey === "clinic_admin") {
+    for (const permission of CLINIC_ADMIN_WORKSPACE_PERMISSIONS) {
+      basePermissions.add(permission);
     }
   }
 
