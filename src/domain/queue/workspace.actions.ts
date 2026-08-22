@@ -48,7 +48,7 @@ export async function transitionToPendingReception(sessionId: string): Promise<E
   requirePermission(permissions, "sessions:update");
   const { data: current, error: readError } = await supabase.from("clinic_visit_sessions").select("session_status, doctor_id, lock_holder_id").eq("id", sessionId).eq("tenant_id", tenantId).single();
   if (readError || !current) throw new Error("Session not found");
-  if (current.doctor_id !== user.id && current.lock_holder_id !== user.id && !permissions.includes("workspace:administration")) throw new Error("This clinical session is not assigned to the current user");
+  if (current.lock_holder_id !== user.id && !permissions.includes("workspace:administration")) throw new Error("This clinical session is not locked by the current user");
   const validation = queueEngine.validateTransition(current.session_status as SessionStatus, "pending_close");
   if (!validation.valid) throw new Error(validation.reason);
   const { data: session, error } = await supabase.from("clinic_visit_sessions").update({ session_status: "pending_close", session_ended_at: new Date().toISOString(), lock_holder_id: null, lock_timestamp: null, updated_at: new Date().toISOString() }).eq("id", sessionId).eq("tenant_id", tenantId).select().single();
@@ -72,7 +72,12 @@ async function transitionSession(sessionId: string, target: SessionStatus, works
   requirePermission(permissions, "sessions:update");
   const { data: current, error: readError } = await supabase.from("clinic_visit_sessions").select("session_status, doctor_id, lock_holder_id").eq("id", sessionId).eq("tenant_id", tenantId).single();
   if (readError || !current) throw new Error("Session not found");
-  if (workspace === "clinical" && current.doctor_id !== user.id && current.lock_holder_id !== user.id && !permissions.includes("workspace:administration")) throw new Error("This clinical session is not assigned to the current user");
+
+  if (workspace === "clinical") {
+    if (target === "in_consultation" && current.lock_holder_id && current.lock_holder_id !== user.id) throw new Error("This clinical session is already locked by another user");
+    if (target === "pending_close" && current.lock_holder_id !== user.id && !permissions.includes("workspace:administration")) throw new Error("This clinical session is not locked by the current user");
+  }
+
   const validation = queueEngine.validateTransition(current.session_status as SessionStatus, target);
   if (!validation.valid) throw new Error(validation.reason);
   if (target === "in_consultation" && !current.doctor_id) throw new Error("A provider must be assigned before clinical handoff");
@@ -80,7 +85,7 @@ async function transitionSession(sessionId: string, target: SessionStatus, works
   const now = new Date().toISOString();
   const update: Record<string, unknown> = { session_status: target, updated_at: now };
   if (target === "in_consultation") {
-    update.lock_holder_id = current.doctor_id;
+    update.lock_holder_id = user.id;
     update.lock_timestamp = now;
     update.session_started_at = now;
   }
