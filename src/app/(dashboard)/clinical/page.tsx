@@ -14,7 +14,7 @@ export default async function ClinicalWorkspacePage() {
   if (!tenantId) redirect("/login");
 
   const permissions = await getEffectivePermissions(user.id, tenantId);
-  if (!permissions.includes("workspace:clinical")) redirect("/");
+  if (!permissions.includes("workspace:clinical" as never)) redirect("/");
 
   const queue = await getQueue();
   return (
