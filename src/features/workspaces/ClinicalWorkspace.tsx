@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { getQueue } from "@/domain/queue/queue.queries";
 import type { EnrichedSession } from "@/domain/queue/queue.types";
 import { transitionToClinical } from "@/domain/queue/workspace.actions";
@@ -10,12 +11,12 @@ import { useAuth } from "@/core/auth/AuthContext";
 import { useQueueSubscription } from "@/shared/hooks/useQueue";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { Button } from "@/shared/components/ui/button";
-import { Badge } from "@/shared/components/ui/badge";
 import { CheckCircle2, Clock, DoorOpen, RefreshCw, Stethoscope, UserRound } from "lucide-react";
 
 type ProcedureOption = { id: string; procedure_name: string; procedure_name_ar: string | null };
 
 export function ClinicalWorkspace({ initialQueue = [] }: { initialQueue?: EnrichedSession[] }) {
+  const router = useRouter();
   const { user, tenantId } = useAuth();
   const [sessions, setSessions] = useState<EnrichedSession[]>(initialQueue);
   const [current, setCurrent] = useState<ClinicalVisitRecord | null>(null);
@@ -100,7 +101,7 @@ export function ClinicalWorkspace({ initialQueue = [] }: { initialQueue?: Enrich
           <div className="rounded-full bg-primary/10 p-3"><Stethoscope className="h-6 w-6 text-primary" /></div>
           <div><h1 className="text-3xl font-bold">مساحة العمل السريرية</h1><p className="text-muted-foreground mt-1">الزيارة السريرية والفحص والنتائج والقرار الطبي</p></div>
         </div>
-        <Button variant="outline" onClick={() => void refresh()} disabled={loading}><RefreshCw className={`h-4 w-4 ml-2 ${loading ? "animate-spin" : ""}`} /> تحديث</Button>
+        <div className="flex gap-2"><Button variant="outline" onClick={() => void refresh()} disabled={loading}><RefreshCw className={`h-4 w-4 ml-2 ${loading ? "animate-spin" : ""}`} /> تحديث</Button>{current && <Button variant="outline" onClick={() => router.push(`/treatment-plans?patientId=${encodeURIComponent(current.patient_id)}&visitId=${encodeURIComponent(current.id)}`)}>خطة العلاج</Button>}</div>
       </div>
 
       {error && <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">{error}</div>}
@@ -117,61 +118,19 @@ export function ClinicalWorkspace({ initialQueue = [] }: { initialQueue?: Enrich
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader><CardTitle>الفحص السريري</CardTitle></CardHeader>
-            <CardContent><textarea value={examination} onChange={(e) => setExamination(e.target.value)} placeholder="سجل الفحص الذي تم إجراؤه..." className="min-h-28 w-full rounded-md border bg-background p-3 text-sm outline-none focus:ring-2 focus:ring-primary" /></CardContent>
-          </Card>
+          <Card><CardHeader><CardTitle>الفحص السريري</CardTitle></CardHeader><CardContent><textarea value={examination} onChange={(e) => setExamination(e.target.value)} placeholder="سجل الفحص الذي تم إجراؤه..." className="min-h-28 w-full rounded-md border bg-background p-3 text-sm outline-none focus:ring-2 focus:ring-primary" /></CardContent></Card>
+          <Card><CardHeader><CardTitle>Findings — النتائج</CardTitle></CardHeader><CardContent><textarea value={findings} onChange={(e) => setFindings(e.target.value)} placeholder="سجل النتائج والملاحظات السريرية..." className="min-h-28 w-full rounded-md border bg-background p-3 text-sm outline-none focus:ring-2 focus:ring-primary" /></CardContent></Card>
+          <Card><CardHeader><CardTitle>Decision — القرار الطبي</CardTitle></CardHeader><CardContent><textarea value={decision} onChange={(e) => setDecision(e.target.value)} placeholder="سجل القرار الطبي الناتج عن الفحص..." className="min-h-28 w-full rounded-md border bg-background p-3 text-sm outline-none focus:ring-2 focus:ring-primary" /></CardContent></Card>
 
-          <Card>
-            <CardHeader><CardTitle>Findings — النتائج</CardTitle></CardHeader>
-            <CardContent><textarea value={findings} onChange={(e) => setFindings(e.target.value)} placeholder="سجل النتائج والملاحظات السريرية..." className="min-h-28 w-full rounded-md border bg-background p-3 text-sm outline-none focus:ring-2 focus:ring-primary" /></CardContent>
-          </Card>
+          <Card><CardHeader><CardTitle>الإجراءات المرتبطة بالزيارة</CardTitle></CardHeader><CardContent className="space-y-3"><div className="flex gap-2"><select value={selectedProcedure} onChange={(e) => setSelectedProcedure(e.target.value)} className="min-h-10 flex-1 rounded-md border bg-background px-3 text-sm"><option value="">اختر إجراءً...</option>{procedures.map((p) => <option key={p.id} value={p.id}>{p.procedure_name_ar || p.procedure_name}</option>)}</select><Button onClick={() => void addProcedure()} disabled={!selectedProcedure}>إضافة</Button></div>{current.procedures.length === 0 ? <p className="text-sm text-muted-foreground">لا توجد إجراءات مرتبطة بهذه الزيارة.</p> : current.procedures.map((p) => <div key={p.id} className="flex items-center justify-between rounded-md border p-3 text-sm"><span>{p.procedure_name} × {p.quantity}</span><Button variant="ghost" size="sm" onClick={() => void run(() => removeVisitProcedure(p.id))}>إزالة</Button></div>)}</CardContent></Card>
 
-          <Card>
-            <CardHeader><CardTitle>Decision — القرار الطبي</CardTitle></CardHeader>
-            <CardContent><textarea value={decision} onChange={(e) => setDecision(e.target.value)} placeholder="سجل القرار الطبي الناتج عن الفحص..." className="min-h-28 w-full rounded-md border bg-background p-3 text-sm outline-none focus:ring-2 focus:ring-primary" /></CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader><CardTitle>الإجراءات المرتبطة بالزيارة</CardTitle></CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex gap-2">
-                <select value={selectedProcedure} onChange={(e) => setSelectedProcedure(e.target.value)} className="min-h-10 flex-1 rounded-md border bg-background px-3 text-sm">
-                  <option value="">اختر إجراءً...</option>
-                  {procedures.map((p) => <option key={p.id} value={p.id}>{p.procedure_name_ar || p.procedure_name}</option>)}
-                </select>
-                <Button onClick={() => void addProcedure()} disabled={!selectedProcedure}>إضافة</Button>
-              </div>
-              {current.procedures.length === 0 ? <p className="text-sm text-muted-foreground">لا توجد إجراءات مرتبطة بهذه الزيارة.</p> : current.procedures.map((p) => (
-                <div key={p.id} className="flex items-center justify-between rounded-md border p-3 text-sm">
-                  <span>{p.procedure_name} × {p.quantity}</span>
-                  <Button variant="ghost" size="sm" onClick={() => void run(() => removeVisitProcedure(p.id))}>إزالة</Button>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-
-          <div className="flex flex-col sm:flex-row gap-3">
-            <Button variant="outline" onClick={() => void save()} disabled={saving} className="flex-1">حفظ الزيارة</Button>
-            <Button onClick={() => void finish()} disabled={saving} className="flex-1"><CheckCircle2 className="h-4 w-4 ml-2" /> إنهاء الزيارة وإعادتها لمساحة التشغيل</Button>
-          </div>
+          <div className="flex flex-col sm:flex-row gap-3"><Button variant="outline" onClick={() => void save()} disabled={saving} className="flex-1">حفظ الزيارة</Button><Button onClick={() => void finish()} disabled={saving} className="flex-1"><CheckCircle2 className="h-4 w-4 ml-2" /> إنهاء الزيارة وإعادتها لمساحة التشغيل</Button></div>
         </div>
       ) : (
-        <Card>
-          <CardContent className="p-8 text-center">
-            <DoorOpen className="mx-auto mb-2 h-10 w-10 text-muted-foreground" />
-            <p className="text-muted-foreground">لا توجد زيارة سريرية نشطة حالياً</p>
-            {waiting.length > 0 && <Button className="mt-4" size="lg" onClick={() => void startNext(waiting[0])}>استلام المريض التالي</Button>}
-          </CardContent>
-        </Card>
+        <Card><CardContent className="p-8 text-center"><DoorOpen className="mx-auto mb-2 h-10 w-10 text-muted-foreground" /><p className="text-muted-foreground">لا توجد زيارة سريرية نشطة حالياً</p>{waiting.length > 0 && <Button className="mt-4" size="lg" onClick={() => void startNext(waiting[0])}>استلام المريض التالي</Button>}</CardContent></Card>
       )}
 
-      <div className="grid gap-4 lg:grid-cols-2">
-        <Card><CardHeader><CardTitle className="flex items-center gap-2"><Clock className="h-5 w-5" /> المرضى المنتظرون ({waiting.length})</CardTitle></CardHeader><CardContent className="space-y-2">
-          {waiting.length === 0 ? <p className="py-4 text-center text-sm text-muted-foreground">لا يوجد مرضى في الانتظار</p> : waiting.map((session) => <div key={session.id} className="flex items-center justify-between rounded-lg border p-3"><div><p className="font-medium">{session.patient_name}</p><p className="text-xs text-muted-foreground">{session.doctor_name || "مقدم غير محدد"} · انتظار {session.wait_time_minutes ?? 0} دقيقة</p></div><Button size="sm" disabled={!!current || !!session.lock_holder_id} onClick={() => void startNext(session)}>استلام</Button></div>)}
-        </CardContent></Card>
-        <Card><CardHeader><CardTitle>عاد إلى التشغيل ({returned.length})</CardTitle></CardHeader><CardContent>{returned.length === 0 ? <p className="py-4 text-center text-sm text-muted-foreground">لا توجد زيارات بانتظار الإنهاء التشغيلي</p> : returned.map((session) => <div key={session.id} className="rounded-lg border p-3 mb-2"><p className="font-medium">{session.patient_name}</p><p className="text-xs text-muted-foreground">بانتظار الإنهاء في Operation Workspace</p></div>)}</CardContent></Card>
-      </div>
+      <div className="grid gap-4 lg:grid-cols-2"><Card><CardHeader><CardTitle className="flex items-center gap-2"><Clock className="h-5 w-5" /> المرضى المنتظرون ({waiting.length})</CardTitle></CardHeader><CardContent className="space-y-2">{waiting.length === 0 ? <p className="py-4 text-center text-sm text-muted-foreground">لا يوجد مرضى في الانتظار</p> : waiting.map((session) => <div key={session.id} className="flex items-center justify-between rounded-lg border p-3"><div><p className="font-medium">{session.patient_name}</p><p className="text-xs text-muted-foreground">{session.doctor_name || "مقدم غير محدد"} · انتظار {session.wait_time_minutes ?? 0} دقيقة</p></div><Button size="sm" disabled={!!current || !!session.lock_holder_id} onClick={() => void startNext(session)}>استلام</Button></div>)}</CardContent></Card><Card><CardHeader><CardTitle>عاد إلى التشغيل ({returned.length})</CardTitle></CardHeader><CardContent>{returned.length === 0 ? <p className="py-4 text-center text-sm text-muted-foreground">لا توجد زيارات بانتظار الإنهاء التشغيلي</p> : returned.map((session) => <div key={session.id} className="rounded-lg border p-3 mb-2"><p className="font-medium">{session.patient_name}</p><p className="text-xs text-muted-foreground">بانتظار الإنهاء في Operation Workspace</p></div>)}</CardContent></Card></div>
     </div>
   );
 }
