@@ -8,6 +8,7 @@ export type UserRole =
 export type Permission =
   | "patients:read" | "patients:create" | "patients:update" | "patients:delete"
   | "sessions:read" | "sessions:create" | "sessions:update" | "sessions:delete"
+  | "visits:read" | "visits:update"
   | "agenda:read" | "agenda:create" | "agenda:update" | "agenda:delete"
   | "invoices:read" | "invoices:create" | "invoices:update"
   | "inventory:read" | "inventory:create" | "inventory:update"
