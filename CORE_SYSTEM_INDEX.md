@@ -771,12 +771,16 @@ Legacy Tables
 Description
 
 users vs clinic_users and tenants vs master_tenants caused data inconsistency.
+Legacy tables tenants and users were physically removed from the database on 2026-08-22.
+All runtime code, FK constraints, and RLS policies now use the canonical architecture.
 
-Status: RESOLVED
+Status: CLOSED — tables physically dropped 2026-08-22
 
-AuthProvider now reads from clinic_users.
-
-subscriptions and subscription_events FKs now point to master_tenants.
+- AuthProvider reads from clinic_users.
+- subscriptions and subscription_events FKs point to master_tenants.
+- database.types.ts synchronized — tenants/users table definitions removed.
+- Repository-wide search confirms zero active .from("tenants") or .from("users") queries.
+- Zero runtime dependencies remain on legacy tables.
 
 ---
 
@@ -1320,7 +1324,7 @@ Phase 6 — Settings Dashboard (لوحة الإعدادات)
 - Status: RESOLVED
 
 5. Legacy Tables (users/clinic_users, tenants/master_tenants)
-- Status: RESOLVED
+- Status: CLOSED — tables dropped 2026-08-22
 
 6. isDoctor Manual Flag
 - Status: SUSPENDED — waits MyQueueView
@@ -1440,7 +1444,7 @@ Database Functions
 
 RLS Bugs: RESOLVED
 
-Legacy Tables: UNIFIED
+Legacy Tables: CLOSED — tables dropped 2026-08-22
 
 Phase 5 Tables Deployed:
 - clinic_procedures (modified: +procedure_code, +tax_included, +tax_rate_percent)

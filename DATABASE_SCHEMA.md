@@ -17,18 +17,24 @@ Clinic-level record: `clinic_name` (+ `_ar`), `license_key` (unique), `subscript
 
 ---
 
-## 2. Legacy / Orphaned Tables (do not build against these — see ADR-000)
+## 2. Legacy / Orphaned Tables (REMOVED)
 
-| Table | Rows | Status |
-|---|---|---|
-| `tenants` | 3 | Legacy — superseded by `master_tenants` since 2026-07-29 |
-| `users` | 2 | Legacy — superseded by `clinic_users`. Still has `role_id` → `roles.id` FK (the old wiring that was never fully cut over) |
-| `subscriptions` | 2 | Legacy, tied to old `tenants`/`subscription_plans` model |
-| `subscription_events` | 2 | Legacy, tied to `subscriptions` |
+> **Status:** Physically removed from the database on 2026-08-22.
+> These tables were part of the original architecture and were fully superseded
+> by the canonical `master_tenants` / `clinic_users` architecture per ADR-000.
 
-No migration has dropped these. `create_tenant_with_subscription()` no longer writes to them (confirmed 2026-07-29). No formal deprecation/removal decision has been made — flagged, not actioned.
+| Table | Status | Superseded By | Removal Date |
+|---|---|---|---|
+| `tenants` | **DROPPED** | `master_tenants` | 2026-08-22 |
+| `users` | **DROPPED** | `clinic_users` | 2026-08-22 |
 
----
+**Rationale:**
+- `tenants` was replaced by `master_tenants` to support the unified tenant model.
+- `users` was replaced by `clinic_users` to unify user identity under the clinic domain
+  with `auth_user_id` linkage to Supabase Auth.
+- All runtime code, RLS policies, FK constraints, and application logic were migrated
+  to the canonical architecture before removal.
+- Zero active repository dependencies remain on these tables.
 
 ## 3. Permission System (see ADR-001 — reused, not replaced)
 

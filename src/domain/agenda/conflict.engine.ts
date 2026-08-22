@@ -1,8 +1,12 @@
 /**
- * Agenda Module — Conflict Engine
- * Isolated service. No UI logic. No Server Actions logic.
- * Rules: Doctor, Room, Patient only.
- * Phase 3 scope — no Availability Engine.
+ * Agenda Module — Conflict Engine (Stage 4 Synchronized)
+ *
+ * Database-level protection exists:
+ * - no_doctor_overlap: GiST exclusion constraint (doctor + scheduled_start/buffer_end)
+ * - no_room_overlap: GiST exclusion constraint (room + scheduled_start/buffer_end)
+ *
+ * This engine provides application-level validation for user-facing feedback.
+ * It must remain consistent with the database constraints.
  */
 
 import { createClient } from "@/infrastructure/supabase/client";
@@ -28,11 +32,12 @@ const CONFLICT_RULES: ConflictRuleValue[] = ["doctor", "room", "patient"];
 /**
  * Check for scheduling conflicts.
  * Returns the FIRST conflict found (order: doctor → room → patient).
+ * Stage 4: Now buffer-aware — uses buffer_end for overlap detection.
  */
 export async function checkConflicts(
   input: ConflictCheckInput
 ): Promise<ConflictResult> {
-  const { tenantId, doctorId, roomId, patientId, scheduledStart, scheduledEnd, excludeEventId } = input;
+  const { tenantId, doctorId, roomId, patientId, scheduledStart, scheduledEnd, bufferEnd, excludeEventId } = input;
 
   // Validate input
   if (!tenantId || !doctorId || !patientId || !scheduledStart || !scheduledEnd) {
@@ -44,11 +49,14 @@ export async function checkConflicts(
     };
   }
 
-  // Query overlapping events
+  // Use buffer_end for conflict detection if provided
+  const effectiveEnd = bufferEnd || scheduledEnd;
+
+  // Query overlapping events (buffer-aware)
   const overlappingEvents = await getOverlappingEvents(
     tenantId,
     scheduledStart,
-    scheduledEnd,
+    effectiveEnd,
     excludeEventId
   );
 
@@ -89,7 +97,8 @@ export async function checkConflicts(
 }
 
 // ─────────────────────────────────────────
-// HELPER: Get overlapping events
+// HELPER: Get overlapping events (BUFFER-AWARE)
+// Stage 4: Uses buffer_end for overlap detection
 // ─────────────────────────────────────────
 
 async function getOverlappingEvents(
@@ -104,9 +113,9 @@ async function getOverlappingEvents(
     .eq("tenant_id", tenantId)
     .not("status", "in", "(cancelled,no_show,completed)")
     .or(
-      `and(scheduled_start.lte.${end},scheduled_end.gte.${start}),` +
+      `and(scheduled_start.lte.${end},buffer_end.gte.${start}),` +
       `and(scheduled_start.gte.${start},scheduled_start.lt.${end}),` +
-      `and(scheduled_end.gt.${start},scheduled_end.lte.${end})`
+      `and(buffer_end.gt.${start},buffer_end.lte.${end})`
     );
 
   if (excludeEventId) {
@@ -222,6 +231,33 @@ export function isValidTimeRange(
 
   if (durationMinutes > 480) {
     return { valid: false, message: "الموعد يجب أن لا يتجاوز 8 ساعات" };
+  }
+
+  return { valid: true };
+}
+
+// ─────────────────────────────────────────
+// BUFFER TIME VALIDATION (Stage 4)
+// ─────────────────────────────────────────
+
+export function validateBufferTime(
+  scheduledEnd: string,
+  bufferEnd: string
+): { valid: boolean; message?: string } {
+  const end = new Date(scheduledEnd);
+  const buffer = new Date(bufferEnd);
+
+  if (isNaN(end.getTime()) || isNaN(buffer.getTime())) {
+    return { valid: false, message: "وقت الـ buffer غير صالح" };
+  }
+
+  if (buffer < end) {
+    return { valid: false, message: "وقت الـ buffer يجب أن يكون بعد وقت النهاية" };
+  }
+
+  const bufferMinutes = (buffer.getTime() - end.getTime()) / (1000 * 60);
+  if (bufferMinutes > 120) {
+    return { valid: false, message: "الـ buffer يجب أن لا يتجاوز ساعتين" };
   }
 
   return { valid: true };

@@ -1,7 +1,7 @@
 /**
  * Agenda Module — Types
  * Compatible with: database.types.ts → master_agenda_events
- * No database changes required.
+ * Stage 4: Extended with Availability Engine, Buffer Time, and Workflow types
  */
 
 import type { Database } from "@/infrastructure/supabase/database.types";
@@ -13,6 +13,19 @@ import type { Database } from "@/infrastructure/supabase/database.types";
 export type AgendaEventRow = Database["public"]["Tables"]["master_agenda_events"]["Row"];
 export type AgendaEventInsert = Database["public"]["Tables"]["master_agenda_events"]["Insert"];
 export type AgendaEventUpdate = Database["public"]["Tables"]["master_agenda_events"]["Update"];
+
+// ─────────────────────────────────────────
+// EVENT TYPE ENUM
+// ─────────────────────────────────────────
+
+export const AgendaEventType = {
+  APPOINTMENT: "appointment",
+  BLOCK: "block",
+  BREAK: "break",
+  EMERGENCY: "emergency",
+} as const;
+
+export type AgendaEventTypeValue = typeof AgendaEventType[keyof typeof AgendaEventType];
 
 // ─────────────────────────────────────────
 // STATUS ENUMS — Valid states only
@@ -89,6 +102,7 @@ export interface ConflictCheckInput {
   patientId: string;
   scheduledStart: string;
   scheduledEnd: string;
+  bufferEnd?: string; // Stage 4: buffer-aware conflict detection
   excludeEventId?: string; // For updates — exclude self
 }
 
@@ -97,6 +111,74 @@ export interface ConflictResult {
   rule: ConflictRuleValue | null;
   conflictingEventId: string | null;
   message: string;
+}
+
+// ─────────────────────────────────────────
+// AVAILABILITY ENGINE TYPES (Stage 4)
+// ─────────────────────────────────────────
+
+export type DayOfWeek = 0 | 1 | 2 | 3 | 4 | 5 | 6; // Sunday = 0
+
+// ─────────────────────────────────────────
+// PROVIDER AVAILABILITY (from clinic_provider_availability table)
+// ─────────────────────────────────────────
+
+export interface ProviderAvailabilityRow {
+  id: string;
+  tenant_id: string;
+  doctor_id: string;
+  day_of_week: number;
+  start_time: string;
+  end_time: string;
+  valid_from: string | null;
+  valid_until: string | null;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface WorkingHours {
+  day: DayOfWeek;
+  start: string; // "HH:mm" format, e.g. "09:00"
+  end: string;   // "HH:mm" format, e.g. "17:00"
+  isWorking: boolean;
+}
+
+export interface AvailabilityCheckInput {
+  tenantId: string;
+  doctorId: string;
+  roomId: string | null;
+  scheduledStart: string;
+  scheduledEnd: string;
+  bufferEnd?: string;
+}
+
+export interface AvailabilityResult {
+  isAvailable: boolean;
+  reason: string | null;
+  details: {
+    doctorAvailable: boolean;
+    roomAvailable: boolean;
+    withinWorkingHours: boolean;
+    notBlocked: boolean;
+  };
+}
+
+// ─────────────────────────────────────────
+// BUFFER TIME TYPES (Stage 4)
+// ─────────────────────────────────────────
+
+export interface BufferTimeConfig {
+  enabled: boolean;
+  bufferMinutes: number;
+}
+
+export interface ScheduledRange {
+  scheduledStart: string;
+  scheduledEnd: string;
+  bufferEnd: string;
+  effectiveDurationMinutes: number;
+  bufferDurationMinutes: number;
 }
 
 // ─────────────────────────────────────────
@@ -127,6 +209,7 @@ export interface AgendaEventWithRelations extends AgendaEventRow {
     id: string;
     procedure_name: string;
     standard_duration_minutes: number;
+    buffer_time_minutes: number;
   } | null;
 }
 
@@ -153,7 +236,9 @@ export interface AgendaEventFormData {
   inquiry_id: string | null;
   scheduled_start: string; // ISO datetime
   scheduled_end: string;   // ISO datetime
+  buffer_end: string;      // Stage 4: explicit buffer end
   notes: string | null;
+  event_type: AgendaEventTypeValue;
 }
 
 // ─────────────────────────────────────────
@@ -167,4 +252,36 @@ export interface AgendaEventFilters {
   patientId?: string;
   dateFrom?: string;
   dateTo?: string;
+  eventType?: AgendaEventTypeValue;
+}
+
+// ─────────────────────────────────────────
+// WORKFLOW ACTION TYPES (Stage 4)
+// ─────────────────────────────────────────
+
+export interface RescheduleInput {
+  eventId: string;
+  tenantId: string;
+  newStart: string;
+  newEnd: string;
+  newBufferEnd?: string;
+  reason?: string;
+}
+
+export interface ArrivalInput {
+  eventId: string;
+  tenantId: string;
+  arrivedAt?: string; // ISO datetime, defaults to now
+}
+
+export interface NoShowInput {
+  eventId: string;
+  tenantId: string;
+  reason?: string;
+}
+
+export interface ConfirmationInput {
+  eventId: string;
+  tenantId: string;
+  confirmedBy?: string; // user ID
 }
