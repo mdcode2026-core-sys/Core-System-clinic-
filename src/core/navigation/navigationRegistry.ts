@@ -14,6 +14,8 @@ import {
   BarChart3,
   PhoneCall,
   Settings,
+  BriefcaseBusiness,
+  Stethoscope,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -22,16 +24,16 @@ export interface NavItem {
   label: string;
   labelAr: string;
   icon: LucideIcon;
-  requiredPermission: Permission | null; // null = always visible to any authenticated user
+  requiredPermission: Permission | null;
 }
 
 /**
  * Canonical navigation registry for the Unified Workspace.
  * Order determines display order in both desktop sidebar and mobile Sheet drawer.
  *
- * New modules (Inventory, Reports, Follow-up) are registered here now
- * but will remain hidden for roles lacking their permissions until
- * their Phase 3.1 packages ship.
+ * Workspace routes are first-class navigation surfaces. Their visibility is
+ * permission-driven so Clinic Admin can control operational and clinical access
+ * through the existing permission architecture.
  */
 export const navigationRegistry: NavItem[] = [
   {
@@ -39,7 +41,21 @@ export const navigationRegistry: NavItem[] = [
     label: "Dashboard",
     labelAr: "لوحة التحكم",
     icon: LayoutDashboard,
-    requiredPermission: null, // always visible
+    requiredPermission: null,
+  },
+  {
+    href: "/operation",
+    label: "Operation Workspace",
+    labelAr: "مساحة التشغيل",
+    icon: BriefcaseBusiness,
+    requiredPermission: "workspace:operation",
+  },
+  {
+    href: "/clinical",
+    label: "Clinical Workspace",
+    labelAr: "مساحة العمل السريري",
+    icon: Stethoscope,
+    requiredPermission: "workspace:clinical",
   },
   {
     href: "/patients",
@@ -106,16 +122,10 @@ export const navigationRegistry: NavItem[] = [
   },
 ];
 
-/**
- * Helper: resolve the required permission for a given pathname.
- * Returns undefined if the route is not registered (should not happen for valid routes).
- */
 export function getRequiredPermission(pathname: string): Permission | null | undefined {
-  // Exact match first
   const exact = navigationRegistry.find((n) => n.href === pathname);
   if (exact) return exact.requiredPermission;
 
-  // Sub-route fallback: e.g. /invoices/123 → /invoices
   const parent = navigationRegistry.find(
     (n) => n.href !== "/" && pathname.startsWith(n.href + "/")
   );
