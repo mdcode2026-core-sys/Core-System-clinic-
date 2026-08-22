@@ -18,6 +18,7 @@ export interface TreatmentPlanItem {
 
 export interface TreatmentPlanVisitLink {
   id: string;
+  treatment_plan_item_id: string | null;
   visit_id: string;
   linked_at: string;
 }
