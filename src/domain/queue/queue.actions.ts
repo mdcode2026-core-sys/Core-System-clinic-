@@ -9,6 +9,7 @@ import { createClient } from "@/infrastructure/supabase/server";
 import { resolveTenantId } from "@/core/auth/resolveTenantId";
 import { QueueSession, SessionStatus, EnrichedSession } from "./queue.types";
 import { queueEngine } from "./queue.engine";
+import { getEffectivePermissions } from "@/core/permissions/permissionEngine";
 
 // ── Helper: التحقق من المستخدم ───────────────────────────
 async function getAuthContext() {
@@ -31,6 +32,13 @@ export async function checkInPatient(data: {
   notes?: string;
 }): Promise<EnrichedSession> {
   const { supabase, tenantId, userId } = await getAuthContext();
+
+  // Server-side authorization: UI permission checks are not sufficient.
+  const effectivePerms = await getEffectivePermissions(userId, tenantId);
+
+  if (!effectivePerms.includes("sessions:create")) {
+    throw new Error("Permission denied: sessions:create required");
+  }
 
   const insertData = {
     tenant_id: tenantId,
