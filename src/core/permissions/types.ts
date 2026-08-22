@@ -22,7 +22,8 @@ export type Permission =
   | "overrides:manage"
   | "subscription:read"
   | "notifications:manage"
-  | "procedures:read" | "procedures:create" | "procedures:update" | "procedures:delete";
+  | "procedures:read" | "procedures:create" | "procedures:update" | "procedures:delete"
+  | "workspace:operation" | "workspace:clinical" | "workspace:administration";
 
 export interface PermissionGuardProps {
   permission: Permission;
