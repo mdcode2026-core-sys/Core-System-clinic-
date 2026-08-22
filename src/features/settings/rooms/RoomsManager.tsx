@@ -35,7 +35,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/shared/components/ui/table";
-import { AlertCircle, CheckCircle2, Loader2, Pencil, Plus, XCircle } from "lucide-react";
+import { CheckCircle2, Loader2, Pencil, Plus, XCircle } from "lucide-react";
 
 export function RoomsManager() {
   const { tenantId } = useTenantId();
