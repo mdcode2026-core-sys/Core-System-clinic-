@@ -79,7 +79,8 @@ export async function listMedicalFiles(context: MedicalFileContext = {}) {
   if (!permissions.includes("medical_files:read")) throw new Error("Forbidden");
   let query = supabase.from("medical_files").select("*").eq("tenant_id", clinicUser.tenant_id).neq("storage_status", "archived").order("created_at", { ascending: false }).limit(100);
   if (context.patientId) query = query.eq("patient_id", context.patientId);
-  if (context.visitId) query = query.eq("visit_id", context.visitId);
+  else if (context.visitId) query = query.eq("visit_id", context.visitId);
+  else query = query.is("patient_id", null);
   const { data, error } = await query;
   if (error) throw new Error(error.message);
   return data ?? [];
