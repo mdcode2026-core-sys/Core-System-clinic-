@@ -4,12 +4,12 @@ import { useState } from "react";
 import { Button } from "@/shared/components/ui/button";
 import { createPatientMedicalFileDownloadUrl } from "@/domain/patient-portal/patient-file.actions";
 
-export function PatientFileDownloadButton({ medicalFileId }: { medicalFileId: string }) {
+export function PatientFileDownloadButton({ tenantId, medicalFileId }: { tenantId: string; medicalFileId: string }) {
   const [busy, setBusy] = useState(false);
   async function download() {
     setBusy(true);
     try {
-      const url = await createPatientMedicalFileDownloadUrl(medicalFileId);
+      const url = await createPatientMedicalFileDownloadUrl(tenantId, medicalFileId);
       window.open(url, "_blank", "noopener,noreferrer");
     } finally {
       setBusy(false);
