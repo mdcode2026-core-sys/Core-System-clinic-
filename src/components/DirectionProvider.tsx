@@ -18,22 +18,20 @@ export function useDirection() {
   return useContext(DirectionContext);
 }
 
-function readInitialLocale(): Locale {
-  if (typeof document === "undefined") return "ar";
-  const cookie = document.cookie.match(/(?:^|; )tenant-language=(ar|en)(?:;|$)/)?.[1];
+function readUserLocale(): Locale | null {
+  if (typeof document === "undefined") return null;
+  const cookie = document.cookie.match(/(?:^|; )core-system-locale=(ar|en)(?:;|$)/)?.[1];
   const stored = window.localStorage.getItem("core-system-locale");
-  return (cookie === "en" || stored === "en") ? "en" : "ar";
+  if (cookie === "en" || stored === "en") return "en";
+  if (cookie === "ar" || stored === "ar") return "ar";
+  return null;
 }
 
-/**
- * Permanent language/direction foundation.
- * Tenant settings provide the default; an explicit local language choice is
- * preserved in the browser so every authorized user can work in either UI language.
- */
+/** Permanent bilingual foundation: tenant language is the default; user choice is local and persistent. */
 export function DirectionProvider({ children }: { children: React.ReactNode }) {
   const [direction, setDirection] = useState<Direction>("rtl");
   const [isLoading, setIsLoading] = useState(true);
-  const [locale, setLocale] = useState<Locale>(readInitialLocale);
+  const [locale, setLocale] = useState<Locale>(readUserLocale() ?? "ar");
 
   useEffect(() => {
     async function loadLanguageAndDirection() {
@@ -47,7 +45,6 @@ export function DirectionProvider({ children }: { children: React.ReactNode }) {
         .eq("auth_user_id", session.user.id)
         .limit(1)
         .maybeSingle();
-
       const tenantId = clinicUser?.tenant_id;
       if (!tenantId) { setIsLoading(false); return; }
 
@@ -58,18 +55,14 @@ export function DirectionProvider({ children }: { children: React.ReactNode }) {
         .limit(1)
         .maybeSingle();
 
-      const tenantLocale = (data?.language as Locale) === "en" ? "en" : "ar";
-      const browserLocale = readInitialLocale();
-      const hasExplicitChoice = document.cookie.includes("tenant-language=") || !!window.localStorage.getItem("core-system-locale");
-      const nextLocale = hasExplicitChoice ? browserLocale : tenantLocale;
+      const tenantLocale: Locale = data?.language === "en" ? "en" : "ar";
+      const nextLocale = readUserLocale() ?? tenantLocale;
       const nextDirection: Direction = nextLocale === "en" ? "ltr" : "rtl";
 
       setLocale(nextLocale);
       setDirection(nextDirection);
       document.documentElement.dir = nextDirection;
       document.documentElement.lang = nextLocale;
-      document.cookie = `tenant-direction=${nextDirection}; path=/; max-age=31536000; SameSite=Lax`;
-      document.cookie = `tenant-language=${nextLocale}; path=/; max-age=31536000; SameSite=Lax`;
       setIsLoading(false);
     }
 
