@@ -1,7 +1,7 @@
-export type UserRole = 
-  | "clinic_admin" 
-  | "doctor" 
-  | "nurse" 
+export type UserRole =
+  | "clinic_admin"
+  | "doctor"
+  | "nurse"
   | "receptionist"
   | "accounting";
 
@@ -25,7 +25,9 @@ export type Permission =
   | "subscription:read"
   | "notifications:manage"
   | "procedures:read" | "procedures:create" | "procedures:update" | "procedures:delete"
-  | "workspace:operation" | "workspace:clinical" | "workspace:administration";
+  | "workspace:operation" | "workspace:clinical" | "workspace:administration"
+  | "medical_files:read" | "medical_files:upload" | "medical_files:update"
+  | "medical_files:archive" | "medical_files:reassociate" | "medical_files:manage";
 
 export interface PermissionGuardProps {
   permission: Permission;
