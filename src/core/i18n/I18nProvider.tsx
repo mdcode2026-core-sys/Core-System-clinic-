@@ -3,10 +3,12 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import type { Locale } from "./messages";
 import { getMessages } from "./messages";
+import { getTerminology } from "./terminology";
 
 export interface I18nContextValue {
   locale: Locale;
   messages: ReturnType<typeof getMessages>;
+  terminology: ReturnType<typeof getTerminology>;
   setLocale: (locale: Locale) => void;
 }
 
@@ -56,7 +58,7 @@ export function I18nProvider({
   }, []);
 
   const value = useMemo(
-    () => ({ locale, messages: getMessages(locale), setLocale }),
+    () => ({ locale, messages: getMessages(locale), terminology: getTerminology(locale), setLocale }),
     [locale, setLocale]
   );
 
