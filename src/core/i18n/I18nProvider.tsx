@@ -16,8 +16,8 @@ function applyLocale(locale: Locale) {
   const direction = locale === "ar" ? "rtl" : "ltr";
   document.documentElement.lang = locale;
   document.documentElement.dir = direction;
-  document.cookie = `tenant-language=${locale}; path=/; max-age=31536000; SameSite=Lax`;
-  document.cookie = `tenant-direction=${direction}; path=/; max-age=31536000; SameSite=Lax`;
+  document.cookie = `core-system-locale=${locale}; path=/; max-age=31536000; SameSite=Lax`;
+  document.cookie = `core-system-direction=${direction}; path=/; max-age=31536000; SameSite=Lax`;
   window.localStorage.setItem("core-system-locale", locale);
 }
 
