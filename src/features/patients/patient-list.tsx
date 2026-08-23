@@ -12,6 +12,7 @@ import { Search, Pencil, Trash2, Phone, Eye, LogIn } from "lucide-react";
 import { checkInPatient } from "@/domain/queue/queue.actions";
 import { PatientForm } from "./patient-form";
 import { PatientDetail } from "./patient-detail";
+import { PatientPortalInviteButton } from "@/features/patient-portal/patient-portal-invite-button";
 import type { Patient } from "@/domain/patients/patients.types";
 import { useI18n } from "@/core/i18n/I18nProvider";
 
@@ -42,7 +43,7 @@ export function PatientList({ onAdd, onBookAppointment }: PatientListProps) {
     <Card><CardHeader className="pb-3"><CardTitle className="text-lg">{t.list} ({filteredPatients?.length || 0})</CardTitle></CardHeader><CardContent>
       {(!filteredPatients || filteredPatients.length === 0) ? <div className="text-center py-8 text-muted-foreground">{t.noMatches}</div> : <div className="space-y-3">{filteredPatients.map((patient) => <div key={patient.id} className="flex flex-col sm:flex-row sm:items-center gap-3 p-4 rounded-lg border hover:bg-muted/50 transition-colors">
         <div className="flex items-center gap-3 min-w-0 flex-1"><div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center shrink-0"><span className="text-primary font-bold text-lg">{patient.first_name[0]}{patient.last_name[0]}</span></div><div className="min-w-0 flex-1"><div className="font-medium truncate">{patient.first_name} {patient.last_name}</div><div className="flex items-center gap-2 text-sm text-muted-foreground"><span className="flex items-center gap-1"><Phone className="w-3 h-3 shrink-0" />{patient.phone_primary}</span></div></div></div>
-        <div className="flex items-center justify-between sm:justify-end gap-2 pt-2 sm:pt-0 border-t sm:border-t-0"><div className="sm:hidden">{getStatusBadge(patient.patient_status)}</div><div className="flex items-center gap-1">
+        <div className="flex flex-wrap items-center justify-between sm:justify-end gap-2 pt-2 sm:pt-0 border-t sm:border-t-0"><div className="sm:hidden">{getStatusBadge(patient.patient_status)}</div><PatientPortalInviteButton patientId={patient.id} hasEmail={Boolean(patient.email)} hasPhone={Boolean(patient.phone_primary)} /><div className="flex items-center gap-1">
           {!permsLoading && hasPermission("sessions:create") && <Button variant="ghost" size="sm" className="h-10 w-10 p-0" onClick={() => handleQuickCheckIn(patient.id)} disabled={checkingInId === patient.id} title={t.checkIn}><LogIn className="w-5 h-5" /></Button>}
           <Button variant="ghost" size="sm" className="h-10 w-10 p-0" onClick={() => handleViewDetail(patient.id)} title={t.view}><Eye className="w-5 h-5" /></Button>
           {!permsLoading && hasPermission("patients:update") && <Button variant="ghost" size="sm" className="h-10 w-10 p-0" onClick={() => handleEdit(patient)} title={t.edit}><Pencil className="w-5 h-5" /></Button>}
