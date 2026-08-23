@@ -1,6 +1,6 @@
 // src/app/layout.tsx
 // Root layout — required by Next.js App Router.
-// M2.6: Reads tenant direction from cookie for SSR RTL/LTR support.
+// The tenant language is the default; core-system-locale is the user's persistent UI choice.
 
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
@@ -13,16 +13,19 @@ export const metadata: Metadata = {
   description: "ClinicSaaS Multi-Tenant Platform",
 };
 
-export default async function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  // M2.6: Read direction from cookie set by client-side DirectionProvider
-  // Fallback to "rtl" for Arabic default
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const cookieStore = await cookies();
-  const direction = (cookieStore.get("tenant-direction")?.value ?? "rtl") as "rtl" | "ltr";
-  const language = (cookieStore.get("tenant-language")?.value ?? "ar") as "ar" | "en";
+  const directionCookie = cookieStore.get("core-system-direction")?.value;
+  const localeCookie = cookieStore.get("core-system-locale")?.value;
+  const tenantDirection = cookieStore.get("tenant-direction")?.value;
+  const tenantLanguage = cookieStore.get("tenant-language")?.value;
+
+  const language = localeCookie === "en" || localeCookie === "ar"
+    ? localeCookie
+    : tenantLanguage === "en" || tenantLanguage === "ar" ? tenantLanguage : "ar";
+  const direction = directionCookie === "ltr" || directionCookie === "rtl"
+    ? directionCookie
+    : language === "en" ? "ltr" : tenantDirection === "ltr" ? "ltr" : "rtl";
 
   return (
     <html lang={language} dir={direction}>
