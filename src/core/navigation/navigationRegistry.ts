@@ -1,8 +1,8 @@
 // src/core/navigation/navigationRegistry.ts
-// Package 3.0.2 — Navigation Registry: single source of truth for all dashboard routes
-// and their required permissions. Additive only; does not replace permissionMatrix.ts.
+// Navigation Registry: single source of truth for dashboard routes, permissions, and terminology keys.
 
 import type { Permission } from "@/core/permissions/types";
+import { messages } from "@/core/i18n/messages";
 import {
   LayoutDashboard,
   Users,
@@ -20,28 +20,29 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
+export type NavigationLabelKey = keyof typeof messages.en.nav;
+
 export interface NavItem {
   href: string;
-  label: string;
-  labelAr: string;
+  labelKey: NavigationLabelKey;
   icon: LucideIcon;
   requiredPermission: Permission | null;
 }
 
 export const navigationRegistry: NavItem[] = [
-  { href: "/", label: "Dashboard", labelAr: "لوحة التحكم", icon: LayoutDashboard, requiredPermission: null },
-  { href: "/operation", label: "Operation Workspace", labelAr: "مساحة التشغيل", icon: BriefcaseBusiness, requiredPermission: "workspace:operation" },
-  { href: "/clinical", label: "Clinical Workspace", labelAr: "المساحة الطبية", icon: Stethoscope, requiredPermission: "workspace:clinical" },
-  { href: "/treatment-plans", label: "Treatment Plans", labelAr: "خطط العلاج", icon: ClipboardList, requiredPermission: "treatment_plans:read" },
-  { href: "/patients", label: "Patients", labelAr: "المرضى", icon: Users, requiredPermission: "patients:read" },
-  { href: "/agenda", label: "Agenda", labelAr: "الأجندة", icon: CalendarDays, requiredPermission: "agenda:read" },
-  { href: "/queue", label: "Queue", labelAr: "الطابور", icon: ListOrdered, requiredPermission: "sessions:read" },
-  { href: "/invoices", label: "Invoices", labelAr: "الفواتير", icon: FileText, requiredPermission: "invoices:read" },
-  { href: "/inventory", label: "Inventory", labelAr: "المخزون", icon: Package, requiredPermission: "inventory:read" },
-  { href: "/reports", label: "Reports", labelAr: "التقارير", icon: FileBarChart, requiredPermission: "reports:read" },
-  { href: "/analytics", label: "Analytics", labelAr: "التحليلات", icon: BarChart3, requiredPermission: "analytics:read" },
-  { href: "/follow-up", label: "Follow-up", labelAr: "المتابعة", icon: PhoneCall, requiredPermission: "followup:read" },
-  { href: "/settings", label: "Settings", labelAr: "الإعدادات", icon: Settings, requiredPermission: "settings:read" },
+  { href: "/", labelKey: "dashboard", icon: LayoutDashboard, requiredPermission: null },
+  { href: "/operation", labelKey: "operation", icon: BriefcaseBusiness, requiredPermission: "workspace:operation" },
+  { href: "/clinical", labelKey: "clinical", icon: Stethoscope, requiredPermission: "workspace:clinical" },
+  { href: "/treatment-plans", labelKey: "treatmentPlans", icon: ClipboardList, requiredPermission: "treatment_plans:read" },
+  { href: "/patients", labelKey: "patients", icon: Users, requiredPermission: "patients:read" },
+  { href: "/agenda", labelKey: "agenda", icon: CalendarDays, requiredPermission: "agenda:read" },
+  { href: "/queue", labelKey: "queue", icon: ListOrdered, requiredPermission: "sessions:read" },
+  { href: "/invoices", labelKey: "invoices", icon: FileText, requiredPermission: "invoices:read" },
+  { href: "/inventory", labelKey: "inventory", icon: Package, requiredPermission: "inventory:read" },
+  { href: "/reports", labelKey: "reports", icon: FileBarChart, requiredPermission: "reports:read" },
+  { href: "/analytics", labelKey: "analytics", icon: BarChart3, requiredPermission: "analytics:read" },
+  { href: "/follow-up", labelKey: "followUp", icon: PhoneCall, requiredPermission: "followup:read" },
+  { href: "/settings", labelKey: "settings", icon: Settings, requiredPermission: "settings:read" },
 ];
 
 export function getRequiredPermission(pathname: string): Permission | null | undefined {
