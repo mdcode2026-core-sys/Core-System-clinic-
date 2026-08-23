@@ -1,147 +1,47 @@
 // src/features/followup/followup-list-view.tsx
-// Package 3.1.9 — Follow-up List View
-// Renders all follow-ups with filtering by status/type. Status update only.
+// PJ Stage 9 — Follow-up operational list
 
 "use client";
 
 import { useState } from "react";
-import { updateFollowupStatus } from "@/domain/followup/followup.queries";
-import type { FollowupRecord, FollowupDeliveryStatus } from "@/domain/followup/followup.types";
+import { updateFollowup, completeFollowup } from "@/domain/followup/followup.queries";
+import type { FollowupRecord, FollowupStatus } from "@/domain/followup/followup.types";
 
-interface FollowupListViewProps {
-  records: FollowupRecord[];
-  canUpdate: boolean;
-  onStatusUpdate: (id: string, status: string) => void;
-  isPending: boolean;
+interface Props { records: FollowupRecord[]; canUpdate: boolean; onStatusUpdate: (id: string, status: string) => void; isPending: boolean; }
+const statusLabel: Record<FollowupStatus, string> = { open: "مفتوحة", in_progress: "قيد التنفيذ", completed: "مكتملة", cancelled: "ملغاة", skipped: "متجاوزة" };
+const actionLabel: Record<string, string> = { call: "اتصال", whatsapp: "WhatsApp", sms: "SMS", email: "بريد", appointment: "موعد", review: "مراجعة", general: "مهمة" };
+function bucket(record: FollowupRecord) {
+  if (record.status !== "open" && record.status !== "in_progress") return "closed";
+  const now = new Date(); const due = new Date(record.scheduled_for);
+  if (due.getTime() < now.getTime()) return "overdue";
+  if (due.toDateString() === now.toDateString()) return "today";
+  return "upcoming";
 }
 
-const statusConfig: Record<string, { label: string; colorClass: string }> = {
-  pending: { label: "معلّقة", colorClass: "bg-yellow-100 text-yellow-800 border-yellow-200" },
-  sent: { label: "تم الإرسال", colorClass: "bg-blue-100 text-blue-800 border-blue-200" },
-  delivered: { label: "تم التوصيل", colorClass: "bg-green-100 text-green-800 border-green-200" },
-  read: { label: "مقروءة", colorClass: "bg-emerald-100 text-emerald-800 border-emerald-200" },
-  failed: { label: "فشل", colorClass: "bg-red-100 text-red-800 border-red-200" },
-  cancelled: { label: "ملغاة", colorClass: "bg-gray-100 text-gray-800 border-gray-200" },
-};
-
-const typeLabels: Record<string, string> = {
-  post_visit_24h: "متابعة 24 ساعة",
-  post_visit_7d: "متابعة 7 أيام",
-  reactivation_30d: "تفعيل 30 يوم",
-  reactivation_60d: "تفعيل 60 يوم",
-  reactivation_90d: "تفعيل 90 يوم",
-  appointment_reminder_24h: "تذكير 24 ساعة",
-  appointment_reminder_2h: "تذكير ساعتين",
-  birthday: "عيد ميلاد",
-  custom: "مخصص",
-};
-
-export function FollowupListView({ records, canUpdate, onStatusUpdate, isPending }: FollowupListViewProps) {
-  const [filterStatus, setFilterStatus] = useState<string>("all");
+export function FollowupListView({ records, canUpdate, onStatusUpdate, isPending }: Props) {
+  const [filter, setFilter] = useState("active");
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [resultId, setResultId] = useState<string | null>(null);
+  const [resultText, setResultText] = useState("");
+  const [outcomeText, setOutcomeText] = useState("");
+  const filtered = records.filter((record) => filter === "active" ? (record.status === "open" || record.status === "in_progress") : filter === "overdue" ? bucket(record) === "overdue" : filter === "today" ? bucket(record) === "today" : filter === "upcoming" ? bucket(record) === "upcoming" : true);
 
-  const filtered = filterStatus === "all"
-    ? records
-    : records.filter((r) => r.delivery_status === filterStatus);
-
-  const handleStatusChange = async (id: string, newStatus: FollowupDeliveryStatus) => {
-    setUpdatingId(id);
-    const result = await updateFollowupStatus({ followup_id: id, new_status: newStatus });
-    if (result.success) {
-      onStatusUpdate(id, newStatus);
-    }
+  async function setStatus(id: string, status: FollowupStatus) {
+    setUpdatingId(id); const result = await updateFollowup({ followup_id: id, status }); if (result.success) onStatusUpdate(id, status); setUpdatingId(null);
+  }
+  async function saveResult(record: FollowupRecord) {
+    if (!resultText.trim()) return; setUpdatingId(record.id);
+    const result = await completeFollowup({ followup_id: record.id, result: resultText.trim(), outcome: outcomeText.trim() || null, next_action_at: null, next_action_type: null });
+    if (result.success) { onStatusUpdate(record.id, "completed"); setResultId(null); setResultText(""); setOutcomeText(""); }
     setUpdatingId(null);
-  };
+  }
 
-  return (
-    <div className="space-y-4">
-      {/* Filter bar */}
-      <div className="flex items-center gap-3 flex-wrap">
-        <span className="text-sm text-gray-500">تصفية حسب الحالة:</span>
-        <select
-          value={filterStatus}
-          onChange={(e) => setFilterStatus(e.target.value)}
-          className="h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm"
-        >
-          <option value="all">الكل</option>
-          <option value="pending">معلّقة</option>
-          <option value="sent">تم الإرسال</option>
-          <option value="delivered">تم التوصيل</option>
-          <option value="read">مقروءة</option>
-          <option value="failed">فشل</option>
-          <option value="cancelled">ملغاة</option>
-        </select>
-        <span className="text-sm text-gray-500 mr-auto">الإجمالي: {filtered.length}</span>
-      </div>
-
-      {filtered.length === 0 ? (
-        <div className="rounded-lg border border-dashed p-8 text-center text-gray-500">
-          لا توجد متابعات مطابقة للتصفية
-        </div>
-      ) : (
-        <div className="grid gap-3">
-          {filtered.map((record) => {
-            const status = record.delivery_status ?? "pending";
-            const cfg = statusConfig[status] ?? { label: status, colorClass: "bg-gray-100 text-gray-800" };
-
-            return (
-              <div key={record.id} className="rounded-lg border bg-white p-4 shadow-sm">
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                  {/* Info */}
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-semibold text-gray-900">
-                        {record.patient_name ?? "مريض غير معروف"}
-                      </span>
-                      {record.patient_phone && (
-                        <span className="text-sm text-gray-500">{record.patient_phone}</span>
-                      )}
-                    </div>
-                    <div className="flex flex-wrap items-center gap-2 text-sm text-gray-500">
-                      <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium">
-                        {typeLabels[record.followup_type] ?? record.followup_type}
-                      </span>
-                      <span>•</span>
-                      <span>{new Date(record.scheduled_for).toLocaleString("ar-SA")}</span>
-                      {record.channel && (
-                        <>
-                          <span>•</span>
-                          <span>{record.channel}</span>
-                        </>
-                      )}
-                    </div>
-                    {record.message_body && (
-                      <p className="text-sm text-gray-500 line-clamp-2">{record.message_body}</p>
-                    )}
-                  </div>
-
-                  {/* Status + Action */}
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium ${cfg.colorClass}`}>
-                      {cfg.label}
-                    </span>
-                    {canUpdate && (
-                      <select
-                        disabled={updatingId === record.id || isPending}
-                        value={status}
-                        onChange={(e) => handleStatusChange(record.id, e.target.value as FollowupDeliveryStatus)}
-                        className="h-8 rounded-md border border-input bg-background px-2 py-1 text-sm shadow-sm"
-                      >
-                        <option value="pending">معلّقة</option>
-                        <option value="sent">تم الإرسال</option>
-                        <option value="delivered">تم التوصيل</option>
-                        <option value="read">مقروءة</option>
-                        <option value="failed">فشل</option>
-                        <option value="cancelled">ملغاة</option>
-                      </select>
-                    )}
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
-    </div>
-  );
+  return <div className="space-y-4">
+    <div className="flex flex-wrap items-center gap-2"><span className="text-sm text-muted-foreground">عرض:</span>{[["active", "النشطة"], ["overdue", "متأخرة"], ["today", "اليوم"], ["upcoming", "قادمة"], ["all", "الكل"]].map(([value, label]) => <button key={value} onClick={() => setFilter(value)} className={`rounded-md px-3 py-1.5 text-sm ${filter === value ? "bg-primary text-primary-foreground" : "bg-muted"}`}>{label}</button>)}<span className="mr-auto text-sm text-muted-foreground">{filtered.length}</span></div>
+    {filtered.length === 0 ? <div className="rounded-lg border border-dashed p-8 text-center text-muted-foreground">لا توجد متابعات في هذا العرض.</div> : <div className="grid gap-3">{filtered.map((record) => <div key={record.id} className="rounded-lg border bg-card p-4 space-y-3">
+      <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between"><div className="space-y-1"><div className="font-semibold">{record.patient_name ?? "مريض غير معروف"}</div><div className="text-sm text-muted-foreground">{record.patient_phone ?? ""}</div><div className="flex flex-wrap gap-2 text-sm"><span className="rounded-full border px-2 py-0.5">{actionLabel[record.action_type] ?? record.action_type}</span><span className="rounded-full border px-2 py-0.5">{statusLabel[record.status]}</span><span className="text-muted-foreground">{new Date(record.scheduled_for).toLocaleString("ar-JO")}</span></div>{record.reason && <div className="text-sm">{record.reason}</div>}{record.message_body && <div className="rounded-md bg-muted p-2 text-sm">{record.message_body}</div>}</div>
+      {canUpdate && (record.status === "open" || record.status === "in_progress") && <div className="flex flex-wrap gap-2"><button disabled={updatingId === record.id || isPending} onClick={() => setStatus(record.id, "in_progress")} className="rounded-md border px-3 py-1.5 text-sm disabled:opacity-50">بدء العمل</button><button disabled={updatingId === record.id || isPending} onClick={() => setResultId(record.id)} className="rounded-md bg-primary px-3 py-1.5 text-sm text-primary-foreground disabled:opacity-50">تسجيل النتيجة</button><button disabled={updatingId === record.id || isPending} onClick={() => setStatus(record.id, "cancelled")} className="rounded-md border px-3 py-1.5 text-sm disabled:opacity-50">إلغاء</button></div>}</div>
+      {resultId === record.id && <div className="rounded-md border bg-background p-3 space-y-3"><textarea value={resultText} onChange={(e) => setResultText(e.target.value)} rows={3} placeholder="ماذا حدث؟" className="w-full rounded-md border p-2 text-sm" /><input value={outcomeText} onChange={(e) => setOutcomeText(e.target.value)} placeholder="النتيجة / Outcome (اختياري)" className="h-9 w-full rounded-md border px-3 text-sm" /><div className="flex gap-2"><button disabled={!resultText.trim() || updatingId === record.id} onClick={() => saveResult(record)} className="rounded-md bg-primary px-3 py-1.5 text-sm text-primary-foreground">حفظ وإكمال</button><button onClick={() => setResultId(null)} className="rounded-md border px-3 py-1.5 text-sm">إلغاء</button></div></div>}
+    </div>)}</div>}
+  </div>;
 }
