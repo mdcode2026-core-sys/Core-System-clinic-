@@ -20,7 +20,7 @@ export function WorkspaceShell({ children, user }: WorkspaceShellProps) {
   const pathname = usePathname();
   const router = useRouter();
   const { hasPermission } = usePermissions();
-  const { messages } = useI18n();
+  const { locale, messages } = useI18n();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const supabase = createClient();
 
@@ -46,7 +46,7 @@ export function WorkspaceShell({ children, user }: WorkspaceShellProps) {
       <aside
         className={cn(
           "fixed inset-y-0 start-0 z-50 w-64 transform bg-white shadow-lg transition-transform duration-200 ease-in-out lg:static lg:translate-x-0",
-          sidebarOpen ? "translate-x-0" : "-translate-x-full rtl:translate-x-full"
+          sidebarOpen ? "translate-x-0" : locale === "ar" ? "translate-x-full" : "-translate-x-full"
         )}
       >
         <div className="flex h-full flex-col">
