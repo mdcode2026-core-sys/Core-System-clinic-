@@ -1,0 +1,9 @@
+{
+  "name": "core-system-medical-file-agent",
+  "private": true,
+  "type": "module",
+  "version": "1.0.0",
+  "engines": { "node": ">=20" },
+  "scripts": { "start": "node index.mjs" },
+  "dependencies": { "@supabase/supabase-js": "^2.49.4" }
+}
