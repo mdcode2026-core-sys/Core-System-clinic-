@@ -1,42 +1,34 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/shared/components/ui/button";
 import { createPatientPortalInvitation, type PortalChannel } from "@/domain/patient-portal/portal.actions";
+import { getPatientPortalAvailability, type PortalAvailability } from "@/domain/patient-portal/portal-access.actions";
 
-export function PatientPortalInviteButton({ patientId, hasEmail, hasPhone }: { patientId: string; hasEmail: boolean; hasPhone: boolean }) {
+export function PatientPortalInviteButton({ patientId, tenantId, hasEmail, hasPhone }: { patientId: string; tenantId: string; hasEmail: boolean; hasPhone: boolean }) {
+  const [availability, setAvailability] = useState<PortalAvailability | null>(null);
   const [channel, setChannel] = useState<PortalChannel>(hasEmail ? "email" : "whatsapp");
-  const [fallback, setFallback] = useState<PortalChannel | "">(hasEmail && hasPhone ? "sms" : "");
+  const [fallback, setFallback] = useState<PortalChannel | "">("");
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
 
-  async function invite() {
-    setBusy(true);
-    setMessage("");
-    const result = await createPatientPortalInvitation({ clinicPatientId: patientId, channel, fallbackChannel: fallback || null });
-    setBusy(false);
-    setMessage(result.success ? "Invitation queued." : result.error ?? "Invitation failed");
-  }
+  useEffect(() => { let active = true; getPatientPortalAvailability(tenantId).then((result) => { if (active) setAvailability(result); }); return () => { active = false; }; }, [tenantId]);
+  useEffect(() => { if (!availability) return; const first = availability.email && hasEmail ? "email" : availability.whatsapp && hasPhone ? "whatsapp" : availability.sms && hasPhone ? "sms" : null; if (first) setChannel(first); }, [availability, hasEmail, hasPhone]);
 
-  const canPhone = hasPhone;
-  const canEmail = hasEmail;
-  if (!canPhone && !canEmail) return null;
+  async function invite() { setBusy(true); setMessage(""); const result = await createPatientPortalInvitation({ clinicPatientId: patientId, channel, fallbackChannel: fallback || null }); setBusy(false); setMessage(result.success ? "Invitation queued." : result.error ?? "Invitation failed"); }
+  if (!hasPhone && !hasEmail) return null;
+  if (availability === null) return <span className="text-xs text-muted-foreground">Checking Patient Portal…</span>;
+  if (!availability.portal) return <span className="text-xs text-muted-foreground">Patient Portal unavailable for this clinic</span>;
+  const canEmail = hasEmail && availability.email;
+  const canPhone = hasPhone && (availability.sms || availability.whatsapp);
+  const channels: PortalChannel[] = [canEmail ? "email" : null, availability.whatsapp && hasPhone ? "whatsapp" : null, availability.sms && hasPhone ? "sms" : null].filter(Boolean) as PortalChannel[];
+  if (!channels.length) return <span className="text-xs text-muted-foreground">No enabled Patient Portal channel</span>;
+  if (!channels.includes(channel)) setChannel(channels[0]);
 
-  return (
-    <div className="flex flex-wrap items-center gap-1">
-      <select className="h-9 rounded-md border bg-background px-2 text-xs" value={channel} onChange={(e) => setChannel(e.target.value as PortalChannel)} disabled={busy} aria-label="Patient Portal channel">
-        {canEmail && <option value="email">Email</option>}
-        {canPhone && <option value="whatsapp">WhatsApp</option>}
-        {canPhone && <option value="sms">SMS</option>}
-      </select>
-      <select className="h-9 rounded-md border bg-background px-2 text-xs" value={fallback} onChange={(e) => setFallback(e.target.value as PortalChannel | "")} disabled={busy} aria-label="Patient Portal fallback channel">
-        <option value="">No fallback</option>
-        {canEmail && channel !== "email" && <option value="email">Email fallback</option>}
-        {canPhone && channel !== "whatsapp" && <option value="whatsapp">WhatsApp fallback</option>}
-        {canPhone && channel !== "sms" && <option value="sms">SMS fallback</option>}
-      </select>
-      <Button variant="outline" size="sm" onClick={invite} disabled={busy}>{busy ? "Sending…" : "Portal invite"}</Button>
-      {message && <span className="text-xs text-muted-foreground" role="status">{message}</span>}
-    </div>
-  );
+  return <div className="flex flex-wrap items-center gap-1">
+    <select className="h-9 rounded-md border bg-background px-2 text-xs" value={channel} onChange={(e) => setChannel(e.target.value as PortalChannel)} disabled={busy} aria-label="Patient Portal channel">{channels.map((item) => <option key={item} value={item}>{item === "email" ? "Email" : item === "whatsapp" ? "WhatsApp" : "SMS"}</option>)}</select>
+    <select className="h-9 rounded-md border bg-background px-2 text-xs" value={fallback} onChange={(e) => setFallback(e.target.value as PortalChannel | "")} disabled={busy} aria-label="Patient Portal fallback channel"><option value="">No fallback</option>{channels.filter((item) => item !== channel).map((item) => <option key={item} value={item}>{item === "email" ? "Email fallback" : item === "whatsapp" ? "WhatsApp fallback" : "SMS fallback"}</option>)}</select>
+    <Button variant="outline" size="sm" onClick={invite} disabled={busy}>{busy ? "Sending…" : "Portal invite"}</Button>
+    {message && <span className="text-xs text-muted-foreground" role="status">{message}</span>}
+  </div>;
 }
