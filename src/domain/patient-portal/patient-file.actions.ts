@@ -51,22 +51,22 @@ export async function revokeMedicalFilePatientRelease(medicalFileId: string, pat
   return { ok: true };
 }
 
-export async function createPatientMedicalFileDownloadUrl(medicalFileId: string) {
+export async function createPatientMedicalFileDownloadUrl(tenantId: string, medicalFileId: string) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("Authentication required");
 
   const { data: identity } = await supabase.from("patient_identities").select("id,status").eq("auth_user_id", user.id).eq("status", "active").maybeSingle();
   if (!identity) throw new Error("Patient identity not found");
-  const { data: relationship } = await supabase.from("patient_clinic_relationships").select("tenant_id,clinic_patient_id,status").eq("patient_identity_id", identity.id).eq("status", "active").limit(1).maybeSingle();
-  if (!relationship) throw new Error("Patient relationship not found");
-  if (!(await hasEntitlement(relationship.tenant_id, "patient_portal"))) throw new Error("Patient Portal is not enabled");
-  if (!(await hasEntitlement(relationship.tenant_id, "patient_experience.advanced")) && !(await hasEntitlement(relationship.tenant_id, "patient_portal"))) throw new Error("Medical file access is not enabled");
+  if (!(await hasEntitlement(tenantId, "patient_portal"))) throw new Error("Patient Portal is not enabled");
 
-  const { data: release } = await supabase.from("patient_portal_medical_file_releases").select("medical_file_id,expires_at").eq("medical_file_id", medicalFileId).eq("clinic_patient_id", relationship.clinic_patient_id).eq("tenant_id", relationship.tenant_id).eq("status", "active").maybeSingle();
+  const { data: relationship } = await supabase.from("patient_clinic_relationships").select("tenant_id,clinic_patient_id,status").eq("patient_identity_id", identity.id).eq("tenant_id", tenantId).eq("status", "active").maybeSingle();
+  if (!relationship) throw new Error("Patient relationship not found");
+
+  const { data: release } = await supabase.from("patient_portal_medical_file_releases").select("medical_file_id,clinic_patient_id,expires_at").eq("medical_file_id", medicalFileId).eq("clinic_patient_id", relationship.clinic_patient_id).eq("tenant_id", tenantId).eq("status", "active").maybeSingle();
   if (!release || (release.expires_at && new Date(release.expires_at).getTime() <= Date.now())) throw new Error("Medical file has not been released to the patient");
 
-  const { data: file } = await supabase.from("medical_files").select("storage_path,storage_status").eq("id", medicalFileId).eq("patient_id", relationship.clinic_patient_id).eq("tenant_id", relationship.tenant_id).maybeSingle();
+  const { data: file } = await supabase.from("medical_files").select("storage_path,storage_status").eq("id", medicalFileId).eq("patient_id", relationship.clinic_patient_id).eq("tenant_id", tenantId).maybeSingle();
   if (!file?.storage_path || file.storage_status === "archived") throw new Error("Medical file is unavailable");
   const { data, error } = await supabase.storage.from(BUCKET).createSignedUrl(file.storage_path, 300);
   if (error || !data?.signedUrl) throw new Error(error?.message ?? "Unable to create secure file URL");
