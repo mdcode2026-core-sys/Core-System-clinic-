@@ -4,9 +4,9 @@ import ts from "typescript";
 
 const ROOT = path.resolve(process.cwd(), "src");
 const extensions = new Set([".ts", ".tsx"]);
-const excluded = new Set(["database.types.ts"]);
+const excludedFiles = new Set(["database.types.ts"]);
+const excludedPathFragments = [path.join("src", "core", "i18n")];
 const arabic = /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF]/;
-const latin = /[A-Za-z]/;
 const uiAttributeNames = new Set(["aria-label", "aria-description", "placeholder", "title", "alt"]);
 
 function walk(dir, out = []) {
@@ -14,19 +14,22 @@ function walk(dir, out = []) {
     if (["node_modules", ".next", ".git"].includes(entry.name)) continue;
     const full = path.join(dir, entry.name);
     if (entry.isDirectory()) walk(full, out);
-    else if (extensions.has(path.extname(entry.name)) && !excluded.has(entry.name)) out.push(full);
+    else if (extensions.has(path.extname(entry.name)) && !excludedFiles.has(entry.name)) out.push(full);
   }
   return out;
 }
 
-function text(node, source) { return source.slice(node.getStart(source), node.getEnd()); }
+function isExcluded(file) {
+  const relative = path.relative(process.cwd(), file);
+  return excludedPathFragments.some((fragment) => relative.startsWith(fragment));
+}
+
 function isLikelyUiLiteral(node) {
   const parent = node.parent;
   if (!parent) return false;
   if (ts.isJsxText(node)) return true;
   if (ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node)) {
     if (ts.isImportDeclaration(parent) || ts.isExportDeclaration(parent)) return false;
-    if (ts.isCallExpression(parent) && parent.expression.getText().includes("from")) return false;
     if (ts.isPropertyAssignment(parent) && ts.isIdentifier(parent.name) && /^(href|id|key|className|type|name|role|variant|size|value|method|action|route|path|permission|permissionKey)$/.test(parent.name.text)) return false;
     return true;
   }
@@ -35,6 +38,7 @@ function isLikelyUiLiteral(node) {
 
 const findings = [];
 for (const file of walk(ROOT)) {
+  if (isExcluded(file)) continue;
   const source = fs.readFileSync(file, "utf8");
   const sf = ts.createSourceFile(file, source, ts.ScriptTarget.Latest, true, file.endsWith(".tsx") ? ts.ScriptKind.TSX : ts.ScriptKind.TS);
   function visit(node) {
