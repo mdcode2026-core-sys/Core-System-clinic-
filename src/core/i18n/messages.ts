@@ -1,19 +1,17 @@
 export type Locale = "ar" | "en";
-
 export const messages = {
   ar: {
-    nav: { dashboard:"لوحة التحكم", operation:"مساحة التشغيل", clinical:"المساحة الطبية", treatmentPlans:"خطط العلاج", patients:"المرضى", agenda:"الأجندة", queue:"الطابور", invoices:"الفواتير", inventory:"المخزون", reports:"التقارير", analytics:"التحليلات", followUp:"المتابعة", settings:"الإعدادات" },
-    shell: { workspace:"مساحة العمل", signOut:"تسجيل الخروج", openMenu:"فتح القائمة", closeMenu:"إغلاق القائمة" },
-    language: { label:"اللغة", arabic:"العربية", english:"English" },
-    patients: { title:"المرضى", add:"إضافة مريض", searchPlaceholder:"ابحث باسم المريض أو رقم الهاتف...", list:"قائمة المرضى", noMatches:"لا يوجد مرضى مطابقين للبحث", loading:"جاري التحميل...", active:"نشط", inactive:"غير نشط", archived:"مؤرشف", blocked:"محظور", checkIn:"تسجيل حضور", view:"عرض", edit:"تعديل", delete:"حذف", confirmDelete:"هل أنت متأكد من حذف هذا المريض؟", details:"تفاصيل المريض", addFiles:"إضافة ملفات", medicalFiles:"الملفات الطبية" }
+    nav:{dashboard:"لوحة التحكم",operation:"مساحة التشغيل",clinical:"المساحة الطبية",treatmentPlans:"خطط العلاج",patients:"المرضى",agenda:"الأجندة",queue:"الطابور",invoices:"الفواتير",inventory:"المخزون",reports:"التقارير",analytics:"التحليلات",followUp:"المتابعة",settings:"الإعدادات"},
+    shell:{workspace:"مساحة العمل",signOut:"تسجيل الخروج",openMenu:"فتح القائمة",closeMenu:"إغلاق القائمة"},
+    language:{label:"اللغة",arabic:"العربية",english:"English"},
+    patients:{title:"المرضى",add:"إضافة مريض",searchPlaceholder:"ابحث باسم المريض أو رقم الهاتف...",list:"قائمة المرضى",noMatches:"لا يوجد مرضى مطابقين للبحث",loading:"جاري التحميل...",active:"نشط",inactive:"غير نشط",archived:"مؤرشف",blocked:"محظور",checkIn:"تسجيل حضور",view:"عرض",edit:"تعديل",delete:"حذف",confirmDelete:"هل أنت متأكد من حذف هذا المريض؟",details:"تفاصيل المريض",addFiles:"إضافة ملفات",medicalFiles:"الملفات الطبية",notFound:"لم يتم العثور على المريض",description:"عرض بيانات المريض وتاريخه وملفاته الطبية",appointment:"حجز موعد",queue:"تسجيل في الطابور",checkingIn:"جاري...",contact:"معلومات التواصل",phone:"الهاتف:",secondary:"الثانوي:",email:"البريد:",channel:"القناة:",personal:"البيانات الشخصية",birth:"الميلاد:",gender:"الجنس:",referral:"الإحالة:",registered:"التسجيل:",notes:"ملاحظات",history:"تاريخ المريض",noHistory:"لا يوجد تاريخ مسجل",visits:"عدد الزيارات",lastVisit:"آخر زيارة",preferredProcedure:"الإجراء المفضل",retentionRisk:"مخاطر الاحتفاظ",male:"ذكر",female:"أنثى",other:"آخر",whatsapp:"واتساب",sms:"رسائل نصية",emailChannel:"بريد",phoneChannel:"هاتف",checkInFailed:"فشل تسجيل الحضور"}
   },
   en: {
-    nav: { dashboard:"Dashboard", operation:"Operation Workspace", clinical:"Clinical Workspace", treatmentPlans:"Treatment Plans", patients:"Patients", agenda:"Agenda", queue:"Queue", invoices:"Invoices", inventory:"Inventory", reports:"Reports", analytics:"Analytics", followUp:"Follow-up", settings:"Settings" },
-    shell: { workspace:"Workspace", signOut:"Sign out", openMenu:"Open menu", closeMenu:"Close menu" },
-    language: { label:"Language", arabic:"العربية", english:"English" },
-    patients: { title:"Patients", add:"Add Patient", searchPlaceholder:"Search by patient name or phone number...", list:"Patient List", noMatches:"No patients match your search", loading:"Loading...", active:"Active", inactive:"Inactive", archived:"Archived", blocked:"Blocked", checkIn:"Check in", view:"View", edit:"Edit", delete:"Delete", confirmDelete:"Are you sure you want to delete this patient?", details:"Patient Details", addFiles:"Add Files", medicalFiles:"Medical Files" }
+    nav:{dashboard:"Dashboard",operation:"Operation Workspace",clinical:"Clinical Workspace",treatmentPlans:"Treatment Plans",patients:"Patients",agenda:"Agenda",queue:"Queue",invoices:"Invoices",inventory:"Inventory",reports:"Reports",analytics:"Analytics",followUp:"Follow-up",settings:"Settings"},
+    shell:{workspace:"Workspace",signOut:"Sign out",openMenu:"Open menu",closeMenu:"Close menu"},
+    language:{label:"Language",arabic:"العربية",english:"English"},
+    patients:{title:"Patients",add:"Add Patient",searchPlaceholder:"Search by patient name or phone number...",list:"Patient List",noMatches:"No patients match your search",loading:"Loading...",active:"Active",inactive:"Inactive",archived:"Archived",blocked:"Blocked",checkIn:"Check in",view:"View",edit:"Edit",delete:"Delete",confirmDelete:"Are you sure you want to delete this patient?",details:"Patient Details",addFiles:"Add Files",medicalFiles:"Medical Files",notFound:"Patient not found",description:"View patient information, history, and medical files",appointment:"Book Appointment",queue:"Check in to Queue",checkingIn:"Checking in...",contact:"Contact Information",phone:"Phone:",secondary:"Secondary:",email:"Email:",channel:"Preferred channel:",personal:"Personal Information",birth:"Date of birth:",gender:"Gender:",referral:"Referral:",registered:"Registered:",notes:"Notes",history:"Patient History",noHistory:"No history recorded",visits:"Visits",lastVisit:"Last visit",preferredProcedure:"Preferred procedure",retentionRisk:"Retention risk",male:"Male",female:"Female",other:"Other",whatsapp:"WhatsApp",sms:"SMS",emailChannel:"Email",phoneChannel:"Phone",checkInFailed:"Check-in failed"}
   }
 } as const;
-
 export type Messages = typeof messages.en;
 export function getMessages(locale: Locale): Messages { return messages[locale] as Messages; }
