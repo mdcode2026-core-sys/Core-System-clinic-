@@ -85,6 +85,32 @@ export async function listMedicalFiles(context: MedicalFileContext = {}) {
   return data ?? [];
 }
 
+export async function listMedicalFilePatients(search = "") {
+  const { supabase, user, clinicUser } = await getActor();
+  const permissions = await getEffectivePermissions(user.id, clinicUser.tenant_id);
+  if (!permissions.includes("medical_files:upload") || !permissions.includes("medical_files:read")) throw new Error("Forbidden");
+  const term = search.trim();
+  let query = supabase.from("clinic_patients").select("id, first_name, last_name, first_name_ar, last_name_ar, phone_primary").eq("tenant_id", clinicUser.tenant_id).order("created_at", { ascending: false }).limit(50);
+  if (term) query = query.or(`first_name.ilike.%${term}%,last_name.ilike.%${term}%,first_name_ar.ilike.%${term}%,last_name_ar.ilike.%${term}%,phone_primary.ilike.%${term}%`);
+  const { data, error } = await query;
+  if (error) throw new Error(error.message);
+  return data ?? [];
+}
+
+export async function assignMedicalFileToPatient(fileId: string, patientId: string) {
+  const { supabase, user, clinicUser } = await getActor();
+  const permissions = await getEffectivePermissions(user.id, clinicUser.tenant_id);
+  if (!permissions.includes("medical_files:upload")) throw new Error("Forbidden");
+  const { data: patient } = await supabase.from("clinic_patients").select("id").eq("id", patientId).eq("tenant_id", clinicUser.tenant_id).maybeSingle();
+  if (!patient) throw new Error("Patient not found");
+  const { data: file, error } = await supabase.from("medical_files").select("id, patient_id, visit_id").eq("id", fileId).eq("tenant_id", clinicUser.tenant_id).maybeSingle();
+  if (error || !file) throw new Error("Medical file not found");
+  const { error: updateError } = await supabase.from("medical_files").update({ patient_id: patientId }).eq("id", fileId).eq("tenant_id", clinicUser.tenant_id);
+  if (updateError) throw new Error(updateError.message);
+  await supabase.from("audit_trail").insert({ tenant_id: clinicUser.tenant_id, actor_id: clinicUser.id, actor_role: "clinic_user", action: "medical_file_assign_patient", table_name: "medical_files", record_id: fileId, old_values: { patient_id: file.patient_id }, new_values: { patient_id: patientId } });
+  return { ok: true };
+}
+
 export async function createMedicalFileDownloadUrl(fileId: string) {
   const { supabase, user, clinicUser } = await getActor();
   const permissions = await getEffectivePermissions(user.id, clinicUser.tenant_id);
