@@ -7,27 +7,26 @@ import { createMedicalFileDownloadUrl, createMedicalFileUpload, finalizeMedicalF
 import type { MedicalFile } from "@/features/medical-files/domain/types";
 import { DicomViewer } from "./DicomViewer";
 
+const LOCAL_AGENT_URL = "http://127.0.0.1:39421";
+
 export function MedicalFilesPanel({ patientId, visitId }: { patientId?: string; visitId?: string }) {
   const inputRef = useRef<HTMLInputElement>(null);
-  const [files, setFiles] = useState<MedicalFile[]>([]);
-  const [error, setError] = useState<string | null>(null);
-  const [isPending, startTransition] = useTransition();
-  const [selected, setSelected] = useState<MedicalFile | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [files, setFiles] = useState<MedicalFile[]>([]); const [error, setError] = useState<string | null>(null); const [isPending, startTransition] = useTransition(); const [selected, setSelected] = useState<MedicalFile | null>(null); const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const load = () => startTransition(async () => { try { setFiles(await listMedicalFiles({ patientId, visitId })); setError(null); } catch (e) { setError(e instanceof Error ? e.message : "Unable to load medical files"); } });
   useEffect(() => { load(); }, [patientId, visitId]);
   const emptyLabel = useMemo(() => patientId ? "No medical files for this patient yet." : "No medical files awaiting intake.", [patientId]);
   async function upload(file: File) {
-    try { setError(null); const signed = await createMedicalFileUpload({ filename: file.name, mimeType: file.type || null, sizeBytes: file.size, patientId, visitId }); const supabase = createClient(); const { error: uploadError } = await supabase.storage.from(signed.bucket).uploadToSignedUrl(signed.path, signed.token, file); if (uploadError) throw new Error(uploadError.message); await finalizeMedicalFileUpload(signed.fileId); load(); }
-    catch (e) { setError(e instanceof Error ? e.message : "Upload failed"); }
-  }
-  async function openFile(file: MedicalFile) {
     try {
-      if (file.file_kind === "dicom") { setSelected(file); setPreviewUrl(null); return; }
-      const url = await createMedicalFileDownloadUrl(file.id);
-      if (file.file_kind === "image") { setSelected(file); setPreviewUrl(url); } else window.open(url, "_blank", "noopener,noreferrer");
-    } catch (e) { setError(e instanceof Error ? e.message : "Unable to open file"); }
+      setError(null);
+      const localForm = new FormData(); localForm.append("file", file); if (patientId) localForm.append("patientId", patientId); if (visitId) localForm.append("visitId", visitId);
+      try {
+        const localResponse = await fetch(`${LOCAL_AGENT_URL}/upload`, { method: "POST", body: localForm });
+        if (localResponse.ok) { load(); return; }
+      } catch { /* Local agent unavailable: fall back to cloud ingress. */ }
+      const signed = await createMedicalFileUpload({ filename: file.name, mimeType: file.type || null, sizeBytes: file.size, patientId, visitId }); const supabase = createClient(); const { error: uploadError } = await supabase.storage.from(signed.bucket).uploadToSignedUrl(signed.path, signed.token, file); if (uploadError) throw new Error(uploadError.message); await finalizeMedicalFileUpload(signed.fileId); load();
+    } catch (e) { setError(e instanceof Error ? e.message : "Upload failed"); }
   }
+  async function openFile(file: MedicalFile) { try { if (file.file_kind === "dicom") { setSelected(file); setPreviewUrl(null); return; } const url = await createMedicalFileDownloadUrl(file.id); if (file.file_kind === "image") { setSelected(file); setPreviewUrl(url); } else window.open(url, "_blank", "noopener,noreferrer"); } catch (e) { setError(e instanceof Error ? e.message : "Unable to open file"); } }
   return <section className="rounded-xl border bg-card p-4 shadow-sm" aria-label="Medical Files">
     <div className="mb-3 flex items-center justify-between gap-3"><div><h3 className="font-semibold">Medical Files</h3><p className="text-xs text-muted-foreground">{patientId ? "Current patient / visit context" : "Administrative intake"}</p></div><div className="flex items-center gap-2"><button type="button" className="rounded-md border p-2" onClick={load} disabled={isPending} title="Refresh"><RefreshCw className="h-4 w-4" /></button><button type="button" className="rounded-md border px-3 py-2 text-sm" onClick={() => inputRef.current?.click()}><Upload className="mr-2 inline h-4 w-4" />Add files</button><input ref={inputRef} type="file" multiple className="hidden" onChange={(e) => { const selectedFiles = Array.from(e.target.files ?? []); e.currentTarget.value = ""; selectedFiles.forEach(upload); }} /></div></div>
     {error && <div className="mb-3 rounded-md border border-destructive/30 bg-destructive/5 p-2 text-sm text-destructive">{error}</div>}
