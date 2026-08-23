@@ -28,18 +28,10 @@ export interface NavItem {
   requiredPermission: Permission | null;
 }
 
-/**
- * Canonical navigation registry for the Unified Workspace.
- * Order determines display order in both desktop sidebar and mobile Sheet drawer.
- *
- * Workspace routes are first-class navigation surfaces. Their visibility is
- * permission-driven so Clinic Admin can control operational and clinical access
- * through the existing permission architecture.
- */
 export const navigationRegistry: NavItem[] = [
   { href: "/", label: "Dashboard", labelAr: "لوحة التحكم", icon: LayoutDashboard, requiredPermission: null },
   { href: "/operation", label: "Operation Workspace", labelAr: "مساحة التشغيل", icon: BriefcaseBusiness, requiredPermission: "workspace:operation" },
-  { href: "/clinical", label: "Clinical Workspace", labelAr: "مساحة العمل السريري", icon: Stethoscope, requiredPermission: "workspace:clinical" },
+  { href: "/clinical", label: "Clinical Workspace", labelAr: "المساحة الطبية", icon: Stethoscope, requiredPermission: "workspace:clinical" },
   { href: "/treatment-plans", label: "Treatment Plans", labelAr: "خطط العلاج", icon: ClipboardList, requiredPermission: "treatment_plans:read" },
   { href: "/patients", label: "Patients", labelAr: "المرضى", icon: Users, requiredPermission: "patients:read" },
   { href: "/agenda", label: "Agenda", labelAr: "الأجندة", icon: CalendarDays, requiredPermission: "agenda:read" },
@@ -55,11 +47,7 @@ export const navigationRegistry: NavItem[] = [
 export function getRequiredPermission(pathname: string): Permission | null | undefined {
   const exact = navigationRegistry.find((n) => n.href === pathname);
   if (exact) return exact.requiredPermission;
-
-  const parent = navigationRegistry.find(
-    (n) => n.href !== "/" && pathname.startsWith(n.href + "/")
-  );
+  const parent = navigationRegistry.find((n) => n.href !== "/" && pathname.startsWith(n.href + "/"));
   if (parent) return parent.requiredPermission;
-
   return undefined;
 }
