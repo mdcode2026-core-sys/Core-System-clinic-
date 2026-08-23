@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/infrastructure/supabase/server";
 import { hasEntitlement, hasCapability } from "@/core/entitlements/entitlementEngine";
+import { PatientFileDownloadButton } from "@/features/patient-portal/patient-file-download-button";
 
 export default async function PatientPortalPage() {
   const supabase = await createClient();
@@ -8,22 +9,18 @@ export default async function PatientPortalPage() {
   if (!user) redirect("/portal/activate");
 
   const { data: identity } = await supabase.from("patient_identities").select("id,status").eq("auth_user_id", user.id).maybeSingle();
-  if (!identity || identity.status !== "active") {
-    return <main className="mx-auto max-w-lg p-6"><h1 className="text-2xl font-semibold">Patient Portal</h1><p className="mt-2 text-sm text-muted-foreground">Your patient portal identity is not active yet.</p></main>;
-  }
+  if (!identity || identity.status !== "active") return <main className="mx-auto max-w-lg p-6"><h1 className="text-2xl font-semibold">Patient Portal</h1><p className="mt-2 text-sm text-muted-foreground">Your patient portal identity is not active yet.</p></main>;
 
   const { data: relationship } = await supabase.from("patient_clinic_relationships").select("tenant_id,clinic_patient_id,status").eq("patient_identity_id", identity.id).eq("status", "active").limit(1).maybeSingle();
-  if (!relationship) {
-    return <main className="mx-auto max-w-lg p-6"><h1 className="text-2xl font-semibold">Patient Portal</h1><p className="mt-2 text-sm text-muted-foreground">No active clinic relationship is available for this account.</p></main>;
-  }
+  if (!relationship) return <main className="mx-auto max-w-lg p-6"><h1 className="text-2xl font-semibold">Patient Portal</h1><p className="mt-2 text-sm text-muted-foreground">No active clinic relationship is available for this account.</p></main>;
 
   const portalEnabled = await hasEntitlement(relationship.tenant_id, "patient_portal");
-  if (!portalEnabled || !(await hasCapability(relationship.tenant_id, "patient_portal.access"))) {
-    return <main className="mx-auto max-w-lg p-6"><h1 className="text-2xl font-semibold">Patient Portal</h1><p className="mt-2 text-sm text-muted-foreground">Patient Portal is not currently enabled for this clinic.</p></main>;
-  }
+  if (!portalEnabled || !(await hasCapability(relationship.tenant_id, "patient_portal.access"))) return <main className="mx-auto max-w-lg p-6"><h1 className="text-2xl font-semibold">Patient Portal</h1><p className="mt-2 text-sm text-muted-foreground">Patient Portal is not currently enabled for this clinic.</p></main>;
 
   const { data: patient } = await supabase.from("clinic_patients").select("first_name,last_name,first_name_ar,last_name_ar,email,phone_primary,date_of_birth,gender,file_number").eq("id", relationship.clinic_patient_id).maybeSingle();
   if (!patient) return <main className="mx-auto max-w-lg p-6"><h1 className="text-2xl font-semibold">Patient Portal</h1><p className="mt-2 text-sm text-muted-foreground">Patient record could not be loaded.</p></main>;
+
+  const { data: releases } = await supabase.from("patient_portal_medical_file_releases").select("medical_file_id,expires_at,medical_files(original_filename,file_kind,size_bytes,created_at)").eq("clinic_patient_id", relationship.clinic_patient_id).eq("tenant_id", relationship.tenant_id).eq("status", "active").order("released_at", { ascending: false });
 
   return (
     <main className="min-h-screen bg-muted/20 p-6" dir="auto">
@@ -44,9 +41,27 @@ export default async function PatientPortalPage() {
           </div>
         </section>
 
+        <section className="mt-6 rounded-2xl border bg-background p-6 shadow-sm">
+          <h2 className="text-xl font-semibold">Medical files</h2>
+          {!releases?.length ? (
+            <p className="mt-2 text-sm text-muted-foreground">No medical files have been released to you.</p>
+          ) : (
+            <div className="mt-4 space-y-3">
+              {releases.map((release) => {
+                const file = Array.isArray(release.medical_files) ? release.medical_files[0] : release.medical_files;
+                if (!file) return null;
+                return <div key={release.medical_file_id} className="flex items-center justify-between gap-4 rounded-xl border p-4">
+                  <div className="min-w-0"><p className="truncate font-medium">{file.original_filename}</p><p className="text-xs text-muted-foreground">{file.file_kind} · {Number(file.size_bytes).toLocaleString()} bytes</p></div>
+                  <PatientFileDownloadButton medicalFileId={release.medical_file_id} />
+                </div>;
+              })}
+            </div>
+          )}
+        </section>
+
         <section className="mt-6 grid gap-4 sm:grid-cols-2">
           <div className="rounded-2xl border bg-background p-6 shadow-sm"><h2 className="font-semibold">Appointments</h2><p className="mt-2 text-sm text-muted-foreground">Your permitted appointments will appear here.</p></div>
-          <div className="rounded-2xl border bg-background p-6 shadow-sm"><h2 className="font-semibold">Medical files</h2><p className="mt-2 text-sm text-muted-foreground">Released medical files will appear here when enabled and authorized.</p></div>
+          <div className="rounded-2xl border bg-background p-6 shadow-sm"><h2 className="font-semibold">Advanced experience</h2><p className="mt-2 text-sm text-muted-foreground">Advanced messaging, forms, consent and patient uploads are controlled independently by entitlement.</p></div>
         </section>
       </div>
     </main>
