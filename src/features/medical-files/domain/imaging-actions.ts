@@ -14,15 +14,22 @@ async function actor() {
   return { supabase, clinicUser };
 }
 
+export async function listMedicalAnnotations(fileId: string) {
+  const { supabase, clinicUser } = await actor();
+  const { data: file } = await supabase.from("medical_files").select("id").eq("id", fileId).eq("tenant_id", clinicUser.tenant_id).maybeSingle();
+  if (!file) throw new Error("Medical file not found");
+  const { data, error } = await supabase.from("medical_file_annotations").select("id, annotation_type, payload, created_at").eq("medical_file_id", fileId).eq("tenant_id", clinicUser.tenant_id).order("created_at", { ascending: true });
+  if (error) throw new Error(error.message);
+  return data ?? [];
+}
+
 export async function saveMedicalAnnotation(input: { fileId: string; annotationType: string; payload: Record<string, unknown> }) {
   const { supabase, clinicUser } = await actor();
   const { data: file } = await supabase.from("medical_files").select("id").eq("id", input.fileId).eq("tenant_id", clinicUser.tenant_id).maybeSingle();
   if (!file) throw new Error("Medical file not found");
   const { data, error } = await supabase.from("medical_file_annotations").insert({ medical_file_id: input.fileId, tenant_id: clinicUser.tenant_id, created_by: clinicUser.id, annotation_type: input.annotationType, payload: input.payload }).select("id").single();
   if (error) throw new Error(error.message);
-  if (input.annotationType.toLowerCase().includes("length") || input.annotationType.toLowerCase().includes("measurement")) {
-    await supabase.from("medical_file_measurements").insert({ medical_file_id: input.fileId, tenant_id: clinicUser.tenant_id, created_by: clinicUser.id, measurement_type: input.annotationType, payload: input.payload });
-  }
+  if (input.annotationType.toLowerCase().includes("length") || input.annotationType.toLowerCase().includes("measurement")) await supabase.from("medical_file_measurements").insert({ medical_file_id: input.fileId, tenant_id: clinicUser.tenant_id, created_by: clinicUser.id, measurement_type: input.annotationType, payload: input.payload });
   return data;
 }
 
