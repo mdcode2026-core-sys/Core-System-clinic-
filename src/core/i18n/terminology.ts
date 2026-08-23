@@ -1,5 +1,11 @@
 export type Locale = "ar" | "en";
 
+const permissionResources = {
+  patients: ["المرضى", "Patients", "إدارة سجلات المرضى", "Manage patient records"], sessions: ["الجلسات", "Sessions", "إدارة الجلسات والزيارات", "Manage sessions and visits"], agenda: ["الأجندة", "Agenda", "المواعيد والتقويم", "Appointments and calendar"], invoices: ["الفواتير", "Invoices", "الفوترة والمدفوعات", "Billing and payments"], inventory: ["المخزون", "Inventory", "إدارة المخزون والمستلزمات", "Manage inventory and supplies"], analytics: ["التحليلات", "Analytics", "التقارير التحليلية", "Analytical reporting"], users: ["المستخدمون", "Users", "إدارة مستخدمي العيادة", "Manage clinic users"], settings: ["الإعدادات", "Settings", "إعدادات العيادة", "Clinic settings"], audit: ["السجل", "Audit Log", "سجل النشاط والتدقيق", "Activity and audit log"], reports: ["التقارير", "Reports", "التقارير التشغيلية", "Operational reports"], followup: ["المتابعة", "Follow-up", "متابعة ما بعد الزيارة", "Post-visit follow-up"], roles: ["الأدوار", "Roles", "إدارة الأدوار والصلاحيات", "Manage roles and permissions"], templates: ["القوالب", "Templates", "قوالب الصلاحيات", "Permission templates"], overrides: ["التجاوزات", "Overrides", "تجاوزات الصلاحيات الفردية", "Individual permission overrides"], subscription: ["الاشتراك", "Subscription", "معلومات الاشتراك", "Subscription information"], notifications: ["التنبيهات", "Notifications", "إعدادات التنبيهات", "Notification settings"], procedures: ["الخدمات الطبية", "Medical Services", "إدارة كتالوج الخدمات والإجراءات", "Manage services and procedures"]
+} as const;
+
+const actionLabels = { read: ["عرض", "View"], create: ["إنشاء", "Create"], update: ["تعديل", "Edit"], delete: ["حذف", "Delete"], manage: ["إدارة", "Manage"] } as const;
+
 export const terminology = {
   ar: {
     clinical: {
@@ -10,7 +16,9 @@ export const terminology = {
     },
     treatmentPlans: {
       title: "خطط العلاج", description: "خطة علاجية خاصة بالمريض تمتد عبر الوقت والأنشطة والزيارات الفعلية", refresh: "تحديث", newPlan: "خطة علاج جديدة", createTitle: "إنشاء خطة علاج", planTitle: "عنوان الخطة", diagnosis: "ملخص التشخيص", goals: "الأهداف العلاجية", create: "إنشاء", cancel: "إلغاء", openFromPatient: "افتح هذه المساحة من سياق مريض لإنشاء أو إدارة خطة علاجية.", plans: "الخطط", noPlans: "لا توجد خطة علاجية لهذا المريض.", activate: "تفعيل", completePlan: "إكمال الخطة", patient: "المريض", patientFallback: "مريض", diagnosisLabel: "التشخيص", goalsLabel: "الأهداف", linkedVisits: "الزيارات المرتبطة فعلياً", activities: "الأنشطة المخططة", activityName: "اسم النشاط / الجلسة", shortDescription: "وصف مختصر", add: "إضافة", noActivities: "لا توجد أنشطة مخططة بعد.", linkVisit: "ربط الزيارة", linkCurrentVisit: "ربط الزيارة الحالية بالخطة", selectPlan: "اختر خطة علاجية لعرض الأنشطة.", backToMedical: "العودة للمساحة الطبية", loadFailed: "تعذر تحميل خطط العلاج", actionFailed: "تعذر تنفيذ العملية", mustSelectPatient: "يجب تحديد المريض لإنشاء خطة علاجية", status: { draft: "مسودة", active: "نشطة", on_hold: "موقوفة", completed: "مكتملة", cancelled: "ملغاة" }, itemStatus: { planned: "مخطط", scheduled: "مجدول", in_progress: "قيد التنفيذ", completed: "مكتمل", skipped: "متجاوز", cancelled: "ملغى" }
-    }
+    },
+    permissions: { resources: Object.fromEntries(Object.entries(permissionResources).map(([key, value]) => [key, { label: value[0], description: value[2] }])), actions: Object.fromEntries(Object.entries(actionLabels).map(([key, value]) => [key, value[0]])) },
+    errors: { saveFailed: "فشل الحفظ", close: "إغلاق", cancel: "إلغاء", loading: "جاري التحميل...", unableToLoadRole: "تعذر تحميل بيانات الدور أو قائمة الصلاحيات", choosePermissions: "اختر الصلاحيات التي تريد تخصيصها لهذا الدور", systemRole: "هذا دور نظامي. لا يمكن تعديل صلاحيات الأدوار النظامية. يمكنك فقط عرض التكوين الحالي.", saved: "تم الحفظ بنجاح", saveChanges: "حفظ التغييرات", failedToSave: "فشل الحفظ" }
   },
   en: {
     clinical: {
@@ -21,7 +29,9 @@ export const terminology = {
     },
     treatmentPlans: {
       title: "Treatment Plans", description: "A patient-specific treatment plan spanning time, activities, and actual visits", refresh: "Refresh", newPlan: "New Treatment Plan", createTitle: "Create Treatment Plan", planTitle: "Plan title", diagnosis: "Diagnosis summary", goals: "Treatment goals", create: "Create", cancel: "Cancel", openFromPatient: "Open this workspace from a patient context to create or manage a treatment plan.", plans: "Plans", noPlans: "No treatment plan for this patient.", activate: "Activate", completePlan: "Complete Plan", patient: "Patient", patientFallback: "Patient", diagnosisLabel: "Diagnosis", goalsLabel: "Goals", linkedVisits: "Actual linked visits", activities: "Planned Activities", activityName: "Activity / session name", shortDescription: "Short description", add: "Add", noActivities: "No planned activities yet.", linkVisit: "Link Visit", linkCurrentVisit: "Link Current Visit to Plan", selectPlan: "Select a treatment plan to view activities.", backToMedical: "Return to Medical Workspace", loadFailed: "Unable to load treatment plans", actionFailed: "Unable to perform the operation", mustSelectPatient: "A patient must be selected to create a treatment plan", status: { draft: "Draft", active: "Active", on_hold: "On Hold", completed: "Completed", cancelled: "Cancelled" }, itemStatus: { planned: "Planned", scheduled: "Scheduled", in_progress: "In Progress", completed: "Completed", skipped: "Skipped", cancelled: "Cancelled" }
-    }
+    },
+    permissions: { resources: Object.fromEntries(Object.entries(permissionResources).map(([key, value]) => [key, { label: value[1], description: value[3] }])), actions: Object.fromEntries(Object.entries(actionLabels).map(([key, value]) => [key, value[1]])) },
+    errors: { saveFailed: "Failed to save", close: "Close", cancel: "Cancel", loading: "Loading...", unableToLoadRole: "Unable to load role data or permission catalog", choosePermissions: "Select the permissions to assign to this role", systemRole: "This is a system role. System role permissions cannot be edited. You can only view the current configuration.", saved: "Saved successfully", saveChanges: "Save changes", failedToSave: "Failed to save" }
   }
 } as const;
 
