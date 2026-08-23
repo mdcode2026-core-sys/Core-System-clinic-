@@ -13,7 +13,7 @@ export function PatientPortalInviteButton({ patientId, hasEmail, hasPhone }: { p
   async function invite() {
     setBusy(true);
     setMessage("");
-    const result = await createPatientPortalInvitation({ patientId, channel, fallbackChannel: fallback || null });
+    const result = await createPatientPortalInvitation({ clinicPatientId: patientId, channel, fallbackChannel: fallback || null });
     setBusy(false);
     setMessage(result.success ? "Invitation queued." : result.error ?? "Invitation failed");
   }
