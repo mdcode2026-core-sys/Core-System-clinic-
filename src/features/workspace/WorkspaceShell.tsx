@@ -34,6 +34,8 @@ export function WorkspaceShell({ children, user }: WorkspaceShellProps) {
     router.refresh();
   };
 
+  const isArabic = locale === "ar";
+
   return (
     <div className="flex h-screen w-full bg-gray-50">
       {sidebarOpen && (
@@ -45,8 +47,13 @@ export function WorkspaceShell({ children, user }: WorkspaceShellProps) {
 
       <aside
         className={cn(
-          "fixed inset-y-0 start-0 z-50 w-64 transform bg-white shadow-lg transition-transform duration-200 ease-in-out lg:static lg:translate-x-0",
-          sidebarOpen ? "translate-x-0" : locale === "ar" ? "translate-x-full" : "-translate-x-full"
+          "fixed inset-y-0 z-50 w-64 transform bg-white shadow-lg transition-transform duration-200 ease-in-out lg:static lg:translate-x-0",
+          isArabic ? "right-0" : "left-0",
+          sidebarOpen
+            ? "translate-x-0"
+            : isArabic
+              ? "translate-x-full"
+              : "-translate-x-full"
         )}
       >
         <div className="flex h-full flex-col">
