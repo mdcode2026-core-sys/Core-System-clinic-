@@ -6,6 +6,7 @@ import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
 import { Badge } from "@/shared/components/ui/badge";
 import { Building2, Plus, Search, Shield } from "lucide-react";
+import { useI18n } from "@/core/i18n/I18nProvider";
 
 interface Tenant {
   id: string;
@@ -22,6 +23,8 @@ const mockTenants: Tenant[] = [
 ];
 
 export function TenantRegistry() {
+  const { locale, superAdmin } = useI18n();
+  const t = superAdmin.tenantRegistry;
   const [searchQuery, setSearchQuery] = useState("");
   const [tenants] = useState<Tenant[]>(mockTenants);
 
@@ -37,17 +40,17 @@ export function TenantRegistry() {
   };
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-6 space-y-6" dir={locale === "ar" ? "rtl" : "ltr"}>
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold flex items-center gap-2">
           <Shield className="w-6 h-6" />
-          إدارة المستأجرين
+          {t.title}
         </h2>
-        <Button><Plus className="w-4 h-4 ml-2" />إضافة عيادة</Button>
+        <Button><Plus className="w-4 h-4 me-2" />{t.addClinic}</Button>
       </div>
       <div className="relative">
-        <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-        <Input placeholder="البحث..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pr-10" />
+        <Search className="absolute start-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+        <Input placeholder={t.searchPlaceholder} value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="ps-10" />
       </div>
       <div className="grid gap-4">
         {filtered.map((tenant) => (
@@ -61,15 +64,15 @@ export function TenantRegistry() {
                   <div>
                     <h3 className="text-lg font-semibold">{tenant.clinic_name}</h3>
                     <div className="flex items-center gap-3 mt-1 text-sm text-muted-foreground">
-                      <span>{tenant.user_count} مستخدم</span>
+                      <span>{tenant.user_count} {t.users}</span>
                       <span>·</span>
-                      <span>{tenant.patient_count} مريض</span>
+                      <span>{tenant.patient_count} {t.patient}</span>
                     </div>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
                   <Badge variant="outline" className={getTierColor(tenant.subscription_tier)}>{tenant.subscription_tier}</Badge>
-                  <Badge variant={tenant.is_active ? "default" : "secondary"}>{tenant.is_active ? "نشط" : "معطل"}</Badge>
+                  <Badge variant={tenant.is_active ? "default" : "secondary"}>{tenant.is_active ? t.active : t.inactive}</Badge>
                 </div>
               </div>
             </CardContent>
