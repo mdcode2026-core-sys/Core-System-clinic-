@@ -56,14 +56,11 @@ export function I18nProvider({
   initialLocale: Locale;
   children: React.ReactNode;
 }) {
-  const [locale, setLocaleState] = useState<Locale>(initialLocale);
-
-  useEffect(() => {
+  const [locale, setLocaleState] = useState<Locale>(() => {
+    if (typeof window === "undefined") return initialLocale;
     const stored = window.localStorage.getItem(LOCALE_STORAGE_KEY);
-    const nextLocale = isLocale(stored) ? stored : initialLocale;
-    setLocaleState(nextLocale);
-    applyDocumentLocale(nextLocale);
-  }, [initialLocale]);
+    return isLocale(stored) ? stored : initialLocale;
+  });
 
   useEffect(() => {
     applyDocumentLocale(locale);
