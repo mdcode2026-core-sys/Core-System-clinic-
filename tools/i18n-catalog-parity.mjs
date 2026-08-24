@@ -8,20 +8,10 @@ const failures = [];
 
 function unwrapExpression(node) {
   let current = node;
-  while (current && (ts.isAsExpression(current) || ts.isTypeAssertionExpression(current) || ts.isParenthesizedExpression(current))) {
+  while (current && (ts.isAsExpression(current) || ts.isTypeAssertionExpression(current) || ts.isParenthesizedExpression(current) || ts.isSatisfiesExpression(current))) {
     current = current.expression;
   }
   return current;
-}
-
-function objectProperty(node, name) {
-  const expression = unwrapExpression(node);
-  if (!ts.isObjectLiteralExpression(expression)) return null;
-  return expression.properties.find((property) => {
-    if (!ts.isPropertyAssignment(property)) return false;
-    const key = property.name;
-    return (ts.isIdentifier(key) || ts.isStringLiteral(key)) && key.text === name;
-  }) ?? null;
 }
 
 function keyName(property) {
@@ -30,15 +20,57 @@ function keyName(property) {
   return ts.isIdentifier(name) || ts.isStringLiteral(name) || ts.isNumericLiteral(name) ? name.text : null;
 }
 
+function propertyFromObject(node, name) {
+  const expression = unwrapExpression(node);
+  if (!ts.isObjectLiteralExpression(expression)) return null;
+  return expression.properties.find((property) => ts.isPropertyAssignment(property) && keyName(property) === name) ?? null;
+}
+
+function createVariableMap(sourceFile) {
+  const variables = new Map();
+  function visit(node) {
+    if (ts.isVariableDeclaration(node) && ts.isIdentifier(node.name) && node.initializer) variables.set(node.name.text, node.initializer);
+    ts.forEachChild(node, visit);
+  }
+  visit(sourceFile);
+  return variables;
+}
+
+function resolveObject(node, variables, locale, seen = new Set()) {
+  const expression = unwrapExpression(node);
+  if (ts.isObjectLiteralExpression(expression)) return expression;
+
+  if (ts.isIdentifier(expression)) {
+    if (seen.has(expression.text)) return null;
+    const initializer = variables.get(expression.text);
+    if (!initializer) return null;
+    const nextSeen = new Set(seen);
+    nextSeen.add(expression.text);
+    return resolveObject(initializer, variables, locale, nextSeen);
+  }
+
+  if (ts.isPropertyAccessExpression(expression)) {
+    const base = resolveObject(expression.expression, variables, locale, seen);
+    return propertyFromObject(base, expression.name.text)?.initializer ? resolveObject(propertyFromObject(base, expression.name.text).initializer, variables, locale, seen) : null;
+  }
+
+  if (ts.isElementAccessExpression(expression) && expression.argumentExpression && ts.isStringLiteral(expression.argumentExpression)) {
+    const base = resolveObject(expression.expression, variables, locale, seen);
+    return propertyFromObject(base, expression.argumentExpression.text)?.initializer ? resolveObject(propertyFromObject(base, expression.argumentExpression.text).initializer, variables, locale, seen) : null;
+  }
+
+  return null;
+}
+
 function placeholders(value) {
   return [...value.matchAll(/\{\{?\s*([A-Za-z0-9_.-]+)\s*\}?\}|\$\{\s*([A-Za-z0-9_.-]+)\s*\}/g)]
     .map((match) => match[1] ?? match[2])
     .sort();
 }
 
-function collectLeaves(node, prefix = "", out = [], seen = new Set()) {
-  const expression = unwrapExpression(node);
-  if (!ts.isObjectLiteralExpression(expression)) return out;
+function collectLeaves(node, variables, prefix = "", out = [], seen = new Set()) {
+  const expression = resolveObject(node, variables);
+  if (!expression) return out;
   for (const property of expression.properties) {
     if (!ts.isPropertyAssignment(property)) continue;
     const key = keyName(property);
@@ -47,12 +79,13 @@ function collectLeaves(node, prefix = "", out = [], seen = new Set()) {
     if (seen.has(current)) out.push({ type: "duplicate", key: current });
     seen.add(current);
 
-    const valueExpression = unwrapExpression(property.initializer);
-    if (ts.isObjectLiteralExpression(valueExpression)) {
-      collectLeaves(valueExpression, current, out, seen);
+    const nested = resolveObject(property.initializer, variables);
+    if (nested) {
+      collectLeaves(nested, variables, current, out, seen);
       continue;
     }
 
+    const valueExpression = unwrapExpression(property.initializer);
     const value = ts.isStringLiteral(valueExpression) || ts.isNoSubstitutionTemplateLiteral(valueExpression)
       ? valueExpression.text
       : null;
@@ -65,16 +98,18 @@ for (const file of files) {
   const full = path.join(ROOT, file);
   const source = fs.readFileSync(full, "utf8");
   const sf = ts.createSourceFile(full, source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);
+  const variables = createVariableMap(sf);
   let found = false;
 
   function visit(node) {
-    if (ts.isVariableDeclaration(node) && ts.isIdentifier(node.name)) {
-      const ar = objectProperty(node.initializer, "ar");
-      const en = objectProperty(node.initializer, "en");
-      if (ar && en && ts.isPropertyAssignment(ar) && ts.isPropertyAssignment(en)) {
+    if (ts.isVariableDeclaration(node) && ts.isIdentifier(node.name) && node.initializer) {
+      const root = resolveObject(node.initializer, variables);
+      const ar = propertyFromObject(root, "ar");
+      const en = propertyFromObject(root, "en");
+      if (ar && en) {
         found = true;
-        const arEntries = collectLeaves(ar.initializer);
-        const enEntries = collectLeaves(en.initializer);
+        const arEntries = collectLeaves(ar.initializer, variables);
+        const enEntries = collectLeaves(en.initializer, variables);
         const arLeaves = new Map(arEntries.filter((entry) => entry.type === "leaf").map((entry) => [entry.key, entry.value]));
         const enLeaves = new Map(enEntries.filter((entry) => entry.type === "leaf").map((entry) => [entry.key, entry.value]));
         const arKeys = new Set(arLeaves.keys());
