@@ -27,3 +27,4 @@ export const analyticsMessages = {
 } as const;
 
 export function getAnalyticsMessages(locale: Locale) { return analyticsMessages[locale]; }
+export function getAnalyticsKpiLabel(locale: Locale, id: string) { return analyticsMessages[locale].kpi[id as keyof typeof analyticsMessages.en.kpi] ?? id; }
