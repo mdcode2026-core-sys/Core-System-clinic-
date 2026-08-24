@@ -6,12 +6,18 @@ export const workspaceMessages = {
     layerStatusAnalytics: "الحالة والتحليلات",
     noWidgets: "لا توجد أدوات متاحة",
     contactAdmin: "اتصل بالمسؤول لتمكين الوحدات",
+    widgetError: "حدث خطأ غير متوقع",
+    retry: "إعادة المحاولة",
+    collapsed: "مطوي",
   },
   en: {
     layerQuickActions: "Quick Actions",
     layerStatusAnalytics: "Status & Analytics",
     noWidgets: "No widgets are available",
     contactAdmin: "Contact an administrator to enable modules",
+    widgetError: "An unexpected error occurred",
+    retry: "Retry",
+    collapsed: "Collapsed",
   },
 } as const satisfies Record<Locale, Record<string, string>>;
 
