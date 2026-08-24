@@ -1,277 +1,33 @@
-/**
- * Agenda Module — Main Page
- * Central Scheduling Engine
- * Integrates: Calendar, Form, Detail, Queries
- * Uses AuthContext for tenantId
- */
-
 "use client";
 
 import { useState, useCallback, useMemo, useContext } from "react";
-import { useRouter } from "next/navigation";
+import { useI18n } from "@/core/i18n/I18nProvider";
 import { Button } from "@/shared/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
-import { Plus, CalendarDays, Loader2, AlertTriangle } from "lucide-react";
+import { Plus, CalendarDays, Loader2 } from "lucide-react";
 import { AgendaCalendar } from "@/features/agenda/agenda-calendar";
 import { AgendaEventForm } from "@/features/agenda/agenda-event-form";
 import { AgendaEventDetail } from "@/features/agenda/agenda-event-detail";
-import {
-  useAgendaEventsWithRelations,
-  useDoctors,
-  useRooms,
-  useProcedures,
-  useInvalidateAgenda,
-} from "@/domain/agenda/agenda.queries";
+import { useAgendaEventsWithRelations, useDoctors, useRooms, useProcedures } from "@/domain/agenda/agenda.queries";
 import { usePatients } from "@/domain/patients/patients.queries";
 import { AuthContext } from "@/core/auth/AuthContext";
-import type {
-  AgendaEventWithRelations,
-  CalendarRange,
-} from "@/domain/agenda/agenda.types";
+import type { AgendaEventWithRelations, CalendarRange } from "@/domain/agenda/agenda.types";
 import type { Patient } from "@/domain/patients/patients.types";
 
-// ─────────────────────────────────────────
-// MAIN COMPONENT
-// ─────────────────────────────────────────
-
 export default function AgendaPage() {
-  const router = useRouter();
-  const auth = useContext(AuthContext);
-
-  // ─────────────────────────────────────────
-  // STATE
-  // ─────────────────────────────────────────
-
-  const [currentDate, setCurrentDate] = useState(new Date());
-  const [isFormOpen, setIsFormOpen] = useState(false);
-  const [isDetailOpen, setIsDetailOpen] = useState(false);
-  const [selectedEvent, setSelectedEvent] = useState<AgendaEventWithRelations | null>(null);
-  const [formDefaultDate, setFormDefaultDate] = useState<string>("");
-
-  // ─────────────────────────────────────────
-  // TENANT & USER FROM AUTH CONTEXT
-  // ─────────────────────────────────────────
-
-  const tenantId = auth?.tenantId ?? null;
-  const userId = auth?.user?.id ?? "";
-
-  // ─────────────────────────────────────────
-  // CALCULATE WEEK RANGE
-  // Derived purely from currentDate — computed during render instead of
-  // via a state+effect pair, so there is no extra render/fetch cycle.
-  // ─────────────────────────────────────────
-
-  const calendarRange = useMemo<CalendarRange>(() => {
-    const startOfWeek = new Date(currentDate);
-    const day = startOfWeek.getDay();
-    const diff = startOfWeek.getDate() - day;
-    startOfWeek.setDate(diff);
-    startOfWeek.setHours(0, 0, 0, 0);
-
-    const endOfWeek = new Date(startOfWeek);
-    endOfWeek.setDate(startOfWeek.getDate() + 6);
-    endOfWeek.setHours(23, 59, 59, 999);
-
-    return {
-      start: startOfWeek.toISOString(),
-      end: endOfWeek.toISOString(),
-    };
-  }, [currentDate]);
-
-  // ─────────────────────────────────────────
-  // QUERIES
-  // ─────────────────────────────────────────
-
-  const { data: events = [], isLoading: eventsLoading, error: eventsError } =
-    useAgendaEventsWithRelations(tenantId, calendarRange);
-
-  const { data: patientsData = [], isLoading: patientsLoading, error: patientsError } =
-    usePatients(tenantId);
-
-  const { data: doctorsData = [], isLoading: doctorsLoading } = useDoctors(tenantId);
-  const { data: roomsData = [], isLoading: roomsLoading } = useRooms(tenantId);
-  const { data: proceduresData = [], isLoading: proceduresLoading } = useProcedures(tenantId);
-
-  // ─────────────────────────────────────────
-  // FORMAT OPTIONS FOR FORM
-  // ─────────────────────────────────────────
-
-  const patientOptions = (patientsData as Patient[]).map((p) => ({
-    id: p.id,
-    name: `${p.first_name} ${p.last_name}`,
-    phone: p.phone_primary,
-  }));
-
-  const doctorOptions = doctorsData.map((d) => ({
-    id: d.id,
-    name: d.full_name,
-    specialization: d.specialization,
-  }));
-
-  const roomOptions = roomsData.map((r) => ({
-    id: r.id,
-    name: r.room_name,
-  }));
-
-  const procedureOptions = proceduresData.map((p) => ({
-    id: p.id,
-    name: p.procedure_name,
-    duration: p.standard_duration_minutes,
-  }));
-
-  // ─────────────────────────────────────────
-  // HANDLERS
-  // ─────────────────────────────────────────
-
-  const handleEventClick = useCallback((event: AgendaEventWithRelations) => {
-    setSelectedEvent(event);
-    setIsDetailOpen(true);
-  }, []);
-
-  const handleTimeSlotClick = useCallback((date: string, hour: number) => {
-    setSelectedEvent(null);
-    setFormDefaultDate(date);
-    setIsFormOpen(true);
-  }, []);
-
-  const handleCloseForm = useCallback(() => {
-    setIsFormOpen(false);
-    setSelectedEvent(null);
-    setFormDefaultDate("");
-  }, []);
-
-  const handleCloseDetail = useCallback(() => {
-    setIsDetailOpen(false);
-    setSelectedEvent(null);
-  }, []);
-
-  // ─────────────────────────────────────────
-  // RENDER
-  // ─────────────────────────────────────────
-
+  const auth = useContext(AuthContext); const { locale, messages } = useI18n(); const t = messages.agenda; const [currentDate, setCurrentDate] = useState(new Date()); const [isFormOpen, setIsFormOpen] = useState(false); const [isDetailOpen, setIsDetailOpen] = useState(false); const [selectedEvent, setSelectedEvent] = useState<AgendaEventWithRelations | null>(null); const [formDefaultDate, setFormDefaultDate] = useState("");
+  const tenantId = auth?.tenantId ?? null; const userId = auth?.user?.id ?? "";
+  const calendarRange = useMemo<CalendarRange>(() => { const start = new Date(currentDate); const day = start.getDay(); start.setDate(start.getDate() - day); start.setHours(0, 0, 0, 0); const end = new Date(start); end.setDate(start.getDate() + 6); end.setHours(23, 59, 59, 999); return { start: start.toISOString(), end: end.toISOString() }; }, [currentDate]);
+  const { data: events = [], isLoading: eventsLoading } = useAgendaEventsWithRelations(tenantId, calendarRange); const { data: patientsData = [], isLoading: patientsLoading } = usePatients(tenantId); const { data: doctorsData = [], isLoading: doctorsLoading } = useDoctors(tenantId); const { data: roomsData = [], isLoading: roomsLoading } = useRooms(tenantId); const { data: proceduresData = [], isLoading: proceduresLoading } = useProcedures(tenantId);
+  const patientOptions = (patientsData as Patient[]).map(p => ({ id: p.id, name: `${p.first_name} ${p.last_name}`, phone: p.phone_primary })); const doctorOptions = doctorsData.map(d => ({ id: d.id, name: d.full_name, specialization: d.specialization })); const roomOptions = roomsData.map(r => ({ id: r.id, name: r.room_name })); const procedureOptions = proceduresData.map(p => ({ id: p.id, name: p.procedure_name, duration: p.standard_duration_minutes }));
+  const handleEventClick = useCallback((event: AgendaEventWithRelations) => { setSelectedEvent(event); setIsDetailOpen(true); }, []); const handleTimeSlotClick = useCallback((date: string) => { setSelectedEvent(null); setFormDefaultDate(date); setIsFormOpen(true); }, []); const closeForm = useCallback(() => { setIsFormOpen(false); setSelectedEvent(null); setFormDefaultDate(""); }, []); const closeDetail = useCallback(() => { setIsDetailOpen(false); setSelectedEvent(null); }, []);
   const isLoading = eventsLoading || patientsLoading || doctorsLoading || roomsLoading || proceduresLoading;
-
-  return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <CalendarDays className="w-8 h-8 text-primary" />
-          <div>
-            <h1 className="text-2xl font-bold">الأجندة</h1>
-            <p className="text-sm text-muted-foreground">
-              إدارة المواعيد والجدولة
-            </p>
-          </div>
-        </div>
-        <Button onClick={() => { setSelectedEvent(null); setFormDefaultDate(""); setIsFormOpen(true); }}>
-          <Plus className="w-4 h-4 ml-2" />
-          موعد جديد
-        </Button>
-      </div>
-
-      {/* DEBUG PANEL — for mobile diagnostics */}
-      <Card className="border-yellow-200 bg-yellow-50">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm flex items-center gap-2 text-yellow-800">
-            <AlertTriangle className="w-4 h-4" />
-            تشخيص النظام
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="text-xs space-y-1 text-yellow-900">
-          <p><strong>tenant_id:</strong> {tenantId || "غير موجود"}</p>
-          <p><strong>user_id:</strong> {userId || "غير موجود"}</p>
-          <p><strong>auth_loading:</strong> {auth?.isLoading ? "نعم" : "لا"}</p>
-          <p><strong>عدد المرضى:</strong> {patientsData.length}</p>
-          <p><strong>عدد الأطباء:</strong> {doctorsData.length}</p>
-          <p><strong>عدد الغرف:</strong> {roomsData.length}</p>
-          <p><strong>عدد الإجراءات:</strong> {proceduresData.length}</p>
-          <p><strong>خطأ المرضى:</strong> {patientsError ? patientsError.message : "لا يوجد"}</p>
-          <p><strong>خطأ المواعيد:</strong> {eventsError ? eventsError.message : "لا يوجد"}</p>
-          <p><strong>عدد المواعيد:</strong> {events.length}</p>
-        </CardContent>
-      </Card>
-
-      {/* Stats Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-2xl font-bold text-blue-600">
-              {events.filter((e) => e.status === "scheduled").length}
-            </div>
-            <div className="text-xs text-muted-foreground">مجدول</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-2xl font-bold text-green-600">
-              {events.filter((e) => e.status === "confirmed").length}
-            </div>
-            <div className="text-xs text-muted-foreground">مؤكد</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-2xl font-bold text-purple-600">
-              {events.filter((e) => e.status === "in_session").length}
-            </div>
-            <div className="text-xs text-muted-foreground">في الجلسة</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-2xl font-bold text-emerald-600">
-              {events.filter((e) => e.status === "completed").length}
-            </div>
-            <div className="text-xs text-muted-foreground">مكتمل</div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Calendar */}
-      <Card>
-        <CardHeader>
-          <CardTitle>التقويم الأسبوعي</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {isLoading ? (
-            <div className="flex items-center justify-center py-12">
-              <Loader2 className="w-8 h-8 animate-spin text-primary" />
-              <span className="mr-2 text-muted-foreground">جاري التحميل...</span>
-            </div>
-          ) : (
-            <AgendaCalendar
-              events={events}
-              currentDate={currentDate}
-              onDateChange={setCurrentDate}
-              onEventClick={handleEventClick}
-              onTimeSlotClick={handleTimeSlotClick}
-            />
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Event Form Modal */}
-      <AgendaEventForm
-        isOpen={isFormOpen}
-        onClose={handleCloseForm}
-        tenantId={tenantId || ""}
-        userId={userId}
-        event={selectedEvent}
-        patients={patientOptions}
-        doctors={doctorOptions}
-        rooms={roomOptions}
-        procedures={procedureOptions}
-        defaultDate={formDefaultDate || undefined}
-      />
-
-      {/* Event Detail Modal */}
-      <AgendaEventDetail
-        isOpen={isDetailOpen}
-        onClose={handleCloseDetail}
-        event={selectedEvent}
-        tenantId={tenantId || ""}
-      />
-    </div>
-  );
+  return <div className="space-y-6" dir={locale === "ar" ? "rtl" : "ltr"}>
+    <div className="flex items-center justify-between"><div className="flex items-center gap-3"><CalendarDays className="h-8 w-8 text-primary" /><div><h1 className="text-2xl font-bold">{t.title}</h1><p className="text-sm text-muted-foreground">{t.description}</p></div></div><Button onClick={() => { setSelectedEvent(null); setFormDefaultDate(""); setIsFormOpen(true); }}><Plus className="me-2 h-4 w-4" />{t.newAppointment}</Button></div>
+    <div className="grid grid-cols-2 gap-4 md:grid-cols-4"><Stat value={events.filter(e => e.status === "scheduled").length} label={t.scheduled} /><Stat value={events.filter(e => e.status === "confirmed").length} label={t.confirmed} /><Stat value={events.filter(e => e.status === "in_session").length} label={t.inSession} /><Stat value={events.filter(e => e.status === "completed").length} label={t.completed} /></div>
+    <Card><CardHeader><CardTitle>{t.weeklyCalendar}</CardTitle></CardHeader><CardContent>{isLoading ? <div className="flex items-center justify-center py-12"><Loader2 className="h-8 w-8 animate-spin text-primary" /><span className="ms-2 text-muted-foreground">{t.loading}</span></div> : <AgendaCalendar events={events} currentDate={currentDate} onDateChange={setCurrentDate} onEventClick={handleEventClick} onTimeSlotClick={handleTimeSlotClick} />}</CardContent></Card>
+    <AgendaEventForm isOpen={isFormOpen} onClose={closeForm} tenantId={tenantId || ""} userId={userId} event={selectedEvent} patients={patientOptions} doctors={doctorOptions} rooms={roomOptions} procedures={procedureOptions} defaultDate={formDefaultDate || undefined} />
+    <AgendaEventDetail isOpen={isDetailOpen} onClose={closeDetail} event={selectedEvent} tenantId={tenantId || ""} />
+  </div>;
 }
+function Stat({ value, label }: { value: number; label: string }) { return <Card><CardContent className="p-4"><div className="text-2xl font-bold">{value}</div><div className="text-xs text-muted-foreground">{label}</div></CardContent></Card>; }
