@@ -9,6 +9,12 @@ export const workspaceMessages = {
     widgetError: "حدث خطأ غير متوقع",
     retry: "إعادة المحاولة",
     collapsed: "مطوي",
+    expand: "توسيع",
+    collapse: "طي",
+    unpin: "إلغاء التثبيت",
+    pin: "تثبيت",
+    show: "إظهار",
+    hide: "إخفاء",
   },
   en: {
     layerQuickActions: "Quick Actions",
@@ -18,6 +24,12 @@ export const workspaceMessages = {
     widgetError: "An unexpected error occurred",
     retry: "Retry",
     collapsed: "Collapsed",
+    expand: "Expand",
+    collapse: "Collapse",
+    unpin: "Unpin",
+    pin: "Pin",
+    show: "Show",
+    hide: "Hide",
   },
 } as const satisfies Record<Locale, Record<string, string>>;
 
