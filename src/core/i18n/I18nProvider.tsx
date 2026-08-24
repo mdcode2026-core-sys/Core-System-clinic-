@@ -46,7 +46,7 @@ function getUnifiedTerminology(locale: Locale): UnifiedTerminology {
       ...base.clinical,
       followUp: messages.followUp.title,
     },
-  };
+  } as UnifiedTerminology;
 }
 
 export function I18nProvider({
