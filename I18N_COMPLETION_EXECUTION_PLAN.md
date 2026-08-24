@@ -27,7 +27,7 @@ Dashboard-adjacent administration, clinic profile, rooms, system preferences, te
 
 **Exit:** all user-facing strings in this workstream use the unified localization contract; roles/permissions are rendered through canonical mappings.
 
-**Progress:** Started. Clinic Profile localization contract and UI migration are now on `main`. Remaining W01 screens continue through the same contract.
+**Progress:** **IN PROGRESS.** Clinic Profile, Rooms & Resources, and System Preferences have been migrated to locale-aware rendering. The shared catalog now contains a dedicated `clinicProfile` contract, and the I18N CI workflow explicitly checks these settings surfaces. Remaining W01 surfaces are Users, Permission Overrides, Templates, Subscription, Audit/Activity, and any remaining admin dialogs/states.
 
 ### W02 — Patients / Appointments
 Patient list, patient profile, registration, appointments, scheduling, filters, forms, empty/loading/error/success states.
@@ -133,4 +133,4 @@ The workstream owner may resolve implementation details without reopening settle
 
 ## Current baseline
 
-The first I18N repair batch has already been published to `main`. W01 is actively in progress; the clinic profile is now migrated to the unified render-time localization contract. The remaining W01 administration surfaces and all subsequent workstreams remain OPEN until their exit criteria are verified. The current program status remains **OPEN** until W19 is completed.
+The first I18N repair batch has already been published to `main`. W01 remains actively in progress; three settings surfaces are migrated and the verification workflow covers them. The remaining W01 administration surfaces and all subsequent workstreams remain OPEN until their exit criteria are verified. The current program status remains **OPEN** until W19 is completed.
