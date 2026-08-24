@@ -12,7 +12,7 @@ const localeCode = (locale: Locale): string => (locale === "ar" ? "ar" : "en-US"
 export function formatCurrency(
   subunits: number,
   currency = "JOD",
-  locale: Locale = "ar",
+  locale: Locale = "en",
 ): string {
   const amount = subunits / 100;
   return new Intl.NumberFormat(localeCode(locale), {
