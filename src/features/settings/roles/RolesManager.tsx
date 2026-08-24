@@ -43,7 +43,7 @@ export function RolesManager() {
   }
 
   if (!canReadRoles) {
-    return <div className="text-center py-12" dir={direction}><Shield className="h-12 w-12 mx-auto mb-4 text-muted-foreground" /><h3 className="text-lg font-semibold mb-2">{locale === "ar" ? "غير مصرح" : "Access denied"}</h3><p className="text-muted-foreground">{locale === "ar" ? "ليس لديك صلاحية عرض الأدوار والصلاحيات." : "You do not have permission to view roles and permissions."}</p></div>;
+    return <div className="text-center py-12" dir={direction}><Shield className="h-12 w-12 mx-auto mb-4 text-muted-foreground" /><h3 className="text-lg font-semibold mb-2">{messages.roles.accessDeniedTitle}</h3><p className="text-muted-foreground">{messages.roles.accessDeniedMessage}</p></div>;
   }
 
   if (rolesLoading) {
@@ -63,17 +63,11 @@ export function RolesManager() {
         <div><h2 className="text-xl font-semibold">{messages.roles.title}</h2><p className="text-sm text-muted-foreground">{messages.roles.description}</p></div>
         {canManageRoles && <Button onClick={() => setIsCreateOpen(true)} className="gap-2"><Plus className="h-4 w-4" />{messages.roles.newRole}</Button>}
       </div>
-
       <Card className="bg-muted/50 border-border"><CardContent className="py-4"><div className="flex items-start gap-3"><Info className="h-5 w-5 text-muted-foreground shrink-0 mt-0.5" /><div className="space-y-1"><p className="text-sm text-muted-foreground"><span className="font-medium text-foreground">{messages.roles.systemRoles}</span> — {messages.roles.systemRolesInfo}</p><p className="text-sm text-muted-foreground"><span className="font-medium text-foreground">{messages.roles.customRoles}</span> — {messages.roles.customRolesInfo}</p></div></div></CardContent></Card>
       <Separator />
-
       <div className="space-y-3"><div className="flex items-center gap-2"><h3 className="text-lg font-medium">{messages.roles.systemRoles}</h3><Badge variant="default" className="text-xs">{systemRoles.length}</Badge></div><div className="grid gap-4 md:grid-cols-2">{systemRoles.map((role) => <RoleCardWrapper key={role.id} role={role} canManage={canManageRoles} onEditPermissions={handleEditPermissions} />)}</div></div>
       <Separator />
-
-      <div className="space-y-3"><div className="flex items-center gap-2"><h3 className="text-lg font-medium">{messages.roles.customRoles}</h3><Badge variant="secondary" className="text-xs">{customRoles.length}</Badge></div>
-        {customRoles.length > 0 ? <div className="grid gap-4 md:grid-cols-2">{customRoles.map((role) => <RoleCardWrapper key={role.id} role={role} canManage={canManageRoles} onEditPermissions={handleEditPermissions} onEditMetadata={handleEditMetadata} onDelete={handleDeleteRole} />)}</div> : <Card className="border-dashed border-border"><CardContent className="py-8 text-center"><p className="text-muted-foreground text-sm">{messages.roles.noCustomRoles}<br />{messages.roles.createFirstCustomRole}</p></CardContent></Card>}
-      </div>
-
+      <div className="space-y-3"><div className="flex items-center gap-2"><h3 className="text-lg font-medium">{messages.roles.customRoles}</h3><Badge variant="secondary" className="text-xs">{customRoles.length}</Badge></div>{customRoles.length > 0 ? <div className="grid gap-4 md:grid-cols-2">{customRoles.map((role) => <RoleCardWrapper key={role.id} role={role} canManage={canManageRoles} onEditPermissions={handleEditPermissions} onEditMetadata={handleEditMetadata} onDelete={handleDeleteRole} />)}</div> : <Card className="border-dashed border-border"><CardContent className="py-8 text-center"><p className="text-muted-foreground text-sm">{messages.roles.noCustomRoles}<br />{messages.roles.createFirstCustomRole}</p></CardContent></Card>}</div>
       <Dialog open={isEditorOpen} onOpenChange={setIsEditorOpen}><DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto" dir={direction}><DialogHeader><DialogTitle>{messages.roles.editPermissions}</DialogTitle></DialogHeader>{editingRoleId && <RolePermissionsEditor roleId={editingRoleId} onClose={handleCloseEditor} />}</DialogContent></Dialog>
       <CreateRoleDialog open={isCreateOpen} onClose={() => setIsCreateOpen(false)} onSuccess={handleCreateSuccess} />
       <EditRoleDialog role={editingRoleMeta} open={isEditMetaOpen} onClose={() => { setIsEditMetaOpen(false); setEditingRoleMeta(null); }} onSuccess={handleEditSuccess} />
