@@ -27,7 +27,7 @@ Dashboard-adjacent administration, clinic profile, rooms, system preferences, te
 
 **Exit:** all user-facing strings in this workstream use the unified localization contract; roles/permissions are rendered through canonical mappings.
 
-**Progress:** **IN PROGRESS.** Clinic Profile, Rooms & Resources, and System Preferences have been migrated to locale-aware rendering. The shared catalog now contains a dedicated `clinicProfile` contract, and the I18N CI workflow explicitly checks these settings surfaces. Remaining W01 surfaces are Users, Permission Overrides, Templates, Subscription, Audit/Activity, and any remaining admin dialogs/states.
+**Progress:** **IMPLEMENTATION COMPLETE — VERIFICATION PENDING.** Clinic Profile, Rooms & Resources, System Preferences, Users, Permission Overrides, User Permission Editor, Roles/Role Card, Subscription Center, Audit/Activity, Settings navigation, and the W01 verification workflow have now been migrated to locale-aware rendering. A dedicated `adminMessages` catalog is exposed by `I18nProvider` so these surfaces share the same render-time locale context rather than creating a competing translation engine. W01 is not marked CLOSED until the exact release commit passes static checks and runtime AR/EN verification.
 
 ### W02 — Patients / Appointments
 Patient list, patient profile, registration, appointments, scheduling, filters, forms, empty/loading/error/success states.
@@ -133,4 +133,4 @@ The workstream owner may resolve implementation details without reopening settle
 
 ## Current baseline
 
-The first I18N repair batch has already been published to `main`. W01 remains actively in progress; three settings surfaces are migrated and the verification workflow covers them. The remaining W01 administration surfaces and all subsequent workstreams remain OPEN until their exit criteria are verified. The current program status remains **OPEN** until W19 is completed.
+The first I18N repair batch has already been published to `main`. W01 implementation is now complete across the identified administration surfaces, but verification remains open. W02 and all later workstreams remain OPEN until their exit criteria are verified. The current program status remains **OPEN** until W19 is completed.
