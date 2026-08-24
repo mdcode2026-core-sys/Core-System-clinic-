@@ -1,0 +1,10 @@
+import type { Locale } from "./messages";
+
+export const agendaFormMessages = {
+  ar: {
+    editTitle: "تعديل موعد", newTitle: "موعد جديد", patient: "المريض", existing: "موجود", newPatient: "جديد", searchPlaceholder: "ابحث بالاسم أو رقم الهاتف...", noPatient: "لا يوجد مريض بهذا الاسم", selected: "المحدد", newPatientName: "اسم المريض الجديد *", phone: "رقم الهاتف", doctor: "الطبيب", chooseDoctor: "اختر الطبيب", room: "الغرفة", chooseRoom: "اختر الغرفة", procedure: "الإجراء", chooseProcedure: "اختر الإجراء", date: "التاريخ", startTime: "وقت البداية", endTime: "وقت النهاية", notes: "ملاحظات", notesPlaceholder: "أي ملاحظات إضافية", cancel: "إلغاء", save: "حفظ", create: "إنشاء الموعد", saving: "جاري الحفظ...", requiredPatient: "اختر مريضاً أو أضف مريضاً جديداً", requiredName: "اسم المريض مطلوب", requiredPhone: "رقم هاتف المريض مطلوب للتواصل", requiredDoctor: "اختر الطبيب", accessDeniedCreate: "ليس لديك صلاحية إنشاء مواعيد جديدة", accessDeniedUpdate: "ليس لديك صلاحية تعديل المواعيد", failed: "تعذر حفظ الموعد" },
+  en: {
+    editTitle: "Edit appointment", newTitle: "New appointment", patient: "Patient", existing: "Existing", newPatient: "New", searchPlaceholder: "Search by name or phone...", noPatient: "No patient found", selected: "Selected", newPatientName: "New patient name *", phone: "Phone number", doctor: "Doctor", chooseDoctor: "Choose doctor", room: "Room", chooseRoom: "Choose room", procedure: "Procedure", chooseProcedure: "Choose procedure", date: "Date", startTime: "Start time", endTime: "End time", notes: "Notes", notesPlaceholder: "Any additional notes", cancel: "Cancel", save: "Save", create: "Create appointment", saving: "Saving...", requiredPatient: "Choose a patient or add a new patient", requiredName: "Patient name is required", requiredPhone: "Patient phone number is required", requiredDoctor: "Choose a doctor", accessDeniedCreate: "You do not have permission to create appointments", accessDeniedUpdate: "You do not have permission to edit appointments", failed: "Unable to save the appointment" }
+} as const;
+
+export function getAgendaFormMessages(locale: Locale) { return agendaFormMessages[locale]; }
