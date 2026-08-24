@@ -77,7 +77,6 @@ export function EditRoleDialog({ role, open, onClose, onSuccess }: EditRoleDialo
           <DialogHeader>
             <DialogTitle>{messages.roles.editRole}</DialogTitle>
           </DialogHeader>
-
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
@@ -93,27 +92,22 @@ export function EditRoleDialog({ role, open, onClose, onSuccess }: EditRoleDialo
               <Label htmlFor="edit-role-desc">{messages.roles.descriptionLabel}</Label>
               <Input id="edit-role-desc" value={description} onChange={(e) => setDescription(e.target.value)} disabled={isSaving} />
             </div>
-
             {roleWithPerms && (
               <div className="rounded-md bg-muted/50 p-3">
-                <p className="text-sm text-muted-foreground">
-                  {messages.roles.permissionsCount}: <span className="font-medium text-foreground">{roleWithPerms.permissions.length}</span>
-                </p>
+                <p className="text-sm text-muted-foreground">{messages.roles.permissionsCount}: <span className="font-medium text-foreground">{roleWithPerms.permissions.length}</span></p>
                 <p className="text-xs text-muted-foreground mt-1">{messages.roles.permissionsHint}</p>
               </div>
             )}
-
             {saveError && (
               <div className="rounded-md bg-red-50 border border-red-200 p-3 flex items-start gap-2">
                 <AlertTriangle className="h-4 w-4 text-red-600 mt-0.5 shrink-0" />
                 <p className="text-sm text-red-800">{saveError}</p>
               </div>
             )}
-
             <div className="flex items-center justify-between">
               <Button variant="destructive" size="sm" onClick={() => setShowDeleteConfirm(true)} disabled={isSaving || isDeleting} className="gap-1">
                 <Trash2 className="h-4 w-4" />
-                {messages.common.delete} {messages.roles.editRole.toLocaleLowerCase(locale === "ar" ? "ar" : "en")}
+                {messages.common.delete}
               </Button>
               <div className="flex gap-2">
                 <Button variant="outline" onClick={onClose} disabled={isSaving}>{messages.common.cancel}</Button>
@@ -132,7 +126,9 @@ export function EditRoleDialog({ role, open, onClose, onSuccess }: EditRoleDialo
           <DialogHeader>
             <DialogTitle>{messages.roles.confirmDeleteTitle}</DialogTitle>
             <DialogDescription>
-              {messages.roles.confirmDeleteMessage.replace("this role", role?.role_name_ar || role?.role_name || "")}
+              {messages.roles.confirmDeleteMessage}
+              <br />
+              <strong>{role?.role_name_ar || role?.role_name}</strong>
               <br />
               {messages.roles.irreversible}
             </DialogDescription>
