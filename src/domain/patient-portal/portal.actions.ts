@@ -9,7 +9,13 @@ export type PortalChannel = "email" | "sms" | "whatsapp";
 const channelEntitlement: Record<PortalChannel, string> = { email: "communication.email", sms: "communication.sms", whatsapp: "communication.whatsapp" };
 function normalizePhone(value: string | null | undefined) { return (value ?? "").replace(/[^\d+]/g, ""); }
 function hashToken(token: string) { return crypto.createHash("sha256").update(token).digest("hex"); }
-function appUrl() { const url = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_APP_URL; if (!url) throw new Error("NEXT_PUBLIC_SITE_URL is not configured"); return url.replace(/\/$/, ""); }
+function appUrl() {
+  const configured = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_APP_URL;
+  const vercel = process.env.VERCEL_PROJECT_PRODUCTION_URL || process.env.VERCEL_URL;
+  const url = configured || (vercel ? `https://${vercel}` : "");
+  if (!url) throw new Error("Application URL is not configured");
+  return url.replace(/\/$/, "");
+}
 
 export async function createPatientPortalInvitation(input: { clinicPatientId: string; channel: PortalChannel; fallbackChannel?: PortalChannel | null }) {
   const supabase = await createClient();
