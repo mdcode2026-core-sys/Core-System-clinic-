@@ -14,10 +14,11 @@ export function usePermissions(): UsePermissionsReturn {
     queryKey: ["permissions", userId, tenantId],
     queryFn: () => getEffectivePermissions(userId as string, tenantId as string),
     enabled: !tenantLoading && !!userId && !!tenantId,
-    staleTime: 5 * 60 * 1000,
+    staleTime: 10 * 60 * 1000,
     gcTime: 30 * 60 * 1000,
     refetchOnWindowFocus: false,
     refetchOnMount: false,
+    retry: 1,
   });
   const hasPermission = useCallback((key: Permission): boolean => permissions.includes(key), [permissions]);
   const hasAnyPermission = useCallback((keys: Permission[]): boolean => keys.some((key) => permissions.includes(key)), [permissions]);
