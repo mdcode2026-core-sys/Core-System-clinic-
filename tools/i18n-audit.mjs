@@ -10,6 +10,11 @@ const technicalLiteral = /^(https?:\/\/|\/|#|[a-z0-9_:.\-/]+:[a-z0-9_:.\-/]+$|[A
 const uiAttributeNames = new Set(["aria-label", "aria-description", "placeholder", "title", "alt", "label"]);
 const technicalPropertyNames = new Set(["href", "id", "key", "className", "type", "name", "role", "variant", "size", "value", "method", "action", "route", "path", "permission", "permissionKey", "class", "target", "rel"]);
 const ignoredCalls = new Set(["console.log", "console.error", "console.warn", "console.info", "JSON.stringify", "JSON.parse"]);
+const userFacingCallNames = new Set([
+  "toast", "success", "error", "warning", "info", "notify", "alert", "setError", "setStatus", "setMessage",
+  "setErrorMessage", "setSuccessMessage", "setWarningMessage", "setInfoMessage"
+]);
+const dynamicMessageNames = new Set(["throw", "Error"]);
 
 function walk(dir, out = []) {
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
@@ -39,17 +44,11 @@ function isCandidate(text) {
   return /[A-Za-z\u0600-\u06FF]/.test(value);
 }
 
-function isLikelyUiLiteral(node, sf) {
-  const parent = node.parent;
-  if (!parent) return false;
-  if (ts.isJsxText(node)) return isCandidate(node.getText(sf));
-  if (ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node)) {
-    if (ts.isImportDeclaration(parent) || ts.isExportDeclaration(parent)) return false;
-    if (ts.isPropertyAssignment(parent) && ts.isIdentifier(parent.name) && technicalPropertyNames.has(parent.name.text)) return false;
-    if (ts.isCallExpression(parent) && ts.isIdentifier(parent.expression) && ignoredCalls.has(parent.expression.text)) return false;
-    return isCandidate(node.text);
-  }
-  return false;
+function callName(node) {
+  if (!ts.isCallExpression(node)) return "";
+  if (ts.isIdentifier(node.expression)) return node.expression.text;
+  if (ts.isPropertyAccessExpression(node.expression)) return node.expression.name.text;
+  return "";
 }
 
 const findings = [];
@@ -58,18 +57,37 @@ for (const file of walk(ROOT)) {
   const source = fs.readFileSync(file, "utf8");
   const kind = file.endsWith(".tsx") ? ts.ScriptKind.TSX : file.endsWith(".jsx") ? ts.ScriptKind.JSX : ts.ScriptKind.TS;
   const sf = ts.createSourceFile(file, source, ts.ScriptTarget.Latest, true, kind);
+
+  function add(node, kind, value) {
+    const normalizedValue = normalized(value);
+    if (!isCandidate(normalizedValue)) return;
+    const pos = sf.getLineAndCharacterOfPosition(node.getStart(sf));
+    findings.push({ file: path.relative(process.cwd(), file), line: pos.line + 1, kind, value: normalizedValue.slice(0, 200) });
+  }
+
   function visit(node) {
-    if (isLikelyUiLiteral(node, sf)) {
-      const raw = normalized(ts.isJsxText(node) ? node.getText(sf) : node.text);
-      const pos = sf.getLineAndCharacterOfPosition(node.getStart(sf));
-      findings.push({ file: path.relative(process.cwd(), file), line: pos.line + 1, kind: ts.isJsxText(node) ? "jsx-text-literal" : "string-literal", value: raw.slice(0, 200) });
+    if (ts.isJsxText(node)) add(node, "jsx-text-literal", node.getText(sf));
+
+    if (ts.isJsxAttribute(node) && uiAttributeNames.has(node.name.text) && node.initializer && ts.isStringLiteral(node.initializer)) {
+      add(node.initializer, "ui-attribute-literal", node.initializer.text);
     }
-    if (ts.isJsxAttribute(node) && uiAttributeNames.has(node.name.text) && node.initializer && ts.isStringLiteral(node.initializer) && isCandidate(node.initializer.text)) {
-      const pos = sf.getLineAndCharacterOfPosition(node.getStart(sf));
-      findings.push({ file: path.relative(process.cwd(), file), line: pos.line + 1, kind: "ui-attribute-literal", value: normalized(node.initializer.text).slice(0, 200) });
+
+    if (ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node)) {
+      const parent = node.parent;
+      if (ts.isImportDeclaration(parent) || ts.isExportDeclaration(parent)) return ts.forEachChild(node, visit);
+      if (ts.isPropertyAssignment(parent) && ts.isIdentifier(parent.name) && technicalPropertyNames.has(parent.name.text)) return ts.forEachChild(node, visit);
+      if (ts.isCallExpression(parent)) {
+        const name = callName(parent);
+        if (ignoredCalls.has(name)) return ts.forEachChild(node, visit);
+        if (userFacingCallNames.has(name)) add(node, `user-facing-call:${name}`, node.text);
+        else if (dynamicMessageNames.has(name)) add(node, `dynamic-message:${name}`, node.text);
+        else if (isCandidate(node.text) && (name === "redirect" || name === "notFound")) add(node, `framework-message:${name}`, node.text);
+      }
     }
+
     ts.forEachChild(node, visit);
   }
+
   visit(sf);
 }
 
