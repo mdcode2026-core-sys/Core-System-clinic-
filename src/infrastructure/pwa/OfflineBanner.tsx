@@ -1,10 +1,12 @@
 "use client";
 
+import { useI18n } from "@/core/i18n/I18nProvider";
 import { useNetworkStatus } from "@/shared/hooks/useNetworkStatus";
 import { WifiOff } from "lucide-react";
 
 export function OfflineBanner() {
   const { isOnline, isSyncing } = useNetworkStatus();
+  const { messages } = useI18n();
 
   if (isOnline && !isSyncing) return null;
 
@@ -13,7 +15,7 @@ export function OfflineBanner() {
       isSyncing ? "bg-amber-500 text-white" : "bg-red-500 text-white"
     }`}>
       <WifiOff className="inline w-4 h-4 ml-2" />
-      {isSyncing ? "جاري المزامنة..." : "أنت غير متصل. سيتم حفظ البيانات محلياً."}
+      {isSyncing ? messages.offline.syncing : messages.offline.disconnected}
     </div>
   );
 }

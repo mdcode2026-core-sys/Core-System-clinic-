@@ -5,10 +5,15 @@ import type { Locale } from "./messages";
 import { getMessages } from "./messages";
 import { getTerminology } from "./terminology";
 
+type BaseTerminology = ReturnType<typeof getTerminology>;
+type UnifiedTerminology = BaseTerminology & {
+  clinical: BaseTerminology["clinical"] & { followUp: string };
+};
+
 export interface I18nContextValue {
   locale: Locale;
   messages: ReturnType<typeof getMessages>;
-  terminology: ReturnType<typeof getTerminology>;
+  terminology: UnifiedTerminology;
   setLocale: (locale: Locale) => void;
 }
 
@@ -32,6 +37,18 @@ function applyDocumentLocale(locale: Locale) {
   window.localStorage.setItem(LOCALE_STORAGE_KEY, locale);
 }
 
+function getUnifiedTerminology(locale: Locale): UnifiedTerminology {
+  const base = getTerminology(locale);
+  const messages = getMessages(locale);
+  return {
+    ...base,
+    clinical: {
+      ...base.clinical,
+      followUp: messages.followUp.title,
+    },
+  } as UnifiedTerminology;
+}
+
 export function I18nProvider({
   initialLocale,
   children,
@@ -39,14 +56,11 @@ export function I18nProvider({
   initialLocale: Locale;
   children: React.ReactNode;
 }) {
-  const [locale, setLocaleState] = useState<Locale>(initialLocale);
-
-  useEffect(() => {
+  const [locale, setLocaleState] = useState<Locale>(() => {
+    if (typeof window === "undefined") return initialLocale;
     const stored = window.localStorage.getItem(LOCALE_STORAGE_KEY);
-    const nextLocale = isLocale(stored) ? stored : initialLocale;
-    setLocaleState(nextLocale);
-    applyDocumentLocale(nextLocale);
-  }, [initialLocale]);
+    return isLocale(stored) ? stored : initialLocale;
+  });
 
   useEffect(() => {
     applyDocumentLocale(locale);
@@ -58,7 +72,7 @@ export function I18nProvider({
   }, []);
 
   const value = useMemo(
-    () => ({ locale, messages: getMessages(locale), terminology: getTerminology(locale), setLocale }),
+    () => ({ locale, messages: getMessages(locale), terminology: getUnifiedTerminology(locale), setLocale }),
     [locale, setLocale]
   );
 

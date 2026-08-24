@@ -1,0 +1,23 @@
+name: I18N Verification
+
+on:
+  push:
+    branches:
+      - i18n-completion-2026-08-24
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm install
+      - run: npx eslint src/core/i18n/I18nProvider.tsx src/core/i18n/messages.ts src/features/doctor/MyQueueView.tsx src/features/inventory/inventory-form.tsx src/features/inventory/inventory-list.tsx src/features/medical-files/ui/DicomViewer.tsx src/features/settings/notifications/NotificationsManager.tsx src/features/settings/roles/CreateRoleDialog.tsx src/features/settings/roles/EditRoleDialog.tsx src/features/settings/roles/RolesManager.tsx src/features/workspaces/ClinicalWorkspace.tsx src/infrastructure/pwa/OfflineBanner.tsx
+      - run: npm run build
+      - run: npm run i18n:audit

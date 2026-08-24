@@ -52,7 +52,12 @@ export function ClinicalWorkspace({ initialQueue = [] }: { initialQueue?: Enrich
     finally { setLoading(false); }
   }, [user, procedures.length, c.loadFailed]);
 
-  useEffect(() => { void refresh(); }, [refresh]);
+  useEffect(() => {
+    let cancelled = false;
+    queueMicrotask(() => { if (!cancelled) void refresh(); });
+    return () => { cancelled = true; };
+  }, [refresh]);
+
   const run = async (fn: () => Promise<unknown>) => { setError(null); try { await fn(); await refresh(); } catch (e) { setError(e instanceof Error ? e.message : c.actionFailed); } };
   const startNext = async (session: EnrichedSession) => { await run(async () => { await transitionToClinical(session.id); }); };
   const save = async () => { if (!current) return; setSaving(true); setError(null); try { await saveClinicalVisit(current.id, { examination, findings, decision }); await refresh(); } catch (e) { setError(e instanceof Error ? e.message : c.saveFailed); } finally { setSaving(false); } };
@@ -63,7 +68,7 @@ export function ClinicalWorkspace({ initialQueue = [] }: { initialQueue?: Enrich
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4"><div className="flex items-center gap-3"><div className="rounded-full bg-primary/10 p-3"><Stethoscope className="h-6 w-6 text-primary" /></div><div><h1 className="text-3xl font-bold">{c.title}</h1><p className="text-muted-foreground mt-1">{c.description}</p></div></div><div className="flex gap-2"><Button variant="outline" onClick={() => void refresh()} disabled={loading}><RefreshCw className={`h-4 w-4 me-2 ${loading ? "animate-spin" : ""}`} /> {c.refresh}</Button>{current && <Button variant="outline" onClick={() => router.push(`/treatment-plans?patientId=${encodeURIComponent(current.patient_id)}&visitId=${encodeURIComponent(current.id)}`)}>{c.treatmentPlan}</Button>}{current && <Button variant="outline" onClick={() => router.push(`/follow-up?patientId=${encodeURIComponent(current.patient_id)}&sessionId=${encodeURIComponent(current.id)}`)}>إنشاء متابعة</Button>}</div></div>
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4"><div className="flex items-center gap-3"><div className="rounded-full bg-primary/10 p-3"><Stethoscope className="h-6 w-6 text-primary" /></div><div><h1 className="text-3xl font-bold">{c.title}</h1><p className="text-muted-foreground mt-1">{c.description}</p></div></div><div className="flex gap-2"><Button variant="outline" onClick={() => void refresh()} disabled={loading}><RefreshCw className={`h-4 w-4 me-2 ${loading ? "animate-spin" : ""}`} /> {c.refresh}</Button>{current && <Button variant="outline" onClick={() => router.push(`/treatment-plans?patientId=${encodeURIComponent(current.patient_id)}&visitId=${encodeURIComponent(current.id)}`)}>{c.treatmentPlan}</Button>}{current && <Button variant="outline" onClick={() => router.push(`/follow-up?patientId=${encodeURIComponent(current.patient_id)}&sessionId=${encodeURIComponent(current.id)}`)}>{c.followUp}</Button>}</div></div>
       {error && <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">{error}</div>}
       {current ? (
         <div className="space-y-4">
