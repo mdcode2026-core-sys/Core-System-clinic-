@@ -22,16 +22,14 @@ export function WorkspaceShell({ children, user }: WorkspaceShellProps) {
   const supabase = createClient();
   const filteredNav = navigationRegistry.filter((item) => item.requiredPermission === null || hasPermission(item.requiredPermission));
 
-  useEffect(() => {
-    setSidebarOpen(false);
-  }, [pathname]);
+  useEffect(() => { setSidebarOpen(false); }, [pathname]);
 
   const handleSignOut = async () => { await supabase.auth.signOut(); router.push("/login"); router.refresh(); };
-  const sidebarTransform = sidebarOpen ? "translate-x-0" : locale === "ar" ? "translate-x-full" : "-translate-x-full";
+  const mobileSidebarTransform = sidebarOpen ? "translate-x-0" : locale === "ar" ? "translate-x-full" : "-translate-x-full";
 
   return <div className="flex h-screen w-full bg-gray-50">
     {sidebarOpen && <div className="fixed inset-0 z-40 bg-black/50 lg:hidden" onClick={() => setSidebarOpen(false)} />}
-    <aside className={cn("fixed inset-y-0 start-0 z-50 w-64 transform bg-white shadow-lg transition-transform duration-200 ease-in-out", sidebarTransform, "lg:static lg:translate-x-0")}>
+    <aside className={cn("fixed inset-y-0 start-0 z-50 w-64 transform bg-white shadow-lg transition-transform duration-200 ease-in-out lg:static lg:transform-none lg:shadow-sm", mobileSidebarTransform, "lg:transition-none")}>
       <div className="flex h-full flex-col">
         <div className="flex items-center justify-between border-b px-6 py-4"><Link href="/" className="text-xl font-bold text-blue-600">ClinicSaaS™</Link><button onClick={() => setSidebarOpen(false)} className="lg:hidden" aria-label={messages.shell.closeMenu} title={messages.shell.closeMenu}><X className="h-5 w-5" /></button></div>
         <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4">{filteredNav.map((item) => { const isActive = pathname === item.href; return <Link key={item.href} href={item.href} onClick={() => setSidebarOpen(false)} className={cn("flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors", isActive ? "bg-blue-50 text-blue-700" : "text-gray-700 hover:bg-gray-100 hover:text-gray-900")}><item.icon className="h-4 w-4 shrink-0" /><span>{messages.nav[item.labelKey]}</span></Link>; })}</nav>
