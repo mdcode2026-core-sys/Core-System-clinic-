@@ -52,7 +52,12 @@ export function ClinicalWorkspace({ initialQueue = [] }: { initialQueue?: Enrich
     finally { setLoading(false); }
   }, [user, procedures.length, c.loadFailed]);
 
-  useEffect(() => { void refresh(); }, [refresh]);
+  useEffect(() => {
+    let cancelled = false;
+    queueMicrotask(() => { if (!cancelled) void refresh(); });
+    return () => { cancelled = true; };
+  }, [refresh]);
+
   const run = async (fn: () => Promise<unknown>) => { setError(null); try { await fn(); await refresh(); } catch (e) { setError(e instanceof Error ? e.message : c.actionFailed); } };
   const startNext = async (session: EnrichedSession) => { await run(async () => { await transitionToClinical(session.id); }); };
   const save = async () => { if (!current) return; setSaving(true); setError(null); try { await saveClinicalVisit(current.id, { examination, findings, decision }); await refresh(); } catch (e) { setError(e instanceof Error ? e.message : c.saveFailed); } finally { setSaving(false); } };
