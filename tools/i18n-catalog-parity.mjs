@@ -6,9 +6,18 @@ const ROOT = path.resolve(process.cwd(), "src/core/i18n");
 const files = fs.readdirSync(ROOT).filter((name) => name.endsWith("Messages.ts") || name === "messages.ts");
 const failures = [];
 
+function unwrapExpression(node) {
+  let current = node;
+  while (current && (ts.isAsExpression(current) || ts.isTypeAssertionExpression(current) || ts.isParenthesizedExpression(current))) {
+    current = current.expression;
+  }
+  return current;
+}
+
 function objectProperty(node, name) {
-  if (!ts.isObjectLiteralExpression(node)) return null;
-  return node.properties.find((property) => {
+  const expression = unwrapExpression(node);
+  if (!ts.isObjectLiteralExpression(expression)) return null;
+  return expression.properties.find((property) => {
     if (!ts.isPropertyAssignment(property)) return false;
     const key = property.name;
     return (ts.isIdentifier(key) || ts.isStringLiteral(key)) && key.text === name;
@@ -28,8 +37,9 @@ function placeholders(value) {
 }
 
 function collectLeaves(node, prefix = "", out = [], seen = new Set()) {
-  if (!ts.isObjectLiteralExpression(node)) return out;
-  for (const property of node.properties) {
+  const expression = unwrapExpression(node);
+  if (!ts.isObjectLiteralExpression(expression)) return out;
+  for (const property of expression.properties) {
     if (!ts.isPropertyAssignment(property)) continue;
     const key = keyName(property);
     if (!key) continue;
@@ -37,13 +47,14 @@ function collectLeaves(node, prefix = "", out = [], seen = new Set()) {
     if (seen.has(current)) out.push({ type: "duplicate", key: current });
     seen.add(current);
 
-    if (ts.isObjectLiteralExpression(property.initializer)) {
-      collectLeaves(property.initializer, current, out, seen);
+    const valueExpression = unwrapExpression(property.initializer);
+    if (ts.isObjectLiteralExpression(valueExpression)) {
+      collectLeaves(valueExpression, current, out, seen);
       continue;
     }
 
-    const value = ts.isStringLiteral(property.initializer) || ts.isNoSubstitutionTemplateLiteral(property.initializer)
-      ? property.initializer.text
+    const value = ts.isStringLiteral(valueExpression) || ts.isNoSubstitutionTemplateLiteral(valueExpression)
+      ? valueExpression.text
       : null;
     out.push({ type: "leaf", key: current, value });
   }
