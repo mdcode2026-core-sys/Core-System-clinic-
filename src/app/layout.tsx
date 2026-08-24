@@ -17,17 +17,13 @@ export const metadata: Metadata = {
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const cookieStore = await cookies();
-  const directionCookie = cookieStore.get("core-system-direction")?.value;
   const localeCookie = cookieStore.get("core-system-locale")?.value;
-  const tenantDirection = cookieStore.get("tenant-direction")?.value;
   const tenantLanguage = cookieStore.get("tenant-language")?.value;
 
   const language: Locale = localeCookie === "en" || localeCookie === "ar"
     ? localeCookie
     : tenantLanguage === "en" || tenantLanguage === "ar" ? tenantLanguage : "en";
-  const direction = directionCookie === "ltr" || directionCookie === "rtl"
-    ? directionCookie
-    : language === "ar" ? "rtl" : tenantDirection === "rtl" ? "rtl" : "ltr";
+  const direction = language === "ar" ? "rtl" : "ltr";
 
   return (
     <html lang={language} dir={direction}>
