@@ -1,154 +1,18 @@
 "use client";
 
 import { Shield, ShieldCheck, Pencil, Users, Trash2, Settings2 } from "lucide-react";
+import { useI18n } from "@/core/i18n/I18nProvider";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { Button } from "@/shared/components/ui/button";
 import { Badge } from "@/shared/components/ui/badge";
 import type { Role, PermissionRow } from "@/domain/roles/roles.types";
-import { PERMISSION_GROUPS, ACTION_LABELS } from "@/domain/roles/roles.types";
 
-interface RoleCardProps {
-  role: Role;
-  permissions: PermissionRow[];
-  onEditPermissions?: (roleId: string) => void;
-  onEditMetadata?: (role: Role) => void;
-  onDelete?: (role: Role) => void;
-  canManage: boolean;
-}
+interface RoleCardProps { role: Role; permissions: PermissionRow[]; onEditPermissions?: (roleId: string) => void; onEditMetadata?: (role: Role) => void; onDelete?: (role: Role) => void; canManage: boolean; }
 
-export function RoleCard({
-  role,
-  permissions,
-  onEditPermissions,
-  onEditMetadata,
-  onDelete,
-  canManage,
-}: RoleCardProps) {
-  const isSystem = role.is_system_role;
-
-  // Group permissions by resource for display
-  const grouped = permissions.reduce<Record<string, PermissionRow[]>>((acc, perm) => {
-    if (!acc[perm.resource]) acc[perm.resource] = [];
-    acc[perm.resource].push(perm);
-    return acc;
-  }, {});
-
-  return (
-    <Card className="border-border">
-      <CardHeader className="pb-3">
-        <div className="flex items-start justify-between">
-          <div className="flex items-center gap-3">
-            <div className={`rounded-lg p-2 ${isSystem ? "bg-blue-50" : "bg-amber-50"}`}>
-              {isSystem ? (
-                <ShieldCheck className="h-5 w-5 text-blue-600" />
-              ) : (
-                <Shield className="h-5 w-5 text-amber-600" />
-              )}
-            </div>
-            <div>
-              <CardTitle className="text-base font-semibold">
-                {role.role_name_ar || role.role_name}
-              </CardTitle>
-              <p className="text-xs text-muted-foreground">{role.role_key}</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <Badge variant={isSystem ? "default" : "secondary"} className="text-xs">
-              {isSystem ? "نظام" : "مخصص"}
-            </Badge>
-            {canManage && !isSystem && (
-              <div className="flex items-center gap-1">
-                {onEditMetadata && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => onEditMetadata(role)}
-                    className="h-8 w-8 p-0"
-                    title="تعديل بيانات الدور"
-                  >
-                    <Settings2 className="h-4 w-4" />
-                  </Button>
-                )}
-                {onDelete && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => onDelete(role)}
-                    className="h-8 w-8 p-0 text-destructive hover:text-destructive"
-                    title="حذف الدور"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                )}
-                {onEditPermissions && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => onEditPermissions(role.id)}
-                    className="h-8 w-8 p-0"
-                    title="تعديل الصلاحيات"
-                  >
-                    <Pencil className="h-4 w-4" />
-                  </Button>
-                )}
-              </div>
-            )}
-            {canManage && isSystem && onEditPermissions && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => onEditPermissions(role.id)}
-                className="h-8 w-8 p-0"
-                title="عرض الصلاحيات"
-              >
-                <Pencil className="h-4 w-4" />
-              </Button>
-            )}
-          </div>
-        </div>
-        {role.description && (
-          <p className="text-sm text-muted-foreground mt-1">{role.description}</p>
-        )}
-      </CardHeader>
-      <CardContent className="pt-0">
-        <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
-          <Users className="h-4 w-4" />
-          <span>{permissions.length} صلاحية</span>
-        </div>
-
-        {permissions.length > 0 ? (
-          <div className="space-y-3">
-            {Object.entries(grouped).map(([resource, perms]) => {
-              const groupInfo = PERMISSION_GROUPS[resource];
-              return (
-                <div key={resource} className="border rounded-md p-2.5 bg-muted/30">
-                  <div className="flex items-center justify-between mb-1.5">
-                    <span className="text-sm font-medium">
-                      {groupInfo?.labelAr || resource}
-                    </span>
-                    <span className="text-xs text-muted-foreground">{perms.length}</span>
-                  </div>
-                  <div className="flex flex-wrap gap-1.5">
-                    {perms.map((perm) => (
-                      <Badge
-                        key={perm.id}
-                        variant="outline"
-                        className="text-xs font-normal"
-                      >
-                        {ACTION_LABELS[perm.action] || perm.action}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        ) : (
-          <p className="text-sm text-muted-foreground text-center py-4">
-            لا توجد صلاحيات مخصصة لهذا الدور
-          </p>
-        )}
-      </CardContent>
-    </Card>
-  );
+export function RoleCard({ role, permissions, onEditPermissions, onEditMetadata, onDelete, canManage }: RoleCardProps) {
+  const { locale, admin: a } = useI18n(); const isSystem = role.is_system_role;
+  const grouped = permissions.reduce<Record<string, PermissionRow[]>>((acc, perm) => { (acc[perm.resource] ||= []).push(perm); return acc; }, {});
+  const groupLabel = (resource: string) => a.overrides.groups[resource as keyof typeof a.overrides.groups] || resource;
+  const actionLabel = (action: string) => a.overrides.actions[action as keyof typeof a.overrides.actions] || action;
+  return <Card className="border-border"><CardHeader className="pb-3"><div className="flex items-start justify-between"><div className="flex items-center gap-3"><div className={`rounded-lg p-2 ${isSystem ? "bg-blue-50" : "bg-amber-50"}`}>{isSystem ? <ShieldCheck className="h-5 w-5 text-blue-600" /> : <Shield className="h-5 w-5 text-amber-600" />}</div><div><CardTitle className="text-base font-semibold">{locale === "ar" ? role.role_name_ar || role.role_name : role.role_name || role.role_name_ar}</CardTitle><p className="text-xs text-muted-foreground">{role.role_key}</p></div></div><div className="flex items-center gap-2"><Badge variant={isSystem ? "default" : "secondary"}>{isSystem ? (locale === "ar" ? "نظام" : "System") : (locale === "ar" ? "مخصص" : "Custom")}</Badge>{canManage && !isSystem && <div className="flex items-center gap-1">{onEditMetadata && <Button variant="ghost" size="sm" onClick={() => onEditMetadata(role)} aria-label={locale === "ar" ? "تعديل بيانات الدور" : "Edit role details"}><Settings2 className="h-4 w-4" /></Button>}{onDelete && <Button variant="ghost" size="sm" onClick={() => onDelete(role)} aria-label={locale === "ar" ? "حذف الدور" : "Delete role"} className="text-destructive"><Trash2 className="h-4 w-4" /></Button>}{onEditPermissions && <Button variant="ghost" size="sm" onClick={() => onEditPermissions(role.id)} aria-label={locale === "ar" ? "تعديل الصلاحيات" : "Edit permissions"}><Pencil className="h-4 w-4" /></Button>}</div>}{canManage && isSystem && onEditPermissions && <Button variant="ghost" size="sm" onClick={() => onEditPermissions(role.id)} aria-label={locale === "ar" ? "عرض الصلاحيات" : "View permissions"}><Pencil className="h-4 w-4" /></Button>}</div></div>{role.description && <p className="mt-1 text-sm text-muted-foreground">{role.description}</p>}</CardHeader><CardContent className="pt-0"><div className="mb-3 flex items-center gap-2 text-sm text-muted-foreground"><Users className="h-4 w-4" /><span>{permissions.length} {locale === "ar" ? "صلاحية" : "permissions"}</span></div>{permissions.length > 0 ? <div className="space-y-3">{Object.entries(grouped).map(([resource, perms]) => <div key={resource} className="rounded-md border bg-muted/30 p-2.5"><div className="mb-1.5 flex items-center justify-between"><span className="text-sm font-medium">{groupLabel(resource)}</span><span className="text-xs text-muted-foreground">{perms.length}</span></div><div className="flex flex-wrap gap-1.5">{perms.map(perm => <Badge key={perm.id} variant="outline" className="text-xs font-normal">{actionLabel(perm.action)}</Badge>)}</div></div>)}</div> : <p className="py-4 text-center text-sm text-muted-foreground">{locale === "ar" ? "لا توجد صلاحيات مخصصة لهذا الدور" : "No custom permissions for this role"}</p>}</CardContent></Card>;
 }
