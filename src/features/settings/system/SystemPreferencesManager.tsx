@@ -25,7 +25,7 @@ export function SystemPreferencesManager() {
   const { data: preferences, isLoading: prefsLoading, error: prefsError } = useSystemPreferences(tenantId);
   const [saving, setSaving] = useState(false);
   const [localPrefs, setLocalPrefs] = useState<{ language: SupportedLanguage; direction: SupportedDirection; timezone: string; currency: string } | null>(null);
-  const t = messages.settings; const common = messages.common; const direction = locale === "ar" ? "rtl" : "ltr";
+  const common = messages.common; const direction = locale === "ar" ? "rtl" : "ltr";
   const current = localPrefs ?? preferences;
   const tr = (ar: string, en: string) => locale === "ar" ? ar : en;
   const handleChange = useCallback((field: string, value: string) => { setLocalPrefs((prev) => { const base = prev ?? preferences; return base ? { ...base, [field]: value } as typeof base : prev; }); }, [preferences]);
