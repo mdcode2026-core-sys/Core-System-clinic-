@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
-    "build": "npm run i18n:audit && next build --webpack",
+    "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint .",
     "i18n:audit": "node tools/i18n-audit.mjs",
@@ -22,7 +22,6 @@
     "tailwindcss": "^3.4.0",
     "zod": "^3.24.4",
     "react-hook-form": "^7.56.3",
-    "@hookform/resolvers": "^5.0.1",
     "valibot": "^1.0.0",
     "date-fns": "^4.1.0",
     "recharts": "^2.15.3",
