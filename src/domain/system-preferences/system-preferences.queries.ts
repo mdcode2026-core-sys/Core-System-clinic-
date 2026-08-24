@@ -27,8 +27,8 @@ export function useSystemPreferences(tenantId: string | null) {
       if (!data) return null;
 
       return {
-        language: (data.language as "ar" | "en") ?? "ar",
-        direction: (data.direction as "rtl" | "ltr") ?? "rtl",
+        language: (data.language as "ar" | "en") ?? "en",
+        direction: (data.direction as "rtl" | "ltr") ?? "ltr",
         timezone: data.timezone ?? "Asia/Riyadh",
         currency: data.currency ?? "SAR",
       };
