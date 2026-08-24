@@ -17,7 +17,8 @@ export const messages = {
     settings: { title: "الإعدادات", save: "حفظ الإعدادات", clinic: "إعدادات العيادة", users: "المستخدمون", roles: "الأدوار والصلاحيات", preferences: "التفضيلات", notifications: "الإشعارات", subscription: "الاشتراك", audit: "سجل النشاط" },
     dashboard: { title: "لوحة التحكم", welcome: "مرحباً", overview: "نظرة عامة" },
     treatmentPlans: { title: "خطط العلاج", add: "إضافة خطة علاج", noPlans: "لا توجد خطط علاج" },
-    auth: { login: "تسجيل الدخول", register: "التسجيل", email: "البريد الإلكتروني", password: "كلمة المرور", forgotPassword: "نسيت كلمة المرور؟", signIn: "دخول", signUp: "إنشاء حساب", invalidCredentials: "بيانات الدخول غير صحيحة" }
+    auth: { login: "تسجيل الدخول", register: "التسجيل", email: "البريد الإلكتروني", password: "كلمة المرور", forgotPassword: "نسيت كلمة المرور؟", signIn: "دخول", signUp: "إنشاء حساب", invalidCredentials: "بيانات الدخول غير صحيحة" },
+    offline: { syncing: "جاري المزامنة...", disconnected: "أنت غير متصل. سيتم حفظ البيانات محلياً." }
   },
   en: {
     nav: { dashboard: "Dashboard", operation: "Operation Workspace", clinical: "Clinical Workspace", treatmentPlans: "Treatment Plans", patients: "Patients", agenda: "Agenda", queue: "Queue", invoices: "Invoices", inventory: "Inventory", reports: "Reports", analytics: "Analytics", followUp: "Follow-up", settings: "Settings" },
@@ -35,18 +36,11 @@ export const messages = {
     settings: { title: "Settings", save: "Save settings", clinic: "Clinic Settings", users: "Users", roles: "Roles & Permissions", preferences: "Preferences", notifications: "Notifications", subscription: "Subscription", audit: "Activity Log" },
     dashboard: { title: "Dashboard", welcome: "Welcome", overview: "Overview" },
     treatmentPlans: { title: "Treatment Plans", add: "Add Treatment Plan", noPlans: "No treatment plans" },
-    auth: { login: "Login", register: "Register", email: "Email", password: "Password", forgotPassword: "Forgot password?", signIn: "Sign in", signUp: "Create account", invalidCredentials: "Invalid credentials" }
+    auth: { login: "Login", register: "Register", email: "Email", password: "Password", forgotPassword: "Forgot password?", signIn: "Sign in", signUp: "Create account", invalidCredentials: "Invalid credentials" },
+    offline: { syncing: "Syncing...", disconnected: "You are offline. Data will be saved locally." }
   }
 } as const;
 
-export type Messages = typeof messages.en;
-export function getMessages(locale: Locale): Messages { return messages[locale] as Messages; }
-
-export function flattenMessages(value: unknown, out: Record<string, string> = {}): Record<string, string> {
-  if (!value || typeof value !== "object") return out;
-  for (const [key, item] of Object.entries(value as Record<string, unknown>)) {
-    if (typeof item === "string") out[key] = item;
-    else flattenMessages(item, out);
-  }
-  return out;
+export function getMessages(locale: Locale) {
+  return messages[locale];
 }
