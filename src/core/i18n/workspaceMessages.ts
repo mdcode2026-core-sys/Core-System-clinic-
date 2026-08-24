@@ -15,6 +15,23 @@ export const workspaceMessages = {
     pin: "تثبيت",
     show: "إظهار",
     hide: "إخفاء",
+    quickRegistration: {
+      clinicNotSelected: "لم يتم تحديد العيادة",
+      required: "الاسم ورقم الهاتف مطلوبان",
+      success: "تم تسجيل المريض بنجاح",
+      successShort: "تم التسجيل بنجاح",
+      failure: "فشل تسجيل المريض",
+      fullName: "الاسم الكامل *",
+      fullNamePlaceholder: "اسم المريض",
+      phone: "رقم الهاتف *",
+      phonePlaceholder: "رقم الهاتف",
+      gender: "الجنس",
+      male: "ذكر",
+      female: "أنثى",
+      dateOfBirth: "تاريخ الميلاد",
+      submitting: "جاري التسجيل...",
+      submit: "تسجيل المريض",
+    },
   },
   en: {
     layerQuickActions: "Quick Actions",
@@ -30,9 +47,24 @@ export const workspaceMessages = {
     pin: "Pin",
     show: "Show",
     hide: "Hide",
+    quickRegistration: {
+      clinicNotSelected: "No clinic is selected",
+      required: "Full name and phone number are required",
+      success: "Patient registered successfully",
+      successShort: "Registration successful",
+      failure: "Patient registration failed",
+      fullName: "Full name *",
+      fullNamePlaceholder: "Patient name",
+      phone: "Phone number *",
+      phonePlaceholder: "Phone number",
+      gender: "Gender",
+      male: "Male",
+      female: "Female",
+      dateOfBirth: "Date of birth",
+      submitting: "Registering...",
+      submit: "Register patient",
+    },
   },
-} as const satisfies Record<Locale, Record<string, string>>;
+} as const satisfies Record<Locale, object>;
 
-export function getWorkspaceMessages(locale: Locale) {
-  return workspaceMessages[locale];
-}
+export function getWorkspaceMessages(locale: Locale) { return workspaceMessages[locale]; }
