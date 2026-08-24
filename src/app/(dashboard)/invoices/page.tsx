@@ -3,7 +3,7 @@ import { cookies } from "next/headers";
 import { createClient } from "@/infrastructure/supabase/server";
 import { getEffectivePermissions } from "@/core/permissions/permissionEngine";
 import { resolveTenantId } from "@/core/auth/resolveTenantId";
-import { getMessages } from "@/core/i18n/messages";
+import { getInvoiceMessages } from "@/core/i18n/invoiceMessages";
 import type { Locale } from "@/core/i18n/messages";
 import { InvoiceList } from "@/features/invoicing/invoice-list";
 import { listInvoices } from "@/domain/invoicing/invoicing.queries";
@@ -15,7 +15,7 @@ export default async function InvoicesPage() {
   const locale: Locale = localeCookie === "ar" || localeCookie === "en"
     ? localeCookie
     : tenantLanguage === "ar" || tenantLanguage === "en" ? tenantLanguage : "en";
-  const messages = getMessages(locale);
+  const invoice = getInvoiceMessages(locale);
 
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -37,7 +37,7 @@ export default async function InvoicesPage() {
 
   return (
     <div className="space-y-6 p-6" dir={locale === "ar" ? "rtl" : "ltr"}>
-      <h1 className="text-2xl font-bold">{messages.common.invoices}</h1>
+      <h1 className="text-2xl font-bold">{invoice.title}</h1>
       <InvoiceList
         initialData={result.success ? result.data : []}
         initialError={result.success ? null : result.error}
