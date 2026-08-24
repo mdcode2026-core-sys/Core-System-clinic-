@@ -39,6 +39,8 @@ export function TenantRegistry() {
     }
   };
 
+  const tierLabel = (tier: string) => t.tiers[tier as keyof typeof t.tiers] ?? tier;
+
   return (
     <div className="p-6 space-y-6" dir={locale === "ar" ? "rtl" : "ltr"}>
       <div className="flex items-center justify-between">
@@ -71,7 +73,7 @@ export function TenantRegistry() {
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Badge variant="outline" className={getTierColor(tenant.subscription_tier)}>{tenant.subscription_tier}</Badge>
+                  <Badge variant="outline" className={getTierColor(tenant.subscription_tier)}>{tierLabel(tenant.subscription_tier)}</Badge>
                   <Badge variant={tenant.is_active ? "default" : "secondary"}>{tenant.is_active ? t.active : t.inactive}</Badge>
                 </div>
               </div>
