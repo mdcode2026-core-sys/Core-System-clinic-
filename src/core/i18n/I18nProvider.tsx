@@ -4,6 +4,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState } 
 import type { Locale } from "./messages";
 import { getMessages } from "./messages";
 import { getTerminology } from "./terminology";
+import { getAdminMessages } from "./adminMessages";
 
 type BaseTerminology = ReturnType<typeof getTerminology>;
 type UnifiedTerminology = BaseTerminology & {
@@ -13,6 +14,7 @@ type UnifiedTerminology = BaseTerminology & {
 export interface I18nContextValue {
   locale: Locale;
   messages: ReturnType<typeof getMessages>;
+  admin: ReturnType<typeof getAdminMessages>;
   terminology: UnifiedTerminology;
   setLocale: (locale: Locale) => void;
 }
@@ -49,32 +51,27 @@ function getUnifiedTerminology(locale: Locale): UnifiedTerminology {
   } as UnifiedTerminology;
 }
 
-export function I18nProvider({
-  initialLocale,
-  children,
-}: {
-  initialLocale: Locale;
-  children: React.ReactNode;
-}) {
+export function I18nProvider({ initialLocale, children }: { initialLocale: Locale; children: React.ReactNode }) {
   const [locale, setLocaleState] = useState<Locale>(() => {
     if (typeof window === "undefined") return initialLocale;
     const stored = window.localStorage.getItem(LOCALE_STORAGE_KEY);
     return isLocale(stored) ? stored : initialLocale;
   });
 
-  useEffect(() => {
-    applyDocumentLocale(locale);
-  }, [locale]);
+  useEffect(() => { applyDocumentLocale(locale); }, [locale]);
 
   const setLocale = useCallback((nextLocale: Locale) => {
     setLocaleState(nextLocale);
     applyDocumentLocale(nextLocale);
   }, []);
 
-  const value = useMemo(
-    () => ({ locale, messages: getMessages(locale), terminology: getUnifiedTerminology(locale), setLocale }),
-    [locale, setLocale]
-  );
+  const value = useMemo(() => ({
+    locale,
+    messages: getMessages(locale),
+    admin: getAdminMessages(locale),
+    terminology: getUnifiedTerminology(locale),
+    setLocale,
+  }), [locale, setLocale]);
 
   return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>;
 }
