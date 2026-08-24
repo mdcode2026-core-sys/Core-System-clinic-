@@ -10,7 +10,7 @@ export const DEFAULT_TAX_RATE_PERCENT = 16;
 export const CURRENCY_SUBUNIT = 100;
 export function toSubunits(amount: number): number { return Math.round(amount * CURRENCY_SUBUNIT); }
 export function fromSubunits(subunits: number): number { return subunits / CURRENCY_SUBUNIT; }
-export function formatCurrency(subunits: number, currency = "JOD", locale: Locale = "ar"): string { const amount = fromSubunits(subunits); return new Intl.NumberFormat(locale === "ar" ? "ar-JO" : "en-JO", { style: "currency", currency, minimumFractionDigits: 2 }).format(amount); }
+export function formatCurrency(subunits: number, currency = "JOD", locale: Locale = "ar"): string { const amount = fromSubunits(subunits); return new Intl.NumberFormat(locale === "ar" ? "ar-JO" : "en-US", { style: "currency", currency, minimumFractionDigits: 2 }).format(amount); }
 
 export interface CalculateLineItemInput { quantity: number; unitPriceSubunits: number; discountAmountSubunits?: number; discountPercent?: number | null; taxRatePercent?: number | null; taxIncluded?: boolean; }
 export function calculateLineItem(input: CalculateLineItemInput): LineItemCalculation {
