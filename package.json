@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
-    "build": "next build --webpack",
+    "build": "npm run i18n:parity && next build --webpack",
     "start": "next start",
     "lint": "eslint .",
     "i18n:audit": "node tools/i18n-audit.mjs",
@@ -27,7 +27,7 @@
     "date-fns": "^4.1.0",
     "recharts": "^2.15.3",
     "lucide-react": "^0.507.0",
-    "clsx": "^2.1.1",
+    "clsx": "^2.1.0",
     "tailwind-merge": "^3.2.0",
     "class-variance-authority": "^0.7.1",
     "@tanstack/react-query": "^5.0.0",
@@ -38,7 +38,7 @@
     "@radix-ui/react-label": "^2.1.0",
     "autoprefixer": "^10.4.0",
     "tailwindcss-animate": "^1.0.0",
-    "@radix-ui/react-checkbox": "^1.1.1",
+    "@radix-ui/react-checkbox": "^1.3.0",
     "@cornerstonejs/core": "5.8.2",
     "@cornerstonejs/dicom-image-loader": "5.8.2",
     "@cornerstonejs/tools": "5.8.2"
@@ -52,6 +52,6 @@
     "eslint": "^9.25.1",
     "eslint-config-next": "16.2.10",
     "@eslint/eslintrc": "^3.3.1",
-    "@eslint/js": "^9.25.1"
+    "@eslint/js": "^9.25.0"
   }
 }
