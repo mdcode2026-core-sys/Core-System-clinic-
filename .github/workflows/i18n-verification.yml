@@ -3,6 +3,7 @@ name: I18N Verification
 on:
   push:
     branches:
+      - main
       - i18n-completion-2026-08-24
   pull_request:
     branches:
