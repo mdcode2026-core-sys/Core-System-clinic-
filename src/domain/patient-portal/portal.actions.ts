@@ -1,79 +1,38 @@
 "use server";
-
 import crypto from "node:crypto";
 import { createClient } from "@/infrastructure/supabase/server";
 import { getEffectivePermissions } from "@/core/permissions/permissionEngine";
 import { hasEntitlement } from "@/core/entitlements/entitlementEngine";
-
 export type PortalChannel = "email" | "sms" | "whatsapp";
 const channelEntitlement: Record<PortalChannel, string> = { email: "communication.email", sms: "communication.sms", whatsapp: "communication.whatsapp" };
 function normalizePhone(value: string | null | undefined) { return (value ?? "").replace(/[^\d+]/g, ""); }
 function hashToken(token: string) { return crypto.createHash("sha256").update(token).digest("hex"); }
-function appUrl() {
-  const configured = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_APP_URL;
-  const vercel = process.env.VERCEL_PROJECT_PRODUCTION_URL || process.env.VERCEL_URL;
-  const url = configured || (vercel ? `https://${vercel}` : "");
-  if (!url) throw new Error("Application URL is not configured");
-  return url.replace(/\/$/, "");
-}
-
+function appUrl() { const configured = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_APP_URL; const vercel = process.env.VERCEL_PROJECT_PRODUCTION_URL || process.env.VERCEL_URL; const url = configured || (vercel ? `https://${vercel}` : ""); if (!url) throw new Error("Application URL is not configured"); return url.replace(/\/$/, ""); }
 export async function createPatientPortalInvitation(input: { clinicPatientId: string; channel: PortalChannel; fallbackChannel?: PortalChannel | null }) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return { success: false, error: "Unauthorized" };
-  const { data: clinicUser } = await supabase.from("clinic_users").select("tenant_id").eq("auth_user_id", user.id).eq("is_active", true).is("deleted_at", null).maybeSingle();
-  if (!clinicUser?.tenant_id) return { success: false, error: "Clinic user not found" };
-  const permissions = await getEffectivePermissions(user.id, clinicUser.tenant_id);
-  if (!permissions.includes("patients:read")) return { success: false, error: "Permission denied" };
-  if (!(await hasEntitlement(clinicUser.tenant_id, "patient_portal"))) return { success: false, error: "Patient Portal is not enabled for this clinic" };
-  if (!(await hasEntitlement(clinicUser.tenant_id, channelEntitlement[input.channel]))) return { success: false, error: `${input.channel} is not enabled for this clinic` };
-  if (input.fallbackChannel && !(await hasEntitlement(clinicUser.tenant_id, channelEntitlement[input.fallbackChannel]))) return { success: false, error: "Fallback channel is not enabled for this clinic" };
-  if (input.fallbackChannel === input.channel) return { success: false, error: "Fallback channel must differ from the primary channel" };
-
-  const { data: patient, error: patientError } = await supabase.from("clinic_patients").select("id,tenant_id,email,phone_primary,deleted_at").eq("id", input.clinicPatientId).eq("tenant_id", clinicUser.tenant_id).maybeSingle();
-  if (patientError || !patient || patient.deleted_at) return { success: false, error: "Patient not found" };
-  const destination = input.channel === "email" ? patient.email : patient.phone_primary;
-  if (!destination) return { success: false, error: `Patient has no ${input.channel} destination` };
-
-  const token = crypto.randomBytes(32).toString("base64url");
-  const expiresAt = new Date(Date.now() + 60 * 60 * 1000).toISOString();
-  const invitationUrl = `${appUrl()}/portal/activate?token=${encodeURIComponent(token)}&channel=${input.channel}`;
-  const { data: invitation, error: invitationError } = await supabase.from("patient_portal_invitations").insert({ tenant_id: clinicUser.tenant_id, clinic_patient_id: patient.id, channel: input.channel, destination, token_hash: hashToken(token), status: "pending", fallback_channel: input.fallbackChannel ?? null, expires_at: expiresAt, created_by: user.id, metadata: { invitation_version: 1 } }).select("id").single();
-  if (invitationError || !invitation) return { success: false, error: "Failed to create invitation" };
-
+  const supabase = await createClient(); const { data: { user } } = await supabase.auth.getUser(); if (!user) return { success: false, error: "unauthorized" };
+  const { data: clinicUser } = await supabase.from("clinic_users").select("tenant_id").eq("auth_user_id", user.id).eq("is_active", true).is("deleted_at", null).maybeSingle(); if (!clinicUser?.tenant_id) return { success: false, error: "clinicUserNotFound" };
+  const permissions = await getEffectivePermissions(user.id, clinicUser.tenant_id); if (!permissions.includes("patients:read")) return { success: false, error: "permissionDenied" };
+  if (!(await hasEntitlement(clinicUser.tenant_id, "patient_portal"))) return { success: false, error: "disabled" };
+  if (!(await hasEntitlement(clinicUser.tenant_id, channelEntitlement[input.channel]))) return { success: false, error: "channelDisabled" };
+  if (input.fallbackChannel && !(await hasEntitlement(clinicUser.tenant_id, channelEntitlement[input.fallbackChannel]))) return { success: false, error: "fallbackDisabled" };
+  if (input.fallbackChannel === input.channel) return { success: false, error: "fallbackSame" };
+  const { data: patient, error: patientError } = await supabase.from("clinic_patients").select("id,tenant_id,email,phone_primary,deleted_at").eq("id", input.clinicPatientId).eq("tenant_id", clinicUser.tenant_id).maybeSingle(); if (patientError || !patient || patient.deleted_at) return { success: false, error: "patientNotFound" };
+  const destination = input.channel === "email" ? patient.email : patient.phone_primary; if (!destination) return { success: false, error: "noDestination" };
+  const token = crypto.randomBytes(32).toString("base64url"); const expiresAt = new Date(Date.now() + 60 * 60 * 1000).toISOString(); const invitationUrl = `${appUrl()}/portal/activate?token=${encodeURIComponent(token)}&channel=${input.channel}`;
+  const { data: invitation, error: invitationError } = await supabase.from("patient_portal_invitations").insert({ tenant_id: clinicUser.tenant_id, clinic_patient_id: patient.id, channel: input.channel, destination, token_hash: hashToken(token), status: "pending", fallback_channel: input.fallbackChannel ?? null, expires_at: expiresAt, created_by: user.id, metadata: { invitation_version: 1 } }).select("id").single(); if (invitationError || !invitation) return { success: false, error: "createFailed" };
   const message = `You have been invited to activate your Patient Portal. Open this secure link to continue: ${invitationUrl}`;
-  const { error: queueError } = await supabase.from("notification_queue").insert({ tenant_id: clinicUser.tenant_id, recipient_type: "patient", recipient_id: patient.id, recipient_phone: input.channel === "email" ? null : destination, recipient_email: input.channel === "email" ? destination : null, channel: input.channel, message_body: message, priority: 1, status: "queued", retry_count: 0, max_retries: 3, scheduled_at: new Date().toISOString(), metadata: { type: "patient_portal_invitation", invitation_id: invitation.id, fallback_channel: input.fallbackChannel ?? null } });
-  if (queueError) { await supabase.from("patient_portal_invitations").update({ status: "failed" }).eq("id", invitation.id); return { success: false, error: "Failed to queue invitation" }; }
+  const { error: queueError } = await supabase.from("notification_queue").insert({ tenant_id: clinicUser.tenant_id, recipient_type: "patient", recipient_id: patient.id, recipient_phone: input.channel === "email" ? null : destination, recipient_email: input.channel === "email" ? destination : null, channel: input.channel, message_body: message, priority: 1, status: "queued", retry_count: 0, max_retries: 3, scheduled_at: new Date().toISOString(), metadata: { type: "patient_portal_invitation", invitation_id: invitation.id, fallback_channel: input.fallbackChannel ?? null } }); if (queueError) { await supabase.from("patient_portal_invitations").update({ status: "failed" }).eq("id", invitation.id); return { success: false, error: "queueFailed" }; }
   return { success: true, invitationId: invitation.id, expiresAt };
 }
-
 export async function claimPatientPortalInvitation(token: string) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return { success: false, error: "Authentication required" };
-  if (!token || token.length < 20) return { success: false, error: "Invalid invitation" };
-  const { data: invitation, error: invitationError } = await supabase.from("patient_portal_invitations").select("id,tenant_id,clinic_patient_id,channel,destination,status,expires_at").eq("token_hash", hashToken(token)).maybeSingle();
-  if (invitationError || !invitation) return { success: false, error: "Invitation not found" };
-  if (invitation.status !== "pending" && invitation.status !== "sent") return { success: false, error: "Invitation is no longer valid" };
-  if (new Date(invitation.expires_at).getTime() <= Date.now()) { await supabase.from("patient_portal_invitations").update({ status: "expired" }).eq("id", invitation.id); return { success: false, error: "Invitation has expired" }; }
-  const identityValue = invitation.channel === "email" ? (user.email ?? "").toLowerCase() : normalizePhone(user.phone);
-  const destination = invitation.channel === "email" ? invitation.destination.toLowerCase() : normalizePhone(invitation.destination);
-  if (!identityValue || identityValue !== destination) return { success: false, error: "Authenticated identity does not match the invitation" };
-  const { data: existingIdentity } = await supabase.from("patient_identities").select("id,status").eq("auth_user_id", user.id).maybeSingle();
-  let identityId = existingIdentity?.id;
-  if (!identityId) {
-    const { data: created, error: createError } = await supabase.from("patient_identities").insert({ auth_user_id: user.id, email: user.email ?? null, phone: user.phone ?? null, status: "active", verified_at: new Date().toISOString(), last_authenticated_at: new Date().toISOString() }).select("id").single();
-    if (createError || !created) return { success: false, error: "Failed to create patient identity" };
-    identityId = created.id;
-  } else {
-    const { error } = await supabase.from("patient_identities").update({ status: "active", verified_at: new Date().toISOString(), last_authenticated_at: new Date().toISOString(), updated_at: new Date().toISOString() }).eq("id", identityId);
-    if (error) return { success: false, error: "Failed to activate patient identity" };
+  const supabase = await createClient(); const { data: { user } } = await supabase.auth.getUser(); if (!user) return { success: false, error: "authRequired" }; if (!token || token.length < 20) return { success: false, error: "invalidInvitation" };
+  const { data: invitation, error: invitationError } = await supabase.from("patient_portal_invitations").select("id,tenant_id,clinic_patient_id,channel,destination,status,expires_at").eq("token_hash", hashToken(token)).maybeSingle(); if (invitationError || !invitation) return { success: false, error: "invitationNotFound" }; if (invitation.status !== "pending" && invitation.status !== "sent") return { success: false, error: "invitationInvalid" }; if (new Date(invitation.expires_at).getTime() <= Date.now()) { await supabase.from("patient_portal_invitations").update({ status: "expired" }).eq("id", invitation.id); return { success: false, error: "invitationExpired" };
   }
-  const { data: patient } = await supabase.from("clinic_patients").select("id,tenant_id").eq("id", invitation.clinic_patient_id).eq("tenant_id", invitation.tenant_id).maybeSingle();
-  if (!patient) return { success: false, error: "Patient relationship not found" };
-  const { error: relationError } = await supabase.from("patient_clinic_relationships").upsert({ patient_identity_id: identityId, clinic_patient_id: patient.id, tenant_id: patient.tenant_id, status: "active", updated_at: new Date().toISOString() }, { onConflict: "patient_identity_id,clinic_patient_id" });
-  if (relationError) return { success: false, error: "Failed to link patient to clinic" };
-  const { error: claimError } = await supabase.from("patient_portal_invitations").update({ status: "claimed", claimed_at: new Date().toISOString() }).eq("id", invitation.id);
-  if (claimError) return { success: false, error: "Failed to finalize invitation" };
+  const identityValue = invitation.channel === "email" ? (user.email ?? "").toLowerCase() : normalizePhone(user.phone); const destination = invitation.channel === "email" ? invitation.destination.toLowerCase() : normalizePhone(invitation.destination); if (!identityValue || identityValue !== destination) return { success: false, error: "identityMismatch" };
+  const { data: existingIdentity } = await supabase.from("patient_identities").select("id,status").eq("auth_user_id", user.id).maybeSingle(); let identityId = existingIdentity?.id;
+  if (!identityId) { const { data: created, error: createError } = await supabase.from("patient_identities").insert({ auth_user_id: user.id, email: user.email ?? null, phone: user.phone ?? null, status: "active", verified_at: new Date().toISOString(), last_authenticated_at: new Date().toISOString() }).select("id").single(); if (createError || !created) return { success: false, error: "identityCreateFailed" }; identityId = created.id; } else { const { error } = await supabase.from("patient_identities").update({ status: "active", verified_at: new Date().toISOString(), last_authenticated_at: new Date().toISOString(), updated_at: new Date().toISOString() }).eq("id", identityId); if (error) return { success: false, error: "identityActivateFailed" }; }
+  const { data: patient } = await supabase.from("clinic_patients").select("id,tenant_id").eq("id", invitation.clinic_patient_id).eq("tenant_id", invitation.tenant_id).maybeSingle(); if (!patient) return { success: false, error: "relationshipNotFound" };
+  const { error: relationError } = await supabase.from("patient_clinic_relationships").upsert({ patient_identity_id: identityId, clinic_patient_id: patient.id, tenant_id: patient.tenant_id, status: "active", updated_at: new Date().toISOString() }, { onConflict: "patient_identity_id,clinic_patient_id" }); if (relationError) return { success: false, error: "linkFailed" };
+  const { error: claimError } = await supabase.from("patient_portal_invitations").update({ status: "claimed", claimed_at: new Date().toISOString() }).eq("id", invitation.id); if (claimError) return { success: false, error: "finalizeFailed" };
   return { success: true, tenantId: patient.tenant_id, clinicPatientId: patient.id };
 }
