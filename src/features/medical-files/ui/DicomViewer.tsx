@@ -44,10 +44,7 @@ export function DicomViewer({ fileId }: { fileId: string }) {
         [ZoomTool, PanTool, WindowLevelTool, LengthTool].forEach((item) => addTool(item));
         const group = ToolGroupManager.createToolGroup(toolGroupId);
         if (group) {
-          group.addTool(ZoomTool.toolName);
-          group.addTool(PanTool.toolName);
-          group.addTool(WindowLevelTool.toolName);
-          group.addTool(LengthTool.toolName);
+          group.addTool(ZoomTool.toolName); group.addTool(PanTool.toolName); group.addTool(WindowLevelTool.toolName); group.addTool(LengthTool.toolName);
           group.addViewport(viewportId, engineId);
           group.setToolActive(ZoomTool.toolName, { bindings: [{ mouseButton: ToolEnums.MouseBindings.Primary }] });
           group.setToolActive(WindowLevelTool.toolName, { bindings: [{ mouseButton: ToolEnums.MouseBindings.Secondary }] });
@@ -59,63 +56,37 @@ export function DicomViewer({ fileId }: { fileId: string }) {
         }
         setLoading(false);
       } catch {
-        if (!cancelled) {
-          setError(messages.viewer.initializeError);
-          setLoading(false);
-        }
+        if (!cancelled) { setError(messages.viewer.initializeError); setLoading(false); }
       }
     })();
-    return () => {
-      cancelled = true;
-      try { ToolGroupManager.destroyToolGroup(toolGroupId); } catch {}
-      try { engineRef.current?.destroy(); } catch {}
-      engineRef.current = null;
-    };
+    return () => { cancelled = true; try { ToolGroupManager.destroyToolGroup(toolGroupId); } catch {} try { engineRef.current?.destroy(); } catch {} engineRef.current = null; };
   }, [fileId, messages.viewer.initializeError]);
 
   useEffect(() => {
     const group = ToolGroupManager.getToolGroup(`medical-file-tools-${fileId}`);
     if (!group) return;
-    group.setToolPassive(ZoomTool.toolName, { removeAllBindings: true });
-    group.setToolPassive(PanTool.toolName, { removeAllBindings: true });
-    group.setToolPassive(WindowLevelTool.toolName, { removeAllBindings: true });
-    group.setToolPassive(LengthTool.toolName, { removeAllBindings: true });
+    group.setToolPassive(ZoomTool.toolName, { removeAllBindings: true }); group.setToolPassive(PanTool.toolName, { removeAllBindings: true }); group.setToolPassive(WindowLevelTool.toolName, { removeAllBindings: true }); group.setToolPassive(LengthTool.toolName, { removeAllBindings: true });
     const name = tool === "zoom" ? ZoomTool.toolName : tool === "length" ? LengthTool.toolName : WindowLevelTool.toolName;
     group.setToolActive(name, { bindings: [{ mouseButton: ToolEnums.MouseBindings.Primary }] });
   }, [tool, fileId]);
 
   async function saveAnnotations() {
-    setSaving(true);
-    setError(null);
-    try {
-      for (const item of annotation.state.getAllAnnotations()) {
-        await saveMedicalAnnotation({ fileId, annotationType: item.metadata?.toolName ?? "annotation", payload: item as unknown as Record<string, unknown> });
-      }
-    } catch {
-      setError(messages.viewer.saveError);
-    } finally {
-      setSaving(false);
-    }
+    setSaving(true); setError(null);
+    try { for (const item of annotation.state.getAllAnnotations()) await saveMedicalAnnotation({ fileId, annotationType: item.metadata?.toolName ?? "annotation", payload: item as unknown as Record<string, unknown> }); }
+    catch { setError(messages.viewer.saveError); }
+    finally { setSaving(false); }
   }
 
-  return (
-    <section className="w-full min-w-0 overflow-hidden rounded-xl border bg-black p-1.5 text-white sm:p-2">
-      <div className="mb-2 flex flex-wrap items-center gap-1">
-        <button type="button" className={`min-h-10 rounded px-2 py-1 text-xs ${tool === "zoom" ? "bg-white/20" : "bg-white/5"}`} onClick={() => setTool("zoom")}>
-          <ZoomIn className="mr-1 inline h-3 w-3" />{messages.viewer.zoom}
-        </button>
-        <button type="button" className={`min-h-10 rounded px-2 py-1 text-xs ${tool === "length" ? "bg-white/20" : "bg-white/5"}`} onClick={() => setTool("length")}>
-          <Ruler className="mr-1 inline h-3 w-3" />{messages.viewer.measure}
-        </button>
-        <button type="button" className={`min-h-10 rounded px-2 py-1 text-xs ${tool === "window" ? "bg-white/20" : "bg-white/5"}`} onClick={() => setTool("window")}>{messages.viewer.windowLevel}</button>
-        <button type="button" className="ml-auto min-h-10 rounded bg-white/10 px-2 py-1 text-xs" onClick={() => void saveAnnotations()} disabled={saving}>
-          <Save className="mr-1 inline h-3 w-3" />{saving ? messages.viewer.savingAnnotations : messages.viewer.saveAnnotations}
-        </button>
-      </div>
-      <div className="relative min-h-[260px] w-full overflow-hidden rounded bg-black sm:min-h-[420px]">
-        {loading && <div className="absolute inset-0 z-10 flex items-center justify-center"><Loader2 className="h-6 w-6 animate-spin" /></div>}
-        {error ? <div className="break-words p-4 text-sm text-red-300">{error}</div> : <div ref={elementRef} className="h-[min(65vh,420px)] min-h-[260px] w-full touch-none" />}
-      </div>
-    </section>
-  );
+  return <section className="w-full min-w-0 overflow-hidden rounded-xl border bg-black p-1.5 text-white sm:p-2">
+    <div className="mb-2 flex flex-wrap items-center gap-1">
+      <button type="button" className={`min-h-10 rounded px-2 py-1 text-xs ${tool === "zoom" ? "bg-white/20" : "bg-white/5"}`} onClick={() => setTool("zoom")}><ZoomIn className="me-1 inline h-3 w-3" />{messages.viewer.zoom}</button>
+      <button type="button" className={`min-h-10 rounded px-2 py-1 text-xs ${tool === "length" ? "bg-white/20" : "bg-white/5"}`} onClick={() => setTool("length")}><Ruler className="me-1 inline h-3 w-3" />{messages.viewer.measure}</button>
+      <button type="button" className={`min-h-10 rounded px-2 py-1 text-xs ${tool === "window" ? "bg-white/20" : "bg-white/5"}`} onClick={() => setTool("window")}>{messages.viewer.windowLevel}</button>
+      <button type="button" className="ms-auto min-h-10 rounded bg-white/10 px-2 py-1 text-xs" onClick={() => void saveAnnotations()} disabled={saving}><Save className="me-1 inline h-3 w-3" />{saving ? messages.viewer.savingAnnotations : messages.viewer.saveAnnotations}</button>
+    </div>
+    <div className="relative min-h-[260px] w-full overflow-hidden rounded bg-black sm:min-h-[420px]">
+      {loading && <div className="absolute inset-0 z-10 flex items-center justify-center"><Loader2 className="h-6 w-6 animate-spin" /></div>}
+      {error ? <div className="break-words p-4 text-sm text-red-300">{error}</div> : <div ref={elementRef} className="h-[min(65vh,420px)] min-h-[260px] w-full touch-none" />}
+    </div>
+  </section>;
 }
