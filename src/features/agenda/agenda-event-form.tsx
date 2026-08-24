@@ -1,607 +1,98 @@
-/**
- * Agenda Module — Event Form
- * Create / Edit appointment form
- * Supports: Existing Patient + New Patient (temp)
- * Required: Phone number for all appointments
- */
-
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
 import { Textarea } from "@/shared/components/ui/textarea";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/shared/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/shared/components/ui/select";
-import { Calendar, Clock, User, Stethoscope, DoorOpen, FileText, Phone, Search, UserPlus } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/shared/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/components/ui/select";
+import { Calendar, User, Search, UserPlus, Phone } from "lucide-react";
 import { createAgendaEvent, updateAgendaEvent } from "@/domain/agenda/agenda.actions";
 import { usePermissions } from "@/core/permissions/usePermissions";
+import { useI18n } from "@/core/i18n/I18nProvider";
 import type { AgendaEventWithRelations } from "@/domain/agenda/agenda.types";
 
-// ─────────────────────────────────────────
-// TYPES
-// ─────────────────────────────────────────
-
-interface PatientOption {
-  id: string;
-  name: string;
-  phone: string;
-}
-
-interface DoctorOption {
-  id: string;
-  name: string;
-  specialization: string | null;
-}
-
-interface RoomOption {
-  id: string;
-  name: string;
-}
-
-interface ProcedureOption {
-  id: string;
-  name: string;
-  duration: number;
-}
-
-interface AgendaEventFormProps {
-  isOpen: boolean;
-  onClose: () => void;
-  tenantId: string;
-  userId: string;
-  event?: AgendaEventWithRelations | null;
-  patients: PatientOption[];
-  doctors: DoctorOption[];
-  rooms: RoomOption[];
-  procedures: ProcedureOption[];
-  defaultDate?: string;
-  defaultPatientId?: string;
-}
-
-// ─────────────────────────────────────────
-// PATIENT MODE
-// ─────────────────────────────────────────
-
+interface PatientOption { id: string; name: string; phone: string; }
+interface DoctorOption { id: string; name: string; specialization: string | null; }
+interface RoomOption { id: string; name: string; }
+interface ProcedureOption { id: string; name: string; duration: number; }
+interface AgendaEventFormProps { isOpen: boolean; onClose: () => void; tenantId: string; userId: string; event?: AgendaEventWithRelations | null; patients: PatientOption[]; doctors: DoctorOption[]; rooms: RoomOption[]; procedures: ProcedureOption[]; defaultDate?: string; defaultPatientId?: string; }
 type PatientMode = "search" | "new";
 
-// ─────────────────────────────────────────
-// COMPONENT
-// ─────────────────────────────────────────
-
-export function AgendaEventForm({
-  isOpen,
-  onClose,
-  tenantId,
-  userId,
-  event,
-  patients,
-  doctors,
-  rooms,
-  procedures,
-  defaultDate,
-  defaultPatientId,
-}: AgendaEventFormProps) {
+export function AgendaEventForm({ isOpen, onClose, tenantId, userId, event, patients, doctors, rooms, procedures, defaultDate, defaultPatientId }: AgendaEventFormProps) {
   const router = useRouter();
-  const isEditMode = !!event;
+  const { locale, agendaForm: t } = useI18n();
   const { hasPermission, isLoading: permsLoading } = usePermissions();
-
-  // ─────────────────────────────────────────
-  // FORM STATE
-  // ─────────────────────────────────────────
-
-  // Patient
+  const isEditMode = !!event;
   const [patientMode, setPatientMode] = useState<PatientMode>("search");
-  const [patientId, setPatientId] = useState<string | null>(null);
+  const [patientId, setPatientId] = useState<string | null>(defaultPatientId ?? null);
   const [tempPatientName, setTempPatientName] = useState("");
   const [tempPatientPhone, setTempPatientPhone] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
-
-  // Other fields
-  const [doctorId, setDoctorId] = useState<string | null>(null);
-  const [roomId, setRoomId] = useState<string>("");
-  const [procedureId, setProcedureId] = useState<string>("");
-  const [date, setDate] = useState(defaultDate || new Date().toISOString().split("T")[0]);
+  const [doctorId, setDoctorId] = useState("");
+  const [roomId, setRoomId] = useState("");
+  const [procedureId, setProcedureId] = useState("");
+  const [date, setDate] = useState(defaultDate ?? new Date().toISOString().split("T")[0]);
   const [startTime, setStartTime] = useState("09:00");
   const [endTime, setEndTime] = useState("09:30");
   const [notes, setNotes] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // ─────────────────────────────────────────
-  // PERMISSION GUARD — derived directly during render, not via
-  // setState-in-effect. There's nothing external to synchronize with;
-  // it's a pure function of permsLoading/isOpen/isEditMode/hasPermission.
-  // ─────────────────────────────────────────
+  const signature = `${isOpen}:${event?.id ?? "new"}:${defaultDate ?? ""}:${defaultPatientId ?? ""}`;
+  const [lastSignature, setLastSignature] = useState(signature);
+  if (signature !== lastSignature) {
+    setLastSignature(signature);
+    if (event) {
+      setPatientMode("search"); setPatientId(event.patient_id || null); setDoctorId(event.doctor_id || ""); setRoomId(event.room_id || ""); setProcedureId(event.procedure_id || "");
+      setDate(event.scheduled_start.split("T")[0]); setStartTime(event.scheduled_start.split("T")[1]?.slice(0, 5) || "09:00"); setEndTime(event.scheduled_end.split("T")[1]?.slice(0, 5) || "09:30"); setNotes(event.notes || "");
+    } else {
+      setPatientMode("search"); setPatientId(defaultPatientId ?? null); setDoctorId(""); setRoomId(""); setProcedureId(""); setDate(defaultDate ?? new Date().toISOString().split("T")[0]); setStartTime("09:00"); setEndTime("09:30"); setNotes("");
+    }
+    setTempPatientName(""); setTempPatientPhone(""); setSearchQuery(""); setError("");
+  }
 
   const requiredPermission = isEditMode ? "agenda:update" : "agenda:create";
-  const permError =
-    !permsLoading && isOpen && !hasPermission(requiredPermission)
-      ? isEditMode
-        ? "ليس لديك صلاحية تعديل المواعيد"
-        : "ليس لديك صلاحية إنشاء مواعيد جديدة"
-      : "";
+  const permissionError = !permsLoading && isOpen && !hasPermission(requiredPermission) ? (isEditMode ? t.accessDeniedUpdate : t.accessDeniedCreate) : "";
+  const filteredPatients = useMemo(() => { const query = searchQuery.trim().toLowerCase(); if (!query) return []; return patients.filter((p) => p.name.toLowerCase().includes(query) || p.phone.includes(query)); }, [patients, searchQuery]);
 
-  // ─────────────────────────────────────────
-  // FILTER PATIENTS BY SEARCH
-  // ─────────────────────────────────────────
-
-  const filteredPatients = patients.filter((p) => {
-    const query = searchQuery.trim().toLowerCase();
-    if (!query) return false; // Don't show all, only when searching
-    return (
-      p.name.toLowerCase().includes(query) ||
-      p.phone.includes(query)
-    );
-  });
-
-  // ─────────────────────────────────────────
-  // LOAD EXISTING DATA IN EDIT MODE
-  // Resetting all form state when the dialog opens for a different event
-  // (or for create mode) is "adjusting state when a prop changes" — React's
-  // documented fix is a render-phase state adjustment guarded by a
-  // signature comparison, not a setState-in-effect. This also removes an
-  // extra render+repaint cycle: previously the dialog could flash the
-  // previous event's values for one frame before the effect corrected them.
-  // ─────────────────────────────────────────
-
-  const resetSignature = `${isOpen ? "open" : "closed"}:${event?.id ?? "new"}:${defaultDate ?? ""}:${defaultPatientId ?? ""}`;
-  const [lastResetSignature, setLastResetSignature] = useState(resetSignature);
-
-  if (resetSignature !== lastResetSignature) {
-    setLastResetSignature(resetSignature);
-
-    if (event) {
-      // In edit mode, always use existing patient
-      setPatientMode("search");
-      setPatientId(event.patient_id || null);
-      setTempPatientName("");
-      setTempPatientPhone("");
-      setSearchQuery("");
-
-      setDoctorId(event.doctor_id || null);
-      setRoomId(event.room_id || "");
-      setProcedureId(event.procedure_id || "");
-      setDate(event.scheduled_start.split("T")[0]);
-      setStartTime(event.scheduled_start.split("T")[1]?.slice(0, 5) || "09:00");
-      setEndTime(event.scheduled_end.split("T")[1]?.slice(0, 5) || "09:30");
-      setNotes(event.notes || "");
-    } else {
-      // Reset for create mode
-      setPatientMode("search");
-      setPatientId(defaultPatientId || null);
-      setTempPatientName("");
-      setTempPatientPhone("");
-      setSearchQuery("");
-
-      setDoctorId(null);
-      setRoomId("");
-      setProcedureId("");
-      setDate(defaultDate || new Date().toISOString().split("T")[0]);
-      setStartTime("09:00");
-      setEndTime("09:30");
-      setNotes("");
-    }
-    setError("");
-  }
-
-  // ─────────────────────────────────────────
-  // AUTO-SET END TIME
-  // Computed inline from the change handlers that can affect it (procedure
-  // or start time), instead of an effect watching state. endTime remains a
-  // normal, independently user-editable field: typing a custom end time no
-  // longer risks being overwritten by an effect re-run for unrelated reasons.
-  // ─────────────────────────────────────────
-
-  function computeAutoEndTime(nextStartTime: string, nextProcedureId: string): string | null {
-    const proc = procedures.find((p) => p.id === nextProcedureId);
-    if (!proc) return null;
-    const [hours, minutes] = nextStartTime.split(":").map(Number);
-    if (Number.isNaN(hours) || Number.isNaN(minutes)) return null;
-    const startDate = new Date();
-    startDate.setHours(hours, minutes);
-    const endDate = new Date(startDate.getTime() + proc.duration * 60000);
-    const endHours = String(endDate.getHours()).padStart(2, "0");
-    const endMinutes = String(endDate.getMinutes()).padStart(2, "0");
-    return `${endHours}:${endMinutes}`;
-  }
-
-  function handleProcedureChange(nextProcedureId: string) {
-    setProcedureId(nextProcedureId);
-    if (!isEditMode) {
-      const computed = computeAutoEndTime(startTime, nextProcedureId);
-      if (computed) setEndTime(computed);
-    }
-  }
-
-  function handleStartTimeChange(nextStartTime: string) {
-    setStartTime(nextStartTime);
-    if (!isEditMode && procedureId) {
-      const computed = computeAutoEndTime(nextStartTime, procedureId);
-      if (computed) setEndTime(computed);
-    }
-  }
-
-  // ─────────────────────────────────────────
-  // SUBMIT HANDLER
-  // ─────────────────────────────────────────
+  function autoEnd(nextStart: string, nextProcedure: string) { const procedure = procedures.find((p) => p.id === nextProcedure); if (!procedure) return null; const [hours, minutes] = nextStart.split(":").map(Number); if (Number.isNaN(hours) || Number.isNaN(minutes)) return null; const start = new Date(); start.setHours(hours, minutes, 0, 0); const end = new Date(start.getTime() + procedure.duration * 60000); return `${String(end.getHours()).padStart(2, "0")}:${String(end.getMinutes()).padStart(2, "0")}`; }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-
-    // Permission check before submit
-    if (permError) {
-      return;
-    }
-
-    setIsLoading(true);
-    setError("");
-
-    // Validate patient
-    if (patientMode === "search" && !patientId) {
-      setError("اختر مريضاً من القائمة أو أضف مريضاً جديداً");
-      setIsLoading(false);
-      return;
-    }
-
-    if (patientMode === "new") {
-      if (!tempPatientName.trim()) {
-        setError("اسم المريض مطلوب");
-        setIsLoading(false);
-        return;
-      }
-      if (!tempPatientPhone.trim()) {
-        setError("رقم هاتف المريض مطلوب للتواصل");
-        setIsLoading(false);
-        return;
-      }
-    }
-
-    // Validate doctor
-    if (!doctorId) {
-      setError("اختر الطبيب");
-      setIsLoading(false);
-      return;
-    }
-
-    const scheduledStart = `${date}T${startTime}:00`;
-    const scheduledEnd = `${date}T${endTime}:00`;
-
-    const formData = new FormData();
-    formData.append("tenant_id", tenantId);
-
-    // Patient data
-    if (patientMode === "search" && patientId) {
-      formData.append("patient_id", patientId);
-    } else {
-      // New patient — send temp data
-      // TODO: Backend should create temp patient record
-      formData.append("temp_patient_name", tempPatientName.trim());
-      formData.append("temp_patient_phone", tempPatientPhone.trim());
-    }
-
-    formData.append("doctor_id", doctorId);
-    if (roomId) formData.append("room_id", roomId);
-    if (procedureId) formData.append("procedure_id", procedureId);
-    formData.append("scheduled_start", scheduledStart);
-    formData.append("scheduled_end", scheduledEnd);
-    if (notes) formData.append("notes", notes);
-    formData.append("created_by", userId);
-
-    if (isEditMode && event) {
-      formData.append("id", event.id);
-      const result = await updateAgendaEvent(formData);
-      if (result.error) {
-        setError(result.error);
-      } else {
-        onClose();
-        router.refresh();
-      }
-    } else {
-      const result = await createAgendaEvent(formData);
-      if (result.error) {
-        setError(result.error);
-      } else {
-        onClose();
-        router.refresh();
-      }
-    }
-
+    if (permissionError) return;
+    if (patientMode === "search" && !patientId) { setError(t.requiredPatient); return; }
+    if (patientMode === "new" && !tempPatientName.trim()) { setError(t.requiredName); return; }
+    if (patientMode === "new" && !tempPatientPhone.trim()) { setError(t.requiredPhone); return; }
+    if (!doctorId) { setError(t.requiredDoctor); return; }
+    setIsLoading(true); setError("");
+    const formData = new FormData(); formData.append("tenant_id", tenantId); formData.append("doctor_id", doctorId); formData.append("scheduled_start", `${date}T${startTime}:00`); formData.append("scheduled_end", `${date}T${endTime}:00`); formData.append("created_by", userId);
+    if (roomId) formData.append("room_id", roomId); if (procedureId) formData.append("procedure_id", procedureId); if (notes) formData.append("notes", notes);
+    if (patientMode === "search" && patientId) formData.append("patient_id", patientId); if (patientMode === "new") { formData.append("temp_patient_name", tempPatientName.trim()); formData.append("temp_patient_phone", tempPatientPhone.trim()); }
+    if (isEditMode && event) { formData.append("id", event.id); const result = await updateAgendaEvent(formData); if (result.error) setError(result.error); else { onClose(); router.refresh(); } }
+    else { const result = await createAgendaEvent(formData); if (result.error) setError(result.error); else { onClose(); router.refresh(); } }
     setIsLoading(false);
   }
 
-  // ─────────────────────────────────────────
-  // RENDER
-  // ─────────────────────────────────────────
-
-  return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Calendar className="w-5 h-5" />
-            {isEditMode ? "تعديل موعد" : "موعد جديد"}
-          </DialogTitle>
-        </DialogHeader>
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Permission Error */}
-          {permError && (
-            <div className="p-3 text-sm text-red-700 bg-red-50 border border-red-200 rounded-md">
-              {permError}
-            </div>
-          )}
-
-          {/* Error Message */}
-          {error && (
-            <div className="p-3 text-sm text-red-700 bg-red-50 border border-red-200 rounded-md">
-              {error}
-            </div>
-          )}
-
-          {/* Patient Section */}
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <Label className="flex items-center gap-2">
-                <User className="w-4 h-4" />
-                المريض *
-              </Label>
-              {!isEditMode && (
-                <div className="flex gap-2">
-                  <Button
-                    type="button"
-                    variant={patientMode === "search" ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setPatientMode("search")}
-                  >
-                    <Search className="w-3 h-3 ml-1" />
-                    موجود
-                  </Button>
-                  <Button
-                    type="button"
-                    variant={patientMode === "new" ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setPatientMode("new")}
-                  >
-                    <UserPlus className="w-3 h-3 ml-1" />
-                    جديد
-                  </Button>
-                </div>
-              )}
-            </div>
-
-            {/* Search Mode */}
-            {patientMode === "search" && (
-              <div className="space-y-2">
-                <div className="relative">
-                  <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <Input
-                    placeholder="ابحث بالاسم أو رقم الهاتف..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pr-10"
-                  />
-                </div>
-
-                {/* Search Results */}
-                {searchQuery.trim() && (
-                  <div className="border rounded-md max-h-40 overflow-y-auto">
-                    {filteredPatients.length > 0 ? (
-                      filteredPatients.map((p) => (
-                        <div
-                          key={p.id}
-                          className={`p-2 cursor-pointer hover:bg-muted flex items-center justify-between ${
-                            patientId === p.id ? "bg-primary/10" : ""
-                          }`}
-                          onClick={() => setPatientId(p.id)}
-                        >
-                          <div>
-                            <div className="font-medium text-sm">{p.name}</div>
-                            <div className="text-xs text-muted-foreground flex items-center gap-1">
-                              <Phone className="w-3 h-3" />
-                              {p.phone}
-                            </div>
-                          </div>
-                          {patientId === p.id && (
-                            <div className="text-primary text-sm">✓</div>
-                          )}
-                        </div>
-                      ))
-                    ) : (
-                      <div className="p-3 text-sm text-muted-foreground text-center">
-                        لا يوجد مريض بهذا الاسم
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {/* Selected Patient */}
-                {patientId && (
-                  <div className="p-2 bg-primary/5 rounded-md text-sm">
-                    ✓ {patients.find((p) => p.id === patientId)?.name}
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* New Patient Mode */}
-            {patientMode === "new" && (
-              <div className="space-y-2">
-                <Input
-                  placeholder="اسم المريض الجديد *"
-                  value={tempPatientName}
-                  onChange={(e) => setTempPatientName(e.target.value)}
-                />
-                <div className="relative">
-                  <Phone className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <Input
-                    placeholder="رقم الهاتف *"
-                    value={tempPatientPhone}
-                    onChange={(e) => setTempPatientPhone(e.target.value)}
-                    className="pr-10"
-                    type="tel"
-                  />
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  سيتم استكمال السجل عند حضور المريض
-                </p>
-              </div>
-            )}
-          </div>
-
-          {/* Doctor */}
-          <div className="space-y-2">
-            <Label className="flex items-center gap-2">
-              <Stethoscope className="w-4 h-4" />
-              الطبيب *
-            </Label>
-            <Select value={doctorId || ""} onValueChange={setDoctorId}>
-              <SelectTrigger>
-                <SelectValue placeholder="اختر الطبيب" />
-              </SelectTrigger>
-              <SelectContent>
-                {doctors.map((d) => (
-                  <SelectItem key={d.id} value={d.id}>
-                    {d.name}
-                    {d.specialization && ` — ${d.specialization}`}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Room */}
-          <div className="space-y-2">
-            <Label className="flex items-center gap-2">
-              <DoorOpen className="w-4 h-4" />
-              الغرفة
-            </Label>
-            <Select value={roomId} onValueChange={setRoomId}>
-              <SelectTrigger>
-                <SelectValue placeholder="اختر الغرفة (اختياري)" />
-              </SelectTrigger>
-              <SelectContent>
-                {rooms.map((r) => (
-                  <SelectItem key={r.id} value={r.id}>
-                    {r.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Procedure */}
-          <div className="space-y-2">
-            <Label className="flex items-center gap-2">
-              <FileText className="w-4 h-4" />
-              الإجراء
-            </Label>
-            <Select value={procedureId} onValueChange={handleProcedureChange}>
-              <SelectTrigger>
-                <SelectValue placeholder="اختر الإجراء (اختياري)" />
-              </SelectTrigger>
-              <SelectContent>
-                {procedures.map((p) => (
-                  <SelectItem key={p.id} value={p.id}>
-                    {p.name} ({p.duration} دقيقة)
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Date */}
-          <div className="space-y-2">
-            <Label className="flex items-center gap-2">
-              <Calendar className="w-4 h-4" />
-              التاريخ *
-            </Label>
-            <Input
-              type="date"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-              required
-            />
-          </div>
-
-          {/* Time Range */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label className="flex items-center gap-2">
-                <Clock className="w-4 h-4" />
-                من *
-              </Label>
-              <Input
-                type="time"
-                value={startTime}
-                onChange={(e) => handleStartTimeChange(e.target.value)}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label className="flex items-center gap-2">
-                <Clock className="w-4 h-4" />
-                إلى *
-              </Label>
-              <Input
-                type="time"
-                value={endTime}
-                onChange={(e) => setEndTime(e.target.value)}
-                required
-              />
-            </div>
-          </div>
-
-          {/* Notes */}
-          <div className="space-y-2">
-            <Label className="flex items-center gap-2">
-              <FileText className="w-4 h-4" />
-              ملاحظات
-            </Label>
-            <Textarea
-              placeholder="أي ملاحظات إضافية..."
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              rows={3}
-            />
-          </div>
-
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onClose}
-              disabled={isLoading}
-            >
-              إلغاء
-            </Button>
-            <Button
-              type="submit"
-              disabled={isLoading || !!permError}
-            >
-              {isLoading
-                ? "جاري الحفظ..."
-                : isEditMode
-                ? "حفظ التعديلات"
-                : "إنشاء الموعد"}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
-  );
+  return <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+    <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto" dir={locale === "ar" ? "rtl" : "ltr"}>
+      <DialogHeader><DialogTitle className="flex items-center gap-2"><Calendar className="h-5 w-5" />{isEditMode ? t.editTitle : t.newTitle}</DialogTitle></DialogHeader>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        {permissionError && <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">{permissionError}</div>}
+        {error && <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">{error}</div>}
+        <div className="space-y-3">
+          <Label className="flex items-center gap-2"><User className="h-4 w-4" />{t.patient}</Label>
+          {!isEditMode && <div className="flex gap-2"><Button type="button" size="sm" variant={patientMode === "search" ? "default" : "outline"} onClick={() => setPatientMode("search")}><Search className="me-1 h-3 w-3" />{t.existing}</Button><Button type="button" size="sm" variant={patientMode === "new" ? "default" : "outline"} onClick={() => setPatientMode("new")}><UserPlus className="me-1 h-3 w-3" />{t.newPatient}</Button></div>}
+          {patientMode === "search" ? <div className="space-y-2"><Input placeholder={t.searchPlaceholder} value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />{searchQuery.trim() && <div className="max-h-40 overflow-y-auto rounded-md border">{filteredPatients.length ? filteredPatients.map((p) => <button type="button" key={p.id} className={`flex w-full items-center justify-between p-2 text-start hover:bg-muted ${patientId === p.id ? "bg-primary/10" : ""}`} onClick={() => setPatientId(p.id)}><span><span className="block text-sm font-medium">{p.name}</span><span className="flex items-center gap-1 text-xs text-muted-foreground"><Phone className="h-3 w-3" />{p.phone}</span></span>{patientId === p.id && <span className="text-primary">✓</span>}</button>) : <div className="p-3 text-center text-sm text-muted-foreground">{t.noPatient}</div>}</div>}{patientId && <div className="rounded-md bg-primary/5 p-2 text-sm">{t.selected}: {patients.find((p) => p.id === patientId)?.name ?? patientId}</div>}</div> : <div className="grid gap-2 sm:grid-cols-2"><div><Label>{t.newPatientName}</Label><Input value={tempPatientName} onChange={(e) => setTempPatientName(e.target.value)} /></div><div><Label>{t.phone}</Label><Input value={tempPatientPhone} onChange={(e) => setTempPatientPhone(e.target.value)} /></div></div>}
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2"><div><Label>{t.doctor}</Label><Select value={doctorId} onValueChange={setDoctorId}><SelectTrigger><SelectValue placeholder={t.chooseDoctor} /></SelectTrigger><SelectContent>{doctors.map((d) => <SelectItem key={d.id} value={d.id}>{d.name}{d.specialization ? ` — ${d.specialization}` : ""}</SelectItem>)}</SelectContent></Select></div><div><Label>{t.room}</Label><Select value={roomId || "none"} onValueChange={(v) => setRoomId(v === "none" ? "" : v)}><SelectTrigger><SelectValue placeholder={t.chooseRoom} /></SelectTrigger><SelectContent><SelectItem value="none">—</SelectItem>{rooms.map((r) => <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>)}</SelectContent></Select></div></div>
+        <div><Label>{t.procedure}</Label><Select value={procedureId || "none"} onValueChange={(v) => { setProcedureId(v === "none" ? "" : v); if (v !== "none") { const next = autoEnd(startTime, v); if (next) setEndTime(next); } }}><SelectTrigger><SelectValue placeholder={t.chooseProcedure} /></SelectTrigger><SelectContent><SelectItem value="none">—</SelectItem>{procedures.map((p) => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}</SelectContent></Select></div>
+        <div className="grid gap-4 sm:grid-cols-3"><div><Label>{t.date}</Label><Input type="date" value={date} onChange={(e) => setDate(e.target.value)} /></div><div><Label>{t.startTime}</Label><Input type="time" value={startTime} onChange={(e) => { setStartTime(e.target.value); const next = autoEnd(e.target.value, procedureId); if (next) setEndTime(next); }} /></div><div><Label>{t.endTime}</Label><Input type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} /></div></div>
+        <div><Label>{t.notes}</Label><Textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder={t.notesPlaceholder} /></div>
+        <DialogFooter><Button type="button" variant="outline" onClick={onClose}>{t.cancel}</Button><Button type="submit" disabled={isLoading || !!permissionError}>{isLoading ? t.saving : isEditMode ? t.save : t.create}</Button></DialogFooter>
+      </form>
+    </DialogContent>
+  </Dialog>;
 }
