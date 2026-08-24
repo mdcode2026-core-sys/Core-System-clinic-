@@ -16,7 +16,7 @@ import { toast } from "sonner";
 
 export function SystemPreferencesManager() {
   const { hasPermission } = usePermissions();
-  const { locale, messages, systemPreferences: t } = useI18n();
+  const { locale, setLocale, messages, systemPreferences: t } = useI18n();
   const canUpdate = hasPermission("settings:update");
   const { tenantId, isLoading: tenantLoading } = useTenantId();
   const { data: preferences, isLoading: prefsLoading, error: prefsError } = useSystemPreferences(tenantId);
@@ -41,6 +41,7 @@ export function SystemPreferencesManager() {
     const result = await updateSystemPreferences({ language: current.language, direction: current.language === "ar" ? "rtl" : "ltr", timezone: current.timezone, currency: current.currency });
     setSaving(false);
     if (result.success) {
+      setLocale(current.language);
       toast.success(t.saved, { description: t.savedDescription });
       setTimeout(() => window.location.reload(), 1200);
     } else {
