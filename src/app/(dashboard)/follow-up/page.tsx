@@ -7,6 +7,7 @@ import { getEffectivePermissions } from "@/core/permissions/permissionEngine";
 import { resolveTenantId } from "@/core/auth/resolveTenantId";
 import { getFollowupWorkQueue, listFollowupPatients, listFollowups } from "@/domain/followup/followup.queries";
 import { FollowupShell } from "@/features/followup/followup-shell";
+import { FollowupPageHeader } from "@/features/followup/FollowupPageHeader";
 
 export default async function FollowUpPage() {
   const supabase = await createClient();
@@ -25,5 +26,5 @@ export default async function FollowUpPage() {
   const patients = patientsResult.success ? patientsResult.data : [];
   const errorMessage = !listResult.success ? listResult.error : !scheduledResult.success ? scheduledResult.error : !patientsResult.success ? patientsResult.error : null;
 
-  return <div className="space-y-6"><div className="flex items-center justify-between"><h1 className="text-2xl font-bold">المتابعة</h1><p className="text-sm text-muted-foreground">إدارة متابعات المرضى ومهام المتابعة اليومية</p></div><FollowupShell initialList={listData} initialScheduled={scheduledData} patients={patients} initialError={errorMessage} canCreate={permissions.includes("followup:create")} canUpdate={permissions.includes("followup:update")} /></div>;
+  return <div className="space-y-6"><FollowupPageHeader /><FollowupShell initialList={listData} initialScheduled={scheduledData} patients={patients} initialError={errorMessage} canCreate={permissions.includes("followup:create")} canUpdate={permissions.includes("followup:update")} /></div>;
 }
