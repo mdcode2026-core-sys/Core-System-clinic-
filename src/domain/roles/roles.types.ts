@@ -72,38 +72,3 @@ export interface RoleActionResult {
   error: string | null;
   roleId?: string;
 }
-
-/**
- * Human-readable permission groups for UI display.
- * Maps resource → { labelAr, icon?, description? }
- */
-export const PERMISSION_GROUPS: Record<string, { labelAr: string; description?: string }> = {
-  patients: { labelAr: "المرضى", description: "إدارة سجلات المرضى" },
-  sessions: { labelAr: "الجلسات", description: "إدارة الجلسات والزيارات" },
-  agenda: { labelAr: "الأجندة", description: "المواعيد والتقويم" },
-  invoices: { labelAr: "الفواتير", description: "الفوترة والمدفوعات" },
-  inventory: { labelAr: "المخزون", description: "إدارة المخزون والمستلزمات" },
-  analytics: { labelAr: "التحليلات", description: "التقارير التحليلية" },
-  users: { labelAr: "المستخدمين", description: "إدارة مستخدمي العيادة" },
-  settings: { labelAr: "الإعدادات", description: "إعدادات العيادة" },
-  audit: { labelAr: "السجل", description: "سجل النشاط والتدقيق" },
-  reports: { labelAr: "التقارير", description: "التقارير التشغيلية" },
-  followup: { labelAr: "المتابعة", description: "متابعة ما بعد الزيارة" },
-  roles: { labelAr: "الأدوار", description: "إدارة الأدوار والصلاحيات" },
-  templates: { labelAr: "القوالب", description: "قوالب الصلاحيات" },
-  overrides: { labelAr: "التجاوزات", description: "تجاوزات الصلاحيات الفردية" },
-  subscription: { labelAr: "الاشتراك", description: "معلومات الاشتراك" },
-  notifications: { labelAr: "التنبيهات", description: "إعدادات التنبيهات" },
-  procedures: { labelAr: "الخدمات الطبية", description: "إدارة كتالوج الخدمات والإجراءات" },
-};
-
-/**
- * Action labels in Arabic for UI display
- */
-export const ACTION_LABELS: Record<string, string> = {
-  read: "عرض",
-  create: "إنشاء",
-  update: "تعديل",
-  delete: "حذف",
-  manage: "إدارة",
-};
