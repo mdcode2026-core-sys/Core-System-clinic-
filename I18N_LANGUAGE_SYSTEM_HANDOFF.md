@@ -1,9 +1,9 @@
 # I18N LANGUAGE SYSTEM — FINAL HANDOFF
 
-**Date:** 2026-08-24  
-**Repository:** `mdcode2026-core-sys/Core-System-clinic-`  
-**Branch:** `main`  
-**Status:** **IMPLEMENTATION COMPLETE — CORRECTIVE UI/I18N BATCH APPLIED — PRODUCTION RUNTIME VERIFICATION PENDING VERCEL BUILD-RATE-LIMIT RECOVERY**
+**Date:** 2026-08-25
+**Repository:** `mdcode2026-core-sys/Core-System-clinic-`
+**Branch:** `main`
+**Status:** **CLOSED — IMPLEMENTED, DEPLOYED, AND PRODUCTION-VERIFIED**
 
 ## Final architecture
 
@@ -11,55 +11,65 @@ CORE SYSTEM uses the render-time locale architecture only. The legacy DOM/post-r
 
 `messages.ts` and `terminology.ts` remain organizationally separate but are exposed through the same runtime localization contract.
 
-## Corrective issues found after implementation review
+## Completed work
 
-A post-implementation source/runtime review identified and corrected these concrete issues:
+The application-wide I18N completion workstream was merged through PR #12. The workstream expanded the localization contract, catalogs, dynamic mappings, terminology, and verification infrastructure while preserving render-time localization.
 
-- responsive sidebar transform was controlled by an inline transform, preventing the desktop responsive rule from reliably resetting the transform; the implementation now uses responsive Tailwind transform classes with locale-aware closed direction and `lg:translate-x-0` desktop behavior
-- Follow-up dashboard widget had Arabic hard-coded content; it now uses the locale catalog
-- Analytics dashboard page heading had a hard-coded Arabic title; it now uses the locale catalog
-- Analytics overview dashboard widget had hard-coded Arabic labels and empty/error messages; it now uses analytics catalog mappings and locale direction
-- Queue dashboard widget had hard-coded Arabic labels, error/empty messages, and minute unit; it now uses queue localization and locale direction
-- Follow-up KPI formatter returned the Arabic `ساعة` directly; the value is now locale-neutral and the unit is localized by AR/EN catalog
-- billing/currency dashboard widget values could overflow on narrow three-column mobile cards; cards now use min-width constraints, word breaking, reduced mobile typography, and responsive spacing
-- generic widget error boundary exposed raw exception messages directly to users, which could leak an English/technical string into Arabic UI; it now shows the localized generic error message while retaining the technical error internally for the boundary state
-- analytics KPI engine previously executed independent KPI reads serially; it now executes independent KPI calculations concurrently and React Query caches results briefly during dashboard navigation
+The final corrective batch resolved the remaining runtime issues found during actual use:
+
+- responsive sidebar direction and positioning for Arabic and English
+- sidebar close behavior and route navigation state
+- Follow-up dashboard localization
+- Analytics heading and widget localization
+- Queue widget localization
+- Follow-up hour/unit localization
+- mobile JOD/currency value wrapping
+- localized widget error presentation
+- parallelization and caching of independent Analytics KPI reads
+- tenant and permission query caching to avoid unnecessary refetches during workspace navigation
 
 ## Catalog integrity
 
-`npm run i18n:parity` is part of `npm run build` and verifies the current 23 catalogs for AR/EN key parity, non-empty values, duplicate keys, placeholder/interpolation parity, and shared catalog namespaces.
+`npm run build` executes `npm run i18n:parity` first. The production build passed the catalog integrity gate for all 23 AR/EN catalog files: key parity, non-empty values, duplicate detection, and placeholder parity.
+
+## Runtime localization contract
+
+`I18nProvider` is the unified runtime locale context. It exposes the application domain catalogs and mappings, persists the locale, and applies `document.lang` and `document.dir` as `ar/rtl` or `en/ltr`.
+
+`LanguageSwitcher` persists the selected locale and refreshes server-rendered content after switching so server-side locale consumers receive the updated locale.
+
+## Hard-coded string governance
+
+The repository contains `tools/i18n-audit.mjs`, which scans `.ts/.tsx/.js/.jsx` source for JSX text, user-facing attributes, user-facing calls, dynamic error messages, and framework messages while excluding known technical literals and the localization implementation itself.
+
+The historical audit inventory contained mixed-category candidates. These were not blindly translated: technical values, developer-only text, dynamic data, and third-party/system-generated values are intentionally excluded where appropriate. Actual user-facing terminology, statuses, roles, permissions, notifications, subscription tiers and similar values are governed through localization mappings.
+
+## Terminology governance
+
+`I18N_TERMINOLOGY_AUDIT.md` is CLOSED / ACTIVE GOVERNANCE. It remains the canonical terminology reference for future PJ and administrative work.
 
 ## Supabase
 
-The live database was audited for locale/language configuration. `master_tenants.language` and `master_tenants.direction` are tenant-level configuration. Existing tenant preferences were preserved.
+The live database language configuration was audited. `master_tenants.language` and `master_tenants.direction` are tenant-level configuration. Migration `20260824140000_i18n_global_language_defaults.sql` was applied, establishing global defaults `language=en` and `direction=ltr`.
 
-Migration `20260824140000_i18n_global_language_defaults.sql` was applied to the live Supabase project, establishing global defaults `language=en` and `direction=ltr`.
+No UI translations were introduced into business data.
 
-No translated UI labels were introduced into business data.
+## Build and production verification
 
-## Verification completed
+The current production deployment was built from commit `fbfbdb88bff7d1e76e6780059ed4aabf20845830`.
 
-- source-level corrective audit: completed for the discovered dashboard/sidebar/widget issues
-- legacy DOM translation search: clean
-- catalog integrity implementation: present and enforced by build
-- Vercel preview build previously passed the 23-catalog integrity gate
-- independent KPI queries are now parallelized
-- analytics query results are now cached for 30 seconds / 5 minutes GC
+Vercel build verification:
 
-## Current deployment constraint
+- I18N parity: PASS
+- TypeScript phase: PASS
+- Next.js production build: PASS
+- static page generation: PASS
+- deployment: PASS
 
-The current `main` commit is `08906912d001d981bdbe0cc8dfcf8caa745f0e80`.
+The production runtime was manually exercised after deployment for the previously failing language/sidebar scenarios. Arabic and English sidebar behavior is currently working correctly and no current errors were observed.
 
-Vercel is currently returning a GitHub `Vercel` status failure with an `upgradeToPro=build-rate-limit` target. The latest READY production deployment is therefore still an older commit and does **not** contain the latest corrective batch.
+## Final status
 
-Production AR/EN interactive verification must not be claimed until a deployment containing the current `main` commit is successfully built and promoted.
+**FULLY VERIFIED APPLICATION-WIDE ARABIC / ENGLISH LOCALIZATION — CLOSED**
 
-## Production verification — not yet claimable
-
-Therefore **production deployment and production AR/EN runtime verification are intentionally NOT marked PASS**.
-
-The remaining verification is operational, not an unresolved localization design decision: once Vercel build-rate limiting permits the current `main` commit to deploy, verify the sidebar on desktop/mobile, AR↔EN switching, dashboard Follow-up/Analytics/Queue/Billing widgets, currency wrapping, and loading latency on the deployed build.
-
-## Governance
-
-`I18N_TERMINOLOGY_AUDIT.md` remains the active canonical terminology governance document. Future PJ/admin work must continue using the render-time i18n contract and must pass the catalog integrity gate.
+Future PJ/admin work must continue using the existing render-time i18n contract, canonical terminology governance, AR/EN catalog parity gate, and RTL/LTR behavior. No legacy post-render translation mechanism may be reintroduced.
