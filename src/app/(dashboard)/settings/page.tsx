@@ -34,19 +34,17 @@ export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState("overview");
   const { hasPermission, isLoading } = usePermissions();
   const { admin: a } = useI18n();
-
   if (isLoading) return <div className="flex items-center justify-center py-12"><div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" /><span className="ms-3 text-muted-foreground">{a.users.loading}</span></div>;
   const visibleTabs = tabDefinitions.filter(t => t.permission === null || hasPermission(t.permission as any));
-
   return <div className="space-y-6">
     <h1 className="text-2xl font-bold">{a.settings.title}</h1>
     <div className="flex flex-wrap gap-2 border-b border-border pb-2">{visibleTabs.map(tab => { const Icon = tab.icon; const active = activeTab === tab.id; return <button key={tab.id} onClick={() => setActiveTab(tab.id)} aria-current={active ? "page" : undefined} className={`inline-flex items-center gap-2 rounded-t-md px-4 py-2 text-sm font-medium transition-colors ${active ? "border-b-2 border-primary text-primary" : "text-muted-foreground hover:text-foreground"}`}><Icon className="h-4 w-4" />{a.settings[tab.key]}</button>; })}</div>
     <div className="rounded-lg border border-border bg-card p-6 shadow-sm">
-      {activeTab === "overview" && <div className="space-y-4"><h2 className="text-xl font-semibold">{a.settings.overview}</h2><p className="text-muted-foreground">{a.settings.description ?? a.settings.overview}</p></div>}
+      {activeTab === "overview" && <div className="space-y-4"><h2 className="text-xl font-semibold">{a.settings.overview}</h2><p className="text-muted-foreground">{a.settings.description}</p></div>}
       {activeTab === "clinic-profile" && <ClinicProfileForm />}
       {activeTab === "users" && <UsersManager />}
       {activeTab === "roles" && <RolesManager />}
-      {activeTab === "templates" && <div className="space-y-4"><h2 className="text-xl font-semibold">{a.settings.templates}</h2><p className="text-muted-foreground">{localeText(a.settings.templates, "Role templates are managed through Roles.", "تتم إدارة قوالب الأدوار من خلال قسم الأدوار.")}</p></div>}
+      {activeTab === "templates" && <div className="space-y-4"><h2 className="text-xl font-semibold">{a.settings.templates}</h2><p className="text-muted-foreground">{a.settings.description}</p></div>}
       {activeTab === "overrides" && <OverridesManager />}
       {activeTab === "notifications" && <NotificationsManager />}
       {activeTab === "subscription" && <SubscriptionCenter />}
@@ -56,8 +54,4 @@ export default function SettingsPage() {
       {activeTab === "system" && <SystemPreferencesManager />}
     </div>
   </div>;
-}
-
-function localeText(_ar: string, en: string, ar: string) {
-  return typeof document !== "undefined" && document.documentElement.lang === "en" ? en : ar;
 }
