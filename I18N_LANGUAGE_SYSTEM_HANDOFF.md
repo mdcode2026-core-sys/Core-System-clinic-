@@ -3,126 +3,55 @@
 **Date:** 2026-08-24  
 **Repository:** `mdcode2026-core-sys/Core-System-clinic-`  
 **Branch:** `main`  
-**Status:** **CLOSED — FULL APPLICATION-WIDE AR/EN LOCALIZATION IMPLEMENTATION VERIFIED AT SOURCE, BUILD, DATABASE, AND DEPLOYMENT LEVELS**
+**Status:** **IMPLEMENTATION COMPLETE — PRODUCTION PROMOTION / FINAL PRODUCTION RUNTIME VERIFICATION PENDING**
 
-## 1. Final architecture
+## Final architecture
 
-CORE SYSTEM uses the render-time locale architecture only:
+CORE SYSTEM uses the render-time locale architecture only. The legacy DOM/post-render translator is retired and must not be restored, including `MutationObserver`, `translateDocument()`, `legacyArabicToEnglish`, and equivalent replacement engines.
 
-```text
-I18nProvider
-  ↓
-Unified localization contract
-  ↓
-AR / EN catalogs + canonical terminology
-  ↓
-UI / Server-rendered application surfaces
-  ↓
-AR / EN rendering
-```
+`messages.ts` and `terminology.ts` remain organizationally separate but are exposed through the same runtime localization contract.
 
-The legacy DOM/post-render translator is retired and must not be restored. This includes `MutationObserver`, `translateDocument()`, `legacyArabicToEnglish`, and any equivalent text-replacement engine.
+## Implementation completed
 
-`messages.ts` and `terminology.ts` remain organizationally separate but are exposed through the same runtime i18n contract and are not competing translation engines.
+The application-wide source migration and localization hardening covered authentication, dashboard/navigation, patients, patient detail, appointments/scheduling, clinical/operation workspace, treatment plans, medical files, follow-up, notifications, Patient Portal, settings/system preferences, users, roles/permissions, subscription, audit/activity, reporting/analytics/queue surfaces, forms, dialogs, loading/empty/error/permission states, and dynamic status/role/permission/notification/subscription labels.
 
-## 2. Final implementation state
+Locale behavior is `ar` → RTL and `en` → LTR. Saving system/tenant language now synchronizes the active runtime locale before reload.
 
-The application-wide i18n workstream has been completed across the existing catalog/component architecture, including:
+## Catalog integrity
 
-- authentication
-- dashboard and navigation
-- patients and patient detail
-- appointments and scheduling
-- clinical/operation workspace
-- treatment plans
-- medical files
-- follow-up
-- notifications
-- Patient Portal
-- settings/system preferences
-- users
-- roles and permissions
-- subscription
-- audit/activity
-- reporting/analytics/queue surfaces
-- forms, dialogs, loading/empty/error/permission states
-- dynamic status, role, permission, notification and subscription labels
-- locale-sensitive date/number/currency formatting
+`npm run i18n:parity` is part of `npm run build` and verifies the current 23 catalogs for AR/EN key parity, non-empty values, duplicate keys, placeholder/interpolation parity, and shared catalog namespaces.
 
-## 3. Locale and direction
+The final Vercel preview build passed this gate:
 
-Supported locales are:
+`I18N catalog integrity passed for 23 catalog files (AR/EN keys, non-empty values, duplicates, and placeholders).`
 
-- `ar` → RTL
-- `en` → LTR
+## Supabase
 
-The active locale is persisted through the existing browser locale mechanism. Saving the tenant/system language preference now synchronizes the active runtime locale before the server-rendered reload, preventing the database preference and current UI locale from diverging.
+The live database was audited for locale/language configuration. `master_tenants.language` and `master_tenants.direction` are tenant-level configuration. Existing tenant preferences were preserved.
 
-## 4. Catalog integrity gate
-
-The repository now runs `npm run i18n:parity` as part of `npm run build`.
-
-The integrity gate verifies all 23 catalog files for:
-
-- AR/EN key parity
-- non-empty translations
-- duplicate keys
-- placeholder/interpolation parity
-- shared catalog namespaces referenced by other catalog objects
-
-Production Vercel build verification passed this gate.
-
-## 5. Database language configuration
-
-The live Supabase database was audited for locale/language configuration.
-
-`master_tenants.language` and `master_tenants.direction` are the tenant-level language configuration. Existing tenant preferences were preserved. The global defaults were corrected to:
-
-- language: `en`
-- direction: `ltr`
-
-Existing Arabic tenants remain Arabic/RTL unless their preference is changed.
-
-The migration `20260824140000_i18n_global_language_defaults.sql` was applied to the live Supabase project and verified.
+Migration `20260824140000_i18n_global_language_defaults.sql` was applied to the live Supabase project, establishing global defaults `language=en` and `direction=ltr`.
 
 No translated UI labels were introduced into business data.
 
-## 6. Source/runtime rules
-
-User-facing text must use the unified i18n contract. Canonical terminology must come from the governed terminology layer. Dynamic business values remain canonical codes and are localized only at presentation time.
-
-Technical values such as UUID/API/HTTP identifiers remain technical. Developer-only and third-party/system-generated text is not artificially translated.
-
-## 7. Verification status
-
-Repository/source verification:
+## Verification completed
 
 - legacy DOM translation search: clean
 - catalog integrity: PASS — 23 catalogs
-- hard-coded user-facing coverage: audited and corrected for discovered application-controlled cases
-- dynamic status/role/permission/tier labels: localized
-- terminology governance: reconciled with runtime usage
-
-Build/deployment verification:
-
-- TypeScript: verified through production build pipeline
-- catalog integrity gate: PASS
-- Next.js production build: PASS
+- source/component localization audit: completed for application-controlled strings discovered
+- dynamic role/permission/status/tier labels: localized
+- terminology governance: updated
+- Vercel preview build: PASS
 - Vercel preview deployment: READY
-- Vercel runtime error inspection: no new i18n runtime errors observed for the verified deployment
+- checked Vercel runtime error aggregation: no runtime errors
 
-## 8. Production status
+## Production verification — not yet claimable
 
-The final implementation was merged to `main` after preview build verification. Production deployment verification must always be read against the latest `main` deployment, not an older rollback candidate.
+The Vercel project currently has a READY preview deployment for the final implementation, but the available Vercel deployment-management interface did not provide a working promotion/redeploy operation for the merged `main` commit. The production domain still resolves to an older production deployment.
 
-## 9. Governance
+Therefore **production deployment and production AR/EN runtime verification are intentionally NOT marked PASS**.
 
-This document is now the current handoff/state document. It replaces the previous OPEN/INCOMPLETE handoff state.
+This document must be changed to `CLOSED` only after the latest `main` commit is deployed to the production target and AR, EN, switching, and RTL/LTR are verified there.
 
-`I18N_TERMINOLOGY_AUDIT.md` remains an active governance document for canonical terminology. It is not a runtime translation engine.
+## Governance
 
-## 10. Non-regression rule
-
-Future PJ/admin work must continue using the same render-time i18n contract. New user-facing strings must not bypass localization, and new catalogs must pass the build-time integrity gate.
-
-**Final state: I18N LANGUAGE SYSTEM CLOSED.**
+`I18N_TERMINOLOGY_AUDIT.md` remains the active canonical terminology governance document. Future PJ/admin work must continue using the render-time i18n contract and must pass the catalog integrity gate.
