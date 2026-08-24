@@ -27,5 +27,10 @@ export const SUPPORTED_TIMEZONES: string[] = [
   "America/New_York", "America/Los_Angeles",
 ];
 
-/** Canonical ISO 4217 currency codes. Labels are rendered through the locale catalog. */
-export const SUPPORTED_CURRENCIES: string[] = ["SAR", "AED", "KWD", "QAR", "BHD", "OMR", "JOD", "USD", "EUR", "GBP", "EGP"];
+/**
+ * Canonical ISO 4217 currency codes: Arab League currencies plus USD and EUR.
+ * User-facing currency names/symbols are rendered through the active locale.
+ */
+export const SUPPORTED_CURRENCIES: string[] = [
+  "DZD", "BHD", "KMF", "DJF", "EGP", "IQD", "JOD", "KWD", "LBP", "LYD", "MAD", "MRU", "OMR", "QAR", "SAR", "SOS", "SDG", "SYP", "TND", "AED", "YER", "USD", "EUR",
+];
