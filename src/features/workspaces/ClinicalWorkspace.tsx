@@ -48,7 +48,7 @@ export function ClinicalWorkspace({ initialQueue = [] }: { initialQueue?: Enrich
         if (visit) { setExamination(visit.examination); setFindings(visit.findings); setDecision(visit.decision); }
       } else setCurrent(null);
       if (procedures.length === 0) setProcedures(await getClinicalProcedures());
-    } catch (e) { setError(e instanceof Error ? e.message : c.loadFailed); }
+    } catch (e) { console.error("[ClinicalWorkspace] refresh failed", e); setError(c.loadFailed); }
     finally { setLoading(false); }
   }, [user, procedures.length, c.loadFailed]);
 
@@ -58,10 +58,10 @@ export function ClinicalWorkspace({ initialQueue = [] }: { initialQueue?: Enrich
     return () => { cancelled = true; };
   }, [refresh]);
 
-  const run = async (fn: () => Promise<unknown>) => { setError(null); try { await fn(); await refresh(); } catch (e) { setError(e instanceof Error ? e.message : c.actionFailed); } };
+  const run = async (fn: () => Promise<unknown>) => { setError(null); try { await fn(); await refresh(); } catch (e) { console.error("[ClinicalWorkspace] action failed", e); setError(c.actionFailed); } };
   const startNext = async (session: EnrichedSession) => { await run(async () => { await transitionToClinical(session.id); }); };
-  const save = async () => { if (!current) return; setSaving(true); setError(null); try { await saveClinicalVisit(current.id, { examination, findings, decision }); await refresh(); } catch (e) { setError(e instanceof Error ? e.message : c.saveFailed); } finally { setSaving(false); } };
-  const finish = async () => { if (!current) return; setSaving(true); setError(null); try { await finishClinicalVisit(current.id, { examination, findings, decision }); await refresh(); } catch (e) { setError(e instanceof Error ? e.message : c.finishFailed); } finally { setSaving(false); } };
+  const save = async () => { if (!current) return; setSaving(true); setError(null); try { await saveClinicalVisit(current.id, { examination, findings, decision }); await refresh(); } catch (e) { console.error("[ClinicalWorkspace] save failed", e); setError(c.saveFailed); } finally { setSaving(false); } };
+  const finish = async () => { if (!current) return; setSaving(true); setError(null); try { await finishClinicalVisit(current.id, { examination, findings, decision }); await refresh(); } catch (e) { console.error("[ClinicalWorkspace] finish failed", e); setError(c.finishFailed); } finally { setSaving(false); } };
   const addProcedure = async () => { if (!current || !selectedProcedure) return; await run(async () => { await addVisitProcedure(current.id, selectedProcedure); setSelectedProcedure(""); }); };
   const waiting = sessions.filter((s) => s.session_status === "waiting");
   const returned = sessions.filter((s) => s.session_status === "pending_close");
