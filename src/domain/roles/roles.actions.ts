@@ -21,6 +21,10 @@ async function requirePermission(userId: string, tenantId: string, perm: string)
   if (!effectivePerms.includes(perm as any)) throw "PERMISSION_DENIED";
 }
 
+function stableErrorCode(error: unknown): string {
+  return typeof error === "string" && /^[A-Z][A-Z0-9_]+$/.test(error) ? error : "UNKNOWN";
+}
+
 export async function updateRolePermissions(roleId: string, permissionIds: string[]): Promise<UpdateRolePermissionsResult> {
   const supabase = await createClient();
   try {
@@ -44,9 +48,9 @@ export async function updateRolePermissions(roleId: string, permissionIds: strin
     revalidatePath("/settings");
     return { success: true, error: null };
   } catch (err) {
-    const message = typeof err === "string" ? err : err instanceof Error ? err.message : "UNKNOWN";
-    console.error("[updateRolePermissions] error:", message);
-    return { success: false, error: message };
+    const code = stableErrorCode(err);
+    console.error("[updateRolePermissions] error:", code);
+    return { success: false, error: code };
   }
 }
 
@@ -76,9 +80,9 @@ export async function createRole(input: CreateRoleInput): Promise<RoleActionResu
     revalidatePath("/settings");
     return { success: true, error: null, roleId: roleData.id };
   } catch (err) {
-    const message = typeof err === "string" ? err : err instanceof Error ? err.message : "UNKNOWN";
-    console.error("[createRole] error:", message);
-    return { success: false, error: message };
+    const code = stableErrorCode(err);
+    console.error("[createRole] error:", code);
+    return { success: false, error: code };
   }
 }
 
@@ -101,9 +105,9 @@ export async function updateRole(input: UpdateRoleInput): Promise<RoleActionResu
     revalidatePath("/settings");
     return { success: true, error: null };
   } catch (err) {
-    const message = typeof err === "string" ? err : err instanceof Error ? err.message : "UNKNOWN";
-    console.error("[updateRole] error:", message);
-    return { success: false, error: message };
+    const code = stableErrorCode(err);
+    console.error("[updateRole] error:", code);
+    return { success: false, error: code };
   }
 }
 
@@ -124,8 +128,8 @@ export async function deleteRole(roleId: string): Promise<RoleActionResult> {
     revalidatePath("/settings");
     return { success: true, error: null };
   } catch (err) {
-    const message = typeof err === "string" ? err : err instanceof Error ? err.message : "UNKNOWN";
-    console.error("[deleteRole] error:", message);
-    return { success: false, error: message };
+    const code = stableErrorCode(err);
+    console.error("[deleteRole] error:", code);
+    return { success: false, error: code };
   }
 }
