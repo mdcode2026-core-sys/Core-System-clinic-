@@ -1,6 +1,13 @@
 import type { Locale } from "@/core/i18n/messages";
 
-const localeCode = (locale: Locale): string => (locale === "ar" ? "ar-JO" : "en-US");
+/**
+ * Application locale policy:
+ * - language is independent from country/market
+ * - Arabic and English are the only UI locales
+ * - Western digits (0123456789) are mandatory in both languages
+ * - currency is an independent business preference
+ */
+const localeCode = (locale: Locale): string => (locale === "ar" ? "ar" : "en-US");
 
 export function formatCurrency(
   subunits: number,
@@ -11,6 +18,7 @@ export function formatCurrency(
   return new Intl.NumberFormat(localeCode(locale), {
     style: "currency",
     currency,
+    numberingSystem: "latn",
   }).format(amount);
 }
 
