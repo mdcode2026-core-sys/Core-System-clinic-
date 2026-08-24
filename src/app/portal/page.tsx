@@ -1,32 +1,53 @@
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/infrastructure/supabase/server";
 import { hasEntitlement, hasCapability } from "@/core/entitlements/entitlementEngine";
 import { PatientFileDownloadButton } from "@/features/patient-portal/patient-file-download-button";
 import { PatientMessaging } from "@/features/patient-portal/patient-messaging";
+import { getPortalMessages } from "@/core/i18n/portalMessages";
+import type { Locale } from "@/core/i18n/messages";
+
+function resolveLocale(value: string | undefined): Locale {
+  return value === "ar" || value === "en" ? value : "en";
+}
 
 export default async function PatientPortalPage() {
+  const cookieStore = await cookies();
+  const locale = resolveLocale(cookieStore.get("core-system-locale")?.value ?? cookieStore.get("tenant-language")?.value);
+  const messages = getPortalMessages(locale);
+  const numberLocale = locale === "ar" ? "ar-u-nu-latn" : "en-u-nu-latn";
+  const direction = locale === "ar" ? "rtl" : "ltr";
+  const formatDateTime = (value: string) => new Intl.DateTimeFormat(numberLocale, { dateStyle: "medium", timeStyle: "short" }).format(new Date(value));
+  const formatNumber = (value: number) => new Intl.NumberFormat(numberLocale, { useGrouping: true }).format(value);
+  const appointmentStatus: Record<string, string> = locale === "ar"
+    ? { scheduled: "مجدول", confirmed: "مؤكد", completed: "مكتمل", cancelled: "ملغى", no_show: "لم يحضر", waiting: "قيد الانتظار", in_consultation: "قيد الكشف", pending_close: "بانتظار الإغلاق" }
+    : { scheduled: "Scheduled", confirmed: "Confirmed", completed: "Completed", cancelled: "Cancelled", no_show: "No show", waiting: "Waiting", in_consultation: "In consultation", pending_close: "Pending close" };
+  const appointmentType: Record<string, string> = locale === "ar"
+    ? { consultation: "استشارة", follow_up: "متابعة", procedure: "إجراء", treatment: "علاج", walk_in: "مراجع دون موعد" }
+    : { consultation: "Consultation", follow_up: "Follow-up", procedure: "Procedure", treatment: "Treatment", walk_in: "Walk-in" };
+
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/portal/activate");
   const { data: identity } = await supabase.from("patient_identities").select("id,status").eq("auth_user_id", user.id).maybeSingle();
-  if (!identity || identity.status !== "active") return <main className="mx-auto max-w-lg p-6"><h1 className="text-2xl font-semibold">Patient Portal</h1><p className="mt-2 text-sm text-muted-foreground">Your patient portal identity is not active yet.</p></main>;
+  if (!identity || identity.status !== "active") return <main className="mx-auto max-w-lg p-6" dir={direction}><h1 className="text-2xl font-semibold">{messages.title}</h1><p className="mt-2 text-sm text-muted-foreground">{messages.portalIdentityInactive}</p></main>;
   const { data: relationship } = await supabase.from("patient_clinic_relationships").select("tenant_id,clinic_patient_id,status").eq("patient_identity_id", identity.id).eq("status", "active").limit(1).maybeSingle();
-  if (!relationship) return <main className="mx-auto max-w-lg p-6"><h1 className="text-2xl font-semibold">Patient Portal</h1><p className="mt-2 text-sm text-muted-foreground">No active clinic relationship is available for this account.</p></main>;
+  if (!relationship) return <main className="mx-auto max-w-lg p-6" dir={direction}><h1 className="text-2xl font-semibold">{messages.title}</h1><p className="mt-2 text-sm text-muted-foreground">{messages.noClinicRelationship}</p></main>;
   const portalEnabled = await hasEntitlement(relationship.tenant_id, "patient_portal");
-  if (!portalEnabled || !(await hasCapability(relationship.tenant_id, "patient_portal.access"))) return <main className="mx-auto max-w-lg p-6"><h1 className="text-2xl font-semibold">Patient Portal</h1><p className="mt-2 text-sm text-muted-foreground">Patient Portal is not currently enabled for this clinic.</p></main>;
+  if (!portalEnabled || !(await hasCapability(relationship.tenant_id, "patient_portal.access"))) return <main className="mx-auto max-w-lg p-6" dir={direction}><h1 className="text-2xl font-semibold">{messages.title}</h1><p className="mt-2 text-sm text-muted-foreground">{messages.clinicPortalDisabled}</p></main>;
   const advancedEnabled = await hasEntitlement(relationship.tenant_id, "patient_experience.advanced");
   const { data: patient } = await supabase.from("clinic_patients").select("first_name,last_name,email,phone_primary,file_number").eq("id", relationship.clinic_patient_id).eq("tenant_id", relationship.tenant_id).maybeSingle();
-  if (!patient) return <main className="mx-auto max-w-lg p-6"><h1 className="text-2xl font-semibold">Patient Portal</h1><p className="mt-2 text-sm text-muted-foreground">Patient record could not be loaded.</p></main>;
+  if (!patient) return <main className="mx-auto max-w-lg p-6" dir={direction}><h1 className="text-2xl font-semibold">{messages.title}</h1><p className="mt-2 text-sm text-muted-foreground">{messages.patientRecordUnavailable}</p></main>;
   const now = new Date().toISOString();
   const { data: appointments } = await supabase.from("master_agenda_events").select("id,event_type,visit_type,scheduled_start,scheduled_end,status,room_id,doctor_id").eq("patient_id", relationship.clinic_patient_id).eq("tenant_id", relationship.tenant_id).gte("scheduled_start", now).neq("status", "cancelled").order("scheduled_start", { ascending: true }).limit(20);
   const { data: releases } = await supabase.from("patient_portal_medical_file_releases").select("medical_file_id,expires_at,medical_files(original_filename,file_kind,size_bytes,created_at)").eq("clinic_patient_id", relationship.clinic_patient_id).eq("tenant_id", relationship.tenant_id).eq("status", "active").order("released_at", { ascending: false });
 
-  return <main className="min-h-screen bg-muted/20 p-6" dir="auto"><div className="mx-auto max-w-4xl">
-    <header className="rounded-2xl border bg-background p-6 shadow-sm"><p className="text-sm font-medium text-muted-foreground">CORE SYSTEM</p><h1 className="mt-1 text-3xl font-semibold">Patient Portal</h1><p className="mt-2 text-sm text-muted-foreground">Secure access to your information with this clinic.</p></header>
-    <section className="mt-6 rounded-2xl border bg-background p-6 shadow-sm"><h2 className="text-xl font-semibold">My profile</h2><div className="mt-4 grid gap-4 sm:grid-cols-2"><div><span className="text-xs text-muted-foreground">Name</span><p className="font-medium">{patient.first_name} {patient.last_name}</p></div><div><span className="text-xs text-muted-foreground">File number</span><p className="font-medium">{patient.file_number ?? "—"}</p></div><div><span className="text-xs text-muted-foreground">Email</span><p className="font-medium">{patient.email ?? "—"}</p></div><div><span className="text-xs text-muted-foreground">Phone</span><p className="font-medium">{patient.phone_primary}</p></div></div></section>
-    <section className="mt-6 rounded-2xl border bg-background p-6 shadow-sm"><h2 className="text-xl font-semibold">Appointments</h2>{!appointments?.length ? <p className="mt-2 text-sm text-muted-foreground">No upcoming appointments.</p> : <div className="mt-4 space-y-3">{appointments.map((appointment) => <div key={appointment.id} className="rounded-xl border p-4"><p className="font-medium">{new Date(appointment.scheduled_start).toLocaleString()}</p><p className="mt-1 text-xs text-muted-foreground">{appointment.visit_type ?? appointment.event_type} · {appointment.status ?? "scheduled"}</p></div>)}</div>}</section>
-    <section className="mt-6 rounded-2xl border bg-background p-6 shadow-sm"><h2 className="text-xl font-semibold">Medical files</h2>{!releases?.length ? <p className="mt-2 text-sm text-muted-foreground">No medical files have been released to you.</p> : <div className="mt-4 space-y-3">{releases.map((release) => { const file = Array.isArray(release.medical_files) ? release.medical_files[0] : release.medical_files; if (!file) return null; return <div key={release.medical_file_id} className="flex items-center justify-between gap-4 rounded-xl border p-4"><div className="min-w-0"><p className="truncate font-medium">{file.original_filename}</p><p className="text-xs text-muted-foreground">{file.file_kind} · {Number(file.size_bytes).toLocaleString()} bytes</p></div><PatientFileDownloadButton tenantId={relationship.tenant_id} medicalFileId={release.medical_file_id} /></div>; })}</div>}</section>
-    {advancedEnabled ? <section className="mt-6"><PatientMessaging tenantId={relationship.tenant_id} /></section> : <section className="mt-6 rounded-2xl border bg-background p-6 shadow-sm"><h2 className="font-semibold">Advanced patient experience</h2><p className="mt-2 text-sm text-muted-foreground">Advanced messaging and future patient engagement capabilities are available when the clinic has the Advanced Patient Experience entitlement.</p></section>}
-    <section className="mt-6 rounded-2xl border bg-background p-6 shadow-sm"><h2 className="font-semibold">Security</h2><p className="mt-2 text-sm text-muted-foreground">Your portal access is limited to this clinic relationship.</p></section>
+  return <main className="min-h-screen bg-muted/20 p-6" dir={direction}><div className="mx-auto max-w-4xl">
+    <header className="rounded-2xl border bg-background p-6 shadow-sm"><p className="text-sm font-medium text-muted-foreground">CORE SYSTEM</p><h1 className="mt-1 text-3xl font-semibold">{messages.title}</h1><p className="mt-2 text-sm text-muted-foreground">{messages.secureAccess}</p></header>
+    <section className="mt-6 rounded-2xl border bg-background p-6 shadow-sm"><h2 className="text-xl font-semibold">{messages.profile}</h2><div className="mt-4 grid gap-4 sm:grid-cols-2"><div><span className="text-xs text-muted-foreground">{messages.name}</span><p className="font-medium">{patient.first_name} {patient.last_name}</p></div><div><span className="text-xs text-muted-foreground">{messages.fileNumber}</span><p className="font-medium">{patient.file_number ?? "—"}</p></div><div><span className="text-xs text-muted-foreground">{messages.email}</span><p className="font-medium">{patient.email ?? "—"}</p></div><div><span className="text-xs text-muted-foreground">{messages.phone}</span><p className="font-medium">{patient.phone_primary}</p></div></div></section>
+    <section className="mt-6 rounded-2xl border bg-background p-6 shadow-sm"><h2 className="text-xl font-semibold">{messages.appointments}</h2>{!appointments?.length ? <p className="mt-2 text-sm text-muted-foreground">{messages.noUpcomingAppointments}</p> : <div className="mt-4 space-y-3">{appointments.map((appointment) => { const status = appointment.status ? appointmentStatus[appointment.status] ?? messages.scheduled : appointmentStatus.scheduled; const type = appointment.visit_type ? appointmentType[appointment.visit_type] ?? messages.appointments : messages.appointments; return <div key={appointment.id} className="rounded-xl border p-4"><p className="font-medium">{formatDateTime(appointment.scheduled_start)}</p><p className="mt-1 text-xs text-muted-foreground">{type} · {status}</p></div>; })}</div>}</section>
+    <section className="mt-6 rounded-2xl border bg-background p-6 shadow-sm"><h2 className="text-xl font-semibold">{messages.medicalFiles}</h2>{!releases?.length ? <p className="mt-2 text-sm text-muted-foreground">{messages.noReleasedFiles}</p> : <div className="mt-4 space-y-3">{releases.map((release) => { const file = Array.isArray(release.medical_files) ? release.medical_files[0] : release.medical_files; if (!file) return null; return <div key={release.medical_file_id} className="flex items-center justify-between gap-4 rounded-xl border p-4"><div className="min-w-0"><p className="truncate font-medium">{file.original_filename}</p><p className="text-xs text-muted-foreground">{file.file_kind} · {formatNumber(Number(file.size_bytes))} {messages.bytes}</p></div><PatientFileDownloadButton tenantId={relationship.tenant_id} medicalFileId={release.medical_file_id} /></div>; })}</div>}</section>
+    {advancedEnabled ? <section className="mt-6"><PatientMessaging tenantId={relationship.tenant_id} /></section> : <section className="mt-6 rounded-2xl border bg-background p-6 shadow-sm"><h2 className="font-semibold">{messages.advancedExperience}</h2><p className="mt-2 text-sm text-muted-foreground">{messages.advancedExperienceDescription}</p></section>}
+    <section className="mt-6 rounded-2xl border bg-background p-6 shadow-sm"><h2 className="font-semibold">{messages.security}</h2><p className="mt-2 text-sm text-muted-foreground">{messages.securityDescription}</p></section>
   </div></main>;
 }
