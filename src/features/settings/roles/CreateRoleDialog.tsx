@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useI18n } from "@/core/i18n/I18nProvider";
 import { createRole } from "@/domain/roles/roles.actions";
 import { usePermissionsCatalog } from "@/domain/roles/roles.queries";
+import type { PermissionRow } from "@/domain/roles/roles.types";
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
@@ -38,7 +39,7 @@ export function CreateRoleDialog({ open, onClose, onSuccess }: CreateRoleDialogP
   };
 
   const canSave = roleKey.trim().length >= 2 && roleName.trim().length >= 2 && !isSaving;
-  const groupedCatalog = (catalog ?? []).reduce<Record<string, typeof catalog[number][]>>((acc, perm) => { if (!acc[perm.resource]) acc[perm.resource] = []; acc[perm.resource].push(perm); return acc; }, {});
+  const groupedCatalog = (catalog ?? []).reduce<Record<string, PermissionRow[]>>((acc, perm) => { if (!acc[perm.resource]) acc[perm.resource] = []; acc[perm.resource].push(perm); return acc; }, {});
   const direction = locale === "ar" ? "rtl" : "ltr";
 
   return (
