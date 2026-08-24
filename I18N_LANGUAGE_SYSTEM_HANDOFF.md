@@ -3,7 +3,7 @@
 **Date:** 2026-08-24  
 **Repository:** `mdcode2026-core-sys/Core-System-clinic-`  
 **Branch:** `main`  
-**Status:** **IMPLEMENTATION COMPLETE — PRODUCTION PROMOTION / FINAL PRODUCTION RUNTIME VERIFICATION PENDING**
+**Status:** **IMPLEMENTATION COMPLETE — CORRECTIVE UI/I18N BATCH APPLIED — PRODUCTION RUNTIME VERIFICATION PENDING VERCEL BUILD-RATE-LIMIT RECOVERY**
 
 ## Final architecture
 
@@ -11,19 +11,23 @@ CORE SYSTEM uses the render-time locale architecture only. The legacy DOM/post-r
 
 `messages.ts` and `terminology.ts` remain organizationally separate but are exposed through the same runtime localization contract.
 
-## Implementation completed
+## Corrective issues found after implementation review
 
-The application-wide source migration and localization hardening covered authentication, dashboard/navigation, patients, patient detail, appointments/scheduling, clinical/operation workspace, treatment plans, medical files, follow-up, notifications, Patient Portal, settings/system preferences, users, roles/permissions, subscription, audit/activity, reporting/analytics/queue surfaces, forms, dialogs, loading/empty/error/permission states, and dynamic status/role/permission/notification/subscription labels.
+A post-implementation source/runtime review identified and corrected these concrete issues:
 
-Locale behavior is `ar` → RTL and `en` → LTR. Saving system/tenant language now synchronizes the active runtime locale before reload.
+- responsive sidebar transform was controlled by an inline transform, preventing the desktop responsive rule from reliably resetting the transform; the implementation now uses responsive Tailwind transform classes with locale-aware closed direction and `lg:translate-x-0` desktop behavior
+- Follow-up dashboard widget had Arabic hard-coded content; it now uses the locale catalog
+- Analytics dashboard page heading had a hard-coded Arabic title; it now uses the locale catalog
+- Analytics overview dashboard widget had hard-coded Arabic labels and empty/error messages; it now uses analytics catalog mappings and locale direction
+- Queue dashboard widget had hard-coded Arabic labels, error/empty messages, and minute unit; it now uses queue localization and locale direction
+- Follow-up KPI formatter returned the Arabic `ساعة` directly; the value is now locale-neutral and the unit is localized by AR/EN catalog
+- billing/currency dashboard widget values could overflow on narrow three-column mobile cards; cards now use min-width constraints, word breaking, reduced mobile typography, and responsive spacing
+- generic widget error boundary exposed raw exception messages directly to users, which could leak an English/technical string into Arabic UI; it now shows the localized generic error message while retaining the technical error internally for the boundary state
+- analytics KPI engine previously executed independent KPI reads serially; it now executes independent KPI calculations concurrently and React Query caches results briefly during dashboard navigation
 
 ## Catalog integrity
 
 `npm run i18n:parity` is part of `npm run build` and verifies the current 23 catalogs for AR/EN key parity, non-empty values, duplicate keys, placeholder/interpolation parity, and shared catalog namespaces.
-
-The final Vercel preview build passed this gate:
-
-`I18N catalog integrity passed for 23 catalog files (AR/EN keys, non-empty values, duplicates, and placeholders).`
 
 ## Supabase
 
@@ -35,22 +39,26 @@ No translated UI labels were introduced into business data.
 
 ## Verification completed
 
+- source-level corrective audit: completed for the discovered dashboard/sidebar/widget issues
 - legacy DOM translation search: clean
-- catalog integrity: PASS — 23 catalogs
-- source/component localization audit: completed for application-controlled strings discovered
-- dynamic role/permission/status/tier labels: localized
-- terminology governance: updated
-- Vercel preview build: PASS
-- Vercel preview deployment: READY
-- checked Vercel runtime error aggregation: no runtime errors
+- catalog integrity implementation: present and enforced by build
+- Vercel preview build previously passed the 23-catalog integrity gate
+- independent KPI queries are now parallelized
+- analytics query results are now cached for 30 seconds / 5 minutes GC
+
+## Current deployment constraint
+
+The current `main` commit is `08906912d001d981bdbe0cc8dfcf8caa745f0e80`.
+
+Vercel is currently returning a GitHub `Vercel` status failure with an `upgradeToPro=build-rate-limit` target. The latest READY production deployment is therefore still an older commit and does **not** contain the latest corrective batch.
+
+Production AR/EN interactive verification must not be claimed until a deployment containing the current `main` commit is successfully built and promoted.
 
 ## Production verification — not yet claimable
 
-The Vercel project currently has a READY preview deployment for the final implementation, but the available Vercel deployment-management interface did not provide a working promotion/redeploy operation for the merged `main` commit. The production domain still resolves to an older production deployment.
-
 Therefore **production deployment and production AR/EN runtime verification are intentionally NOT marked PASS**.
 
-This document must be changed to `CLOSED` only after the latest `main` commit is deployed to the production target and AR, EN, switching, and RTL/LTR are verified there.
+The remaining verification is operational, not an unresolved localization design decision: once Vercel build-rate limiting permits the current `main` commit to deploy, verify the sidebar on desktop/mobile, AR↔EN switching, dashboard Follow-up/Analytics/Queue/Billing widgets, currency wrapping, and loading latency on the deployed build.
 
 ## Governance
 
