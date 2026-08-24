@@ -21,10 +21,16 @@ const kpiLabels = {
   }
 } as const;
 
+const kpiUnits = {
+  ar: { "followup.avg_delay": "ساعة" },
+  en: { "followup.avg_delay": "hours" },
+} as const;
+
 export const analyticsMessages = {
-  ar: { title: "التحليلات", loadError: "خطأ في تحميل التحليلات", noData: "لا توجد بيانات تحليلية متاحة", sections: { patients: "المرضى", appointments: "المواعيد", queue: "الطابور", revenue: "الإيرادات", invoices: "الفواتير", inventory: "المخزون", followup: "المتابعة" }, kpi: kpiLabels.ar },
-  en: { title: "Analytics", loadError: "Failed to load analytics", noData: "No analytics data available", sections: { patients: "Patients", appointments: "Appointments", queue: "Queue", revenue: "Revenue", invoices: "Invoices", inventory: "Inventory", followup: "Follow-up" }, kpi: kpiLabels.en }
+  ar: { title: "التحليلات", loadError: "خطأ في تحميل التحليلات", noData: "لا توجد بيانات تحليلية متاحة", sections: { patients: "المرضى", appointments: "المواعيد", queue: "الطابور", revenue: "الإيرادات", invoices: "الفواتير", inventory: "المخزون", followup: "المتابعة" }, kpi: kpiLabels.ar, unit: kpiUnits.ar },
+  en: { title: "Analytics", loadError: "Failed to load analytics", noData: "No analytics data available", sections: { patients: "Patients", appointments: "Appointments", queue: "Queue", revenue: "Revenue", invoices: "Invoices", inventory: "Inventory", followup: "Follow-up" }, kpi: kpiLabels.en, unit: kpiUnits.en }
 } as const;
 
 export function getAnalyticsMessages(locale: Locale) { return analyticsMessages[locale]; }
 export function getAnalyticsKpiLabel(locale: Locale, id: string) { return analyticsMessages[locale].kpi[id as keyof typeof analyticsMessages.en.kpi] ?? id; }
+export function getAnalyticsKpiUnit(locale: Locale, id: string) { return analyticsMessages[locale].unit[id as keyof typeof analyticsMessages.en.unit] ?? ""; }
