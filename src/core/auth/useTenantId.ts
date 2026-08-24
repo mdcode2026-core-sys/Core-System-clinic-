@@ -16,15 +16,16 @@ async function fetchTenantId(): Promise<TenantQueryResult> {
   return { tenantId: clinicUser?.tenant_id ?? null, userId: session.user.id };
 }
 
-/** Shared tenant identity query. Kept warm across route navigation so the workspace shell does not re-query auth + clinic_users on every page. */
+/** Shared tenant identity query. Keep the shell identity warm across route navigation. */
 export function useTenantId(): UseTenantIdReturn {
   const { data, isLoading, error } = useQuery({
     queryKey: ["tenant-id"],
     queryFn: fetchTenantId,
-    staleTime: 5 * 60 * 1000,
+    staleTime: 10 * 60 * 1000,
     gcTime: 30 * 60 * 1000,
     refetchOnWindowFocus: false,
     refetchOnMount: false,
+    retry: 1,
   });
   return { tenantId: data?.tenantId ?? null, userId: data?.userId ?? null, isLoading, error: error instanceof Error ? error.message : null };
 }
