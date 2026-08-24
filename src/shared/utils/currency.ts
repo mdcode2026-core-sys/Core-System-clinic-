@@ -1,19 +1,15 @@
 import type { Locale } from "@/core/i18n/messages";
 
 /**
- * Application locale policy:
+ * Global formatting policy:
  * - language is independent from country/market
- * - Arabic and English are the only UI locales
+ * - Arabic and English are the UI locales
  * - Western digits (0123456789) are mandatory in both languages
- * - currency is an independent business preference
+ * - currency is an explicit business preference and must be supplied by the caller
  */
 const localeCode = (locale: Locale): string => (locale === "ar" ? "ar" : "en-US");
 
-export function formatCurrency(
-  subunits: number,
-  currency = "JOD",
-  locale: Locale = "en",
-): string {
+export function formatCurrency(subunits: number, currency: string, locale: Locale = "en"): string {
   const amount = subunits / 100;
   return new Intl.NumberFormat(localeCode(locale), {
     style: "currency",
@@ -22,10 +18,5 @@ export function formatCurrency(
   }).format(amount);
 }
 
-export function subunitsToUnits(subunits: number): number {
-  return subunits / 100;
-}
-
-export function unitsToSubunits(units: number): number {
-  return Math.round(units * 100);
-}
+export function subunitsToUnits(subunits: number): number { return subunits / 100; }
+export function unitsToSubunits(units: number): number { return Math.round(units * 100); }
