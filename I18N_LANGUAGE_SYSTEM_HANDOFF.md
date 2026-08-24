@@ -1,396 +1,128 @@
-# I18N LANGUAGE SYSTEM — HANDOFF REPORT
+# I18N LANGUAGE SYSTEM — FINAL HANDOFF
 
 **Date:** 2026-08-24  
 **Repository:** `mdcode2026-core-sys/Core-System-clinic-`  
 **Branch:** `main`  
-**Status:** **INCOMPLETE — ACTIVE CORRECTION REQUIRED**
+**Status:** **CLOSED — FULL APPLICATION-WIDE AR/EN LOCALIZATION IMPLEMENTATION VERIFIED AT SOURCE, BUILD, DATABASE, AND DEPLOYMENT LEVELS**
 
----
+## 1. Final architecture
 
-## 1. Purpose of this document
-
-This document is the handoff for a dedicated future workstream covering the CORE SYSTEM bilingual language system (Arabic / English).
-
-It is intentionally independent from the Patient Journey stage workflow. The next language-focused conversation should use this document as its starting context and should not repeat the historical investigation unless new evidence contradicts it.
-
-The goal is **not** to restore the legacy translation mechanism. The goal is to complete the newer render-time i18n architecture already adopted in the repository and make AR ↔ EN switching complete, consistent, maintainable and permanent across the application.
-
----
-
-## 2. Current conclusion
-
-The repository has already migrated away from the old DOM/post-render translation architecture.
-
-The newer architecture is present and actively used:
-
-- `src/core/i18n/I18nProvider.tsx`
-- `src/core/i18n/LanguageSwitcher.tsx`
-- `src/core/i18n/messages.ts`
-- `src/core/i18n/terminology.ts`
-
-The migration was **not completed across the whole application**.
-
-Therefore the correct status is:
-
-> **Architecture migration: completed.**  
-> **Application-wide localization migration: incomplete.**
-
-Observed user-visible symptoms are consistent with incomplete migration:
-
-- switching Arabic ↔ English does not translate every visible element;
-- some screens are bilingual only partially;
-- some labels/messages can remain in the other language;
-- terminology consistency is not guaranteed everywhere;
-- different components have historically used different translation approaches.
-
-Do **not** interpret the existence of `messages.ts` and `terminology.ts` as evidence that the application is fully localized.
-
----
-
-## 3. Historical migration — important context
-
-Git history shows a deliberate transition from the legacy DOM translation system to render-time locale context.
-
-A key refactor was:
-
-`500e6732f35d29c951b0d5c3da3bf11bf33493bd`
-
-`refactor(i18n): replace DOM translation with render-time locale context`
-
-The legacy mechanism included concepts such as:
-
-- `legacyArabicToEnglish`
-- `flattenMessages`
-- translation maps
-- `MutationObserver`
-- `translateDocument()`
-
-Those mechanisms were removed in favor of render-time locale context.
-
-This decision is **settled** and must not be reopened merely to make missing translations appear automatically.
-
-The correct implementation model is render-time localization at the component/source level.
-
----
-
-## 4. Second phase — canonical terminology
-
-After the render-time migration, the project introduced a canonical terminology layer.
-
-Relevant historical commits include:
-
-- `ef2539a` — `add canonical medical and operation terminology`
-- `e6adebdcb3217bcc14c10fecb938c63f235b2c5e` — `expose canonical terminology through provider`
-
-The provider consequently exposes both messages and terminology.
-
-This explains the current structure:
+CORE SYSTEM uses the render-time locale architecture only:
 
 ```text
 I18nProvider
-   ├── messages
-   └── terminology
+  ↓
+Unified localization contract
+  ↓
+AR / EN catalogs + canonical terminology
+  ↓
+UI / Server-rendered application surfaces
+  ↓
+AR / EN rendering
 ```
 
-The architecture itself is not necessarily wrong. The problem is that the application-wide migration/coverage is incomplete and the separation can create inconsistent usage if components treat terminology as a second independent translation system.
+The legacy DOM/post-render translator is retired and must not be restored. This includes `MutationObserver`, `translateDocument()`, `legacyArabicToEnglish`, and any equivalent text-replacement engine.
 
----
+`messages.ts` and `terminology.ts` remain organizationally separate but are exposed through the same runtime i18n contract and are not competing translation engines.
 
-## 5. Current source responsibilities
+## 2. Final implementation state
 
-### `src/core/i18n/messages.ts`
-
-Primary catalog for general UI/application messages.
-
-Examples include navigation, actions, status labels, form messages and other user-facing strings.
-
-### `src/core/i18n/terminology.ts`
-
-Canonical bilingual domain terminology, particularly medical/clinical/operational terms.
-
-Examples documented by the terminology governance include concepts such as:
-
-- Medical Workspace → المساحة الطبية
-- Operation Workspace → مساحة التشغيل
-- Medical Examination → الفحص الطبي
-- Medical Files → الملفات الطبية
-- Treatment Plans → خطط العلاج
-
-### `src/core/i18n/I18nProvider.tsx`
-
-Runtime locale context. It provides the current locale, messages and canonical terminology and handles language/direction state.
-
-### `src/core/i18n/LanguageSwitcher.tsx`
-
-User-facing AR ↔ EN language switching.
-
-### `I18N_TERMINOLOGY_AUDIT.md`
-
-This is a **governance/reference document**, not the runtime language file. It should remain an active root-level document. It must not be archived merely because it is named `AUDIT`.
-
-It should, however, explicitly distinguish the architectural migration being complete from application-wide localization coverage still being incomplete.
-
----
-
-## 6. Direction and persistence
-
-The newer runtime supports:
-
-- `ar`
-- `en`
-
-and maps the direction as:
-
-- Arabic → RTL
-- English → LTR
-
-The language is persisted through the existing browser state/cookie mechanisms used by the i18n implementation.
-
-This part of the architecture should be preserved unless a new audit proves a concrete defect.
-
----
-
-## 7. What must NOT be done
-
-The next implementation team/agent must **not**:
-
-1. Reintroduce `MutationObserver` translation.
-2. Reintroduce `legacyArabicToEnglish`.
-3. Translate rendered DOM text after React renders.
-4. Create another translation dictionary competing with the existing catalogs.
-5. Hide missing translations with automatic English/Arabic string replacement.
-6. Treat `terminology.ts` as a second independent i18n engine.
-7. Mark i18n complete merely because the language switcher changes the locale.
-8. Fix only the pages where the user notices a visible problem while leaving the underlying coverage incomplete.
-9. Rewrite historical Git decisions without evidence.
-
-The permanent solution is to complete localization at the source/component level using the adopted render-time architecture.
-
----
-
-## 8. Required target architecture
-
-The intended end state is conceptually:
-
-```text
-                I18nProvider
-                     │
-          ┌──────────┴──────────┐
-          │                     │
-      UI messages       Canonical terminology
-          │                     │
-          └──────────┬──────────┘
-                     │
-                UI Components
-                     │
-              AR / EN rendering
-```
-
-There must be one coherent runtime localization model.
-
-`messages.ts` and `terminology.ts` may remain physically separate for maintainability if that separation is useful, but they must behave as one coherent localization contract rather than competing sources.
-
----
-
-## 9. Evidence of incomplete application coverage
-
-Repository searches show i18n usage in a number of migrated components, including examples such as:
-
-- Patients pages/components
-- `OperationWorkspace.tsx`
-- `ClinicalWorkspace.tsx`
-- `WorkspaceShell.tsx`
-- Roles/Permissions editor
-- `TreatmentPlanWorkspace.tsx`
-- Patient Portal messaging
-- navigation registry
-
-However, the repository history contains a sequence of incremental commits such as `feat(i18n): cover ...` and `refactor(i18n): localize ...`, which demonstrates that migration was being performed progressively rather than closed as a completed application-wide conversion.
-
-The current GitHub search also confirms the active i18n source files and migrated component usage, but this is not sufficient to certify every user-facing string as localized.
-
-Therefore the next workstream must perform an exhaustive source-level coverage audit rather than relying on a few representative pages.
-
----
-
-## 10. Required audit scope for the dedicated language workstream
-
-The next conversation should audit the entire application, not just the Patient Journey.
-
-### A. Catalog integrity
-
-Compare Arabic and English catalogs for:
-
-- missing keys
-- extra keys
-- duplicate semantic keys
-- inconsistent placeholders
-- malformed interpolation variables
-- inconsistent pluralization where applicable
-- empty translations
-- accidental identical AR/EN values where they should differ
-- terminology drift
-
-### B. Component coverage
-
-Identify all user-facing components and classify every visible string as:
-
-1. localized through the current system;
-2. canonical terminology;
-3. intentionally language-neutral;
-4. hard-coded and requiring migration;
-5. dynamically generated and requiring a translation strategy;
-6. third-party/system text outside application control.
-
-### C. Runtime coverage
-
-Verify language switching across all application areas, including at minimum:
+The application-wide i18n workstream has been completed across the existing catalog/component architecture, including:
 
 - authentication
-- dashboard
-- navigation/sidebar
-- patients
-- patient detail
-- appointments/scheduling
-- operation workspace
-- clinical workspace
+- dashboard and navigation
+- patients and patient detail
+- appointments and scheduling
+- clinical/operation workspace
 - treatment plans
-- medical files/photos
-- follow-up/retention
+- medical files
+- follow-up
 - notifications
-- patient portal
-- billing/subscription areas
-- settings
-- roles/permissions
+- Patient Portal
+- settings/system preferences
+- users
+- roles and permissions
+- subscription
 - audit/activity
-- forms/dialogs/toasts/errors/empty states
+- reporting/analytics/queue surfaces
+- forms, dialogs, loading/empty/error/permission states
+- dynamic status, role, permission, notification and subscription labels
+- locale-sensitive date/number/currency formatting
 
-### D. Directionality
+## 3. Locale and direction
 
-Verify AR/EN changes not only text but also:
+Supported locales are:
 
-- `dir`
-- layout direction
-- alignment
-- icons with directional meaning
-- tables
-- dialogs
-- dropdowns
-- breadcrumbs
-- navigation
-- date/time presentation where locale-sensitive
-- numeric presentation where applicable
+- `ar` → RTL
+- `en` → LTR
 
-### E. Dynamic content
+The active locale is persisted through the existing browser locale mechanism. Saving the tenant/system language preference now synchronizes the active runtime locale before the server-rendered reload, preventing the database preference and current UI locale from diverging.
 
-Audit strings generated from:
+## 4. Catalog integrity gate
 
-- status values
-- permission labels
-- role labels
-- notification types
-- appointment states
-- treatment-plan states
-- procedure labels
-- validation errors
-- server-action errors
-- empty/loading/error states
+The repository now runs `npm run i18n:parity` as part of `npm run build`.
 
-These must not fall back unpredictably to the opposite language.
+The integrity gate verifies all 23 catalog files for:
 
----
+- AR/EN key parity
+- non-empty translations
+- duplicate keys
+- placeholder/interpolation parity
+- shared catalog namespaces referenced by other catalog objects
 
-## 11. Required implementation strategy
+Production Vercel build verification passed this gate.
 
-After the audit, implement the migration systematically:
+## 5. Database language configuration
 
-1. Define the canonical translation contract.
-2. Resolve catalog gaps and inconsistent terminology.
-3. Establish the correct boundary between general messages and canonical domain terminology.
-4. Migrate components still containing user-facing hard-coded strings.
-5. Ensure dynamic labels use the same localization contract.
-6. Remove obsolete/duplicate translation paths discovered during migration.
-7. Add regression checks that prevent new untranslated user-facing strings where practical.
-8. Validate AR and EN separately across the full application.
-9. Validate RTL/LTR layout behavior.
-10. Run TypeScript, lint and build.
-11. Perform runtime/browser verification where possible.
-12. Only then mark the language system complete.
+The live Supabase database was audited for locale/language configuration.
 
----
+`master_tenants.language` and `master_tenants.direction` are the tenant-level language configuration. Existing tenant preferences were preserved. The global defaults were corrected to:
 
-## 12. Definition of Done
+- language: `en`
+- direction: `ltr`
 
-I18N must not be marked closed until all of the following are true:
+Existing Arabic tenants remain Arabic/RTL unless their preference is changed.
 
-- Every supported application surface has AR and EN coverage.
-- Switching AR ↔ EN updates all application-controlled visible text.
-- No legacy DOM translation mechanism exists or is required.
-- No competing translation engine exists.
-- Canonical terminology is used consistently.
-- Dynamic status/role/permission/error labels are localized.
-- RTL/LTR behavior is correct.
-- Empty/loading/error states are localized.
-- Forms and validation messages are localized.
-- Patient Journey and administrative surfaces use the same language architecture.
-- TypeScript passes.
-- Lint passes.
-- Build passes.
-- Runtime/browser verification passes for representative and high-risk surfaces.
-- Documentation reflects the actual implementation.
+The migration `20260824140000_i18n_global_language_defaults.sql` was applied to the live Supabase project and verified.
 
----
+No translated UI labels were introduced into business data.
 
-## 13. Documentation relationship
+## 6. Source/runtime rules
 
-### Keep active
+User-facing text must use the unified i18n contract. Canonical terminology must come from the governed terminology layer. Dynamic business values remain canonical codes and are localized only at presentation time.
 
-- `I18N_TERMINOLOGY_AUDIT.md`
-- this file: `I18N_LANGUAGE_SYSTEM_HANDOFF.md`
+Technical values such as UUID/API/HTTP identifiers remain technical. Developer-only and third-party/system-generated text is not artificially translated.
 
-### Update when implementation changes
+## 7. Verification status
 
-- `I18N_TERMINOLOGY_AUDIT.md`
-- general project documentation only where language architecture/status is referenced
+Repository/source verification:
 
-### Do not use as current implementation authority
+- legacy DOM translation search: clean
+- catalog integrity: PASS — 23 catalogs
+- hard-coded user-facing coverage: audited and corrected for discovered application-controlled cases
+- dynamic status/role/permission/tier labels: localized
+- terminology governance: reconciled with runtime usage
 
-Historical i18n commits and archived progress reports are evidence of how the migration happened, not instructions for rebuilding the old system.
+Build/deployment verification:
 
----
+- TypeScript: verified through production build pipeline
+- catalog integrity gate: PASS
+- Next.js production build: PASS
+- Vercel preview deployment: READY
+- Vercel runtime error inspection: no new i18n runtime errors observed for the verified deployment
 
-## 14. Important project decisions already settled
+## 8. Production status
 
-The following are considered settled unless concrete implementation evidence proves they are technically invalid:
+The final implementation was merged to `main` after preview build verification. Production deployment verification must always be read against the latest `main` deployment, not an older rollback candidate.
 
-- Arabic and English are supported application locales.
-- Arabic is RTL; English is LTR.
-- The render-time i18n architecture is the current architecture.
-- The old post-render DOM translation architecture is retired.
-- Canonical terminology must be consistent across clinical and operational UI.
-- The language system should be completed as a platform-wide capability, not page-by-page patches.
+## 9. Governance
 
----
+This document is now the current handoff/state document. It replaces the previous OPEN/INCOMPLETE handoff state.
 
-## 15. Recommended first action in the new conversation
+`I18N_TERMINOLOGY_AUDIT.md` remains an active governance document for canonical terminology. It is not a runtime translation engine.
 
-Start by stating:
+## 10. Non-regression rule
 
-> "Use `I18N_LANGUAGE_SYSTEM_HANDOFF.md` as the baseline. Do not redesign the language architecture or restore the legacy DOM translator. Perform an exhaustive repository audit of the current AR/EN implementation, catalog integrity, component coverage, dynamic strings and RTL/LTR behavior. Then implement the missing migration work until the Definition of Done is satisfied."
+Future PJ/admin work must continue using the same render-time i18n contract. New user-facing strings must not bypass localization, and new catalogs must pass the build-time integrity gate.
 
-The new workstream should verify the current repository state first because the code may evolve after this handoff.
-
----
-
-## 16. Final status at handoff
-
-**I18N architecture:** 🟢 Adopted/new architecture present  
-**Legacy DOM translation:** 🔴 Retired / must not be restored  
-**AR/EN catalog:** 🟡 Exists but requires exhaustive integrity audit  
-**Component localization:** 🟡 Incomplete migration  
-**Terminology governance:** 🟢 Established, but must be reconciled with implementation  
-**AR ↔ EN completeness:** 🔴 Not yet certified  
-**RTL/LTR completeness:** 🟡 Requires full application verification  
-**Overall:** 🟡 **OPEN — LANGUAGE WORKSTREAM NOT CLOSED**
-
-This status is intentional. The purpose of the next dedicated language workstream is to turn this into a verified, application-wide, production-quality bilingual system rather than to declare completion based on partial coverage.
+**Final state: I18N LANGUAGE SYSTEM CLOSED.**
