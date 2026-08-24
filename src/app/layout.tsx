@@ -1,6 +1,6 @@
 // src/app/layout.tsx
 // Root layout — required by Next.js App Router.
-// The tenant language is the default; core-system-locale is the user's persistent UI choice.
+// Tenant language may provide the initial locale; English is the global platform fallback.
 
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
@@ -24,10 +24,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
   const language: Locale = localeCookie === "en" || localeCookie === "ar"
     ? localeCookie
-    : tenantLanguage === "en" || tenantLanguage === "ar" ? tenantLanguage : "ar";
+    : tenantLanguage === "en" || tenantLanguage === "ar" ? tenantLanguage : "en";
   const direction = directionCookie === "ltr" || directionCookie === "rtl"
     ? directionCookie
-    : language === "en" ? "ltr" : tenantDirection === "ltr" ? "ltr" : "rtl";
+    : language === "ar" ? "rtl" : tenantDirection === "rtl" ? "rtl" : "ltr";
 
   return (
     <html lang={language} dir={direction}>
