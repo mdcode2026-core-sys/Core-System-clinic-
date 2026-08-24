@@ -16,7 +16,7 @@ export function fromSubunits(subunits: number): number { return subunits / CURRE
  * Currency itself remains an independent clinic/system preference.
  * Western digits are enforced for both Arabic and English UI.
  */
-export function formatCurrency(subunits: number, currency = "JOD", locale: Locale = "ar"): string {
+export function formatCurrency(subunits: number, currency = "JOD", locale: Locale = "en"): string {
   const amount = fromSubunits(subunits);
   return new Intl.NumberFormat(locale === "ar" ? "ar" : "en-US", {
     style: "currency",
