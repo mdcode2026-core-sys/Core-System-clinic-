@@ -10,6 +10,11 @@ export const superAdminMessages = {
       patient: "مريض",
       active: "نشط",
       inactive: "معطل",
+      tiers: {
+        essential: "أساسية",
+        professional: "احترافية",
+        enterprise: "مؤسسية",
+      },
     },
   },
   en: {
@@ -21,6 +26,11 @@ export const superAdminMessages = {
       patient: "patient",
       active: "Active",
       inactive: "Disabled",
+      tiers: {
+        essential: "Essential",
+        professional: "Professional",
+        enterprise: "Enterprise",
+      },
     },
   },
 } as const;
