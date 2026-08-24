@@ -1,7 +1,7 @@
 import type { Locale } from "./messages";
 
 export const followupMessages = {
-  ar: { noScheduled: "لا توجد متابعات مجدولة.", unknownPatient: "مريض غير معروف", cancel: "إلغاء", actions: { call: "اتصال", whatsapp: "واتساب", sms: "رسالة SMS", email: "بريد إلكتروني", appointment: "موعد", review: "مراجعة", general: "عام" } },
-  en: { noScheduled: "No scheduled follow-ups.", unknownPatient: "Unknown patient", cancel: "Cancel", actions: { call: "Call", whatsapp: "WhatsApp", sms: "SMS", email: "Email", appointment: "Appointment", review: "Review", general: "General" } },
+  ar: { noScheduled: "لا توجد متابعات مجدولة.", unknownPatient: "مريض غير معروف", cancel: "إلغاء", view: "عرض:", active: "النشطة", overdue: "متأخرة", today: "اليوم", upcoming: "قادمة", all: "الكل", noInView: "لا توجد متابعات في هذا العرض.", start: "بدء العمل", recordResult: "تسجيل النتيجة", whatHappened: "ماذا حدث؟", outcome: "النتيجة (اختياري)", saveComplete: "حفظ وإكمال", status: { open: "مفتوحة", in_progress: "قيد التنفيذ", completed: "مكتملة", cancelled: "ملغاة", skipped: "متجاوزة" }, actions: { call: "اتصال", whatsapp: "واتساب", sms: "رسالة SMS", email: "بريد إلكتروني", appointment: "موعد", review: "مراجعة", general: "مهمة" } },
+  en: { noScheduled: "No scheduled follow-ups.", unknownPatient: "Unknown patient", cancel: "Cancel", view: "View:", active: "Active", overdue: "Overdue", today: "Today", upcoming: "Upcoming", all: "All", noInView: "No follow-ups in this view.", start: "Start work", recordResult: "Record result", whatHappened: "What happened?", outcome: "Outcome (optional)", saveComplete: "Save and complete", status: { open: "Open", in_progress: "In progress", completed: "Completed", cancelled: "Cancelled", skipped: "Skipped" }, actions: { call: "Call", whatsapp: "WhatsApp", sms: "SMS", email: "Email", appointment: "Appointment", review: "Review", general: "Task" } },
 } as const;
 export function getFollowupMessages(locale: Locale) { return followupMessages[locale]; }
