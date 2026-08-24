@@ -14,10 +14,10 @@ import { usePermissions } from "@/core/permissions/usePermissions";
 import { useI18n } from "@/core/i18n/I18nProvider";
 import type { InvoiceWithItems, PaymentMethod } from "@/domain/invoicing/invoicing.types";
 
-interface Props { invoice: InvoiceWithItems; }
+interface Props { invoice: InvoiceWithItems; currency: string; }
 const statusColors: Record<string, string> = { draft: "bg-gray-500", issued: "bg-blue-500", paid: "bg-green-500", partial: "bg-yellow-500", cancelled: "bg-red-500", refunded: "bg-purple-500" };
 
-export function InvoiceDetail({ invoice }: Props) {
+export function InvoiceDetail({ invoice, currency }: Props) {
   const router = useRouter();
   const { invoice: t, locale } = useI18n();
   const { hasPermission, isLoading: permLoading } = usePermissions();
@@ -27,8 +27,8 @@ export function InvoiceDetail({ invoice }: Props) {
   const remaining = invoice.total_subunits - invoice.amount_paid_subunits;
   const canUpdate = !permLoading && hasPermission("invoices:update");
   const statusLabels: Record<string, string> = { draft: t.draft, issued: t.issued, paid: t.paid, partial: t.partial, cancelled: t.cancelled, refunded: t.refunded };
-  const dateLocale = locale === "ar" ? "ar-JO" : "en-JO";
-  const money = (value: number) => formatCurrency(value);
+  const dateLocale = locale === "ar" ? "ar-u-nu-latn" : "en-u-nu-latn";
+  const money = (value: number) => formatCurrency(value, currency, locale);
   async function handleRecordPayment() { if (!canUpdate) { setPermError(t.paymentPermission); return; } }
   async function handleCancel() { if (!canUpdate) { setPermError(t.cancelPermission); return; } }
   async function handleRefund() { if (!canUpdate) { setPermError(t.refundPermission); return; } }
