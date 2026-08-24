@@ -3,68 +3,16 @@
 import { useState } from "react";
 import { useRoleWithPermissions, usePermissionsCatalog } from "@/domain/roles/roles.queries";
 import { updateRolePermissions } from "@/domain/roles/roles.actions";
-import { Button } from "@/shared/components/ui/button";
-import { Checkbox } from "@/shared/components/ui/checkbox";
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
-import { Badge } from "@/shared/components/ui/badge";
-import { Separator } from "@/shared/components/ui/separator";
-import { Save, X, Loader2, AlertTriangle } from "lucide-react";
-import { useI18n } from "@/core/i18n/I18nProvider";
-
+import { Button } from "@/shared/components/ui/button"; import { Checkbox } from "@/shared/components/ui/checkbox"; import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card"; import { Badge } from "@/shared/components/ui/badge"; import { Separator } from "@/shared/components/ui/separator"; import { Save, X, Loader2, AlertTriangle } from "lucide-react"; import { useI18n } from "@/core/i18n/I18nProvider";
 interface RolePermissionsEditorProps { roleId: string; onClose: () => void; }
-
 export function RolePermissionsEditor({ roleId, onClose }: RolePermissionsEditorProps) {
-  const { data: roleData, isLoading: roleLoading } = useRoleWithPermissions(roleId);
-  const { data: catalog, isLoading: catalogLoading } = usePermissionsCatalog();
-  const { terminology: t } = useI18n();
-  const i = t.permissions;
-  const e = t.errors;
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-  const [originalIds, setOriginalIds] = useState<Set<string>>(new Set());
-  const [isSaving, setIsSaving] = useState(false);
-  const [saveError, setSaveError] = useState<string | null>(null);
-  const [saveSuccess, setSaveSuccess] = useState(false);
-  const [loadedRoleId, setLoadedRoleId] = useState<string | undefined>(undefined);
-
-  if (roleData && roleData.permissions && roleData.id !== loadedRoleId) {
-    const ids = new Set(roleData.permissions.map((p) => p.id));
-    setLoadedRoleId(roleData.id); setOriginalIds(ids); setSelectedIds(ids);
-  }
-
-  const togglePermission = (permissionId: string) => {
-    setSelectedIds((prev) => { const next = new Set(prev); if (next.has(permissionId)) next.delete(permissionId); else next.add(permissionId); return next; });
-    setSaveSuccess(false); setSaveError(null);
-  };
-
-  const handleSave = async () => {
-    setIsSaving(true); setSaveError(null); setSaveSuccess(false);
-    const result = await updateRolePermissions(roleId, Array.from(selectedIds));
-    setIsSaving(false);
-    if (result.success) { setSaveSuccess(true); setOriginalIds(new Set(selectedIds)); }
-    else setSaveError(result.error || e.failedToSave);
-  };
-
-  const isLoading = roleLoading || catalogLoading;
-  if (isLoading) return <div className="flex items-center justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-primary" /><span className="ms-3 text-muted-foreground">{e.loading}</span></div>;
+  const { data: roleData, isLoading: roleLoading } = useRoleWithPermissions(roleId); const { data: catalog, isLoading: catalogLoading } = usePermissionsCatalog(); const { terminology: t, roleError } = useI18n(); const i = t.permissions; const e = t.errors;
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set()); const [originalIds, setOriginalIds] = useState<Set<string>>(new Set()); const [isSaving, setIsSaving] = useState(false); const [saveError, setSaveError] = useState<string | null>(null); const [saveSuccess, setSaveSuccess] = useState(false); const [loadedRoleId, setLoadedRoleId] = useState<string | undefined>(undefined);
+  if (roleData && roleData.permissions && roleData.id !== loadedRoleId) { const ids = new Set(roleData.permissions.map((p) => p.id)); setLoadedRoleId(roleData.id); setOriginalIds(ids); setSelectedIds(ids); }
+  const togglePermission = (permissionId: string) => { setSelectedIds((prev) => { const next = new Set(prev); if (next.has(permissionId)) next.delete(permissionId); else next.add(permissionId); return next; }); setSaveSuccess(false); setSaveError(null); };
+  const handleSave = async () => { setIsSaving(true); setSaveError(null); setSaveSuccess(false); const result = await updateRolePermissions(roleId, Array.from(selectedIds)); setIsSaving(false); if (result.success) { setSaveSuccess(true); setOriginalIds(new Set(selectedIds)); } else setSaveError(roleError(result.error)); };
+  const isLoading = roleLoading || catalogLoading; if (isLoading) return <div className="flex items-center justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-primary" /><span className="ms-3 text-muted-foreground">{e.loading}</span></div>;
   if (!roleData || !catalog) return <div className="text-center py-8 text-muted-foreground"><AlertTriangle className="h-8 w-8 mx-auto mb-2 text-amber-500" /><p>{e.unableToLoadRole}</p></div>;
-
-  const groupedCatalog = catalog.reduce<Record<string, typeof catalog>>((acc, perm) => { if (!acc[perm.resource]) acc[perm.resource] = []; acc[perm.resource].push(perm); return acc; }, {});
-  const hasChanges = selectedIds.size !== originalIds.size || !Array.from(selectedIds).every((id) => originalIds.has(id)) || !Array.from(originalIds).every((id) => selectedIds.has(id));
-
-  return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between"><div><h3 className="text-lg font-semibold">{i.resources["roles"]?.label || roleData.role_name}</h3><p className="text-sm text-muted-foreground">{e.choosePermissions}</p></div><Button variant="ghost" size="sm" onClick={onClose}><X className="h-4 w-4 me-1" />{e.close}</Button></div>
-      {roleData.is_system_role && <div className="rounded-md bg-amber-50 border border-amber-200 p-3 flex items-start gap-2"><AlertTriangle className="h-4 w-4 text-amber-600 mt-0.5 shrink-0" /><p className="text-sm text-amber-800">{e.systemRole}</p></div>}
-      <Separator />
-      <div className="space-y-4 max-h-[60vh] overflow-y-auto pe-1">
-        {Object.entries(groupedCatalog).map(([resource, perms]) => {
-          const groupInfo = i.resources[resource as keyof typeof i.resources];
-          const selectedCount = perms.filter((perm) => selectedIds.has(perm.id)).length;
-          return <Card key={resource} className="border-border"><CardHeader className="pb-2"><div className="flex items-center justify-between"><CardTitle className="text-sm font-semibold">{groupInfo?.label || resource}</CardTitle><Badge variant={selectedCount > 0 ? "default" : "outline"} className="text-xs">{selectedCount} / {perms.length}</Badge></div>{groupInfo?.description && <p className="text-xs text-muted-foreground">{groupInfo.description}</p>}</CardHeader><CardContent className="pt-0"><div className="grid grid-cols-2 gap-2">{perms.map((perm) => <label key={perm.id} className={`flex items-center gap-2 rounded-md border p-2.5 cursor-pointer transition-colors ${selectedIds.has(perm.id) ? "border-primary bg-primary/5" : "border-border hover:bg-muted/50"} ${roleData.is_system_role ? "opacity-60 cursor-not-allowed" : ""}`}><Checkbox checked={selectedIds.has(perm.id)} onCheckedChange={() => !roleData.is_system_role && togglePermission(perm.id)} disabled={roleData.is_system_role} /><div className="flex-1 min-w-0"><span className="text-sm font-medium block">{i.actions[perm.action as keyof typeof i.actions] || perm.action}</span><span className="text-xs text-muted-foreground truncate block">{perm.permission_name}</span></div></label>)}</div></CardContent></Card>;
-        })}
-      </div>
-      <Separator />
-      <div className="flex items-center justify-between"><div>{saveError && <p className="text-sm text-destructive">{saveError}</p>}{saveSuccess && <p className="text-sm text-green-600">{e.saved}</p>}</div><div className="flex gap-2"><Button variant="outline" onClick={onClose}>{e.cancel}</Button>{!roleData.is_system_role && <Button onClick={handleSave} disabled={isSaving || !hasChanges} className="gap-2">{isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}{e.saveChanges}</Button>}</div></div>
-    </div>
-  );
+  const groupedCatalog = catalog.reduce<Record<string, typeof catalog>>((acc, perm) => { if (!acc[perm.resource]) acc[perm.resource] = []; acc[perm.resource].push(perm); return acc; }, {}); const hasChanges = selectedIds.size !== originalIds.size || !Array.from(selectedIds).every((id) => originalIds.has(id)) || !Array.from(originalIds).every((id) => selectedIds.has(id));
+  return <div className="space-y-4"><div className="flex items-center justify-between"><div><h3 className="text-lg font-semibold">{i.resources["roles"]?.label || roleData.role_name}</h3><p className="text-sm text-muted-foreground">{e.choosePermissions}</p></div><Button variant="ghost" size="sm" onClick={onClose}><X className="h-4 w-4 me-1" />{e.close}</Button></div>{roleData.is_system_role && <div className="rounded-md bg-amber-50 border border-amber-200 p-3 flex items-start gap-2"><AlertTriangle className="h-4 w-4 text-amber-600 mt-0.5 shrink-0" /><p className="text-sm text-amber-800">{e.systemRole}</p></div>}<Separator /><div className="space-y-4 max-h-[60vh] overflow-y-auto pe-1">{Object.entries(groupedCatalog).map(([resource, perms]) => { const groupInfo = i.resources[resource as keyof typeof i.resources]; const selectedCount = perms.filter((perm) => selectedIds.has(perm.id)).length; return <Card key={resource} className="border-border"><CardHeader className="pb-2"><div className="flex items-center justify-between"><CardTitle className="text-sm font-semibold">{groupInfo?.label || resource}</CardTitle><Badge variant={selectedCount > 0 ? "default" : "outline"} className="text-xs">{selectedCount} / {perms.length}</Badge></div>{groupInfo?.description && <p className="text-xs text-muted-foreground">{groupInfo.description}</p>}</CardHeader><CardContent className="pt-0"><div className="grid grid-cols-2 gap-2">{perms.map((perm) => <label key={perm.id} className={`flex items-center gap-2 rounded-md border p-2.5 cursor-pointer transition-colors ${selectedIds.has(perm.id) ? "border-primary bg-primary/5" : "border-border hover:bg-muted/50"} ${roleData.is_system_role ? "opacity-60 cursor-not-allowed" : ""}`}><Checkbox checked={selectedIds.has(perm.id)} onCheckedChange={() => !roleData.is_system_role && togglePermission(perm.id)} disabled={roleData.is_system_role} /><div className="flex-1 min-w-0"><span className="text-sm font-medium block">{i.actions[perm.action as keyof typeof i.actions] || perm.action}</span><span className="text-xs text-muted-foreground truncate block">{perm.permission_name}</span></div></label>)}</div></CardContent></Card>; })}</div><Separator /><div className="flex items-center justify-between"><div>{saveError && <p className="text-sm text-destructive">{saveError}</p>}{saveSuccess && <p className="text-sm text-green-600">{e.saved}</p>}</div><div className="flex gap-2"><Button variant="outline" onClick={onClose}>{e.cancel}</Button>{!roleData.is_system_role && <Button onClick={handleSave} disabled={isSaving || !hasChanges} className="gap-2">{isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}{e.saveChanges}</Button>}</div></div></div>;
 }
