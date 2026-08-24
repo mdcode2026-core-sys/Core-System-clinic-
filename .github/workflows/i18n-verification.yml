@@ -8,6 +8,7 @@ on:
   pull_request:
     branches:
       - main
+  workflow_dispatch:
 
 jobs:
   verify:
@@ -19,6 +20,6 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm install
-      - run: npx eslint src/core/i18n/I18nProvider.tsx src/core/i18n/messages.ts src/features/doctor/MyQueueView.tsx src/features/inventory/inventory-form.tsx src/features/inventory/inventory-list.tsx src/features/medical-files/ui/DicomViewer.tsx src/features/settings/ClinicProfileForm.tsx src/features/settings/notifications/NotificationsManager.tsx src/features/settings/rooms/RoomsManager.tsx src/features/settings/system/SystemPreferencesManager.tsx src/features/settings/roles/CreateRoleDialog.tsx src/features/settings/roles/EditRoleDialog.tsx src/features/settings/roles/RolesManager.tsx src/features/workspaces/ClinicalWorkspace.tsx src/infrastructure/pwa/OfflineBanner.tsx
+      - run: npx eslint src/core/i18n/I18nProvider.tsx src/core/i18n/messages.ts src/core/i18n/adminMessages.ts src/features/doctor/MyQueueView.tsx src/features/inventory/inventory-form.tsx src/features/inventory/inventory-list.tsx src/features/medical-files/ui/DicomViewer.tsx src/features/settings/ClinicProfileForm.tsx src/features/settings/notifications/NotificationsManager.tsx src/features/settings/rooms/RoomsManager.tsx src/features/settings/system/SystemPreferencesManager.tsx src/features/settings/roles/CreateRoleDialog.tsx src/features/settings/roles/EditRoleDialog.tsx src/features/settings/roles/RolesManager.tsx src/features/settings/users/UsersManager.tsx src/features/settings/overrides/OverridesManager.tsx src/features/settings/overrides/UserPermissionEditor.tsx src/features/settings/subscriptions/SubscriptionCenter.tsx src/features/settings/audit/AuditLogManager.tsx src/features/workspaces/ClinicalWorkspace.tsx src/infrastructure/pwa/OfflineBanner.tsx 'src/app/(dashboard)/settings/page.tsx'
       - run: npm run build
       - run: npm run i18n:audit
