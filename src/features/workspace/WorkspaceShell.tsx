@@ -45,6 +45,7 @@ export function WorkspaceShell({ children, user }: WorkspaceShellProps) {
         />
       )}
 
+      {/* Sidebar intentionally mirrors the proven RTL implementation; only physical side changes for LTR. */}
       <aside
         className={cn(
           "fixed inset-y-0 z-50 w-64 transform bg-white shadow-lg transition-transform duration-200 ease-in-out lg:static lg:translate-x-0",
