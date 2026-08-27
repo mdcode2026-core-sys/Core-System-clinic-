@@ -1,21 +1,44 @@
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/infrastructure/supabase/server";
 import { resolveTenantId } from "@/core/auth/resolveTenantId";
 import { getEffectivePermissions } from "@/core/permissions/permissionEngine";
 import { canAccessCapability } from "@/core/entitlements/entitlementEngine";
 import { FinancialResourceTable, type FinancialResourceColumn } from "./financial-resource-table";
+import type { Locale } from "@/core/i18n/messages";
 
 type Resource = "payments" | "financial-plans" | "installments" | "insurance" | "insurance-claims" | "consumption" | "suppliers" | "purchasing" | "receiving";
-const config: Record<Resource, { title: string; permission: string; capability: string; table: string; columns: FinancialResourceColumn[]; select: string }> = {
-  payments: { title: "Payments", permission: "invoices:read", capability: "financial_resources.payments", table: "invoice_payments", select: "id, invoice_id, amount_subunits, payment_method, payment_date, reference", columns: [{ key: "invoice_id", label: "Invoice" }, { key: "amount", label: "Amount" }, { key: "payment_method", label: "Method" }, { key: "payment_date", label: "Date" }, { key: "reference", label: "Reference" }] },
-  "financial-plans": { title: "Financial Plans", permission: "invoices:read", capability: "financial_resources.financial_plans", table: "financial_plans", select: "id, patient_id, total_amount_subunits, insurance_covered_subunits, patient_responsibility_subunits, status, created_at", columns: [{ key: "patient_id", label: "Patient" }, { key: "total_amount", label: "Total" }, { key: "insurance_covered", label: "Insurance" }, { key: "patient_responsibility", label: "Patient responsibility" }, { key: "status", label: "Status" }, { key: "created_at", label: "Created" }] },
-  installments: { title: "Installments", permission: "invoices:read", capability: "financial_resources.installments", table: "financial_installments", select: "id, financial_plan_id, installment_no, due_date, amount_subunits, amount_paid_subunits, status", columns: [{ key: "financial_plan_id", label: "Financial plan" }, { key: "installment_no", label: "#" }, { key: "due_date", label: "Due date" }, { key: "amount", label: "Amount" }, { key: "amount_paid", label: "Paid" }, { key: "status", label: "Status" }] },
-  insurance: { title: "Insurance", permission: "insurance:read", capability: "financial_resources.insurance", table: "patient_insurance_profiles", select: "id, patient_id, payer_name, policy_number, member_number, status, claim_ready, reconciliation_status", columns: [{ key: "patient_id", label: "Patient" }, { key: "payer_name", label: "Payer" }, { key: "policy_number", label: "Policy" }, { key: "member_number", label: "Member" }, { key: "status", label: "Status" }, { key: "claim_ready", label: "Claim ready" }, { key: "reconciliation_status", label: "Reconciliation" }] },
-  "insurance-claims": { title: "Insurance Claims", permission: "insurance:read", capability: "financial_resources.insurance", table: "insurance_claims", select: "id, patient_id, insurance_profile_id, invoice_id, claim_reference, amount_claimed_subunits, amount_reconciled_subunits, status, prepared_at, reconciled_at, notes", columns: [{ key: "patient_id", label: "Patient" }, { key: "claim_reference", label: "Claim reference" }, { key: "amount_claimed", label: "Claimed" }, { key: "amount_reconciled", label: "Reconciled" }, { key: "status", label: "Status" }, { key: "prepared_at", label: "Prepared" }, { key: "reconciled_at", label: "Reconciled" }, { key: "notes", label: "Notes" }] },
-  consumption: { title: "Consumption", permission: "inventory:read", capability: "financial_resources.consumption", table: "inventory_ledger", select: "id, item_id, quantity_consumed, consumption_type, notes, created_at", columns: [{ key: "item_id", label: "Item" }, { key: "quantity_consumed", label: "Quantity" }, { key: "consumption_type", label: "Type" }, { key: "notes", label: "Notes" }, { key: "created_at", label: "Date" }] },
-  suppliers: { title: "Suppliers", permission: "purchasing:read", capability: "financial_resources.suppliers", table: "suppliers", select: "id, name, contact_name, phone, email, status", columns: [{ key: "name", label: "Supplier" }, { key: "contact_name", label: "Contact" }, { key: "phone", label: "Phone" }, { key: "email", label: "Email" }, { key: "status", label: "Status" }] },
-  purchasing: { title: "Purchasing", permission: "purchasing:read", capability: "financial_resources.purchasing", table: "purchase_orders", select: "id, order_number, supplier_id, order_date, expected_date, total_subunits, status", columns: [{ key: "order_number", label: "PO number" }, { key: "supplier_id", label: "Supplier" }, { key: "order_date", label: "Order date" }, { key: "expected_date", label: "Expected" }, { key: "total", label: "Total" }, { key: "status", label: "Status" }] },
-  receiving: { title: "Receiving", permission: "purchasing:read", capability: "financial_resources.receiving", table: "purchase_receipts", select: "id, purchase_order_id, receipt_number, received_at, received_by", columns: [{ key: "receipt_number", label: "Receipt" }, { key: "purchase_order_id", label: "Purchase order" }, { key: "received_at", label: "Received at" }, { key: "received_by", label: "Received by" }] },
+type Localized = { ar: string; en: string };
+type ResourceConfig = { title: Localized; permission: string; capability: string; table: string; orderBy: string; columns: Array<FinancialResourceColumn & { labelAr: string }>; select: string };
+
+const config: Record<Resource, ResourceConfig> = {
+  payments: { title: { ar: "المدفوعات", en: "Payments" }, permission: "invoices:read", capability: "financial_resources.payments", table: "invoice_payments", orderBy: "payment_date", select: "id, invoice_id, amount_subunits, payment_method, payment_date, payment_reference, transaction_id, notes", columns: [
+    { key: "invoice_id", label: "Invoice", labelAr: "الفاتورة" }, { key: "amount", label: "Amount", labelAr: "المبلغ" }, { key: "payment_method", label: "Method", labelAr: "طريقة الدفع" }, { key: "payment_date", label: "Date", labelAr: "التاريخ" }, { key: "payment_reference", label: "Reference", labelAr: "المرجع" }, { key: "transaction_id", label: "Transaction", labelAr: "المعاملة" }, { key: "notes", label: "Notes", labelAr: "ملاحظات" },
+  ] },
+  "financial-plans": { title: { ar: "الخطط المالية", en: "Financial Plans" }, permission: "invoices:read", capability: "financial_resources.financial_plans", table: "financial_plans", orderBy: "created_at", select: "id, patient_id, treatment_plan_id, total_amount_subunits, insurance_covered_subunits, patient_responsibility_subunits, currency, status, notes, created_at", columns: [
+    { key: "patient_id", label: "Patient", labelAr: "المريض" }, { key: "treatment_plan_id", label: "Treatment plan", labelAr: "الخطة العلاجية" }, { key: "total_amount", label: "Total", labelAr: "الإجمالي" }, { key: "insurance_covered", label: "Insurance covered", labelAr: "التغطية التأمينية" }, { key: "patient_responsibility", label: "Patient responsibility", labelAr: "مسؤولية المريض" }, { key: "currency", label: "Currency", labelAr: "العملة" }, { key: "status", label: "Status", labelAr: "الحالة" }, { key: "notes", label: "Notes", labelAr: "ملاحظات" }, { key: "created_at", label: "Created", labelAr: "تاريخ الإنشاء" },
+  ] },
+  installments: { title: { ar: "الأقساط", en: "Installments" }, permission: "invoices:read", capability: "financial_resources.installments", table: "financial_installments", orderBy: "due_date", select: "id, financial_plan_id, installment_no, due_date, amount_subunits, amount_paid_subunits, status, invoice_id, notes, created_at", columns: [
+    { key: "financial_plan_id", label: "Financial plan", labelAr: "الخطة المالية" }, { key: "installment_no", label: "#", labelAr: "رقم القسط" }, { key: "due_date", label: "Due date", labelAr: "تاريخ الاستحقاق" }, { key: "amount", label: "Amount", labelAr: "المبلغ" }, { key: "amount_paid", label: "Paid", labelAr: "المدفوع" }, { key: "status", label: "Status", labelAr: "الحالة" }, { key: "notes", label: "Notes", labelAr: "ملاحظات" }, { key: "created_at", label: "Created", labelAr: "تاريخ الإنشاء" },
+  ] },
+  insurance: { title: { ar: "التأمين", en: "Insurance" }, permission: "insurance:read", capability: "financial_resources.insurance", table: "patient_insurance_profiles", orderBy: "created_at", select: "id, patient_id, payer_name, policy_number, member_number, coverage_summary, patient_responsibility_subunits, status, claim_ready, reconciliation_status, effective_from, effective_to, notes, created_at", columns: [
+    { key: "patient_id", label: "Patient", labelAr: "المريض" }, { key: "payer_name", label: "Payer", labelAr: "شركة التأمين" }, { key: "policy_number", label: "Policy", labelAr: "رقم الوثيقة" }, { key: "member_number", label: "Member", labelAr: "رقم العضوية" }, { key: "coverage_summary", label: "Coverage", labelAr: "التغطية" }, { key: "patient_responsibility", label: "Patient responsibility", labelAr: "مسؤولية المريض" }, { key: "status", label: "Status", labelAr: "الحالة" }, { key: "claim_ready", label: "Claim ready", labelAr: "جاهز للمطالبة" }, { key: "reconciliation_status", label: "Reconciliation", labelAr: "التسوية" }, { key: "effective_from", label: "Effective from", labelAr: "ساري من" }, { key: "effective_to", label: "Effective to", labelAr: "ساري حتى" }, { key: "notes", label: "Notes", labelAr: "ملاحظات" },
+  ] },
+  "insurance-claims": { title: { ar: "مطالبات التأمين", en: "Insurance Claims" }, permission: "insurance:read", capability: "financial_resources.insurance", table: "insurance_claims", orderBy: "created_at", select: "id, patient_id, insurance_profile_id, invoice_id, claim_reference, amount_claimed_subunits, amount_reconciled_subunits, status, prepared_at, reconciled_at, notes, created_at", columns: [
+    { key: "patient_id", label: "Patient", labelAr: "المريض" }, { key: "claim_reference", label: "Claim reference", labelAr: "مرجع المطالبة" }, { key: "amount_claimed", label: "Claimed", labelAr: "المطالب به" }, { key: "amount_reconciled", label: "Reconciled", labelAr: "تمت تسويته" }, { key: "status", label: "Status", labelAr: "الحالة" }, { key: "prepared_at", label: "Prepared", labelAr: "تاريخ الإعداد" }, { key: "reconciled_at", label: "Reconciled", labelAr: "تاريخ التسوية" }, { key: "notes", label: "Notes", labelAr: "ملاحظات" },
+  ] },
+  consumption: { title: { ar: "الاستهلاك", en: "Consumption" }, permission: "inventory:read", capability: "financial_resources.consumption", table: "inventory_ledger", orderBy: "created_at", select: "id, item_id, material_name, quantity_consumed, consumption_type, procedure_id, session_id, notes, created_at", columns: [
+    { key: "material_name", label: "Material", labelAr: "المادة" }, { key: "quantity_consumed", label: "Quantity", labelAr: "الكمية" }, { key: "consumption_type", label: "Type", labelAr: "النوع" }, { key: "procedure_id", label: "Procedure", labelAr: "الإجراء" }, { key: "session_id", label: "Visit session", labelAr: "جلسة الزيارة" }, { key: "notes", label: "Notes", labelAr: "ملاحظات" }, { key: "created_at", label: "Date", labelAr: "التاريخ" },
+  ] },
+  suppliers: { title: { ar: "الموردون", en: "Suppliers" }, permission: "purchasing:read", capability: "financial_resources.suppliers", table: "suppliers", orderBy: "created_at", select: "id, name, name_ar, contact_name, phone, email, address, tax_identifier, status, notes, created_at", columns: [
+    { key: "name", label: "Supplier", labelAr: "المورد" }, { key: "contact_name", label: "Contact", labelAr: "جهة الاتصال" }, { key: "phone", label: "Phone", labelAr: "الهاتف" }, { key: "email", label: "Email", labelAr: "البريد الإلكتروني" }, { key: "address", label: "Address", labelAr: "العنوان" }, { key: "tax_identifier", label: "Tax identifier", labelAr: "الرقم الضريبي" }, { key: "status", label: "Status", labelAr: "الحالة" }, { key: "notes", label: "Notes", labelAr: "ملاحظات" },
+  ] },
+  purchasing: { title: { ar: "المشتريات", en: "Purchasing" }, permission: "purchasing:read", capability: "financial_resources.purchasing", table: "purchase_orders", orderBy: "order_date", select: "id, order_number, supplier_id, order_date, expected_date, subtotal_subunits, tax_subunits, total_subunits, status, notes, created_at", columns: [
+    { key: "order_number", label: "PO number", labelAr: "رقم أمر الشراء" }, { key: "supplier_id", label: "Supplier", labelAr: "المورد" }, { key: "order_date", label: "Order date", labelAr: "تاريخ الطلب" }, { key: "expected_date", label: "Expected", labelAr: "التاريخ المتوقع" }, { key: "subtotal", label: "Subtotal", labelAr: "المجموع الفرعي" }, { key: "tax", label: "Tax", labelAr: "الضريبة" }, { key: "total", label: "Total", labelAr: "الإجمالي" }, { key: "status", label: "Status", labelAr: "الحالة" }, { key: "notes", label: "Notes", labelAr: "ملاحظات" },
+  ] },
+  receiving: { title: { ar: "الاستلام", en: "Receiving" }, permission: "purchasing:read", capability: "financial_resources.receiving", table: "purchase_receipts", orderBy: "received_at", select: "id, purchase_order_id, receipt_number, received_at, received_by, notes, created_at", columns: [
+    { key: "receipt_number", label: "Receipt", labelAr: "رقم الاستلام" }, { key: "purchase_order_id", label: "Purchase order", labelAr: "أمر الشراء" }, { key: "received_at", label: "Received at", labelAr: "تاريخ الاستلام" }, { key: "received_by", label: "Received by", labelAr: "تم الاستلام بواسطة" }, { key: "notes", label: "Notes", labelAr: "ملاحظات" }, { key: "created_at", label: "Created", labelAr: "تاريخ الإنشاء" },
+  ] },
 };
 
 export async function FinancialResourceListPage({ resource }: { resource: Resource }) {
@@ -31,8 +54,10 @@ export async function FinancialResourceListPage({ resource }: { resource: Resour
   const capability = await canAccessCapability(tenantId, item.capability);
   if (!capability.allowed) redirect("/financial-resources");
 
+  const localeCookie = (await cookies()).get("core-system-locale")?.value;
+  const locale: Locale = localeCookie === "ar" ? "ar" : "en";
   const [{ data, error }, { data: tenant }] = await Promise.all([
-    supabase.from(item.table).select(item.select).eq("tenant_id", tenantId).order("created_at", { ascending: false }).limit(200),
+    supabase.from(item.table).select(item.select).eq("tenant_id", tenantId).order(item.orderBy, { ascending: false }).limit(200),
     supabase.from("master_tenants").select("currency").eq("id", tenantId).maybeSingle(),
   ]);
   if (error) throw error;
@@ -41,23 +66,24 @@ export async function FinancialResourceListPage({ resource }: { resource: Resour
   const formatMoney = (value: unknown) => {
     const subunits = Number(value);
     if (!Number.isFinite(subunits)) return "—";
-    return new Intl.NumberFormat(undefined, { style: "currency", currency, minimumFractionDigits: 2 }).format(subunits / 100);
+    return new Intl.NumberFormat(locale === "ar" ? "ar" : "en", { style: "currency", currency, minimumFractionDigits: 2 }).format(subunits / 100);
   };
-  const formatDate = (value: unknown) => value ? new Intl.DateTimeFormat(undefined, { dateStyle: "medium" }).format(new Date(String(value))) : "—";
+  const formatDate = (value: unknown) => value ? new Intl.DateTimeFormat(locale === "ar" ? "ar" : "en", { dateStyle: "medium" }).format(new Date(String(value))) : "—";
 
+  const columns = item.columns.map(({ key, label, labelAr }) => ({ key, label: locale === "ar" ? labelAr : label }));
   const rows: Record<string, string | number | null>[] = Array.isArray(data)
     ? data.map((row) => {
         const source = row as Record<string, unknown>;
         const display: Record<string, string | number | null> = {};
         for (const [key, value] of Object.entries(source)) {
-          if (key === "id" || key === "tenant_id" || key === "insurance_profile_id" || key === "invoice_id" || key === "created_by") continue;
+          if (["id", "tenant_id", "insurance_profile_id", "created_by"].includes(key)) continue;
           if (key.endsWith("_subunits")) display[key.replace(/_subunits$/, "")] = formatMoney(value);
-          else if (["created_at", "payment_date", "order_date", "expected_date", "received_at", "due_date", "prepared_at", "reconciled_at"].includes(key)) display[key] = formatDate(value);
+          else if (["created_at", "payment_date", "order_date", "expected_date", "received_at", "due_date", "prepared_at", "reconciled_at", "effective_from", "effective_to"].includes(key)) display[key] = formatDate(value);
           else display[key] = value == null ? null : String(value);
         }
         return display;
       })
     : [];
 
-  return <div className="space-y-4"><div><h1 className="text-2xl font-bold">{item.title}</h1><p className="text-sm text-muted-foreground">Financial & Resources</p></div><FinancialResourceTable title={item.title} columns={item.columns} rows={rows} /></div>;
+  return <div className="space-y-4" dir={locale === "ar" ? "rtl" : "ltr"}><div><h1 className="text-2xl font-bold">{item.title[locale]}</h1><p className="text-sm text-muted-foreground">{locale === "ar" ? "المالية والموارد" : "Financial & Resources"}</p></div><FinancialResourceTable title={item.title[locale]} columns={columns} rows={rows} /></div>;
 }
