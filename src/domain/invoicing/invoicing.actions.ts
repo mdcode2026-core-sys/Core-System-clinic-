@@ -60,22 +60,10 @@ export async function recordPayment(input: RecordPaymentInput): Promise<ActionRe
   if (!(await requirePermission(ctx.user.id, ctx.tenantId, "invoices:payment"))) return { success: false, error: "Permission denied" };
   if (!Number.isInteger(input.amount_subunits) || input.amount_subunits <= 0) return { success: false, error: "Payment amount must be positive" };
   const { data: invoice } = await ctx.supabase.from("clinic_invoices").select("id, invoice_status, total_subunits, amount_paid_subunits").eq("id", input.invoice_id).eq("tenant_id", ctx.tenantId).maybeSingle();
-  if (!invoice) return { success: false, error: "Invoice not found" }; if (["cancelled", "refunded", "draft"].includes(invoice.invoice_status ?? "")) return { success: false, error: "Invoice is not payable" };
-  const remaining = invoice.total_subunits - invoice.amount_paid_subunits; if (input.amount_subunits > remaining) return { success: false, error: "Payment exceeds remaining balance" };
-  if (input.installment_id) {
-    const { data: installment } = await ctx.supabase.from("financial_installments").select("id, amount_subunits, amount_paid_subunits, invoice_id").eq("id", input.installment_id).eq("tenant_id", ctx.tenantId).maybeSingle();
-    if (!installment) return { success: false, error: "Installment not found" };
-    if (installment.invoice_id && installment.invoice_id !== input.invoice_id) return { success: false, error: "Installment is linked to another invoice" };
-    if (input.amount_subunits > installment.amount_subunits - installment.amount_paid_subunits) return { success: false, error: "Payment exceeds installment balance" };
-  }
-  const { data, error } = await ctx.supabase.rpc("record_invoice_payment", { p_tenant_id: ctx.tenantId, p_invoice_id: input.invoice_id, p_amount_subunits: input.amount_subunits, p_payment_method: input.payment_method, p_payment_reference: input.reference_number ?? null, p_notes: input.notes ?? null, p_collected_by: ctx.clinicUser.id });
+  if (!invoice) return { success: false, error: "Invoice not found" };
+  const { data, error } = await ctx.supabase.rpc("record_invoice_payment_with_installment", { p_tenant_id: ctx.tenantId, p_invoice_id: input.invoice_id, p_amount_subunits: input.amount_subunits, p_payment_method: input.payment_method, p_payment_reference: input.reference_number ?? null, p_notes: input.notes ?? null, p_collected_by: ctx.clinicUser.id, p_installment_id: input.installment_id ?? null });
   if (error) return { success: false, error: error.message }; const result = data as { success?: boolean; error?: string; payment_id?: string };
   if (!result.success || !result.payment_id) return { success: false, error: result.error ?? "Unable to record payment" };
-  if (input.installment_id) {
-    const { data: allocation, error: allocationError } = await ctx.supabase.rpc("apply_payment_to_installment", { p_tenant_id: ctx.tenantId, p_installment_id: input.installment_id, p_amount_subunits: input.amount_subunits });
-    if (allocationError || !(allocation as { success?: boolean })?.success) return { success: false, error: allocationError?.message ?? "Unable to allocate installment payment" };
-    await ctx.supabase.from("invoice_payments").update({ installment_id: input.installment_id }).eq("id", result.payment_id).eq("tenant_id", ctx.tenantId);
-  }
   revalidatePath(`/invoices/${input.invoice_id}`); revalidatePath("/invoices"); return { success: true, data: { payment_id: result.payment_id } };
 }
 
