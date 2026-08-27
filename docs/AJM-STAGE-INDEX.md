@@ -14,8 +14,8 @@ This file is the quick-reference index for the AJM implementation program. It is
 | Stage | Name | Primary scope | Governing domain reference | Status |
 |---|---|---|---|---|
 | AJM-0 | Baseline & Readiness | Repository/runtime reconciliation, classification and implementation lock | Master Blueprint | CLOSED |
-| AJM-1 | Team & Access Foundation | Users, settings, workspaces, roles, Permission Catalog, bundles, overrides, effective access | `docs/TEAM-ACCESS-ENGINEERING-BLUEPRINT.md` | **CLOSED** |
-| AJM-2 | Financial & Resources Foundation | Billing, payments, installments, insurance minimum, inventory, purchasing, suppliers, resource data | Financial & Resources domain specification / integration reference | NEXT |
+| AJM-1 | Team & Access Foundation | Users, settings, workspaces, roles, Permission Catalog, bundles, overrides, effective access | `docs/TEAM-ACCESS-ENGINEERING-BLUEPRINT.md` | CLOSED |
+| AJM-2 | Financial & Resources Foundation | Billing, payments, installments, insurance minimum, inventory, purchasing, suppliers, resource data | Financial & Resources domain specification / integration reference | CLOSED |
 | AJM-3 | Workforce & Operations Foundation | Staff, availability, scheduling, capacity, leave, payroll, recruitment, benefits, productivity | `docs/CLINIC-OPERATIONS-WORKFORCE-REFERENCE.md` and integration reference | GATED |
 | AJM-4 | Communications Foundation | Internal communication, patient communication, Portal communication, notifications | Communications engineering blueprint | GATED |
 | AJM-5 | Journey Coordination Foundation | Tasks, requests, handoffs, next actions, escalation, Work Center | `docs/JOURNEY-COORDINATION-ENGINEERING-BLUEPRINT.md` | GATED |
@@ -33,6 +33,6 @@ A stage is not considered closed because its implementation code exists. The sta
 
 ## Current program status
 
-**AJM-0 CLOSED. AJM-1 CLOSED.**
+**AJM-0 CLOSED. AJM-1 CLOSED. AJM-2 CLOSED.**
 
-**Next action:** begin AJM-2 — Financial & Resources Foundation after its own Read → Inspect → Runtime Verification → Reconcile gate.
+**Next action:** AJM-3 — Workforce & Operations Foundation, subject to its own Read → Inspect → Runtime Verification → Reconcile gate.
