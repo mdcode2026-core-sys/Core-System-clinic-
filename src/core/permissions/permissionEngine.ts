@@ -40,3 +40,11 @@ export async function getEffectivePermissions(userId: string, tenantId: string):
 
   return Array.from(permissions) as Permission[];
 }
+
+export async function hasEffectivePermission(permission: string, userId: string): Promise<boolean> {
+  const supabase = await createClient();
+  const { data: tenantId, error } = await supabase.rpc("get_current_tenant_id");
+  if (error || !tenantId) return false;
+  const permissions = await getEffectivePermissions(userId, tenantId);
+  return permissions.includes(permission as Permission);
+}

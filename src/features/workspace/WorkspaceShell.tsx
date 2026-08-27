@@ -28,6 +28,7 @@ export function WorkspaceShell({ children, user }: WorkspaceShellProps) {
 
   const handleSignOut = async () => { await supabase.auth.signOut(); router.push("/login"); router.refresh(); };
   const closeSidebar = () => setSidebarOpen(false);
+  const getLabel = (item: (typeof navigationRegistry)[number]) => item.label ? item.label[locale] : item.labelKey ? messages.nav[item.labelKey] : item.href;
 
   return (
     <div className="flex h-screen w-full overflow-hidden bg-gray-50">
@@ -39,7 +40,7 @@ export function WorkspaceShell({ children, user }: WorkspaceShellProps) {
             <button type="button" onClick={closeSidebar} className="rounded-md p-1.5 hover:bg-gray-100" aria-label={messages.shell.closeMenu} title={messages.shell.closeMenu}><X className="h-5 w-5" /></button>
           </div>
           <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4">
-            {filteredNav.map((item) => { const isActive = pathname === item.href; return <Link key={item.href} href={item.href} prefetch onClick={closeSidebar} className={cn("flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors", isActive ? "bg-blue-50 text-blue-700" : "text-gray-700 hover:bg-gray-100 hover:text-gray-900")}><item.icon className="h-4 w-4 shrink-0" /><span>{messages.nav[item.labelKey]}</span></Link>; })}
+            {filteredNav.map((item) => { const isActive = pathname === item.href; return <Link key={item.href} href={item.href} prefetch onClick={closeSidebar} className={cn("flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors", isActive ? "bg-blue-50 text-blue-700" : "text-gray-700 hover:bg-gray-100 hover:text-gray-900")}><item.icon className="h-4 w-4 shrink-0" /><span>{getLabel(item)}</span></Link>; })}
           </nav>
         </div>
       </aside>

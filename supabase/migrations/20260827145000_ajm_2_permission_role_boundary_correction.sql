@@ -1,0 +1,4 @@
+-- Narrow AJM-2 role assignments to preserve separation of duties.
+delete from public.role_permissions rp using public.roles r, public.permissions p where rp.role_id=r.id and rp.permission_id=p.id and r.role_key='receptionist' and p.permission_key in('invoices:discount','invoices:cancel','inventory:adjust','purchasing:manage','insurance:manage');
+insert into public.role_permissions(role_id,permission_id) select r.id,p.id from public.roles r cross join public.permissions p where r.role_key in('clinic_admin','accounting') and p.permission_key in('inventory:adjust','purchasing:manage','purchasing:read','insurance:manage','insurance:read') on conflict do nothing;
+insert into public.role_permissions(role_id,permission_id) select r.id,p.id from public.roles r cross join public.permissions p where r.role_key='receptionist' and p.permission_key='insurance:read' on conflict do nothing;
