@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { createClient } from "@/infrastructure/supabase/client";
 import { useTenantId } from "@/core/auth/useTenantId";
+import { isClinicAdminUser } from "@/core/permissions/permissionEngine";
 
 export interface UseEntitlementsReturn {
   capabilities: string[];
@@ -13,8 +14,17 @@ export interface UseEntitlementsReturn {
 }
 
 export function useEntitlements(): UseEntitlementsReturn {
-  const { tenantId, isLoading: tenantLoading, error: tenantError } = useTenantId();
+  const { tenantId, userId, isLoading: tenantLoading, error: tenantError } = useTenantId();
   const supabase = createClient();
+
+  const { data: clinicAdmin = false, isLoading: adminLoading, error: adminError } = useQuery({
+    queryKey: ["clinic-admin-access", userId, tenantId],
+    queryFn: () => isClinicAdminUser(userId as string, tenantId as string),
+    enabled: !tenantLoading && !!userId && !!tenantId,
+    staleTime: 10 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+    refetchOnWindowFocus: false,
+  });
 
   const { data: capabilities = [], isLoading: capabilityLoading, error: capabilityError } = useQuery({
     queryKey: ["tenant-capabilities", tenantId],
@@ -35,18 +45,18 @@ export function useEntitlements(): UseEntitlementsReturn {
       if (mappingsError) throw mappingsError;
       return [...new Set((mappings ?? []).map((row) => row.capability_key))];
     },
-    enabled: !tenantLoading && !!tenantId,
+    enabled: !tenantLoading && !!tenantId && !clinicAdmin,
     staleTime: 10 * 60 * 1000,
     gcTime: 30 * 60 * 1000,
     refetchOnWindowFocus: false,
   });
 
-  const hasCapability = (key: string) => capabilities.includes(key);
-  const isLoading = tenantLoading || (!!tenantId && capabilityLoading);
-  const error = tenantError ?? (capabilityError instanceof Error ? capabilityError.message : null);
+  const hasCapability = (key: string) => clinicAdmin || capabilities.includes(key);
+  const isLoading = tenantLoading || adminLoading || (!clinicAdmin && !!tenantId && capabilityLoading);
+  const error = tenantError ?? (adminError instanceof Error ? adminError.message : capabilityError instanceof Error ? capabilityError.message : null);
 
   return useMemo(
     () => ({ capabilities, hasCapability, isLoading, error }),
-    [capabilities, hasCapability, isLoading, error],
+    [capabilities, clinicAdmin, isLoading, error],
   );
 }
