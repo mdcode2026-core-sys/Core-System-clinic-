@@ -37,7 +37,7 @@ AJM-2 preserves **Independent Modules + Integrated Platform**.
 
 **Financial & Resources is a first-class tenant-facing product surface and primary Sidebar section.** It is not a duplicate financial domain and not merely a dashboard card collection.
 
-The surface is organized as:
+The approved surface is organized as:
 
 ```text
 Financial & Resources
@@ -56,7 +56,7 @@ Financial & Resources
 └── Receiving
 ```
 
-This hierarchy describes the user-facing product surface. It does not merge domain ownership in the backend.
+The hierarchy is a user-facing product surface. It does not merge domain ownership in the backend.
 
 ### Visibility and packaging
 
@@ -76,6 +76,8 @@ Visible/enabled surface and permitted actions
 
 The AJM product model distinguishes **Core**, **Advanced**, and **Add-on / Independent product** capabilities. AJM-2 must not use a raw subscription tier as an authorization shortcut. Where a capability is subscription-dependent, the data foundation may exist before the feature is exposed.
 
+For AJM-2 specifically, the current implementation plan explicitly marks the minimum listed financial/resource backbone as **Core**, including Installments and the minimum Insurance capability. Deeper financial automation and external insurer-system integration remain Advanced/deferred. Future Advanced/Add-on surfaces must use the same entitlement/capability chain rather than hard-coded plan names.
+
 A capability may therefore be:
 
 - enabled for the tenant and permitted for the user;
@@ -87,6 +89,8 @@ Licensing never replaces authorization. A tenant may have a capability while an 
 ### User-visible properties
 
 Operational properties needed to understand and operate a financial/resource record must be visible in its appropriate list/detail/action surface. Technical implementation fields such as internal IDs, tenant IDs, generated bookkeeping fields, RPC metadata and other internal mechanics remain hidden unless a specific administrative use case requires them.
+
+Monetary subunit storage fields are converted to tenant currency for user-facing display. Internal foreign-key identifiers are not exposed as standalone technical columns when they are not useful to the operator.
 
 The system must not create duplicate records or duplicate engines merely to make a capability visible in this surface.
 
@@ -113,7 +117,7 @@ Invariants are enforced in the database:
 
 Structured patient insurance profiles and claim-preparation records were added with payer, policy/member references, coverage context, patient responsibility where known, claim-ready state, reconciliation status and claim preparation records.
 
-External payer integrations remain Advanced/deferred scope.
+The tenant-facing surface includes Insurance and a Claims child route. External payer integrations remain Advanced/deferred scope.
 
 ### Inventory / Consumption
 
@@ -130,6 +134,7 @@ All AJM-2 mutations follow:
 ```text
 Authentication
  → server tenant resolution
+ → entitlement/capability gate where applicable
  → effective permission
  → input/business validation
  → database transaction
@@ -144,6 +149,8 @@ Role assignments remain governed by AJM-1. Role, permission, workspace and capab
 Production RPC signatures and field names are reconciled with repository calls. AJM-2 tables remain represented in the repository migration stream.
 
 The existing invoice and inventory surfaces are extended/reorganized rather than replaced by duplicate engines.
+
+The current branch also records the production `financial_resources.core` entitlement and its Core capability mappings. The migration provisions this entitlement for active subscribed tenant plans in the existing subscription model; the application does not authorize directly from a raw `subscription_tier`/plan-name comparison.
 
 ## 7. Validation requirements
 
@@ -177,7 +184,7 @@ AJM-2 does not include:
 
 ## 9. Current reconciliation status
 
-The underlying financial/resource data foundation and security work exist, but the former implementation did not fully express the approved Product Surface. The current AJM-2 reconciliation therefore remains **IN PROGRESS** until the user-facing hierarchy, capability visibility, licensing/entitlement behavior and runtime E2E are proven.
+The underlying financial/resource data foundation, security model and user-facing surfaces are now being reconciled into the approved Financial & Resources product surface. The stage remains **IN PROGRESS** until entitlement-aware navigation/runtime and authenticated E2E evidence are complete.
 
 No AJM-3 implementation is authorized from this document while AJM-2 remains open.
 
@@ -192,7 +199,7 @@ AJM-2 may be marked CLOSED only when all of the following are evidenced:
 5. User actions remain governed by effective permissions.
 6. User-visible properties are complete while internal implementation complexity remains hidden.
 7. Billing, payments, financial plans and installments operate against the canonical financial model.
-8. Minimum insurance is operationally represented.
+8. Minimum insurance and claims preparation are operationally represented.
 9. Inventory/consumption use the canonical inventory model and ledger.
 10. Suppliers, purchasing and receiving operate transactionally and integrate with canonical inventory.
 11. Tenant isolation and RLS are verified.
