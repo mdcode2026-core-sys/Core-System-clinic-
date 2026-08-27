@@ -4,20 +4,9 @@
 import type { Permission } from "@/core/permissions/types";
 import { messages } from "@/core/i18n/messages";
 import {
-  LayoutDashboard,
-  Users,
-  CalendarDays,
-  ListOrdered,
-  FileText,
-  Package,
-  FileBarChart,
-  BarChart3,
-  PhoneCall,
-  Settings,
-  BriefcaseBusiness,
-  Stethoscope,
-  ClipboardList,
-  WalletCards,
+  LayoutDashboard, Users, CalendarDays, ListOrdered, FileText, Package,
+  FileBarChart, BarChart3, PhoneCall, Settings, BriefcaseBusiness,
+  Stethoscope, ClipboardList,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -40,9 +29,8 @@ export const navigationRegistry: NavItem[] = [
   { href: "/patients", labelKey: "patients", icon: Users, requiredPermission: "patients:read" },
   { href: "/agenda", labelKey: "agenda", icon: CalendarDays, requiredPermission: "agenda:read" },
   { href: "/queue", labelKey: "queue", icon: ListOrdered, requiredPermission: "sessions:read" },
-  { href: "/invoices", labelKey: "invoices", icon: FileText, requiredPermission: "invoices:read" },
-  { href: "/financial-resources", labelKey: null, label: { ar: "المالية والموارد", en: "Financial & Resources" }, icon: WalletCards, requiredPermission: "invoices:read" },
-  { href: "/inventory", labelKey: "inventory", icon: Package, requiredPermission: "inventory:read" },
+  { href: "/invoices", labelKey: null, label: { ar: "الفواتير والمالية", en: "Billing & Financial" }, icon: FileText, requiredPermission: "invoices:read" },
+  { href: "/inventory", labelKey: null, label: { ar: "المخزون والمشتريات", en: "Inventory & Purchasing" }, icon: Package, requiredPermission: "inventory:read" },
   { href: "/reports", labelKey: "reports", icon: FileBarChart, requiredPermission: "reports:read" },
   { href: "/analytics", labelKey: "analytics", icon: BarChart3, requiredPermission: "analytics:read" },
   { href: "/follow-up", labelKey: "followUp", icon: PhoneCall, requiredPermission: "followup:read" },
