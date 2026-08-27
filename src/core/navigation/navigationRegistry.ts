@@ -17,14 +17,17 @@ import {
   BriefcaseBusiness,
   Stethoscope,
   ClipboardList,
+  WalletCards,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 export type NavigationLabelKey = keyof typeof messages.en.nav;
+export type NavigationLabel = { ar: string; en: string };
 
 export interface NavItem {
   href: string;
-  labelKey: NavigationLabelKey;
+  labelKey: NavigationLabelKey | null;
+  label?: NavigationLabel;
   icon: LucideIcon;
   requiredPermission: Permission | null;
 }
@@ -38,6 +41,7 @@ export const navigationRegistry: NavItem[] = [
   { href: "/agenda", labelKey: "agenda", icon: CalendarDays, requiredPermission: "agenda:read" },
   { href: "/queue", labelKey: "queue", icon: ListOrdered, requiredPermission: "sessions:read" },
   { href: "/invoices", labelKey: "invoices", icon: FileText, requiredPermission: "invoices:read" },
+  { href: "/financial-resources", labelKey: null, label: { ar: "المالية والموارد", en: "Financial & Resources" }, icon: WalletCards, requiredPermission: "invoices:read" },
   { href: "/inventory", labelKey: "inventory", icon: Package, requiredPermission: "inventory:read" },
   { href: "/reports", labelKey: "reports", icon: FileBarChart, requiredPermission: "reports:read" },
   { href: "/analytics", labelKey: "analytics", icon: BarChart3, requiredPermission: "analytics:read" },
