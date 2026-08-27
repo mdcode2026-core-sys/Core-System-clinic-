@@ -5,276 +5,96 @@ import { createClient } from "@/infrastructure/supabase/server";
 import { getEffectivePermissions } from "@/core/permissions/permissionEngine";
 import type { CreateUserInput, UpdateUserInput, UserActionResult } from "./users.types";
 
-/*
- * ═══════════════════════════════════════════════════════════════════════════════
- * M2.3 — User Management Server Actions
- * ═══════════════════════════════════════════════════════════════════════════════
- *
- * AUTHENTICATION ARCHITECTURE NOTE (CRITICAL):
- * ───────────────────────────────────────────
- * The application layer (Server Actions) does NOT have access to service_role
- * keys and MUST NOT call auth.signUp() from an authenticated session — doing so
- * would replace the administrator's session with the newly-created user's session.
- *
- * Therefore createClinicUser() inserts a clinic_users row with auth_user_id = NULL
- * and status = 'pending_auth'. The actual auth.users record must be created later
- * by an external provisioning mechanism (Supabase Dashboard, Edge Function, or
- * admin CLI) and then linked by updating auth_user_id.
- *
- * This design prevents:
- *   - Session hijacking/replacement
- *   - Orphaned auth.users records
- *   - Partial creation states
- *
- * DEPENDENCY: A separate auth-provisioning step is required to create the
- * actual Supabase Auth user and link auth_user_id.
- * ═══════════════════════════════════════════════════════════════════════════════
- */
-
-/**
- * Helper: Resolve caller identity and tenant via the canonical pattern.
- * Returns { user, tenantId } or throws an error string.
- */
 async function resolveCaller() {
   const supabase = await createClient();
-
   const { data: { user }, error: authError } = await supabase.auth.getUser();
-  if (authError || !user) {
-    throw "Unauthorized";
-  }
-
-  const { data: clinicUser, error: clinicError } = await supabase
-    .from("clinic_users")
-    .select("tenant_id, role")
-    .eq("auth_user_id", user.id)
-    .limit(1)
-    .maybeSingle();
-
-  if (clinicError || !clinicUser?.tenant_id) {
-    throw "Tenant resolution failed";
-  }
-
-  return { user, tenantId: clinicUser.tenant_id, callerRole: clinicUser.role };
+  if (authError || !user) throw "UNAUTHORIZED";
+  const { data: clinicUser, error } = await supabase.from("clinic_users").select("id,tenant_id").eq("auth_user_id", user.id).maybeSingle();
+  if (error || !clinicUser?.tenant_id) throw "TENANT_RESOLUTION_FAILED";
+  return { user, tenantId: clinicUser.tenant_id, callerClinicUserId: clinicUser.id };
 }
 
-/**
- * Helper: Check a permission server-side.
- */
-async function requirePermission(userId: string, tenantId: string, perm: string) {
-  const effectivePerms = await getEffectivePermissions(userId, tenantId);
-  if (!effectivePerms.includes(perm as any)) {
-    throw `Permission denied: ${perm} required`;
-  }
+async function requirePermission(userId: string, tenantId: string, permission: string) {
+  const permissions = await getEffectivePermissions(userId, tenantId);
+  if (!permissions.includes(permission as any)) throw "PERMISSION_DENIED";
 }
 
-/**
- * Helper: Verify target user belongs to caller's tenant.
- */
-async function verifyTenantOwnership(
-  supabase: any,
-  targetUserId: string,
-  tenantId: string
-) {
-  const { data, error } = await supabase
-    .from("clinic_users")
-    .select("id, role")
-    .eq("id", targetUserId)
-    .eq("tenant_id", tenantId)
-    .maybeSingle();
-
-  if (error || !data) {
-    throw "Target user not found or does not belong to this tenant";
-  }
-
+async function resolveRole(supabase: any, roleId: string, tenantId: string) {
+  const { data, error } = await supabase.from("roles").select("id,role_key,tenant_id,is_system_role").eq("id", roleId).maybeSingle();
+  if (error || !data) throw "ROLE_NOT_FOUND";
+  if (!data.is_system_role && data.tenant_id !== tenantId) throw "ROLE_WRONG_TENANT";
+  if (data.role_key === "super_admin") throw "ROLE_NOT_ASSIGNABLE";
   return data;
 }
 
-/* ─────────────────────────────────────────────────────────────────────────── */
-
-/**
- * Create a new clinic user record.
- *
- * Authorization: requires `users:create`.
- * Does NOT create an Auth user — sets auth_user_id = NULL pending external
- * provisioning. The caller must arrange auth account creation separately.
- */
 export async function createClinicUser(input: CreateUserInput): Promise<UserActionResult> {
   try {
     const supabase = await createClient();
     const { user, tenantId } = await resolveCaller();
     await requirePermission(user.id, tenantId, "users:create");
+    const role = await resolveRole(supabase, input.role_id, tenantId);
 
-    // "super_admin" is not part of the approved M2 role model and can
-    // never be assigned. The database enforces this independently (see
-    // the M2 role-authorization trigger on clinic_users), but rejecting
-    // it here too gives a clear, immediate error instead of a raw
-    // database exception.
-    if ((input.role as string) === "super_admin") {
-      return { success: false, error: "الدور المحدد غير متاح للتخصيص" };
-    }
-
-    // Validate role exists (system role by key, or custom role by template_id)
-    if (input.role_template_id) {
-      const { data: roleData, error: roleError } = await supabase
-        .from("roles")
-        .select("id, tenant_id, is_system_role")
-        .eq("id", input.role_template_id)
-        .maybeSingle();
-
-      if (roleError || !roleData) {
-        return { success: false, error: "Selected role template not found" };
-      }
-
-      if (!roleData.is_system_role && roleData.tenant_id !== tenantId) {
-        return { success: false, error: "Role template does not belong to this tenant" };
-      }
-    } else {
-      // Verify the role_key exists in roles table
-      const { data: roleData, error: roleError } = await supabase
-        .from("roles")
-        .select("id")
-        .eq("role_key", input.role)
-        .maybeSingle();
-
-      if (roleError || !roleData) {
-        return { success: false, error: "Invalid system role" };
-      }
-    }
-
-    // Insert clinic_users row — auth_user_id is NULL pending external provisioning
-    const { data: inserted, error: insertError } = await supabase
-      .from("clinic_users")
-      .insert({
-        tenant_id: tenantId,
-        auth_user_id: null,
-        role: input.role,
-        role_template_id: input.role_template_id ?? null,
-        full_name: input.full_name,
-        email: input.email,
-        phone: input.phone ?? null,
-        is_active: true,
-      })
-      .select("id")
-      .single();
-
-    if (insertError) {
-      console.error("[createClinicUser] insert error:", insertError.message);
-      return { success: false, error: "Failed to create clinic user" };
-    }
-
+    const { data: inserted, error } = await supabase.from("clinic_users").insert({
+      tenant_id: tenantId,
+      auth_user_id: null,
+      role: role.role_key,
+      role_id: role.id,
+      role_template_id: role.is_system_role ? role.id : null,
+      full_name: input.full_name.trim(),
+      email: input.email.trim(),
+      phone: input.phone?.trim() || null,
+      is_active: true,
+    }).select("id").single();
+    if (error) return { success: false, error: "USER_CREATE_FAILED" };
     revalidatePath("/settings");
     return { success: true, error: null, userId: inserted.id };
   } catch (err) {
-    const message = typeof err === "string" ? err : err instanceof Error ? err.message : "Unknown error";
-    console.error("[createClinicUser] error:", message);
-    return { success: false, error: message };
+    return { success: false, error: typeof err === "string" ? err : "UNKNOWN" };
   }
 }
 
-/**
- * Update an existing clinic user's details.
- *
- * Authorization: requires `users:update`.
- * clinic_admin is the sole full operational administrator of the clinic
- * per the approved M2 role model — there is no higher-privileged role
- * inside the clinic whose account requires special protection here.
- */
 export async function updateClinicUser(input: UpdateUserInput): Promise<UserActionResult> {
   try {
     const supabase = await createClient();
     const { user, tenantId } = await resolveCaller();
     await requirePermission(user.id, tenantId, "users:update");
+    const { data: target, error: targetError } = await supabase.from("clinic_users").select("id,tenant_id,role_id").eq("id", input.id).eq("tenant_id", tenantId).maybeSingle();
+    if (targetError || !target) return { success: false, error: "USER_NOT_FOUND" };
 
-    // Verify ownership
-    await verifyTenantOwnership(supabase, input.id, tenantId);
-
-    // "super_admin" is not part of the approved M2 role model and can
-    // never be assigned. The database enforces this independently (see
-    // the M2 role-authorization trigger on clinic_users), but rejecting
-    // it here too gives a clear, immediate error instead of a raw
-    // database exception.
-    if ((input.role as string) === "super_admin") {
-      return { success: false, error: "الدور المحدد غير متاح للتخصيص" };
+    const updatePayload: Record<string, unknown> = {};
+    if (input.full_name !== undefined) updatePayload.full_name = input.full_name.trim();
+    if (input.email !== undefined) updatePayload.email = input.email.trim();
+    if (input.phone !== undefined) updatePayload.phone = input.phone.trim() || null;
+    if (input.role_id !== undefined) {
+      const role = await resolveRole(supabase, input.role_id, tenantId);
+      updatePayload.role_id = role.id;
+      updatePayload.role = role.role_key;
+      updatePayload.role_template_id = role.is_system_role ? role.id : null;
     }
+    if (!Object.keys(updatePayload).length) return { success: false, error: "NO_FIELDS_TO_UPDATE" };
 
-    // Build update payload (omit id)
-    const updatePayload: Record<string, any> = {};
-    if (input.full_name !== undefined) updatePayload.full_name = input.full_name;
-    if (input.email !== undefined) updatePayload.email = input.email;
-    if (input.phone !== undefined) updatePayload.phone = input.phone;
-    if (input.role !== undefined) updatePayload.role = input.role;
-    if (input.role_template_id !== undefined) updatePayload.role_template_id = input.role_template_id;
-
-    if (Object.keys(updatePayload).length === 0) {
-      return { success: false, error: "No fields to update" };
-    }
-
-    const { error: updateError } = await supabase
-      .from("clinic_users")
-      .update(updatePayload)
-      .eq("id", input.id)
-      .eq("tenant_id", tenantId);
-
-    if (updateError) {
-      console.error("[updateClinicUser] error:", updateError.message);
-      return { success: false, error: "Failed to update clinic user" };
-    }
-
+    const { error } = await supabase.from("clinic_users").update(updatePayload).eq("id", input.id).eq("tenant_id", tenantId);
+    if (error) return { success: false, error: "USER_UPDATE_FAILED" };
     revalidatePath("/settings");
     return { success: true, error: null };
   } catch (err) {
-    const message = typeof err === "string" ? err : err instanceof Error ? err.message : "Unknown error";
-    console.error("[updateClinicUser] error:", message);
-    return { success: false, error: message };
+    return { success: false, error: typeof err === "string" ? err : "UNKNOWN" };
   }
 }
 
-/**
- * Activate or deactivate a clinic user.
- *
- * Authorization: requires `users:delete`.
- * Cannot deactivate self.
- */
-export async function toggleClinicUserActive(
-  userId: string,
-  isActive: boolean
-): Promise<UserActionResult> {
+export async function toggleClinicUserActive(userId: string, isActive: boolean): Promise<UserActionResult> {
   try {
     const supabase = await createClient();
     const { user, tenantId } = await resolveCaller();
     await requirePermission(user.id, tenantId, "users:delete");
-
-    // Verify ownership
-    await verifyTenantOwnership(supabase, userId, tenantId);
-
-    // Cannot deactivate self
-    const { data: callerClinicUser } = await supabase
-      .from("clinic_users")
-      .select("id")
-      .eq("auth_user_id", user.id)
-      .eq("tenant_id", tenantId)
-      .maybeSingle();
-
-    if (callerClinicUser?.id === userId && !isActive) {
-      return { success: false, error: "Cannot deactivate your own account" };
-    }
-
-    const { error: updateError } = await supabase
-      .from("clinic_users")
-      .update({ is_active: isActive })
-      .eq("id", userId)
-      .eq("tenant_id", tenantId);
-
-    if (updateError) {
-      console.error("[toggleClinicUserActive] error:", updateError.message);
-      return { success: false, error: "Failed to update user status" };
-    }
-
+    const { data: target } = await supabase.from("clinic_users").select("id,auth_user_id").eq("id", userId).eq("tenant_id", tenantId).maybeSingle();
+    if (!target) return { success: false, error: "USER_NOT_FOUND" };
+    if (target.auth_user_id === user.id && !isActive) return { success: false, error: "CANNOT_DEACTIVATE_SELF" };
+    const { error } = await supabase.from("clinic_users").update({ is_active: isActive }).eq("id", userId).eq("tenant_id", tenantId);
+    if (error) return { success: false, error: "USER_STATUS_UPDATE_FAILED" };
     revalidatePath("/settings");
     return { success: true, error: null };
   } catch (err) {
-    const message = typeof err === "string" ? err : err instanceof Error ? err.message : "Unknown error";
-    console.error("[toggleClinicUserActive] error:", message);
-    return { success: false, error: message };
+    return { success: false, error: typeof err === "string" ? err : "UNKNOWN" };
   }
 }
