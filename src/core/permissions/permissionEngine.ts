@@ -3,104 +3,40 @@
 import { createClient } from "@/infrastructure/supabase/server";
 import type { Permission } from "./types";
 
-export async function getEffectivePermissions(
-  userId: string,
-  tenantId: string
-): Promise<Permission[]> {
+export async function getEffectivePermissions(userId: string, tenantId: string): Promise<Permission[]> {
   const supabase = await createClient();
-
-  const { data: clinicUsers, error: userError } = await supabase
+  const { data: clinicUser, error: userError } = await supabase
     .from("clinic_users")
-    .select("id, role, tenant_id, role_template_id")
+    .select("id, tenant_id, role_id, role_template_id, is_active")
     .eq("auth_user_id", userId)
-    .limit(1);
+    .eq("tenant_id", tenantId)
+    .maybeSingle();
 
-  if (userError) {
-    console.error("[permissionEngine] Failed to fetch clinic user:", userError.message);
-    return [];
-  }
+  if (userError || !clinicUser || !clinicUser.is_active || clinicUser.tenant_id !== tenantId) return [];
 
-  if (!clinicUsers || clinicUsers.length === 0) {
-    console.warn("[permissionEngine] No clinic user found for auth_user_id:", userId);
-    return [];
-  }
+  const roleId = clinicUser.role_id ?? clinicUser.role_template_id;
+  if (!roleId) return [];
 
-  const clinicUser = clinicUsers[0];
-  const roleKey = clinicUser.role;
-  const roleTemplateId = clinicUser.role_template_id;
-
-  let roleId: string | null = null;
-
-  if (roleTemplateId) {
-    const { data: templateRole, error: templateError } = await supabase
-      .from("roles")
-      .select("id, tenant_id, is_system_role")
-      .eq("id", roleTemplateId)
-      .maybeSingle();
-
-    if (templateError) {
-      console.error("[permissionEngine] Failed to fetch template role:", templateError.message);
-    } else if (templateRole) {
-      if (templateRole.is_system_role || templateRole.tenant_id === tenantId) {
-        roleId = templateRole.id;
-      } else {
-        console.warn("[permissionEngine] Template role tenant mismatch, ignoring template");
-      }
-    }
-  }
-
-  if (!roleId) {
-    const { data: roleTemplate, error: roleError } = await supabase
-      .from("roles")
-      .select("id")
-      .eq("role_key", roleKey)
-      .maybeSingle();
-
-    if (roleError) {
-      console.error("[permissionEngine] Failed to fetch role template:", roleError.message);
-      return [];
-    }
-
-    if (!roleTemplate) {
-      console.warn("[permissionEngine] No role template found for key:", roleKey);
-      return [];
-    }
-
-    roleId = roleTemplate.id;
-  }
-
-  const { data: rolePerms, error: rpError } = await supabase
-    .from("role_permissions")
-    .select("permissions(permission_key)")
-    .eq("role_id", roleId);
-
-  if (rpError) {
-    console.error("[permissionEngine] Failed to fetch role permissions:", rpError.message);
-    return [];
-  }
-
-  const basePermissions = new Set<string>();
+  const permissions = new Set<string>();
+  const { data: rolePerms } = await supabase.from("role_permissions").select("permissions(permission_key)").eq("role_id", roleId);
   for (const rp of rolePerms ?? []) {
-    const key = (rp.permissions as any)?.permission_key as string | undefined;
-    if (key) basePermissions.add(key);
+    const key = (rp.permissions as { permission_key?: string } | null)?.permission_key;
+    if (key) permissions.add(key);
   }
 
-  const { data: overrides, error: ovError } = await supabase
-    .from("clinic_user_permission_overrides")
-    .select("granted, permissions(permission_key)")
-    .eq("user_id", clinicUser.id)
-    .eq("tenant_id", tenantId);
-
-  if (ovError) {
-    console.error("[permissionEngine] Failed to fetch overrides:", ovError.message);
-  }
-
-  for (const ov of overrides ?? []) {
-    const key = (ov.permissions as any)?.permission_key as string | undefined;
+  const { data: directPerms } = await supabase.from("clinic_user_permissions").select("granted, permissions(permission_key)").eq("user_id", clinicUser.id).eq("tenant_id", tenantId);
+  for (const item of directPerms ?? []) {
+    const key = (item.permissions as { permission_key?: string } | null)?.permission_key;
     if (!key) continue;
-    if (ov.granted === true) basePermissions.add(key);
-    else if (ov.granted === false) basePermissions.delete(key);
+    if (item.granted) permissions.add(key); else permissions.delete(key);
   }
 
-  return Array.from(basePermissions) as Permission[];
+  const { data: overrides } = await supabase.from("clinic_user_permission_overrides").select("granted, permissions(permission_key)").eq("user_id", clinicUser.id).eq("tenant_id", tenantId);
+  for (const item of overrides ?? []) {
+    const key = (item.permissions as { permission_key?: string } | null)?.permission_key;
+    if (!key) continue;
+    if (item.granted) permissions.add(key); else permissions.delete(key);
+  }
+
+  return Array.from(permissions) as Permission[];
 }
