@@ -6,6 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { LogOut, Menu, X } from "lucide-react";
 import { navigationRegistry, type NavItem } from "@/core/navigation/navigationRegistry";
 import { usePermissions } from "@/core/permissions/usePermissions";
+import { useEntitlements } from "@/core/entitlements/useEntitlements";
 import { createClient } from "@/infrastructure/supabase/client";
 import { cn } from "@/shared/utils/cn";
 import { useI18n } from "@/core/i18n/I18nProvider";
@@ -13,19 +14,24 @@ import { LanguageSwitcher } from "@/core/i18n/LanguageSwitcher";
 
 interface WorkspaceShellProps { children: React.ReactNode; user: { email?: string } | null; }
 
-export function WorkspaceShell({ children, user }: WorkspaceShellProps) {
+export function EntitlementAwareWorkspaceShell({ children, user }: WorkspaceShellProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const { hasPermission } = usePermissions();
+  const { hasPermission, isLoading: permissionsLoading } = usePermissions();
+  const { hasCapability, isLoading: entitlementsLoading } = useEntitlements();
   const { locale, messages } = useI18n();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const supabase = createClient();
   const isArabic = locale === "ar";
+  const accessLoading = permissionsLoading || entitlementsLoading;
 
-  const canSee = (item: NavItem) => item.requiredPermission === null || hasPermission(item.requiredPermission);
+  const canSee = (item: NavItem) =>
+    (item.requiredPermission === null || hasPermission(item.requiredPermission)) &&
+    (!item.capabilityKey || hasCapability(item.capabilityKey));
+
   const filteredNav = navigationRegistry
     .map((item) => ({ ...item, children: item.children?.filter(canSee) }))
-    .filter((item) => canSee(item) || (item.children && item.children.length > 0));
+    .filter((item) => accessLoading || canSee(item) || (item.children && item.children.length > 0));
 
   useEffect(() => { setSidebarOpen(false); }, [pathname]);
   useEffect(() => { setSidebarOpen(false); }, [locale]);
@@ -79,4 +85,4 @@ export function WorkspaceShell({ children, user }: WorkspaceShellProps) {
   );
 }
 
-export default WorkspaceShell;
+export default EntitlementAwareWorkspaceShell;
