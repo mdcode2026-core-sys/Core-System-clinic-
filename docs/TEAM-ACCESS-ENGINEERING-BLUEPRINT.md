@@ -1,120 +1,58 @@
 # CORE SYSTEM — Team & Access Engineering Blueprint
 
-**Status:** Final pre-implementation engineering reference  
-**Domain:** Team & Access  
-**Scope:** Tenant / Clinic operational environment only  
-**Authority:** Domain reconciliation reference; implementation must conform to the decisions in this document unless a later explicit architectural decision supersedes it.
-
----
+**Status:** Final pre-implementation engineering reference — reconciled with PJ, Workforce & Operations and Financial & Resources
+**Domain:** Team & Access
+**Scope:** Tenant / Clinic operational environment only
+**Authority:** This document governs Team & Access unless a later explicit architectural decision supersedes it.
 
 ## 1. Purpose
 
-Team & Access provides the clinic with a flexible way to organize its users and control what each user can do inside CORE SYSTEM.
+Team & Access gives the clinic a flexible way to organize users and control what each user can do inside CORE SYSTEM.
 
-The domain must **not prescribe how a clinic is organized**. The clinic decides its own roles, responsibilities, staffing model, and permission distribution.
-
-CORE SYSTEM provides:
-
-- Workspaces as working environments.
-- Clinic-defined roles.
-- A complete Permission Catalog.
-- Suggested Role Templates.
-- Permission Bundles / Sets for easier configuration.
-- Direct user permissions and overrides.
-- Effective-access calculation.
-- Administrative visibility and auditability.
-- User settings.
-- Future-ready foundations for Skills / Capabilities and other advanced access intelligence.
+CORE must not prescribe the clinic's organizational structure. The Clinic Admin decides roles, staffing models, responsibilities and permission distribution.
 
 The guiding principle is:
 
-> **CORE SYSTEM provides the structure and capabilities; the Clinic Admin decides how the clinic uses them.**
+> **CORE provides structure and capabilities; the Clinic Admin decides how the clinic uses them.**
 
----
+Super Admin is outside this tenant operating environment and belongs to the separate Platform Governance stage.
 
-# 2. Architectural Position
-
-## 2.1 Tenant boundary
-
-This domain operates inside the clinic tenant.
-
-**Super Admin is explicitly outside the clinic operating environment.**
-
-Super Admin belongs to the separate future Platform Governance / Subscription stage and is not part of the Team & Access model used by tenant staff.
-
-The clinic must never be modeled as if Super Admin is another employee of the clinic.
-
----
-
-## 2.2 Clinic Admin
-
-Clinic Admin is the highest operational authority inside the tenant.
-
-Clinic Admin may, subject to non-bypassable platform/security/legal controls:
-
-- Create users.
-- Define and rename roles.
-- Create additional roles.
-- Assign users to roles.
-- Assign permissions through roles.
-- Grant direct permissions.
-- Modify or override permissions.
-- Delegate appropriate administrative capabilities.
-- Configure user access and settings.
-- Review activity and effective access.
-
-The system must not impose an artificial organizational structure on the clinic.
-
----
-
-# 3. Core Model
-
-The permanent conceptual model is:
+## 2. Core model
 
 ```text
 User
-  ↓
+ ↓
 Workspace(s)
-  ↓
-Clinic-defined Role (optional organizational label)
-  ↓
-Suggested Template / Permission Bundles
-  ↓
+ ↓
+Clinic-defined Role (organizational label)
+ ↓
+Role Template / Permission Bundles
+ ↓
 Permission Catalog
-  ↓
+ ↓
 Direct Permissions / Overrides
-  ↓
+ ↓
 Effective Permissions
-  ↓
-Available modules + permitted actions
-  ↓
+ ↓
+Enabled Tenant Capabilities
+ ↓
 Personalized Workspace / Sidebar / Widgets
 ```
 
-Important distinctions:
+Permanent distinctions:
 
 ```text
 Role       ≠ Permission
 Workspace  ≠ Permission boundary
+Employee   ≠ User
+Job/Skill  ≠ Role
 Skill      ≠ Permission
-Template   ≠ Permission grant by itself
+Template   ≠ Permission authority
 Bundle     ≠ Role
-Visibility ≠ Ability to perform every action
+Visibility ≠ Authorization
 ```
 
----
-
-# 4. Workspace Architecture — Reconciled Position
-
-The existing Workspace architecture remains the foundation.
-
-The current repository already establishes Workspace as the primary operational environment and uses permission-driven visibility rather than role-name checks. The Workspace specification also defines Feature Registry integration and widget-level permission validation.
-
-Reference:
-
-- `WORKSPACE_ARCHITECTURE_SPECIFICATION.md`
-- `src/core/workspace/`
-- `src/core/permissions/`
+## 3. Workspaces
 
 The three tenant workspaces remain:
 
@@ -124,68 +62,46 @@ Operation
 Clinical
 ```
 
-### Critical decision
+A Workspace is a working environment and UX organization mechanism, not an authorization boundary.
 
-A Workspace is a **working environment and UX organization mechanism**, not an authorization boundary.
+A user may receive permissions that cross functional/workspace expectations when the Clinic Admin chooses that model.
 
-A user may receive permissions that are not traditionally associated with the workspace in which they work.
+The existing Workspace architecture remains the foundation and must be reused. Widget/sidebar visibility remains permission-driven and must not depend on fixed job titles.
 
-Example:
+## 4. Clinic Admin
 
-```text
-Operation user
-+ Payments permission
-+ Inventory permission
-+ Follow-up permission
-```
+Clinic Admin is the highest operational authority inside the tenant, subject only to non-bypassable platform, security and legal controls.
 
-This is valid.
+Clinic Admin may:
 
-The system must not reject such assignments merely because the permission belongs to another functional area.
+- Create, activate and deactivate users.
+- Define, rename, duplicate, modify and retire roles.
+- Create new roles.
+- Assign users to roles.
+- Assign permissions through roles.
+- Grant direct permissions.
+- Apply overrides.
+- Configure user settings.
+- Delegate appropriate administrative capabilities.
+- Review effective access and audit activity.
 
----
+The system must not artificially constrain a small clinic because it lacks specialized staff, nor a larger clinic because responsibilities are combined.
 
-# 5. Role Model
-
-## 5.1 Roles are clinic-defined
+## 5. Roles — independent from permissions
 
 Roles are organizational constructs owned by the clinic.
 
-The Clinic Admin may:
-
-- Create roles.
-- Rename roles.
-- Duplicate roles.
-- Modify roles.
-- Retire roles.
-- Create as many roles as the product's permitted limits allow.
-
-Examples:
+Examples are only templates/guidance:
 
 ```text
-Clinical
-  Doctor
-  Laser Specialist
-  Senior Nurse
-
-Operation
-  Front Desk
-  Patient Coordinator
-  Reception + Inventory
-
-Administrative
-  Clinic Manager
-  Finance Manager
-  Owner
+Clinical: Doctor, Procedure Specialist
+Operation: Front Desk, Patient Coordinator
+Administrative: Clinic Manager, Finance Manager
 ```
 
-These are examples only.
+The Admin may modify permissions, add/remove permissions and create additional roles.
 
-CORE must not assume that a clinic has any of these roles.
-
-## 5.2 No mandatory role hierarchy
-
-CORE must not require a complex role inheritance hierarchy.
+There is **no mandatory role hierarchy**.
 
 Avoid:
 
@@ -193,9 +109,9 @@ Avoid:
 Role A → Role B → Role C → Role D
 ```
 
-because it makes effective access difficult to understand and audit.
+because it makes access difficult to explain.
 
-The preferred model is explicit and explainable:
+The preferred model is explicit:
 
 ```text
 Role
@@ -205,21 +121,19 @@ Role
 → Effective Access
 ```
 
----
+System-provided roles are editable starting templates, not immutable definitions. The previously retired `clinic_owner` concept must not return as a second operational tenant-admin role; `clinic_admin` remains the tenant primary administrator.
 
-# 6. Permission Catalog
+## 6. Permission Catalog — Core
 
-The Permission Catalog is a **core architectural component**.
+The Permission Catalog is the authoritative catalog of permissions that can be granted.
 
-It is the authoritative catalog of capabilities that can be granted inside the tenant.
-
-A permission should be identifiable by a stable key and organized conceptually as:
+Conceptually:
 
 ```text
-Workspace / Area
-  → Domain
-    → Resource
-      → Action
+Area / Workspace
+ → Domain
+   → Resource
+     → Action
 ```
 
 Examples:
@@ -238,100 +152,68 @@ users.manage
 roles.manage
 ```
 
-The exact key set must be reconciled against the current repository before implementation changes are made.
+The Clinic Admin may freely combine catalogued permissions but may not invent permissions outside the catalog.
 
-### Non-negotiable rule
+Permissions are security boundaries. UI hiding is not authorization; protected operations must enforce authorization at the server/data/action boundary.
 
-The Clinic Admin may only grant permissions that exist in the CORE Permission Catalog.
+## 7. Role Templates — Core
 
-The Admin may freely combine them, but cannot invent a permission outside the catalog.
+Role Templates are editable starting configurations for common clinic jobs.
 
----
+They exist to reduce setup/training effort, not to dictate clinic organization.
 
-# 7. Role Templates
-
-Role Templates are **guidance and acceleration**, not authority.
-
-A template may provide a sensible starting configuration for common clinic jobs.
-
-Example:
-
-```text
-Front Desk Template
-  → Patient Management
-  → Agenda Basic
-  → Basic Payments
-```
-
-After applying a template, the Clinic Admin may:
+After applying a template, the Admin can:
 
 - Add permissions.
 - Remove permissions.
 - Replace permissions.
-- Assign a different workspace.
+- Change workspace.
 - Rename the role.
-- Duplicate and modify it.
+- Duplicate it.
 
-Templates must never become a hidden mandatory policy.
+Templates are advisory and never immutable policy.
 
----
+## 8. Permission Sets / Bundles
 
-# 8. Permission Sets / Permission Bundles
+Permission Bundles are an approved modular configuration mechanism inspired by mature systems such as Salesforce Permission Sets / Permission Set Groups.
 
-Permission Bundles are an approved enhancement inspired by mature modular access models such as Salesforce Permission Sets / Permission Set Groups.
-
-Their purpose in CORE is simplicity of configuration, not additional authorization complexity.
-
-Example:
+They simplify configuration without becoming a new authorization engine.
 
 ```text
 Inventory Basic Bundle
-  inventory.read
-  inventory.create
+ → inventory.read
+ → inventory.create
 
 Inventory Advanced Bundle
-  inventory.adjust
-  inventory.transfer
-  inventory.advanced_reports
+ → inventory.adjust
+ → inventory.transfer
+ → inventory.advanced_reports
 ```
 
-Bundles may be used by Role Templates and by administrators during configuration.
+The Permission Catalog remains authoritative.
 
-The underlying Permission Catalog remains authoritative.
+Bundles are **advanced as an exposed administrative capability**, but may be used behind Role Templates from the beginning to simplify setup.
 
-A Bundle is not a new permission layer that can bypass the catalog.
+## 9. Direct permissions and overrides
 
----
+The existing repository permission architecture and effective-permission calculation are retained and extended.
 
-# 9. Direct Permissions and Overrides
-
-The current repository already contains the concept of user permission overrides and an effective-permission calculation path.
-
-The existing `permissionEngine.ts` resolves effective access from role permissions and user overrides.
-
-This architecture is retained and reconciled with the final model.
-
-The conceptual resolution is:
+Conceptually:
 
 ```text
 Role Permissions
-        +
-Direct User Permissions
-        +
-Explicit Overrides
-        ↓
-Effective Permissions
+ + Direct User Permissions
+ + Explicit Overrides
+ → Effective Permissions
 ```
 
-The implementation must keep the resolution deterministic and explainable.
+Resolution must be deterministic and explainable.
 
----
+A second permission engine must never be introduced.
 
-# 10. Effective Access
+## 10. Effective Access — Core
 
-Effective Access is a **core administrative capability**.
-
-Clinic Admin should be able to inspect a user and understand what the user can actually do without tracing database records manually.
+Clinic Admin should be able to inspect what a user can actually do.
 
 Example:
 
@@ -341,65 +223,41 @@ Workspace: Operation
 Role: Front Desk
 
 Effective Access
-----------------
-Patients       ✓
-Agenda         ✓
-Payments       ✓
-Inventory      ✓
-Refund         ✕
+Patients ✓
+Agenda ✓
+Payments ✓
+Inventory ✓
+Refund ✕
 
 Source
-----------------
-Patients       Role
-Agenda         Role
-Payments       Direct
-Inventory      Override
+Patients  → Role
+Agenda    → Role
+Payments  → Direct
+Inventory → Override
 ```
 
-The source of access should be explainable wherever technically applicable.
-
----
-
-# 11. Access Explanation
-
-CORE should answer:
+The system should answer:
 
 > **Why does this user have this permission?**
 
-Possible explanations:
+Possible sources:
 
-```text
-Granted by Role
-Granted directly to User
-Granted by Permission Bundle
-Added by Override
-```
+- Role.
+- Direct assignment.
+- Permission Bundle.
+- Override.
 
-This is a usability feature as much as an administrative feature.
-
-It reduces training requirements and prevents unexplained access configurations.
-
----
-
-# 12. Delegation
-
-Delegation is an approved capability for the advanced Team & Access model.
+## 11. Delegation — Advanced
 
 Clinic Admin may delegate selected administrative capabilities to another user.
 
-The delegated user cannot grant capabilities that exceed the delegation granted to them or bypass platform-level safety controls.
+Delegation must be explicit, bounded and auditable. A delegated user cannot exceed the capabilities delegated to them or bypass platform safety controls.
 
-Delegation must remain explicit and auditable.
+CORE does not need a complex enterprise administrative hierarchy to achieve this.
 
-CORE should not introduce a large enterprise-style administrative hierarchy merely to support delegation.
+## 12. User Settings — Core
 
----
-
-# 13. User Settings
-
-User Settings belong to Team & Access.
-
-They are conceptually separate from authorization.
+User Settings belong inside Team & Access but are separate from authorization.
 
 ```text
 User
@@ -411,511 +269,229 @@ User
 └── Preferences / Settings
 ```
 
-Changing a preference must not silently change permissions.
+Changing a preference must not change permissions, and changing permissions must not silently change preferences.
 
-Changing permissions must not silently modify personal preferences.
-
----
-
-# 14. Personalized Sidebar and Workspace
-
-The Sidebar and Workspace content must be driven by the user's effective access and enabled tenant capabilities.
-
-Conceptually:
+## 13. Personalized Sidebar and Workspace
 
 ```text
 Tenant Capability Available
-          AND
+        AND
 User Effective Permission
-          ↓
-Available Module / Action
-          ↓
-Relevant Sidebar + Workspace content
+        ↓
+Relevant Module / Action
+        ↓
+Sidebar + Workspace + Widgets
 ```
 
-The user should see only what is relevant and permitted.
+The Sidebar is not a second permission system. It is a presentation of capabilities the user is actually entitled and permitted to use.
 
-However, the Clinic Admin's ability to configure access must not be constrained by a predefined job title.
+## 14. Administrative Oversight
 
-This supports both:
+Clinic Admin should have tenant-wide visibility appropriate to their authority across:
 
-### Small clinic
+- Administrative.
+- Operation.
+- Clinical.
 
-```text
-Owner / Doctor / Clinic Admin
-+
-One Receptionist
-```
-
-The receptionist may legitimately receive a combination of Patient, Agenda, Payments, Inventory, and Follow-up permissions if the clinic chooses that operating model.
-
-### Larger clinic
-
-A clinic may have many clinical specialists and reception staff while having no dedicated inventory or finance employee. Existing employees can be assigned those responsibilities without creating artificial users or departments.
-
----
-
-# 15. Administrative Oversight
-
-Clinic Admin must have tenant-wide operational visibility appropriate to their authority.
-
-This does not mean that Administrative Workspace is the only place where administrative capabilities exist.
-
-The Admin should be able to understand activity across:
-
-- Administrative Workspace.
-- Operation Workspace.
-- Clinical Workspace.
-
-### Important distinction
+Important distinction:
 
 ```text
 Visibility ≠ Action
 ```
 
-An Admin may need to see an operation performed by another user without the system assuming that every visible item grants the same action permission to every user.
+Admin-wide visibility must not be confused with granting every action to every user.
 
-Clinic Admin's own broad authority is a separate matter from ordinary user access.
+Clinic Admin may delegate selected capabilities where appropriate.
 
----
+## 15. Audit and accountability — Core
 
-# 16. Audit and Accountability
+Reuse the existing audit architecture; do not create a parallel audit system.
 
-Audit is part of the domain's foundation.
+Important Team & Access changes must remain auditable, including:
 
-The system must preserve accountability for important Team & Access changes, including where applicable:
-
-- User creation.
-- User activation/deactivation.
+- User creation/activation/deactivation.
 - Role creation/modification/retirement.
 - Permission assignment changes.
-- Direct permission changes.
+- Direct permissions.
 - Overrides.
 - Delegation.
 - Sensitive administrative actions.
 
-The purpose is not to police the clinic's organizational decisions.
+The objective is reliable accountability: who changed what and when, with reason where applicable.
 
-The purpose is to provide a reliable history of **who changed what, when, and where applicable why**.
+## 16. Skill / Capability — Advanced
 
----
-
-# 17. Advanced Skill / Capability Model
-
-**Skill / Capability is approved as an Advanced feature.**
-
-It must remain separate from Role and Permission.
+Skill / Capability is an **Advanced** feature and is deliberately separate from Role and Permission.
 
 ```text
-Role
-  = organizational function
-
-Permission
-  = system capability
-
-Skill / Capability
-  = what the person is qualified / capable of performing
+Role       = organizational function
+Permission = system authorization
+Skill      = qualification/capability of the person
 ```
 
 Example:
 
 ```text
-Role:
-Procedure Specialist
-
-Permissions:
-agenda.update
-patients.read
-followup.manage
-
-Skills:
-Laser
-RF
-Device X
-Skin Procedure A
+Role: Procedure Specialist
+Permissions: agenda.update, patients.read
+Skills: Laser, RF, Device X
 ```
 
-This model is intended to support future:
+Skills may later support workforce scheduling, capacity, resource matching, task assignment, Patient Journey coordination and AI recommendations.
 
-- Scheduling.
-- Capacity optimization.
-- Task assignment.
-- Workforce intelligence.
-- Patient Journey coordination.
-- AI-assisted recommendations.
+Basic Team & Access must not require Skills.
 
-The advanced Skills system should not be implemented as part of the basic Team & Access scope unless a later implementation plan explicitly activates it.
+## 17. Change Impact Preview — Advanced
 
----
-
-# 18. Advanced Change Impact Preview
-
-Change Impact Preview is an approved advanced usability enhancement.
-
-Before a significant access change is saved, CORE may show its expected impact.
-
-Example:
+Before significant access changes, CORE may show the expected impact:
 
 ```text
-Removing: payments.refund
-
-Affected users: 3
-Affected roles: 1
-Affected workspace views: 1
-
-[Confirm Change]
+Removing payments.refund
+→ 3 users affected
+→ 1 role affected
+→ related workspace views affected
 ```
 
-This is advisory, not a policy engine.
+This is advisory. The Clinic Admin remains the decision maker.
 
-The Admin remains the decision maker.
+## 18. Groups — Future-ready only
 
----
+Groups may later help with team communication, task routing or larger-clinic administration, but they are not a mandatory authorization layer now.
 
-# 19. Groups — Future Ready, Not Core
-
-Groups may become useful for larger clinics, team communication, task routing, or future workforce capabilities.
-
-However, Groups are **not a mandatory authorization layer** in the current model.
-
-Do not introduce:
+Do not require:
 
 ```text
 User → Group → Role → Permission
 ```
 
-as the required access path.
+The architecture should remain extensible without making Groups a prerequisite.
 
-The architecture should remain extensible enough to add groups later without replacing the core model.
+## 19. Entitlement vs Permission
 
----
-
-# 20. Features Explicitly Rejected
-
-The following are intentionally outside the current Team & Access architecture:
-
-### Complex Role Hierarchy
-
-Rejected because it makes effective access difficult to understand.
-
-### Enterprise IAM / Policy Engine
-
-Rejected as unnecessary complexity for the clinic operating model.
-
-### Workspace-based Security Boundaries
-
-Rejected. Workspaces organize work; permissions control capabilities.
-
-### Mandatory Organizational Departments
-
-Rejected. Clinics define their own structure.
-
-### Fixed Job-role Authorization
-
-Rejected. A role is an organizational label and suggested configuration, not an immutable permission boundary.
-
-### Super Admin inside tenant operations
-
-Rejected. Super Admin belongs to Platform Governance outside the tenant operating cycle.
-
----
-
-# 21. Relationship to Patient Journey (PJ)
-
-Team & Access is an **administrative domain**.
-
-It does not define the Patient Journey and does not prescribe how the patient journey should operate.
-
-Its relationship to PJ is indirect and outcome-oriented.
-
-Example:
+Two separate questions must always remain separate:
 
 ```text
-Clinic decision
-   ↓
-User / Role / Permission assignment
-   ↓
-Operational execution
-   ↓
-Operational data
-   ↓
-Performance / Analytics
-   ↓
-Patient Journey outcome
+Tenant Capability
+= Is the capability available to this clinic?
+
+User Permission
+= Is this user allowed to perform the action?
 ```
 
-Therefore:
+Effective use requires both where applicable:
 
-> Team & Access must enable the clinic's chosen operating model without embedding Patient Journey rules into its authorization model.
+```text
+Tenant Entitlement
+ AND
+User Effective Permission
+ → Effective Capability
+```
 
-PJ-related outcomes may consume Team & Access data for analysis, accountability, workforce optimization, and future AI assistance.
+A permission must not bypass tenant entitlement, and an enabled tenant capability must not automatically grant every user permission.
 
----
-
-# 22. Relationship to Workforce & Operations
-
-Team & Access and Workforce & Operations are separate domains.
+## 20. Relationship to Workforce & Operations
 
 Team & Access answers:
 
 > **Who is this person and what are they allowed to do?**
 
-Workforce & Operations answers questions such as:
+Workforce answers:
 
-> **When are they available?**  
-> **What capacity do they have?**  
-> **What work are they assigned?**  
-> **How productive is the operation?**
+> **What is this person's employment/availability/capacity/work reality?**
 
-The domains integrate but must not duplicate one another.
+Employee ≠ User.
 
-Skills / Capabilities are the principal future bridge between them.
+Job/Position ≠ Role.
 
----
+Skill ≠ Permission.
 
-# 23. Relationship to Financial, Clinical, Agenda and Other Domains
+Skills/Capabilities are the future bridge between Team & Access and Workforce, but Workforce remains the owner of workforce capability data and Team & Access remains the owner of authorization.
 
-Team & Access supplies authorization to those domains but does not own their business logic.
+## 21. Relationship to Financial, Clinical and Agenda domains
 
-Examples:
+Team & Access supplies authorization to other domains; it does not own their business logic.
 
 ```text
-Financial
-  → Team & Access decides who may view/create/adjust/refund.
-
-Agenda
-  → Team & Access decides who may view/create/update/manage.
-
-Clinical
-  → Team & Access decides which users may access permitted clinical functions.
-
-Inventory
-  → Team & Access decides which users may perform catalogued actions.
+Financial → who may view/create/adjust/refund
+Agenda    → who may view/create/update/manage
+Clinical  → who may access protected clinical functions
+Inventory → who may perform catalogued inventory actions
 ```
 
-The target architecture is:
+Business rules remain in the owning domain.
+
+## 22. Relationship to Patient Journey
+
+Team & Access is an administrative domain. It does not define PJ rules.
+
+Its relationship is outcome-oriented:
 
 ```text
-Domain business logic
-        ↑
-Permission enforcement
-        ↑
-Team & Access
+Clinic decision
+ → User / Role / Permission assignment
+ → Operational execution
+ → Operational data
+ → Performance / Insights
+ → Patient Journey outcome
 ```
 
-not duplicated business logic inside Team & Access.
+PJ must not be embedded into authorization logic merely because permissions influence who performs a journey step.
 
----
+## 23. Features explicitly rejected
 
-# 24. Subscription / Entitlement Relationship
+- Complex role inheritance hierarchy.
+- Enterprise IAM/policy-engine complexity.
+- Workspace-based security boundaries.
+- Mandatory organizational departments.
+- Fixed job-role authorization.
+- Super Admin as a tenant operating role.
+- A second permission engine.
+- A second audit system.
 
-Subscription / entitlement determines whether a capability is available to the tenant.
+## 24. Core / Advanced / Future-ready
 
-Team & Access determines whether a particular user may use an available capability.
+### Core
+Users; Workspaces; clinic-defined Roles; Role Templates; Permission Catalog; permission assignment; direct permissions/overrides; Effective Access; Access Explanation; User Settings; dynamic Sidebar/Workspace; Audit; tenant/security enforcement.
 
-Conceptually:
+### Advanced
+Permission Bundles as exposed configuration tools; Delegation; Skill/Capability; Change Impact Preview; advanced access analysis.
+
+### Future-ready
+Groups; advanced access review; skill-based assignment; AI access analysis; richer scoped administration.
+
+## 25. Final reconciliation decisions
+
+1. **Roles are fully independent from Permissions.**
+2. **Clinic Admin may create and name roles freely within the selected Workspace.**
+3. **Role templates are advisory and editable.**
+4. **Permission Catalog is authoritative and Core.**
+5. **Admin may grant any catalogued permission available to the tenant; the role name does not restrict the permission set.**
+6. **Workspace is UX/work organization, not a security boundary.**
+7. **Permission Bundles simplify templates/configuration; they do not replace the Permission Catalog.**
+8. **Direct permissions and overrides remain supported.**
+9. **Effective Access must be explainable.**
+10. **Delegation is Advanced.**
+11. **Skill/Capability is Advanced and belongs conceptually with Workforce, while remaining integrated with Team & Access.**
+12. **User Settings belong to Team & Access.**
+13. **Clinic Admin retains broad tenant operational authority; Super Admin remains outside tenant operations.**
+14. **No enterprise IAM hierarchy is required.**
+15. **No Team & Access capability may duplicate another domain's business logic.**
+
+## 26. Implementation rule
 
 ```text
-Tenant Entitlement
-       AND
-User Effective Permission
-       ↓
-Effective Capability
+Approved Access Decision
+ → Inspect Repository
+ → Inspect Live Database
+ → Inspect PJ Contract
+ → Reuse Permission Engine / Workspace
+ → Extend
+ → Integrate with owning domains
+ → Validate server-side authorization + tenant isolation
+ → Validate UI behavior
+ → Document
 ```
 
-A permission must never be used to bypass a tenant-level entitlement.
+No implementation is considered complete merely because a screen renders or a permission record exists. Protected operations require real authorization enforcement, tenant isolation, workflow validation, persistence and runtime verification as applicable.
 
-Conversely, an enabled tenant feature must not automatically grant every user permission to operate it.
-
----
-
-# 25. Existing Repository Baseline
-
-The repository already contains significant foundations that must be reused rather than rebuilt.
-
-### Existing foundations identified
-
-- Workspace Architecture Specification.
-- Permission Engine.
-- `getEffectivePermissions()` path.
-- Role permissions.
-- User permission overrides.
-- Permission-driven Workspace / Widget visibility.
-- Feature Registry integration.
-- User/tenant access structures.
-- Permission verification tooling/checklists.
-
-The Workspace specification explicitly states that widget visibility is permission-driven and must not check role names or employee types. It also establishes Feature Registry integration and widget-level permission checks.
-
-The current permission engine already resolves effective permissions from role permissions and user overrides.
-
-### Reconciliation requirement
-
-Existing fixed role/type definitions and any role-name assumptions must be reviewed during implementation so they do not conflict with the approved clinic-defined Role model.
-
-No wholesale rewrite of the existing Workspace architecture is intended.
-
----
-
-# 26. Basic vs Advanced Scope
-
-## Basic — Required
-
-```text
-Users
-Workspaces
-Clinic-defined Roles
-Role Templates
-Permission Catalog
-Permission assignment
-Direct user permissions
-Overrides
-Effective Access
-Access explanation
-User Settings
-Audit
-Tenant entitlement enforcement
-Permission-driven Sidebar / Workspace
-Clinic Admin oversight
-```
-
-## Advanced — Planned capability
-
-```text
-Permission Bundles / Sets
-Delegation
-Change Impact Preview
-Advanced access analysis
-Skill / Capability
-```
-
-## Future-ready only
-
-```text
-Groups
-Advanced access review
-Skill-based assignment
-Workload-aware access intelligence
-AI access analysis
-```
-
-The system may prepare architectural/data foundations for future capabilities without exposing unnecessary complexity in the current user experience.
-
----
-
-# 27. UX Principle
-
-The central UX requirement is:
-
-> **Simple on the surface, powerful underneath.**
-
-A new employee should be able to understand their available workspace and actions without learning an enterprise IAM system.
-
-Clinic Admin should be able to configure sophisticated combinations of responsibilities without needing technical knowledge.
-
-The complexity should live primarily in:
-
-- Permission resolution.
-- Catalog structure.
-- Audit history.
-- Effective-access calculation.
-- Data relationships.
-- Future analytics and AI readiness.
-
-It should not live in daily navigation.
-
----
-
-# 28. AI Readiness
-
-Team & Access must preserve structured data sufficient for future AI agents to understand:
-
-- Who works in the clinic.
-- Which workspace they use.
-- What role the clinic assigned them.
-- Which permissions they possess.
-- Which permissions were direct or inherited from a template/bundle.
-- Which overrides exist.
-- Which changes occurred over time.
-- Which operational domains they interact with.
-- Future skills/capabilities.
-
-The objective is to allow future AI systems to reason about the clinic's operating model from the beginning rather than waiting for years of specially formatted data to accumulate.
-
-AI must not become a hidden authorization authority. Authorization remains deterministic and system-controlled.
-
----
-
-# 29. External Benchmarking — Adopted Principles
-
-External benchmarking was used for patterns, not for copying another product's organizational model.
-
-### Salesforce
-
-Useful pattern adopted:
-
-- Modular Permission Sets / Permission Set Groups.
-- Reusable permission configuration rather than relying exclusively on one rigid role/profile.
-
-CORE simplifies this into Permission Bundles and Templates while retaining explicit permissions.
-
-### Microsoft Entra
-
-Useful pattern adopted:
-
-- Separation between permission definitions and assignments.
-- Clear distinction between what a role/capability means and where it is assigned.
-
-CORE applies this through the Permission Catalog and explicit user/role assignments.
-
-### ServiceNow
-
-Useful patterns adopted selectively:
-
-- Delegation.
-- Effective administrative access concepts.
-- Skills as a distinct capability from roles.
-- Administrative visibility and auditability.
-
-Patterns rejected:
-
-- Enterprise-scale role/group complexity as a requirement for normal clinic use.
-- Deep role hierarchies that make access difficult to understand.
-
-The benchmark therefore **supports and refines the CORE model; it does not replace it.**
-
----
-
-# 30. Implementation Guardrails
-
-When implementation begins:
-
-1. Inspect the current repository implementation first.
-2. Reuse existing Workspace, Permission Engine, Feature Registry and override mechanisms wherever possible.
-3. Do not rebuild existing architecture without evidence that reconciliation requires it.
-4. Remove fixed role assumptions that conflict with clinic-defined roles.
-5. Build the Permission Catalog as the authoritative capability vocabulary.
-6. Keep Role and Permission independent.
-7. Keep Workspace and Permission independent.
-8. Keep Skills separate from Permissions.
-9. Keep Super Admin outside the tenant operating model.
-10. Keep domain business logic outside Team & Access.
-11. Preserve auditability for access changes.
-12. Keep the daily UX simple even when the backend model is sophisticated.
-13. Ensure Sidebar/Workspace rendering responds dynamically to effective access.
-14. Ensure entitlement gating and user authorization remain separate checks.
-15. Do not introduce enterprise IAM complexity unless a later explicit decision requires it.
-
----
-
-# 31. Final Architectural Statement
-
-The approved Team & Access philosophy is:
-
-> **CORE SYSTEM does not tell a clinic how to organize its people. It gives the Clinic Admin the freedom to define the clinic's own roles, assign responsibilities, and distribute permissions according to the actual operating model of that clinic. Workspaces organize the user experience; the Permission Catalog defines what the system can authorize; roles provide organizational context and reusable templates; direct permissions and overrides provide flexibility; effective access makes the result understandable; audit provides accountability; and advanced Skills / Capabilities prepare the system for workforce intelligence and future AI.**
-
-The clinic owns the operational decision.
-
-CORE owns the integrity, security, traceability, and consistency of the system that executes that decision.
-
-This document is the engineering reference to use when the Team & Access implementation plan is opened.
+**End of Team & Access Engineering Blueprint.**
