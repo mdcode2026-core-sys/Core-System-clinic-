@@ -1,440 +1,127 @@
-// ============================================================
-// src/domain/invoicing/invoicing.actions.ts
-// Phase 5 — Invoice Server Actions
-// ============================================================
-
 "use server";
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/infrastructure/supabase/server";
-import type {
-  CreateInvoiceFromSessionInput,
-  CreateManualInvoiceInput,
-  IssueInvoiceInput,
-  RecordPaymentInput,
-  ApplyDiscountInput,
-  CancelInvoiceInput,
-  ActionResult,
-  InvoiceWithItems,
-} from "./invoicing.types";
-
-// -----------------------------------------------------------
-// Helper: Get authenticated user with tenant
-// -----------------------------------------------------------
+import { hasEffectivePermission } from "@/core/permissions/permissionEngine";
+import type { CreateInvoiceFromSessionInput, CreateManualInvoiceInput, IssueInvoiceInput, RecordPaymentInput, ApplyDiscountInput, CancelInvoiceInput, ActionResult, InvoiceWithItems } from "./invoicing.types";
 
 async function getAuthContext() {
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
-
-  if (authError || !user) {
-    return { error: "Unauthorized" };
-  }
-
-  const { data: clinicUser, error: userError } = await supabase
-    .from("clinic_users")
-    .select("tenant_id, role")
-    .eq("auth_user_id", user.id)
-    .maybeSingle();
-
-  if (userError || !clinicUser) {
-    return { error: "User not found in clinic_users" };
-  }
-
-  return { supabase, user, tenantId: clinicUser.tenant_id, role: clinicUser.role };
+  if (authError || !user) return { error: "Unauthorized" } as const;
+  const { data: clinicUser, error } = await supabase.from("clinic_users").select("id, tenant_id, is_active").eq("auth_user_id", user.id).maybeSingle();
+  if (error || !clinicUser || !clinicUser.is_active) return { error: "User not found in clinic_users" } as const;
+  return { supabase, user, clinicUser, tenantId: clinicUser.tenant_id } as const;
 }
 
-// -----------------------------------------------------------
-// Create Invoice from Session
-// -----------------------------------------------------------
+async function requirePermission(userId: string, tenantId: string, permission: string) {
+  return hasEffectivePermission(permission, userId) && Boolean(tenantId);
+}
 
-export async function createInvoiceFromSession(
-  input: CreateInvoiceFromSessionInput
-): Promise<ActionResult<{ invoice_id: string }>> {
-  const ctx = await getAuthContext();
-  if ("error" in ctx) return { success: false, error: ctx.error ?? "Unknown error" };
-
-  const { supabase, tenantId, role } = ctx;
-
-  if (!["receptionist", "clinic_admin"].includes(role)) {
-    return { success: false, error: "Permission denied" };
-  }
-
-  const { data: session } = await supabase
-    .from("clinic_visit_sessions")
-    .select("id, tenant_id, patient_id, session_status")
-    .eq("id", input.session_id)
-    .eq("tenant_id", tenantId)
-    .maybeSingle();
-
-  if (!session) {
-    return { success: false, error: "Session not found" };
-  }
-
-  if (session.session_status === "cancelled") {
-    return { success: false, error: "Cannot invoice a cancelled session" };
-  }
-
-  const { data, error } = await supabase.rpc("create_invoice_from_session", {
-    p_session_id: input.session_id,
-    p_tenant_id: tenantId,
-  });
-
-  if (error) {
-    return { success: false, error: error.message };
-  }
-
+export async function createInvoiceFromSession(input: CreateInvoiceFromSessionInput): Promise<ActionResult<{ invoice_id: string }>> {
+  const ctx = await getAuthContext(); if ("error" in ctx) return { success: false, error: ctx.error };
+  if (!(await requirePermission(ctx.user.id, ctx.tenantId, "invoices:create"))) return { success: false, error: "Permission denied" };
+  const { data: session } = await ctx.supabase.from("clinic_visit_sessions").select("id, tenant_id, patient_id, session_status").eq("id", input.session_id).eq("tenant_id", ctx.tenantId).maybeSingle();
+  if (!session) return { success: false, error: "Session not found" };
+  if (session.session_status === "cancelled") return { success: false, error: "Cannot invoice a cancelled session" };
+  const { data, error } = await ctx.supabase.rpc("create_invoice_from_session", { p_session_id: input.session_id });
+  if (error) return { success: false, error: error.message };
+  const result = data as { success?: boolean; error?: string; invoice_id?: string };
+  if (!result.success || !result.invoice_id) return { success: false, error: result.error ?? "Unable to create invoice" };
   revalidatePath("/invoices");
-  return { success: true, data: { invoice_id: data.invoice_id as string } };
+  return { success: true, data: { invoice_id: result.invoice_id } };
 }
 
-// -----------------------------------------------------------
-// Create Manual Invoice
-// -----------------------------------------------------------
-
-export async function createManualInvoice(
-  input: CreateManualInvoiceInput
-): Promise<ActionResult<{ invoice_id: string }>> {
-  const ctx = await getAuthContext();
-  if ("error" in ctx) return { success: false, error: ctx.error ?? "Unknown error" };
-
-  const { supabase, tenantId, role } = ctx;
-
-  if (!["receptionist", "clinic_admin"].includes(role)) {
-    return { success: false, error: "Permission denied" };
-  }
-
-  const { data: patient } = await supabase
-    .from("clinic_patients")
-    .select("id")
-    .eq("id", input.patient_id)
-    .eq("tenant_id", tenantId)
-    .maybeSingle();
-
-  if (!patient) {
-    return { success: false, error: "Patient not found" };
-  }
-
-  const { data: invoice, error: invoiceError } = await supabase
-    .from("clinic_invoices")
-    .insert({
-      tenant_id: tenantId,
-      patient_id: input.patient_id,
-      session_id: input.session_id ?? null,
-      invoice_date: input.invoice_date ?? new Date().toISOString().split("T")[0],
-      invoice_status: "draft",
-      payment_terms: input.payment_terms ?? "cash",
-      notes: input.notes ?? null,
-      subtotal_subunits: 0,
-      total_subunits: 0,
-      tax_subunits: 0,
-      discount_subunits: 0,
-      amount_paid_subunits: 0,
-      amount_due_subunits: 0,
-    })
-    .select()
-    .single();
-
-  if (invoiceError) {
-    return { success: false, error: invoiceError.message };
-  }
-
+export async function createManualInvoice(input: CreateManualInvoiceInput): Promise<ActionResult<{ invoice_id: string }>> {
+  const ctx = await getAuthContext(); if ("error" in ctx) return { success: false, error: ctx.error };
+  if (!(await requirePermission(ctx.user.id, ctx.tenantId, "invoices:create"))) return { success: false, error: "Permission denied" };
+  const { data: patient } = await ctx.supabase.from("clinic_patients").select("id").eq("id", input.patient_id).eq("tenant_id", ctx.tenantId).maybeSingle();
+  if (!patient) return { success: false, error: "Patient not found" };
+  if (input.quantityIsInvalid) return { success: false, error: "Invalid invoice items" };
+  const { data: invoice, error: invoiceError } = await ctx.supabase.from("clinic_invoices").insert({ tenant_id: ctx.tenantId, patient_id: input.patient_id, session_id: input.session_id ?? null, invoice_date: input.invoice_date ?? new Date().toISOString().slice(0, 10), invoice_status: "draft", payment_terms: input.payment_terms ?? "cash", notes: input.notes ?? null, subtotal_subunits: 0, total_subunits: 0, tax_subunits: 0, discount_subunits: 0, amount_paid_subunits: 0, amount_due_subunits: 0 }).select("id").single();
+  if (invoiceError || !invoice) return { success: false, error: invoiceError?.message ?? "Unable to create invoice" };
   if (input.items.length > 0) {
-    const itemsToInsert = input.items.map((item, index) => ({
-      tenant_id: tenantId,
-      invoice_id: invoice.id,
-      procedure_id: item.procedure_id ?? null,
-      description: item.description,
-      quantity: item.quantity,
-      unit_price_subunits: item.unit_price_subunits,
-      original_unit_price_subunits: item.unit_price_subunits,
-      discount_amount_subunits: item.discount_amount_subunits ?? 0,
-      discount_percent: item.discount_percent ?? null,
-      discount_reason: item.discount_reason ?? null,
-      tax_rate_percent: item.tax_rate_percent ?? 16,
-      tax_amount_subunits: 0,
-      line_total_subunits: 0,
-      sort_order: index,
-    }));
-
-    const { error: itemsError } = await supabase
-      .from("invoice_items")
-      .insert(itemsToInsert);
-
-    if (itemsError) {
-      return { success: false, error: itemsError.message };
-    }
-
-    await supabase.rpc("recalculate_invoice_totals", {
-      p_invoice_id: invoice.id,
-    });
+    const items = input.items.map((item, index) => ({ tenant_id: ctx.tenantId, invoice_id: invoice.id, procedure_id: item.procedure_id ?? null, item_description: item.description.trim(), quantity: item.quantity, unit_price_subunits: item.unit_price_subunits, discount_subunits: item.discount_amount_subunits ?? 0, tax_rate_percent: item.tax_rate_percent ?? 16, tax_subunits: 0, line_total_subunits: 0, sort_order: index }));
+    const invalid = items.some((item) => !item.item_description || item.quantity <= 0 || item.unit_price_subunits < 0 || item.discount_subunits < 0);
+    if (invalid) return { success: false, error: "Invalid invoice item" };
+    const { error: itemError } = await ctx.supabase.from("invoice_items").insert(items);
+    if (itemError) return { success: false, error: itemError.message };
+    const { error: recalcError } = await ctx.supabase.rpc("recalculate_invoice_totals", { p_invoice_id: invoice.id });
+    if (recalcError) return { success: false, error: recalcError.message };
   }
-
   revalidatePath("/invoices");
   return { success: true, data: { invoice_id: invoice.id } };
 }
 
-// -----------------------------------------------------------
-// Issue Invoice
-// -----------------------------------------------------------
-
-export async function issueInvoice(
-  input: IssueInvoiceInput
-): Promise<ActionResult<{ invoice_number: string }>> {
-  const ctx = await getAuthContext();
-  if ("error" in ctx) return { success: false, error: ctx.error ?? "Unknown error" };
-
-  const { supabase, tenantId, role } = ctx;
-
-  if (!["receptionist", "clinic_admin"].includes(role)) {
-    return { success: false, error: "Permission denied" };
-  }
-
-  const { data: invoice } = await supabase
-    .from("clinic_invoices")
-    .select("id, invoice_status, tenant_id")
-    .eq("id", input.invoice_id)
-    .eq("tenant_id", tenantId)
-    .maybeSingle();
-
-  if (!invoice) {
-    return { success: false, error: "Invoice not found" };
-  }
-
-  if (invoice.invoice_status !== "draft") {
-    return { success: false, error: "Only draft invoices can be issued" };
-  }
-
-  const { data, error } = await supabase.rpc("issue_invoice", {
-    p_invoice_id: input.invoice_id,
-  });
-
-  if (error) {
-    return { success: false, error: error.message };
-  }
-
-  revalidatePath(`/invoices/${input.invoice_id}`);
-  revalidatePath("/invoices");
-  return { success: true, data: { invoice_number: data.invoice_number as string } };
+export async function issueInvoice(input: IssueInvoiceInput): Promise<ActionResult<{ invoice_number: string }>> {
+  const ctx = await getAuthContext(); if ("error" in ctx) return { success: false, error: ctx.error };
+  if (!(await requirePermission(ctx.user.id, ctx.tenantId, "invoices:issue"))) return { success: false, error: "Permission denied" };
+  const { data: invoice } = await ctx.supabase.from("clinic_invoices").select("id, invoice_status, invoice_number, tenant_id").eq("id", input.invoice_id).eq("tenant_id", ctx.tenantId).maybeSingle();
+  if (!invoice) return { success: false, error: "Invoice not found" };
+  if (invoice.invoice_status !== "draft") return { success: false, error: "Only draft invoices can be issued" };
+  const { data, error } = await ctx.supabase.rpc("issue_invoice", { p_invoice_id: input.invoice_id });
+  if (error) return { success: false, error: error.message };
+  const result = data as { success?: boolean; error?: string; invoice_number?: string };
+  if (!result.success) return { success: false, error: result.error ?? "Unable to issue invoice" };
+  revalidatePath(`/invoices/${input.invoice_id}`); revalidatePath("/invoices");
+  return { success: true, data: { invoice_number: result.invoice_number ?? invoice.invoice_number ?? input.invoice_id.slice(0, 8) } };
 }
 
-// -----------------------------------------------------------
-// Record Payment
-// -----------------------------------------------------------
-
-export async function recordPayment(
-  input: RecordPaymentInput
-): Promise<ActionResult<{ payment_id: string }>> {
-  const ctx = await getAuthContext();
-  if ("error" in ctx) return { success: false, error: ctx.error ?? "Unknown error" };
-
-  const { supabase, tenantId, role, user } = ctx;
-
-  if (!["receptionist", "clinic_admin"].includes(role)) {
-    return { success: false, error: "Permission denied" };
-  }
-
-  const { data: invoice } = await supabase
-    .from("clinic_invoices")
-    .select("id, invoice_status, tenant_id, total_subunits, amount_paid_subunits")
-    .eq("id", input.invoice_id)
-    .eq("tenant_id", tenantId)
-    .maybeSingle();
-
-  if (!invoice) {
-    return { success: false, error: "Invoice not found" };
-  }
-
-  if (invoice.invoice_status === "cancelled") {
-    return { success: false, error: "Cannot pay a cancelled invoice" };
-  }
-
-  if (invoice.invoice_status === "draft") {
-    return { success: false, error: "Invoice must be issued before payment" };
-  }
-
+export async function recordPayment(input: RecordPaymentInput): Promise<ActionResult<{ payment_id: string }>> {
+  const ctx = await getAuthContext(); if ("error" in ctx) return { success: false, error: ctx.error };
+  if (!(await requirePermission(ctx.user.id, ctx.tenantId, "invoices:payment"))) return { success: false, error: "Permission denied" };
+  if (!Number.isInteger(input.amount_subunits) || input.amount_subunits <= 0) return { success: false, error: "Payment amount must be positive" };
+  const { data: invoice } = await ctx.supabase.from("clinic_invoices").select("id, invoice_status, tenant_id, total_subunits, amount_paid_subunits").eq("id", input.invoice_id).eq("tenant_id", ctx.tenantId).maybeSingle();
+  if (!invoice) return { success: false, error: "Invoice not found" };
+  if (["cancelled", "refunded", "draft"].includes(invoice.invoice_status ?? "")) return { success: false, error: "Invoice is not payable" };
   const remaining = invoice.total_subunits - invoice.amount_paid_subunits;
-  if (input.amount_subunits > remaining) {
-    return { success: false, error: "Payment exceeds remaining balance" };
+  if (input.amount_subunits > remaining) return { success: false, error: "Payment exceeds remaining balance" };
+  const { data, error } = await ctx.supabase.rpc("record_invoice_payment", { p_tenant_id: ctx.tenantId, p_invoice_id: input.invoice_id, p_amount_subunits: input.amount_subunits, p_payment_method: input.payment_method, p_payment_reference: input.reference_number ?? null, p_notes: input.notes ?? null, p_collected_by: ctx.clinicUser.id });
+  if (error) return { success: false, error: error.message };
+  const result = data as { success?: boolean; error?: string; payment_id?: string; installment_id?: string };
+  if (!result.success || !result.payment_id) return { success: false, error: result.error ?? "Unable to record payment" };
+  if (input.installment_id) {
+    const { data: allocation, error: allocationError } = await ctx.supabase.rpc("apply_payment_to_installment", { p_installment_id: input.installment_id, p_amount_subunits: input.amount_subunits });
+    if (allocationError || !(allocation as { success?: boolean })?.success) return { success: false, error: allocationError?.message ?? "Unable to allocate installment payment" };
   }
-
-  const { data, error } = await supabase.rpc("record_invoice_payment", {
-    p_invoice_id: input.invoice_id,
-    p_amount_subunits: input.amount_subunits,
-    p_payment_method: input.payment_method,
-    p_reference_number: input.reference_number ?? null,
-    p_notes: input.notes ?? null,
-  });
-
-  if (error) {
-    return { success: false, error: error.message };
-  }
-
-  revalidatePath(`/invoices/${input.invoice_id}`);
-  revalidatePath("/invoices");
-  return { success: true, data: { payment_id: data.payment_id as string } };
+  revalidatePath(`/invoices/${input.invoice_id}`); revalidatePath("/invoices");
+  return { success: true, data: { payment_id: result.payment_id } };
 }
 
-// -----------------------------------------------------------
-// Apply Discount
-// -----------------------------------------------------------
-
-export async function applyDiscount(
-  input: ApplyDiscountInput
-): Promise<ActionResult<void>> {
-  const ctx = await getAuthContext();
-  if ("error" in ctx) return { success: false, error: ctx.error ?? "Unknown error" };
-
-  const { supabase, tenantId, role, user } = ctx;
-
-  if (!["clinic_admin"].includes(role)) {
-    return { success: false, error: "Only admin can approve discounts" };
-  }
-
-  const { data: invoice } = await supabase
-    .from("clinic_invoices")
-    .select("id, tenant_id, invoice_status")
-    .eq("id", input.invoice_id)
-    .eq("tenant_id", tenantId)
-    .maybeSingle();
-
-  if (!invoice) {
-    return { success: false, error: "Invoice not found" };
-  }
-
-  const { data: canEdit } = await supabase.rpc("can_edit_invoice", {
-    p_invoice_id: input.invoice_id,
-  });
-
-  if (!canEdit) {
-    return { success: false, error: "Invoice can no longer be edited" };
-  }
-
-  const updateData: Record<string, unknown> = {
-    discount_approved_by: user.id,
-    discount_reason: input.discount_reason,
-  };
-
-  if (input.discount_amount_subunits !== undefined) {
-    updateData.discount_subunits = input.discount_amount_subunits;
-  }
-
-  const { error } = await supabase
-    .from("clinic_invoices")
-    .update(updateData)
-    .eq("id", input.invoice_id);
-
-  if (error) {
-    return { success: false, error: error.message };
-  }
-
-  await supabase.rpc("recalculate_invoice_totals", {
-    p_invoice_id: input.invoice_id,
-  });
-
-  revalidatePath(`/invoices/${input.invoice_id}`);
-  return { success: true, data: undefined };
+export async function applyDiscount(input: ApplyDiscountInput): Promise<ActionResult<void>> {
+  const ctx = await getAuthContext(); if ("error" in ctx) return { success: false, error: ctx.error };
+  if (!(await requirePermission(ctx.user.id, ctx.tenantId, "invoices:discount"))) return { success: false, error: "Permission denied" };
+  const { data: invoice } = await ctx.supabase.from("clinic_invoices").select("id, invoice_status").eq("id", input.invoice_id).eq("tenant_id", ctx.tenantId).maybeSingle();
+  if (!invoice) return { success: false, error: "Invoice not found" };
+  const { data: canEdit } = await ctx.supabase.rpc("can_edit_invoice", { p_invoice_id: input.invoice_id });
+  if (!canEdit) return { success: false, error: "Invoice can no longer be edited" };
+  const { error } = await ctx.supabase.from("clinic_invoices").update({ discount_approved_by: ctx.clinicUser.id, discount_reason: input.discount_reason, discount_subunits: input.discount_amount_subunits ?? 0 }).eq("id", input.invoice_id).eq("tenant_id", ctx.tenantId);
+  if (error) return { success: false, error: error.message };
+  const { error: recalcError } = await ctx.supabase.rpc("recalculate_invoice_totals", { p_invoice_id: input.invoice_id });
+  if (recalcError) return { success: false, error: recalcError.message };
+  revalidatePath(`/invoices/${input.invoice_id}`); return { success: true, data: undefined };
 }
 
-// -----------------------------------------------------------
-// Cancel Invoice
-// -----------------------------------------------------------
-
-export async function cancelInvoice(
-  input: CancelInvoiceInput
-): Promise<ActionResult<void>> {
-  const ctx = await getAuthContext();
-  if ("error" in ctx) return { success: false, error: ctx.error ?? "Unknown error" };
-
-  const { supabase, tenantId, role } = ctx;
-
-  if (!["clinic_admin"].includes(role)) {
-    return { success: false, error: "Only admin can cancel invoices" };
-  }
-
-  const { data: invoice } = await supabase
-    .from("clinic_invoices")
-    .select("id, tenant_id, invoice_status")
-    .eq("id", input.invoice_id)
-    .eq("tenant_id", tenantId)
-    .maybeSingle();
-
-  if (!invoice) {
-    return { success: false, error: "Invoice not found" };
-  }
-
-  if (invoice.invoice_status === "cancelled") {
-    return { success: false, error: "Invoice already cancelled" };
-  }
-
-  const { error } = await supabase.rpc("cancel_invoice", {
-    p_invoice_id: input.invoice_id,
-    p_reason: input.reason,
-  });
-
-  if (error) {
-    return { success: false, error: error.message };
-  }
-
-  revalidatePath(`/invoices/${input.invoice_id}`);
-  revalidatePath("/invoices");
-  return { success: true, data: undefined };
+export async function cancelInvoice(input: CancelInvoiceInput): Promise<ActionResult<void>> {
+  const ctx = await getAuthContext(); if ("error" in ctx) return { success: false, error: ctx.error };
+  if (!(await requirePermission(ctx.user.id, ctx.tenantId, "invoices:cancel"))) return { success: false, error: "Permission denied" };
+  const { data: invoice } = await ctx.supabase.from("clinic_invoices").select("id, invoice_status, tenant_id").eq("id", input.invoice_id).eq("tenant_id", ctx.tenantId).maybeSingle();
+  if (!invoice) return { success: false, error: "Invoice not found" };
+  const { data, error } = await ctx.supabase.rpc("cancel_invoice", { p_invoice_id: input.invoice_id });
+  if (error) return { success: false, error: error.message };
+  const result = data as { success?: boolean; error?: string };
+  if (!result.success) return { success: false, error: result.error ?? "Unable to cancel invoice" };
+  revalidatePath(`/invoices/${input.invoice_id}`); revalidatePath("/invoices"); return { success: true, data: undefined };
 }
 
-// -----------------------------------------------------------
-// Get Invoice with Details
-// -----------------------------------------------------------
-
-export async function getInvoiceWithDetails(
-  invoiceId: string
-): Promise<ActionResult<InvoiceWithItems>> {
-  const ctx = await getAuthContext();
-  if ("error" in ctx) return { success: false, error: ctx.error ?? "Unknown error" };
-
-  const { supabase, tenantId } = ctx;
-
-  const { data: invoice, error: invoiceError } = await supabase
-    .from("clinic_invoices")
-    .select(`
-      *,
-      patient:patient_id(id, first_name, last_name, phone_primary),
-      session:session_id(id, session_status, session_started_at)
-    `)
-    .eq("id", invoiceId)
-    .eq("tenant_id", tenantId)
-    .maybeSingle();
-
-  if (invoiceError || !invoice) {
-    return { success: false, error: invoiceError?.message ?? "Invoice not found" };
-  }
-
-  const { data: items, error: itemsError } = await supabase
-    .from("invoice_items")
-    .select("*")
-    .eq("invoice_id", invoiceId)
-    .eq("tenant_id", tenantId)
-    .order("sort_order");
-
-  if (itemsError) {
-    return { success: false, error: itemsError.message };
-  }
-
-  const { data: payments, error: paymentsError } = await supabase
-    .from("invoice_payments")
-    .select("*")
-    .eq("invoice_id", invoiceId)
-    .eq("tenant_id", tenantId)
-    .order("paid_at", { ascending: false });
-
-  if (paymentsError) {
-    return { success: false, error: paymentsError.message };
-  }
-
-  return {
-    success: true,
-    data: {
-      ...invoice,
-      items: items ?? [],
-      payments: payments ?? [],
-    } as InvoiceWithItems,
-  };
+export async function getInvoiceWithDetails(invoiceId: string): Promise<ActionResult<InvoiceWithItems>> {
+  const ctx = await getAuthContext(); if ("error" in ctx) return { success: false, error: ctx.error };
+  if (!(await requirePermission(ctx.user.id, ctx.tenantId, "invoices:read"))) return { success: false, error: "Permission denied" };
+  const { data: invoice, error } = await ctx.supabase.from("clinic_invoices").select(`*, patient:patient_id(id, first_name, last_name, phone_primary), session:session_id(id, session_status, session_started_at)`).eq("id", invoiceId).eq("tenant_id", ctx.tenantId).maybeSingle();
+  if (error || !invoice) return { success: false, error: error?.message ?? "Invoice not found" };
+  const { data: items, error: itemsError } = await ctx.supabase.from("invoice_items").select("*").eq("invoice_id", invoiceId).eq("tenant_id", ctx.tenantId).order("sort_order");
+  if (itemsError) return { success: false, error: itemsError.message };
+  const { data: payments, error: paymentsError } = await ctx.supabase.from("invoice_payments").select("*").eq("invoice_id", invoiceId).eq("tenant_id", ctx.tenantId).order("payment_date", { ascending: false });
+  if (paymentsError) return { success: false, error: paymentsError.message };
+  return { success: true, data: { ...invoice, items: (items ?? []).map((item) => ({ ...item, description: item.item_description, description_ar: item.item_description_ar, discount_subunits: item.discount_subunits, tax_subunits: item.tax_subunits })), payments: payments ?? [] } as unknown as InvoiceWithItems };
 }
