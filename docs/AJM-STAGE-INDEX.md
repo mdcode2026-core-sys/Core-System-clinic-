@@ -11,17 +11,17 @@ This file is the quick-reference index for the AJM implementation program. It is
 
 ## Stages
 
-| Stage | Name | Primary scope | Governing domain reference |
-|---|---|---|---|
-| AJM-0 | Baseline & Readiness | Repository/runtime reconciliation, classification and implementation lock | Master Blueprint |
-| AJM-1 | Team & Access Foundation | Users, settings, workspaces, roles, Permission Catalog, bundles, overrides, effective access | `docs/TEAM-ACCESS-ENGINEERING-BLUEPRINT.md` |
-| AJM-2 | Financial & Resources Foundation | Billing, payments, installments, insurance minimum, inventory, purchasing, suppliers, resource data | Financial & Resources domain specification / integration reference |
-| AJM-3 | Workforce & Operations Foundation | Staff, availability, scheduling, capacity, leave, payroll, recruitment, benefits, productivity | `docs/CLINIC-OPERATIONS-WORKFORCE-REFERENCE.md` and integration reference |
-| AJM-4 | Communications Foundation | Internal communication, patient communication, Portal communication, notifications | Communications engineering blueprint |
-| AJM-5 | Journey Coordination Foundation | Tasks, requests, handoffs, next actions, escalation, Work Center | `docs/JOURNEY-COORDINATION-ENGINEERING-BLUEPRINT.md` |
-| AJM-6 | Insights & Analytics | KPIs, metrics, reporting, dashboards, product-tier analytics | `docs/INSIGHTS-ENGINEERING-BLUEPRINT.md` |
-| AJM-7 | PJ & Cross-Domain Integration | End-to-end integration and reconciliation with PJ/Clinical | Master Blueprint + relevant domain blueprints + PJ documents |
-| AJM-8 | Final Validation & Closure | Security, privacy, financial/legal controls, runtime and production acceptance | Master Blueprint + all domain/stage documents |
+| Stage | Name | Primary scope | Governing domain reference | Status |
+|---|---|---|---|---|
+| AJM-0 | Baseline & Readiness | Repository/runtime reconciliation, classification and implementation lock | Master Blueprint | CLOSED |
+| AJM-1 | Team & Access Foundation | Users, settings, workspaces, roles, Permission Catalog, bundles, overrides, effective access | `docs/TEAM-ACCESS-ENGINEERING-BLUEPRINT.md` | **CLOSED** |
+| AJM-2 | Financial & Resources Foundation | Billing, payments, installments, insurance minimum, inventory, purchasing, suppliers, resource data | Financial & Resources domain specification / integration reference | NEXT |
+| AJM-3 | Workforce & Operations Foundation | Staff, availability, scheduling, capacity, leave, payroll, recruitment, benefits, productivity | `docs/CLINIC-OPERATIONS-WORKFORCE-REFERENCE.md` and integration reference | GATED |
+| AJM-4 | Communications Foundation | Internal communication, patient communication, Portal communication, notifications | Communications engineering blueprint | GATED |
+| AJM-5 | Journey Coordination Foundation | Tasks, requests, handoffs, next actions, escalation, Work Center | `docs/JOURNEY-COORDINATION-ENGINEERING-BLUEPRINT.md` | GATED |
+| AJM-6 | Insights & Analytics | KPIs, metrics, reporting, dashboards, product-tier analytics | `docs/INSIGHTS-ENGINEERING-BLUEPRINT.md` | GATED |
+| AJM-7 | PJ & Cross-Domain Integration | End-to-end integration and reconciliation with PJ/Clinical | Master Blueprint + relevant domain blueprints + PJ documents | GATED |
+| AJM-8 | Final Validation & Closure | Security, privacy, financial/legal controls, runtime and production acceptance | Master Blueprint + all domain/stage documents | GATED |
 
 ## Stage-document rule
 
@@ -29,10 +29,10 @@ Before implementation of a stage, create its dedicated stage document in `docs/`
 
 ## Status rule
 
-A stage is not considered closed because its implementation code exists. The stage index must be updated only after repository/database reconciliation, runtime validation, acceptance evidence and explicit closure have been completed.
+A stage is not considered closed because its implementation code exists. The stage index is updated only after repository/database reconciliation, runtime validation, acceptance evidence and explicit closure have been completed.
 
 ## Current program status
 
-**AJM planning complete. Implementation not yet started under this plan.**
+**AJM-0 CLOSED. AJM-1 CLOSED.**
 
-**Next action:** prepare and approve `AJM-0` before making implementation changes.
+**Next action:** begin AJM-2 — Financial & Resources Foundation after its own Read → Inspect → Runtime Verification → Reconcile gate.
