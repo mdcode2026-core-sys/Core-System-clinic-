@@ -1,7 +1,7 @@
 # AJM-2 Implementation Log
 
 **Stage:** AJM-2 — Financial & Resources Foundation  
-**Status:** IN PROGRESS — Product Surface Reconciliation  
+**Status:** IN PROGRESS — Authenticated E2E / Closure Gate  
 **Date:** 2026-08-27
 
 ## Verified and implemented
@@ -20,6 +20,7 @@
 - Added user-facing list surfaces for Payments, Financial Plans, Installments, Insurance, Consumption, Suppliers, Purchasing and Receiving, backed by tenant-scoped canonical tables.
 - Documented the Core / Advanced / Add-on visibility model as a licensing/entitlement concern separate from permissions.
 - Added tenant capability metadata to the navigation contract so future Advanced/Add-on surfaces can be governed by entitlement without converting licensing into authorization.
+- Corrected the financial-resource list contract against the live production schema, including payment reference naming, ordering fields, complete user-facing operational properties, currency/date formatting and Arabic/English surface labels.
 
 ### Production database
 
@@ -51,7 +52,7 @@ Existing canonical inventory tables remain:
 
 ### Security
 
-- Invoice, invoice-item and invoice-payment mutation policies now use tenant resolution plus the established permission function.
+- Invoice, invoice-item and invoice-payment mutation policies use tenant resolution plus the established permission function.
 - Inventory ledger writes require `inventory:adjust`.
 - Purchasing and insurance tables are tenant-scoped with RLS.
 - Financial/resource mutations have audit triggers using the existing audit function.
@@ -70,6 +71,7 @@ Financial & Resources
 ├── Financial Plans
 ├── Installments
 ├── Insurance
+│   └── Claims
 ├── Inventory
 ├── Consumption
 ├── Suppliers
@@ -91,34 +93,37 @@ Subscription / Add-on
 
 The authoritative AJM-2 scope marks the listed financial/resource foundation capabilities as Core. Advanced scope includes deeper automation and external insurer integrations; those are not exposed as incomplete Core features. The entitlement model remains extensible for future Advanced/Add-on capabilities without changing domain ownership.
 
-Production currently contains the `financial_resources.core` entitlement and its 12 AJM-2 capability mappings. Active subscribed tenants on the applicable Basic/Professional/Enterprise/Trial module families are provisioned through the entitlement table; the application does not compare raw plan names to decide authorization.
+Production contains the `financial_resources.core` entitlement and its 12 AJM-2 capability mappings. The application does not compare raw plan names to decide authorization.
 
 ## Production verification completed
 
-- Confirmed new AJM-2 tables exist with expected columns.
+- Confirmed AJM-2 tables exist with expected columns.
 - Confirmed RLS policies exist on new financial/resource tables.
 - Confirmed invoice mutation policies exist for SELECT/INSERT/UPDATE/DELETE.
 - Confirmed inventory ledger read/write policies are permission-scoped.
 - Confirmed AJM-2 role permission assignments in production.
-- Regenerated Supabase TypeScript types from the live database to confirm the production schema/RPC model includes the AJM-2 objects.
-- Confirmed `financial_resources.core` is active for the current active Enterprise tenant and its capability mapping contains the complete Core surface.
-- Vercel preview deployments have been observed for the new branch; one earlier list-surface build failed on strict row typing and that error has been corrected in the repository.
+- Confirmed `financial_resources.core` is active for the current active tenant and maps to 12 Core capabilities.
+- Confirmed production data foundation currently contains zero financial-plan/payment/insurance-claim/purchasing fixtures, so no test contamination was introduced.
+- Production deployment for main commit `4fdee13ba81eb908f9d9d5ceb9a1fced500f8a3b` reached `READY`.
+- Production Vercel status for the merge commit is successful.
+- Production unauthenticated access to `/financial-resources` and `/payments` correctly redirects to the authenticated application boundary rather than exposing tenant data.
+- Production runtime logs for the merged deployment show no error/fatal entries during verification; observed protected-route responses were authenticated-boundary redirects.
 
-## Important limitation
+## Closure gate
 
-AJM-2 is **not closed**. The entitlement foundation is now present, but the current work still requires a successful latest preview build/runtime verification and authenticated E2E against valid tenant/patient data.
+AJM-2 remains **IN PROGRESS** until authenticated E2E evidence is completed. No test account, password, or private credential is stored in the repository or introduced into production fixtures for this verification.
 
-## Remaining AJM-2 work
+Remaining closure evidence:
 
-- Verify the latest branch deployment reaches `READY` after the row typing correction.
-- Verify Sidebar hierarchy and all Financial & Resources routes in authenticated runtime.
-- Verify Core capability entitlement and effective-permission behavior together.
-- Verify future Advanced/Add-on surfaces remain unexposed unless their entitlement/capability is actually provisioned.
-- Complete authenticated financial/payment/installment E2E without test contamination.
-- Verify cross-tenant denial with real authenticated tenant contexts.
-- Verify Patient Portal financial/installment read integration where applicable.
-- Verify existing Analytics consumes canonical financial/resource facts without a duplicate analytics path.
-- Verify existing invoice and inventory workflows have no regression.
-- Update AJM stage closure evidence only after all Definition of Done items pass.
+1. Authenticated Clinic Admin runtime verification.
+2. Sidebar hierarchy verification in the authenticated tenant workspace.
+3. Core entitlement + effective-permission verification together.
+4. Authenticated verification of all Financial & Resources routes.
+5. Cross-tenant denial with real authenticated tenant contexts.
+6. Authenticated financial/payment/installment workflow verification against valid tenant/patient data without test contamination.
+7. Patient Portal financial/installment read integration verification where applicable.
+8. Existing Analytics consumption of canonical financial/resource facts without a duplicate analytics path.
+9. Existing invoice and inventory workflow regression verification.
+10. Final AJM-2 Definition of Done evidence update.
 
 **No AJM-3 work has been started.**
