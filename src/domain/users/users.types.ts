@@ -1,19 +1,11 @@
-"use client";
-
 import type { UserRole } from "@/core/permissions/types";
-
-/**
- * M2.3 — User Management Types
- *
- * Represents a clinic user row joined with their role information.
- * System roles are referenced by role_key; custom roles by role_template_id.
- */
 
 export interface ClinicUser {
   id: string;
   auth_user_id: string | null;
   tenant_id: string;
-  role: UserRole;
+  role: UserRole | string;
+  role_id: string;
   role_template_id: string | null;
   full_name: string | null;
   phone: string | null;
@@ -27,14 +19,14 @@ export interface ClinicUserWithRole extends ClinicUser {
   role_name: string | null;
   role_name_ar: string | null;
   is_system_role: boolean;
+  role_workspace: string | null;
 }
 
 export interface CreateUserInput {
   full_name: string;
   email: string;
   phone?: string;
-  role: UserRole;
-  role_template_id?: string | null;
+  role_id: string;
 }
 
 export interface UpdateUserInput {
@@ -42,8 +34,7 @@ export interface UpdateUserInput {
   full_name?: string;
   email?: string;
   phone?: string;
-  role?: UserRole;
-  role_template_id?: string | null;
+  role_id?: string;
 }
 
 export interface UserActionResult {

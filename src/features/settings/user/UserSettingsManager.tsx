@@ -1,0 +1,14 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { useTenantId } from "@/core/auth/useTenantId";
+import { useI18n } from "@/core/i18n/I18nProvider";
+import { useUserSettings } from "@/domain/user-settings/userSettings.queries";
+import { saveUserSettings } from "@/domain/user-settings/userSettings.actions";
+import { Button } from "@/shared/components/ui/button";
+import { Label } from "@/shared/components/ui/label";
+import { Select,SelectContent,SelectItem,SelectTrigger,SelectValue } from "@/shared/components/ui/select";
+import { Switch } from "@/shared/components/ui/switch";
+import { Loader2,Save } from "lucide-react";
+
+export function UserSettingsManager(){const{locale}=useI18n();const{userId,tenantId}=useTenantId();const{data,isLoading}=useUserSettings(userId,tenantId);const[workspace,setWorkspace]=useState<"administration"|"operation"|"clinical">("operation");const[collapsed,setCollapsed]=useState(false);const[saving,setSaving]=useState(false);const[saved,setSaved]=useState(false);useEffect(()=>{if(data){setWorkspace(data.default_workspace??"operation");setCollapsed(!!data.sidebar_collapsed);}},[data]);if(isLoading)return <div className="py-8 flex justify-center"><Loader2 className="h-5 w-5 animate-spin"/></div>;const ar=locale==="ar";const labels={administration:ar?"الإدارة":"Administrative",operation:ar?"التشغيل":"Operation",clinical:ar?"السريري":"Clinical"};const save=async()=>{setSaving(true);setSaved(false);const r=await saveUserSettings({locale,default_workspace:workspace,sidebar_collapsed:collapsed});setSaving(false);setSaved(r.success);};return <div className="max-w-xl space-y-6" dir={ar?"rtl":"ltr"}><div><h2 className="text-xl font-semibold">{ar?"إعداداتي":"My Settings"}</h2><p className="text-sm text-muted-foreground">{ar?"تفضيلاتك الشخصية لا تغيّر صلاحياتك.":"Personal preferences do not change authorization."}</p></div><div className="space-y-2"><Label>{ar?"مساحة العمل الافتراضية":"Default workspace"}</Label><Select value={workspace} onValueChange={v=>setWorkspace(v as typeof workspace)}><SelectTrigger><SelectValue/></SelectTrigger><SelectContent>{Object.entries(labels).map(([k,v])=><SelectItem key={k} value={k}>{v}</SelectItem>)}</SelectContent></Select></div><div className="flex items-center justify-between rounded-md border p-4"><div><p className="font-medium">{ar?"طي الشريط الجانبي":"Collapse sidebar"}</p><p className="text-sm text-muted-foreground">{ar?"تفضيل عرض فقط.":"Display preference only."}</p></div><Switch checked={collapsed} onCheckedChange={setCollapsed}/></div><div className="flex items-center gap-3"><Button onClick={save} disabled={saving}>{saving?<Loader2 className="h-4 w-4 animate-spin"/>:<Save className="h-4 w-4"/>}{ar?"حفظ":"Save"}</Button>{saved&&<span className="text-sm text-muted-foreground">{ar?"تم الحفظ":"Saved"}</span>}</div></div>}
