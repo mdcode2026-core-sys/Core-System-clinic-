@@ -19,7 +19,22 @@ function isEffective(row: { status: string; effective_from: string; effective_un
   );
 }
 
+async function isClinicAdmin(tenantId: string): Promise<boolean> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("clinic_users")
+    .select("roles!clinic_users_role_id_fkey(role_key)")
+    .eq("tenant_id", tenantId)
+    .eq("auth_user_id", (await supabase.auth.getUser()).data.user?.id ?? "")
+    .eq("is_active", true)
+    .maybeSingle();
+  if (error || !data) return false;
+  const role = Array.isArray(data.roles) ? data.roles[0] : data.roles;
+  return (role as { role_key?: string } | null)?.role_key === "clinic_admin";
+}
+
 export async function hasEntitlement(tenantId: string, entitlementKey: string): Promise<boolean> {
+  if (await isClinicAdmin(tenantId)) return true;
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("tenant_entitlements")
@@ -33,6 +48,7 @@ export async function hasEntitlement(tenantId: string, entitlementKey: string): 
 }
 
 export async function hasCapability(tenantId: string, capabilityKey: string): Promise<boolean> {
+  if (await isClinicAdmin(tenantId)) return true;
   const supabase = await createClient();
   const { data: mapping, error: mappingError } = await supabase
     .from("entitlement_capabilities")
@@ -54,7 +70,7 @@ export async function hasCapability(tenantId: string, capabilityKey: string): Pr
 
 export async function canAccessCapability(
   tenantId: string | null,
-  capabilityKey: string
+  capabilityKey: string,
 ): Promise<AccessDecision> {
   if (!tenantId) return { allowed: false, reason: "tenant_missing" };
 
