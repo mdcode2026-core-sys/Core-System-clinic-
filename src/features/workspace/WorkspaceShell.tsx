@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { LogOut, Menu, X } from "lucide-react";
-import { navigationRegistry } from "@/core/navigation/navigationRegistry";
+import { navigationRegistry, type NavItem } from "@/core/navigation/navigationRegistry";
 import { usePermissions } from "@/core/permissions/usePermissions";
 import { createClient } from "@/infrastructure/supabase/client";
 import { cn } from "@/shared/utils/cn";
@@ -21,14 +21,40 @@ export function WorkspaceShell({ children, user }: WorkspaceShellProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const supabase = createClient();
   const isArabic = locale === "ar";
-  const filteredNav = navigationRegistry.filter((item) => item.requiredPermission === null || hasPermission(item.requiredPermission));
+
+  const canSee = (item: NavItem) => item.requiredPermission === null || hasPermission(item.requiredPermission);
+  const filteredNav = navigationRegistry
+    .map((item) => ({ ...item, children: item.children?.filter(canSee) }))
+    .filter((item) => canSee(item) || (item.children && item.children.length > 0));
 
   useEffect(() => { setSidebarOpen(false); }, [pathname]);
   useEffect(() => { setSidebarOpen(false); }, [locale]);
 
   const handleSignOut = async () => { await supabase.auth.signOut(); router.push("/login"); router.refresh(); };
   const closeSidebar = () => setSidebarOpen(false);
-  const getLabel = (item: (typeof navigationRegistry)[number]) => item.label ? item.label[locale] : item.labelKey ? messages.nav[item.labelKey] : item.href;
+  const getLabel = (item: NavItem) => item.label ? item.label[locale] : item.labelKey ? messages.nav[item.labelKey] : item.href;
+
+  const renderItem = (item: NavItem, nested = false) => {
+    const children = item.children ?? [];
+    const isActive = pathname === item.href || children.some((child) => pathname === child.href || pathname.startsWith(child.href + "/"));
+    return (
+      <div key={item.href}>
+        <Link href={item.href} prefetch onClick={closeSidebar} className={cn(
+          "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+          nested && (isArabic ? "mr-4" : "ml-4"),
+          isActive ? "bg-blue-50 text-blue-700" : "text-gray-700 hover:bg-gray-100 hover:text-gray-900",
+        )}>
+          <item.icon className="h-4 w-4 shrink-0" />
+          <span className="truncate">{getLabel(item)}</span>
+        </Link>
+        {children.length > 0 && (
+          <div className="mt-1 space-y-0.5 border-l border-gray-200 pl-1 rtl:border-l-0 rtl:border-r rtl:pr-1">
+            {children.map((child) => renderItem(child, true))}
+          </div>
+        )}
+      </div>
+    );
+  };
 
   return (
     <div className="flex h-screen w-full overflow-hidden bg-gray-50">
@@ -39,9 +65,7 @@ export function WorkspaceShell({ children, user }: WorkspaceShellProps) {
             <Link href="/" className="text-xl font-bold text-blue-600" onClick={closeSidebar}>ClinicSaaS™</Link>
             <button type="button" onClick={closeSidebar} className="rounded-md p-1.5 hover:bg-gray-100" aria-label={messages.shell.closeMenu} title={messages.shell.closeMenu}><X className="h-5 w-5" /></button>
           </div>
-          <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4">
-            {filteredNav.map((item) => { const isActive = pathname === item.href; return <Link key={item.href} href={item.href} prefetch onClick={closeSidebar} className={cn("flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors", isActive ? "bg-blue-50 text-blue-700" : "text-gray-700 hover:bg-gray-100 hover:text-gray-900")}><item.icon className="h-4 w-4 shrink-0" /><span>{getLabel(item)}</span></Link>; })}
-          </nav>
+          <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4">{filteredNav.map((item) => renderItem(item))}</nav>
         </div>
       </aside>
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
