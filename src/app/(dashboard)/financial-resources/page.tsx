@@ -16,6 +16,9 @@ export default async function FinancialResourcesPage() {
   const tenantId = await resolveTenantId(user.id);
   if (!tenantId) redirect("/login");
 
+  // Financial & Resources is one tenant-facing product surface. Clinic Admin
+  // must be able to see the complete implemented surface during the foundation
+  // phase; commercial entitlement packaging is intentionally deferred.
   const access = await canAccessCapability(tenantId, "financial_resources.access");
   if (!access.allowed) redirect("/");
 
