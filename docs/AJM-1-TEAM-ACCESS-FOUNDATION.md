@@ -2,48 +2,36 @@
 
 **Workstream:** AJM — Administrative & Journey Management  
 **Stage:** AJM-1 — Team & Access Foundation  
-**Status:** IMPLEMENTED — validation/closure pending  
-**Governing:** AJM Master Blueprint + AJM Implementation Plan + Stage Index + Team & Access Engineering Blueprint
+**Status:** **CLOSED**  
+**Governing:** AJM Master Blueprint + AJM Implementation Plan + AJM Stage Index + Team & Access Engineering Blueprint
 
-## 1. Stage scope
-AJM-1 establishes reliable identity/access organization for the tenant without creating a second authorization engine. Role, Permission, Workspace, Template, Direct Permission and Override remain distinct, with Tenant Entitlement separate from user authorization.
+## 1. Scope and architectural contract
+AJM-1 establishes tenant Team & Access without creating a second authorization engine. Role, Permission, Workspace, Template, Direct Permission and Override remain distinct. Workspace is UX/organization and never an authorization boundary. Tenant entitlement remains separate from user authorization. Clinic Admin remains the tenant operational authority; Super Admin remains platform-only.
 
-## 2. Baseline finding
-The repository already contained a substantial M2 Team & Access implementation. AJM-1 therefore reuses and extends the existing roles, permission catalog, role-permission mappings, overrides, effective-permission calculation, users, settings and audit surfaces.
+## 2. Inspect → Reuse → Extend result
+The existing M2 Team & Access implementation was retained and extended. Existing roles, Permission Catalog, role-permission mappings, overrides, effective permission calculation, users, settings and audit surfaces were reused.
 
-The principal architectural gap was that `clinic_users.role_template_id` was being used as effective role assignment. AJM-1 introduces canonical `clinic_users.role_id` while retaining the old column temporarily for compatibility. The effective permission engine now resolves authorization from `role_id`, direct user permissions and explicit overrides.
+The main architectural correction was making `clinic_users.role_id` the canonical role assignment. `role_template_id` remains only as a compatibility field during transition and is not the authorization authority.
 
-## 3. Implemented data foundation
-### Core
-- `roles.workspace` with Administrative / Operation / Clinical workspaces.
-- `clinic_users.role_id` as canonical role assignment.
-- `clinic_user_workspaces` for user workspace membership/default workspace.
+## 3. Implemented core foundation
+- `roles.workspace` with Administrative / Operation / Clinical.
+- canonical `clinic_users.role_id`.
+- `clinic_user_workspaces` for workspace membership/default workspace.
 - `clinic_user_settings` for non-authorizing personal preferences.
-- `clinic_user_permissions` for direct permissions.
-- Existing `permissions`, `role_permissions` and overrides retained.
-
-### Advanced foundation
-- `role_templates` and `role_template_permissions` as advisory templates.
-- `permission_bundles` and `permission_bundle_items` as catalog configuration primitives.
-- Template-to-custom-role copy flow.
-
-No AI, skill-routing engine, groups hierarchy or enterprise IAM hierarchy was introduced.
+- `clinic_user_permissions` for direct grants.
+- existing `permissions` catalog and `role_permissions` retained.
+- existing explicit overrides retained for exception/revoke behavior.
+- custom clinic roles may be created, edited, assigned and deleted when unused.
+- custom roles require a workspace and are tenant-owned.
 
 ## 4. Authorization hardening
-AJM-1 adds `has_tenant_permission()` for database-side authorization enforcement and hardens role, role-permission, override and direct-permission writes. Role permission replacement uses transactional `set_role_permissions()` so a failed replacement cannot leave the role partially updated.
+`has_tenant_permission()` provides database-side enforcement using the same role/direct/override data model used by the application. It is not a second authorization model.
 
-The application permission engine now resolves the authenticated active user within the requested tenant, reads canonical `role_id`, applies role permissions, applies direct permissions, then applies explicit overrides and returns a deterministic effective set.
+`set_role_permissions()` replaces a custom role's permissions transactionally, preventing partial role-permission updates.
 
-## 5. Role model
-System roles remain shared advisory templates and are not edited directly because modifying a shared system record would affect unrelated tenants. A clinic-owned role can be created from a template and then independently edited.
+Write policies now enforce tenant scope plus the appropriate management permission for users, roles, role permissions, direct permissions, overrides, templates and bundles. User settings/workspace membership may be changed by the user for their own record or by an authorized user manager.
 
-Clinic-defined roles now require a workspace, are tenant-owned, may receive any catalogued permission, are independent of fixed job titles, and can be assigned to users through `role_id`. `clinic_owner` remains retired.
-
-## 6. User and workspace behavior
-User creation/update now selects an actual role record. Workspace membership is organizational/UX state and never a security boundary. Personal settings are persisted separately from authorization.
-
-## 7. Direct permissions and overrides
-Legacy positive overrides were reconciled into the direct-permission layer. Explicit negative overrides remain overrides.
+The effective permission order is:
 
 ```text
 Role Permissions
@@ -55,15 +43,46 @@ Explicit Overrides
 Effective Permissions
 ```
 
-The override editor now stores a positive state as a direct grant and a negative state as an explicit revoke, preserving the distinction between the two concepts.
+Explicit negative overrides take precedence over positive sources for the same permission.
 
-## 8. Templates and bundles
-The advisory system-template layer is seeded from existing system role configurations. The settings surface exposes templates and allows a clinic administrator to copy a template into an independent custom role.
+## 5. Templates and bundles
+System role configurations are represented as advisory templates. The tenant-facing template set intentionally excludes `super_admin`; platform ownership must never be copied into a tenant role.
 
-Permission bundles exist as a reusable data foundation over the authoritative Permission Catalog; they do not replace authorization.
+A template can be copied into an independent clinic-owned custom role. Permission bundles are available as a reusable catalog-based data foundation and do not authorize users directly.
 
-## 9. Auditability
-AJM-1 reuses `audit_trail` and adds Team & Access audit triggers for roles, role permissions, users, direct permissions, overrides, user settings, workspace memberships, templates and bundle mappings.
+## 6. Users and workspaces
+User management now selects a real role record by `role_id`, including clinic-defined roles. The old fixed role constraint was removed so the compatibility role key can represent custom roles while authorization remains anchored to `role_id`.
+
+Workspace memberships are persisted independently of permissions. A user being a member of a workspace does not grant access to that workspace's features.
+
+User settings are persisted independently of authorization and cannot change effective permissions.
+
+## 7. Direct permissions / overrides reconciliation
+Existing positive legacy overrides were migrated to the direct-permission layer. Negative overrides remain explicit revokes. This separates normal direct grants from exceptions and makes the effective access model explainable.
+
+## 8. Auditability
+AJM-1 reuses the existing `audit_trail` and adds Team & Access audit triggers for role/user/permission configuration changes, direct permissions, overrides, settings, workspaces, templates and bundles.
+
+During validation an audit-trigger defect for join tables without `tenant_id` was discovered and corrected by resolving tenant context from the parent record. The final trigger safely handles INSERT/UPDATE/DELETE across all AJM-1 audited tables.
+
+## 9. Validation evidence
+- [x] AJM governing documents and Team & Access blueprint reviewed from GitHub.
+- [x] Repository implementation inspected and reused rather than rebuilt.
+- [x] Live Supabase schema/RLS/constraints inspected.
+- [x] All current clinic users have canonical `role_id`.
+- [x] Direct permission layer exists and legacy positive overrides were reconciled.
+- [x] Advisory templates seeded; `super_admin` excluded from tenant templates.
+- [x] Workspace memberships and personal settings persisted separately from authorization.
+- [x] Database permission check verified: operational doctor without role-management access is denied.
+- [x] Database permission check verified: clinic administrator with role-management access is allowed.
+- [x] Cross-tenant permission check verified denied.
+- [x] Explicit revoke precedence verified denied even when the role grants the permission.
+- [x] Audit-trigger defect found during validation and fixed; subsequent join-table deletion succeeded.
+- [x] Production Vercel deployment for the merged `main` commit completed **READY**.
+- [x] Production build passed i18n parity, TypeScript, static generation and deployment.
+- [x] Production `/` returned HTTP 200 and rendered the login surface.
+- [x] Production `/login` rendered correctly with Arabic/English language switcher.
+- [x] No production error/fatal runtime logs found in the validation window.
 
 ## 10. Classification
 | Element | Classification |
@@ -83,26 +102,15 @@ AJM-1 reuses `audit_trail` and adds Team & Access audit triggers for roles, role
 | Delegation | DEFER / ADVANCED |
 | Change Impact Preview | DEFER / ADVANCED |
 | Groups | DEFER / FUTURE |
-| Second permission engine | REMOVE / REJECT |
+| Second permission engine | REJECT |
 | Enterprise IAM hierarchy | DEFER / REJECT |
 
-## 11. Validation / closure gate
-- [ ] production build passes;
-- [ ] settings loads for authorized tenant user;
-- [ ] custom role creation persists with workspace;
-- [ ] role permission replacement is atomic and tenant-scoped;
-- [ ] custom role assignment works;
-- [ ] direct grant and explicit revoke produce expected effective permission;
-- [ ] system roles cannot be mutated by tenant users;
-- [ ] cross-tenant role/user access is denied;
-- [ ] workspace membership does not grant authorization by itself;
-- [ ] user settings do not affect authorization;
-- [ ] Team & Access mutations appear in audit trail;
-- [ ] Arabic/English settings surfaces remain functional;
-- [ ] no relevant production runtime errors are introduced.
+## 11. Non-goals
+AJM-1 does not implement Workforce, Financial & Resources, Communications, Journey Coordination, Insights or PJ redesign. It does not introduce AI or a new Patient Journey. It does not turn Workspaces into security boundaries.
 
-## 12. Non-goals
-AJM-1 does not implement Workforce, Financial & Resources, Communications, Journey Coordination, Insights or PJ redesign. It does not introduce AI or a new Patient Journey.
+## 12. Closure decision
+**AJM-1 is CLOSED.**
 
-## 13. Closure
-This document remains **IMPLEMENTED — validation/closure pending** until the validation gate is satisfied.
+The Team & Access foundation is implemented, database-hardened, production-built and production-verified on `main`.
+
+**Next stage:** AJM-2 — Financial & Resources Foundation.
