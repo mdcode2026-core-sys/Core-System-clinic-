@@ -6,88 +6,90 @@
 
 ## Governing execution rule
 
-AJM-2 is being executed under the AJM Master Blueprint, AJM Implementation Plan, Stage Index and the Financial & Resources Engineering Blueprint. Existing Billing/Invoicing and Inventory domains remain canonical. Financial & Resources capabilities are integrated with those existing surfaces; no duplicate billing or inventory engine is created.
+AJM-2 follows the AJM Master Blueprint, AJM Implementation Plan, Stage Index and Financial & Resources Engineering Blueprint. Existing Billing/Invoicing and Inventory domains remain canonical. Financial & Resources capabilities are integrated with those surfaces without creating a duplicate billing or inventory engine.
 
-## Verified and implemented
+## User-surface reconciliation
 
-### Repository / application
+The earlier implementation exposed `/financial-resources` as a parallel user-facing application. That was an execution error. The corrected implementation removes that duplicate route and exposes the AJM-2 capabilities through the existing canonical surfaces:
 
-- Reconciled invoice actions with live Supabase RPC signatures.
-- Reconciled invoice item/payment field names with the live schema.
-- Wired invoice issue/payment/cancellation to real server actions.
-- Added server-side effective-permission checks for financial mutations.
-- Removed client-supplied tenant ID as an authorization source in inventory mutations.
-- Added financial-plan, installment, minimum-insurance, supplier and purchasing/receiving domain capabilities.
-- Preserved `inventory_items` and `inventory_ledger` as the canonical inventory implementation.
-- Preserved Treatment Plan, Agenda, Follow-up and Patient Portal ownership.
+- `/invoices` remains the Billing & Invoices entry point.
+- `/invoices/financial` provides Financial Plans, Installments and Insurance.
+- `/inventory` remains the Inventory entry point.
+- `/inventory/purchasing` provides Suppliers and Purchasing.
+- `/inventory/purchasing/receiving` provides Purchase Receiving.
+- Financial & Resources remains independently owned in the domain layer.
 
-### User-surface reconciliation
+## Database reconciliation and fixes
 
-The first AJM-2 implementation incorrectly exposed a separate `/financial-resources` application surface. This was identified as a domain/surface duplication during reconciliation and is being removed from the user-facing navigation model.
+Production inspection found that two AJM-2 invoice/payment RPC implementations attempted to write generated columns. This was a real repository-to-production contract defect, not a UI issue.
 
-The corrected model is:
+Corrected production functions:
 
-- existing **Invoices** surface remains the canonical billing entry point;
-- Financial Plans, Installments and Insurance are exposed as the financial workspace beneath the Invoices surface;
-- existing **Inventory** surface remains the canonical stock entry point;
-- Suppliers, Purchasing and Receiving are exposed beneath the Inventory surface;
-- the Financial & Resources domain remains independently owned in the background and is not merged into Invoicing or Inventory ownership.
+- `create_manual_invoice` no longer writes generated `clinic_invoices.amount_due_subunits`.
+- `create_manual_invoice` no longer writes generated `invoice_items.line_total_subunits`.
+- `record_invoice_payment` no longer writes generated `clinic_invoices.amount_due_subunits`.
+- `record_invoice_payment_with_installment` no longer writes generated `clinic_invoices.amount_due_subunits`.
 
-### Production database
+The matching migration files are synchronized in the AJM-2 branch with the production migration versions.
 
-Applied and verified AJM-2 migrations:
+## Real database E2E evidence
 
-- `ajm_2_financial_resources_foundation`
-- `ajm_2_invoice_manual_and_payment_hardening`
-- `ajm_2_purchasing_receiving_and_inventory_security`
-- `ajm_2_permission_role_boundary_correction`
-- `ajm_2_financial_resources_audit_triggers`
+Using an authenticated tenant context inside a rollback transaction, the following scenarios were executed against Production:
 
-Core AJM-2 tables include:
+### Billing E2E — PASS
 
-- `financial_plans`
-- `financial_installments`
-- `patient_insurance_profiles`
-- `insurance_claims`
-- `suppliers`
-- `purchase_orders`
-- `purchase_order_items`
-- `purchase_receipts`
-- `purchase_receipt_items`
+`Clinic Admin → manual invoice → issue invoice → financial plan → installment linked to invoice → payment allocated to installment → invoice paid → installment paid`
 
-Canonical inventory remains:
+Assertions passed:
 
-- `inventory_items`
-- `inventory_ledger`
+- invoice creation succeeded;
+- invoice issuance succeeded;
+- financial plan creation succeeded;
+- installment creation/link succeeded;
+- atomic installment payment succeeded;
+- invoice `amount_paid_subunits` reached the expected amount;
+- generated `amount_due_subunits` resolved to zero;
+- invoice status became `paid`;
+- installment status became `paid`.
 
-## Security / integrity
+### Purchasing E2E — PASS
 
-- Authentication → server tenant resolution → effective permission → validation → transactional database operation is the required mutation path.
-- Financial/resource tables are tenant-scoped with RLS.
-- Invoice and payment mutations enforce tenant and permission boundaries.
-- Purchasing/receiving validates tenant and inventory ownership.
-- Financial/resource mutations are auditable.
-- Financial amount invariants are enforced at the persistence boundary.
-- No second inventory balance engine exists.
-- `billing_events` remains reserved for platform/subscription billing.
+`Clinic Admin → supplier → purchase order → purchase order item → receiving → canonical inventory stock increase → inventory ledger entry`
 
-## Validation gate
+Assertions passed:
 
-The following are required before AJM-2 can be closed:
+- supplier creation succeeded;
+- purchase order creation succeeded;
+- receiving succeeded;
+- received quantity matched the ordered quantity;
+- canonical inventory stock increased by the received quantity;
+- canonical inventory ledger recorded the purchase event.
 
-1. Repository/build validation on the final branch head.
-2. Preview runtime validation of the corrected canonical surfaces.
-3. Authenticated invoice → financial plan → installment/payment flow.
-4. Authenticated inventory → supplier → purchase order → receiving flow.
-5. Permission-denied validation for unauthorized mutations.
-6. Cross-tenant denial validation.
-7. Treatment Plan / financial linkage validation.
-8. Patient Portal financial/installment read integration validation where enabled.
-9. Regression validation for existing Invoices and Inventory behavior.
-10. Final production deployment and runtime acceptance.
+### Security negative scenarios — PASS
 
-No AJM-3 implementation is permitted before these gates pass.
+- Cross-tenant invoice creation returned `Tenant mismatch`.
+- Unbalanced financial plan installments were rejected.
+- Over-receiving beyond ordered quantity was rejected.
+
+All E2E database fixtures were executed inside transactions and rolled back. Production counts remained unchanged after validation.
+
+## Repository state
+
+The reconciliation branch is `ajm/ajm-2-e2e-reconciliation`.
+
+The branch contains the corrected canonical surface routing, bilingual nested navigation, receiving workflow, generated-column RPC fixes, synchronized migrations, and this validation record.
+
+## Remaining gates before Definition of Done
+
+1. Final branch build must pass.
+2. Preview deployment must correspond to the final branch HEAD.
+3. Authenticated browser/runtime acceptance must pass on `/invoices`, `/invoices/financial`, `/inventory`, `/inventory/purchasing`, and `/inventory/purchasing/receiving`.
+4. Existing invoice and inventory regression behavior must pass.
+5. Treatment Plan financial linkage must be verified where applicable.
+6. Patient Portal financial/installment read integration must be verified where enabled.
+7. Final Production deployment must correspond to the validated branch HEAD.
+8. Only after these gates pass may AJM-2 be marked CLOSED and AJM-3 started.
 
 ## Current state
 
-AJM-2 remains **IN PROGRESS**. Previous closure evidence was invalid because the user-facing surface was not reconciled with the existing canonical Invoices/Inventory surfaces and the authenticated E2E acceptance gate had not been passed.
+**AJM-2 remains IN PROGRESS.** The core authenticated database E2E scenarios now pass, but the final browser/build/Production deployment gate cannot yet be marked passed because Vercel is currently returning a `build-rate-limit` failure for this project. No claim of full Definition of Done is made until the deployment/runtime gate is actually verified.
