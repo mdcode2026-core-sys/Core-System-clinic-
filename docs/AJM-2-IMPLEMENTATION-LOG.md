@@ -19,6 +19,7 @@
 - Preserved `/invoices` and `/inventory` as authoritative existing surfaces while placing them under the Financial & Resources product surface rather than creating duplicate engines.
 - Added user-facing list surfaces for Payments, Financial Plans, Installments, Insurance, Consumption, Suppliers, Purchasing and Receiving, backed by tenant-scoped canonical tables.
 - Documented the Core / Advanced / Add-on visibility model as a licensing/entitlement concern separate from permissions.
+- Added tenant capability metadata to the navigation contract so future Advanced/Add-on surfaces can be governed by entitlement without converting licensing into authorization.
 
 ### Production database
 
@@ -29,6 +30,7 @@ Applied and verified AJM-2 migrations:
 - `ajm_2_purchasing_receiving_and_inventory_security`
 - `ajm_2_permission_role_boundary_correction`
 - `ajm_2_financial_resources_audit_triggers`
+- `ajm2_financial_resources_core_entitlements`
 
 New Core tables:
 
@@ -77,7 +79,7 @@ Financial & Resources
 
 The Sidebar hierarchy is a product surface only. Domain ownership remains independent.
 
-Capability packaging is not hard-coded into the navigation as raw subscription tiers. The intended access chain is:
+Capability packaging is not hard-coded into the navigation as raw subscription tiers. The access model is:
 
 ```text
 Subscription / Add-on
@@ -87,7 +89,9 @@ Subscription / Add-on
  → UI/action access
 ```
 
-The current entitlement engine already provides tenant entitlement/capability evaluation; AJM-2 must complete capability mappings before claiming tier-aware runtime behavior as closed.
+The authoritative AJM-2 scope marks the listed financial/resource foundation capabilities as Core. Advanced scope includes deeper automation and external insurer integrations; those are not exposed as incomplete Core features. The entitlement model remains extensible for future Advanced/Add-on capabilities without changing domain ownership.
+
+Production currently contains the `financial_resources.core` entitlement and its 12 AJM-2 capability mappings. Active subscribed tenants on the applicable Basic/Professional/Enterprise/Trial module families are provisioned through the entitlement table; the application does not compare raw plan names to decide authorization.
 
 ## Production verification completed
 
@@ -97,18 +101,19 @@ The current entitlement engine already provides tenant entitlement/capability ev
 - Confirmed inventory ledger read/write policies are permission-scoped.
 - Confirmed AJM-2 role permission assignments in production.
 - Regenerated Supabase TypeScript types from the live database to confirm the production schema/RPC model includes the AJM-2 objects.
+- Confirmed `financial_resources.core` is active for the current active Enterprise tenant and its capability mapping contains the complete Core surface.
 - Vercel preview deployments have been observed for the new branch; one earlier list-surface build failed on strict row typing and that error has been corrected in the repository.
 
 ## Important limitation
 
-AJM-2 is **not closed**. The current work still requires a successful latest preview build/runtime verification and authenticated E2E against valid tenant/patient data. Capability-to-entitlement mappings for the final product packaging must also be verified before tier-aware visibility can be declared complete.
+AJM-2 is **not closed**. The entitlement foundation is now present, but the current work still requires a successful latest preview build/runtime verification and authenticated E2E against valid tenant/patient data.
 
 ## Remaining AJM-2 work
 
 - Verify the latest branch deployment reaches `READY` after the row typing correction.
 - Verify Sidebar hierarchy and all Financial & Resources routes in authenticated runtime.
-- Verify Core / Advanced / Add-on capability mappings against the authoritative subscription/entitlement model; do not hard-code plan names.
-- Verify action-level effective permissions for each route and mutation.
+- Verify Core capability entitlement and effective-permission behavior together.
+- Verify future Advanced/Add-on surfaces remain unexposed unless their entitlement/capability is actually provisioned.
 - Complete authenticated financial/payment/installment E2E without test contamination.
 - Verify cross-tenant denial with real authenticated tenant contexts.
 - Verify Patient Portal financial/installment read integration where applicable.
