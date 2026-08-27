@@ -2,10 +2,9 @@
 
 **Workstream:** AJM — Administrative & Journey Management  
 **Stage:** AJM-2 — Financial & Resources Foundation  
-**Status:** IN PROGRESS — Product Surface Reconciliation  
-**Date:** 2026-08-27  
-**Repository:** `mdcode2026-core-sys/Core-System-clinic-`  
-**Branch:** `ajm/ajm-2-financial-resources-surface`
+**Status:** IN PROGRESS — Authenticated E2E / Closure Gate  
+**Date:** 2026-08-28  
+**Repository:** `mdcode2026-core-sys/Core-System-clinic-`
 
 ## 1. Governing authority
 
@@ -140,7 +139,7 @@ Authentication
  → database transaction
 ```
 
-Database RLS policies are tenant-scoped and permission-scoped. Cross-domain references must preserve tenant consistency.
+Database RLS policies are tenant-scoped and permission-scoped. Cross-domain references preserve tenant consistency through the AJM-2 integrity trigger layer.
 
 Role assignments remain governed by AJM-1. Role, permission, workspace and capability are not collapsed into one concept.
 
@@ -150,9 +149,43 @@ Production RPC signatures and field names are reconciled with repository calls. 
 
 The existing invoice and inventory surfaces are extended/reorganized rather than replaced by duplicate engines.
 
-The current branch also records the production `financial_resources.core` entitlement and its Core capability mappings. The migration provisions this entitlement for active subscribed tenant plans in the existing subscription model; the application does not authorize directly from a raw `subscription_tier`/plan-name comparison.
+The repository records the production `financial_resources.core` entitlement and its Core capability mappings. The application does not authorize directly from a raw `subscription_tier`/plan-name comparison.
 
-## 7. Validation requirements
+## 7. Closure hardening audit — 2026-08-28
+
+A fresh reconciliation of the AJM-2 implementation against GitHub, production Supabase and Vercel found and corrected three concrete issues:
+
+### FIXED — internal identifier exposure
+
+The new financial/resource list surfaces and overview fallbacks could display raw internal foreign-key UUIDs. These were removed from operator-facing columns and fallbacks. User-facing views now retain operational labels/data without exposing technical identifiers as standalone fields.
+
+### FIXED — inventory low-stock KPI query error
+
+The existing KPI attempted a PostgREST filter comparing `current_stock` to the `reorder_threshold` column as though the second argument were a column reference. The implementation was corrected to retrieve the two tenant-scoped numeric fields and apply the approved comparison in application code.
+
+### FIXED — feature flag RLS runtime error
+
+Production Vercel logs showed repeated `permission denied for function get_current_user_role` errors while reading `feature_flags`. The read policy was hardened to resolve the super-admin exception directly through `clinic_users`, removing the helper-function dependency from the RLS predicate. The production policy was applied and verified, and the repository migration is:
+
+`supabase/migrations/20260828000000_ajm2_harden_feature_flag_rls_role_lookup.sql`
+
+These corrections do not introduce duplicate domain engines or alter the approved AJM-2 ownership boundaries.
+
+## 8. Production / runtime baseline
+
+Production database inspection confirms:
+
+- 5 active tenant records exist in `master_tenants`.
+- 1 active subscription currently exists in the subscription model.
+- 1 active `financial_resources.core` tenant entitlement exists and maps to 12 AJM-2 capabilities.
+- AJM-2 financial/resource tables exist and currently contain no fixture rows.
+- Tenant-scoped RLS and AJM-2 cross-domain integrity triggers are present.
+
+Vercel production deployment for main commit `0708f4b63240ede024eafb8229c44e22bd514cfb` was `READY` before the closure hardening work. A new preview deployment was automatically queued for the hardening branch.
+
+The available runtime evidence does **not** justify claiming authenticated E2E completion. Protected production routes correctly enforce the authentication boundary, but no private credential is stored or introduced merely to manufacture closure evidence.
+
+## 9. Validation requirements
 
 AJM-2 remains open until the Product Surface Contract is proven through:
 
@@ -170,7 +203,7 @@ AJM-2 remains open until the Product Surface Contract is proven through:
 - regression verification of existing invoices and inventory;
 - end-to-end financial and resource workflows.
 
-## 8. Deliberately deferred
+## 10. Deliberately deferred
 
 AJM-2 does not include:
 
@@ -182,13 +215,7 @@ AJM-2 does not include:
 - second inventory engine;
 - replacement of Treatment Plan, Agenda, Follow-up or Patient Portal.
 
-## 9. Current reconciliation status
-
-The underlying financial/resource data foundation, security model and user-facing surfaces are now being reconciled into the approved Financial & Resources product surface. The stage remains **IN PROGRESS** until entitlement-aware navigation/runtime and authenticated E2E evidence are complete.
-
-No AJM-3 implementation is authorized from this document while AJM-2 remains open.
-
-## 10. Definition of Done
+## 11. Definition of Done
 
 AJM-2 may be marked CLOSED only when all of the following are evidenced:
 
@@ -210,3 +237,11 @@ AJM-2 may be marked CLOSED only when all of the following are evidenced:
 16. Stage documentation and repository state reflect the final implementation.
 17. Production deployment/runtime evidence is available.
 18. Only then is AJM-2 explicitly CLOSED and AJM-3 may proceed.
+
+## 12. Current status
+
+**AJM-2 remains IN PROGRESS.**
+
+The implementation and hardening pass is complete for the issues discovered in this audit, but closure is intentionally withheld until authenticated E2E, cross-tenant, Portal/Insights integration and regression evidence is obtained.
+
+**AJM-3 remains GATED.**
