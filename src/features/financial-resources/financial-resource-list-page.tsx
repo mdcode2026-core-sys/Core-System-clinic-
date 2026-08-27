@@ -3,87 +3,34 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/infrastructure/supabase/server";
 import { resolveTenantId } from "@/core/auth/resolveTenantId";
 import { getEffectivePermissions } from "@/core/permissions/permissionEngine";
-import { canAccessCapability } from "@/core/entitlements/entitlementEngine";
 import { FinancialResourceTable, type FinancialResourceColumn } from "./financial-resource-table";
 import type { Locale } from "@/core/i18n/messages";
 
 type Resource = "payments" | "financial-plans" | "installments" | "insurance" | "insurance-claims" | "consumption" | "suppliers" | "purchasing" | "receiving";
 type Localized = { ar: string; en: string };
-type ResourceConfig = { title: Localized; permission: string; capability: string; table: string; orderBy: string; columns: Array<FinancialResourceColumn & { labelAr: string }>; select: string };
+type ResourceConfig = { title: Localized; permission: string; table: string; orderBy: string; columns: Array<FinancialResourceColumn & { labelAr: string }>; select: string };
 
 const config: Record<Resource, ResourceConfig> = {
-  payments: { title: { ar: "المدفوعات", en: "Payments" }, permission: "invoices:read", capability: "financial_resources.payments", table: "invoice_payments", orderBy: "payment_date", select: "id, invoice_id, amount_subunits, payment_method, payment_date, payment_reference, transaction_id, notes", columns: [
-    { key: "amount", label: "Amount", labelAr: "المبلغ" }, { key: "payment_method", label: "Method", labelAr: "طريقة الدفع" }, { key: "payment_date", label: "Date", labelAr: "التاريخ" }, { key: "payment_reference", label: "Reference", labelAr: "المرجع" }, { key: "transaction_id", label: "Transaction", labelAr: "المعاملة" }, { key: "notes", label: "Notes", labelAr: "ملاحظات" },
-  ] },
-  "financial-plans": { title: { ar: "الخطط المالية", en: "Financial Plans" }, permission: "invoices:read", capability: "financial_resources.financial_plans", table: "financial_plans", orderBy: "created_at", select: "id, patient_id, treatment_plan_id, total_amount_subunits, insurance_covered_subunits, patient_responsibility_subunits, currency, status, notes, created_at", columns: [
-    { key: "total_amount", label: "Total", labelAr: "الإجمالي" }, { key: "insurance_covered", label: "Insurance covered", labelAr: "التغطية التأمينية" }, { key: "patient_responsibility", label: "Patient responsibility", labelAr: "مسؤولية المريض" }, { key: "currency", label: "Currency", labelAr: "العملة" }, { key: "status", label: "Status", labelAr: "الحالة" }, { key: "notes", label: "Notes", labelAr: "ملاحظات" }, { key: "created_at", label: "Created", labelAr: "تاريخ الإنشاء" },
-  ] },
-  installments: { title: { ar: "الأقساط", en: "Installments" }, permission: "invoices:read", capability: "financial_resources.installments", table: "financial_installments", orderBy: "due_date", select: "id, financial_plan_id, installment_no, due_date, amount_subunits, amount_paid_subunits, status, invoice_id, notes, created_at", columns: [
-    { key: "installment_no", label: "#", labelAr: "رقم القسط" }, { key: "due_date", label: "Due date", labelAr: "تاريخ الاستحقاق" }, { key: "amount", label: "Amount", labelAr: "المبلغ" }, { key: "amount_paid", label: "Paid", labelAr: "المدفوع" }, { key: "status", label: "Status", labelAr: "الحالة" }, { key: "notes", label: "Notes", labelAr: "ملاحظات" }, { key: "created_at", label: "Created", labelAr: "تاريخ الإنشاء" },
-  ] },
-  insurance: { title: { ar: "التأمين", en: "Insurance" }, permission: "insurance:read", capability: "financial_resources.insurance", table: "patient_insurance_profiles", orderBy: "created_at", select: "id, patient_id, payer_name, policy_number, member_number, coverage_summary, patient_responsibility_subunits, status, claim_ready, reconciliation_status, effective_from, effective_to, notes, created_at", columns: [
-    { key: "payer_name", label: "Payer", labelAr: "شركة التأمين" }, { key: "policy_number", label: "Policy", labelAr: "رقم الوثيقة" }, { key: "member_number", label: "Member", labelAr: "رقم العضوية" }, { key: "coverage_summary", label: "Coverage", labelAr: "التغطية" }, { key: "patient_responsibility", label: "Patient responsibility", labelAr: "مسؤولية المريض" }, { key: "status", label: "Status", labelAr: "الحالة" }, { key: "claim_ready", label: "Claim ready", labelAr: "جاهز للمطالبة" }, { key: "reconciliation_status", label: "Reconciliation", labelAr: "التسوية" }, { key: "effective_from", label: "Effective from", labelAr: "ساري من" }, { key: "effective_to", label: "Effective to", labelAr: "ساري حتى" }, { key: "notes", label: "Notes", labelAr: "ملاحظات" },
-  ] },
-  "insurance-claims": { title: { ar: "مطالبات التأمين", en: "Insurance Claims" }, permission: "insurance:read", capability: "financial_resources.insurance", table: "insurance_claims", orderBy: "created_at", select: "id, patient_id, insurance_profile_id, invoice_id, claim_reference, amount_claimed_subunits, amount_reconciled_subunits, status, prepared_at, reconciled_at, notes, created_at", columns: [
-    { key: "claim_reference", label: "Claim reference", labelAr: "مرجع المطالبة" }, { key: "amount_claimed", label: "Claimed", labelAr: "المطالب به" }, { key: "amount_reconciled", label: "Reconciled", labelAr: "تمت تسويته" }, { key: "status", label: "Status", labelAr: "الحالة" }, { key: "prepared_at", label: "Prepared", labelAr: "تاريخ الإعداد" }, { key: "reconciled_at", label: "Reconciled", labelAr: "تاريخ التسوية" }, { key: "notes", label: "Notes", labelAr: "ملاحظات" },
-  ] },
-  consumption: { title: { ar: "الاستهلاك", en: "Consumption" }, permission: "inventory:read", capability: "financial_resources.consumption", table: "inventory_ledger", orderBy: "created_at", select: "id, item_id, material_name, quantity_consumed, consumption_type, procedure_id, session_id, notes, created_at", columns: [
-    { key: "material_name", label: "Material", labelAr: "المادة" }, { key: "quantity_consumed", label: "Quantity", labelAr: "الكمية" }, { key: "consumption_type", label: "Type", labelAr: "النوع" }, { key: "notes", label: "Notes", labelAr: "ملاحظات" }, { key: "created_at", label: "Date", labelAr: "التاريخ" },
-  ] },
-  suppliers: { title: { ar: "الموردون", en: "Suppliers" }, permission: "purchasing:read", capability: "financial_resources.suppliers", table: "suppliers", orderBy: "created_at", select: "id, name, name_ar, contact_name, phone, email, address, tax_identifier, status, notes, created_at", columns: [
-    { key: "name", label: "Supplier", labelAr: "المورد" }, { key: "contact_name", label: "Contact", labelAr: "جهة الاتصال" }, { key: "phone", label: "Phone", labelAr: "الهاتف" }, { key: "email", label: "Email", labelAr: "البريد الإلكتروني" }, { key: "address", label: "Address", labelAr: "العنوان" }, { key: "tax_identifier", label: "Tax identifier", labelAr: "الرقم الضريبي" }, { key: "status", label: "Status", labelAr: "الحالة" }, { key: "notes", label: "Notes", labelAr: "ملاحظات" },
-  ] },
-  purchasing: { title: { ar: "المشتريات", en: "Purchasing" }, permission: "purchasing:read", capability: "financial_resources.purchasing", table: "purchase_orders", orderBy: "order_date", select: "id, order_number, supplier_id, order_date, expected_date, subtotal_subunits, tax_subunits, total_subunits, status, notes, created_at", columns: [
-    { key: "order_number", label: "PO number", labelAr: "رقم أمر الشراء" }, { key: "order_date", label: "Order date", labelAr: "تاريخ الطلب" }, { key: "expected_date", label: "Expected", labelAr: "التاريخ المتوقع" }, { key: "subtotal", label: "Subtotal", labelAr: "المجموع الفرعي" }, { key: "tax", label: "Tax", labelAr: "الضريبة" }, { key: "total", label: "Total", labelAr: "الإجمالي" }, { key: "status", label: "Status", labelAr: "الحالة" }, { key: "notes", label: "Notes", labelAr: "ملاحظات" },
-  ] },
-  receiving: { title: { ar: "الاستلام", en: "Receiving" }, permission: "purchasing:read", capability: "financial_resources.receiving", table: "purchase_receipts", orderBy: "received_at", select: "id, purchase_order_id, receipt_number, received_at, received_by, notes, created_at", columns: [
-    { key: "receipt_number", label: "Receipt", labelAr: "رقم الاستلام" }, { key: "received_at", label: "Received at", labelAr: "تاريخ الاستلام" }, { key: "notes", label: "Notes", labelAr: "ملاحظات" }, { key: "created_at", label: "Created", labelAr: "تاريخ الإنشاء" },
-  ] },
+  payments: { title: { ar: "المدفوعات", en: "Payments" }, permission: "invoices:read", table: "invoice_payments", orderBy: "payment_date", select: "id, invoice_id, amount_subunits, payment_method, payment_date, payment_reference, transaction_id, notes", columns: [{ key: "amount", label: "Amount", labelAr: "المبلغ" }, { key: "payment_method", label: "Method", labelAr: "طريقة الدفع" }, { key: "payment_date", label: "Date", labelAr: "التاريخ" }, { key: "payment_reference", label: "Reference", labelAr: "المرجع" }, { key: "transaction_id", label: "Transaction", labelAr: "المعاملة" }, { key: "notes", label: "Notes", labelAr: "ملاحظات" }] },
+  "financial-plans": { title: { ar: "الخطط المالية", en: "Financial Plans" }, permission: "invoices:read", table: "financial_plans", orderBy: "created_at", select: "id, patient_id, treatment_plan_id, total_amount_subunits, insurance_covered_subunits, patient_responsibility_subunits, currency, status, notes, created_at", columns: [{ key: "total_amount", label: "Total", labelAr: "الإجمالي" }, { key: "insurance_covered", label: "Insurance covered", labelAr: "التغطية التأمينية" }, { key: "patient_responsibility", label: "Patient responsibility", labelAr: "مسؤولية المريض" }, { key: "currency", label: "Currency", labelAr: "العملة" }, { key: "status", label: "Status", labelAr: "الحالة" }, { key: "notes", label: "Notes", labelAr: "ملاحظات" }, { key: "created_at", label: "Created", labelAr: "تاريخ الإنشاء" }] },
+  installments: { title: { ar: "الأقساط", en: "Installments" }, permission: "invoices:read", table: "financial_installments", orderBy: "due_date", select: "id, financial_plan_id, installment_no, due_date, amount_subunits, amount_paid_subunits, status, invoice_id, notes, created_at", columns: [{ key: "installment_no", label: "#", labelAr: "رقم القسط" }, { key: "due_date", label: "Due date", labelAr: "تاريخ الاستحقاق" }, { key: "amount", label: "Amount", labelAr: "المبلغ" }, { key: "amount_paid", label: "Paid", labelAr: "المدفوع" }, { key: "status", label: "Status", labelAr: "الحالة" }, { key: "notes", label: "Notes", labelAr: "ملاحظات" }, { key: "created_at", label: "Created", labelAr: "تاريخ الإنشاء" }] },
+  insurance: { title: { ar: "التأمين", en: "Insurance" }, permission: "insurance:read", table: "patient_insurance_profiles", orderBy: "created_at", select: "id, patient_id, payer_name, policy_number, member_number, coverage_summary, patient_responsibility_subunits, status, claim_ready, reconciliation_status, effective_from, effective_to, notes, created_at", columns: [{ key: "payer_name", label: "Payer", labelAr: "شركة التأمين" }, { key: "policy_number", label: "Policy", labelAr: "رقم الوثيقة" }, { key: "member_number", label: "Member", labelAr: "رقم العضوية" }, { key: "coverage_summary", label: "Coverage", labelAr: "التغطية" }, { key: "patient_responsibility", label: "Patient responsibility", labelAr: "مسؤولية المريض" }, { key: "status", label: "Status", labelAr: "الحالة" }, { key: "claim_ready", label: "Claim ready", labelAr: "جاهز للمطالبة" }, { key: "reconciliation_status", label: "Reconciliation", labelAr: "التسوية" }, { key: "effective_from", label: "Effective from", labelAr: "ساري من" }, { key: "effective_to", label: "Effective to", labelAr: "ساري حتى" }, { key: "notes", label: "Notes", labelAr: "ملاحظات" }] },
+  "insurance-claims": { title: { ar: "مطالبات التأمين", en: "Insurance Claims" }, permission: "insurance:read", table: "insurance_claims", orderBy: "created_at", select: "id, patient_id, insurance_profile_id, invoice_id, claim_reference, amount_claimed_subunits, amount_reconciled_subunits, status, prepared_at, reconciled_at, notes, created_at", columns: [{ key: "claim_reference", label: "Claim reference", labelAr: "مرجع المطالبة" }, { key: "amount_claimed", label: "Claimed", labelAr: "المطالب به" }, { key: "amount_reconciled", label: "Reconciled", labelAr: "تمت تسويته" }, { key: "status", label: "Status", labelAr: "الحالة" }, { key: "prepared_at", label: "Prepared", labelAr: "تاريخ الإعداد" }, { key: "reconciled_at", label: "Reconciled", labelAr: "تاريخ التسوية" }, { key: "notes", label: "Notes", labelAr: "ملاحظات" }] },
+  consumption: { title: { ar: "الاستهلاك", en: "Consumption" }, permission: "inventory:read", table: "inventory_ledger", orderBy: "created_at", select: "id, item_id, material_name, quantity_consumed, consumption_type, procedure_id, session_id, notes, created_at", columns: [{ key: "material_name", label: "Material", labelAr: "المادة" }, { key: "quantity_consumed", label: "Quantity", labelAr: "الكمية" }, { key: "consumption_type", label: "Type", labelAr: "النوع" }, { key: "notes", label: "Notes", labelAr: "ملاحظات" }, { key: "created_at", label: "Date", labelAr: "التاريخ" }] },
+  suppliers: { title: { ar: "الموردون", en: "Suppliers" }, permission: "purchasing:read", table: "suppliers", orderBy: "created_at", select: "id, name, name_ar, contact_name, phone, email, address, tax_identifier, status, notes, created_at", columns: [{ key: "name", label: "Supplier", labelAr: "المورد" }, { key: "contact_name", label: "Contact", labelAr: "جهة الاتصال" }, { key: "phone", label: "Phone", labelAr: "الهاتف" }, { key: "email", label: "Email", labelAr: "البريد الإلكتروني" }, { key: "address", label: "Address", labelAr: "العنوان" }, { key: "tax_identifier", label: "Tax identifier", labelAr: "الرقم الضريبي" }, { key: "status", label: "Status", labelAr: "الحالة" }, { key: "notes", label: "Notes", labelAr: "ملاحظات" }] },
+  purchasing: { title: { ar: "المشتريات", en: "Purchasing" }, permission: "purchasing:read", table: "purchase_orders", orderBy: "order_date", select: "id, order_number, supplier_id, order_date, expected_date, subtotal_subunits, tax_subunits, total_subunits, status, notes, created_at", columns: [{ key: "order_number", label: "PO number", labelAr: "رقم أمر الشراء" }, { key: "order_date", label: "Order date", labelAr: "تاريخ الطلب" }, { key: "expected_date", label: "Expected", labelAr: "التاريخ المتوقع" }, { key: "subtotal", label: "Subtotal", labelAr: "المجموع الفرعي" }, { key: "tax", label: "Tax", labelAr: "الضريبة" }, { key: "total", label: "Total", labelAr: "الإجمالي" }, { key: "status", label: "Status", labelAr: "الحالة" }, { key: "notes", label: "Notes", labelAr: "ملاحظات" }] },
+  receiving: { title: { ar: "الاستلام", en: "Receiving" }, permission: "purchasing:read", table: "purchase_receipts", orderBy: "received_at", select: "id, purchase_order_id, receipt_number, received_at, received_by, notes, created_at", columns: [{ key: "receipt_number", label: "Receipt", labelAr: "رقم الاستلام" }, { key: "received_at", label: "Received at", labelAr: "تاريخ الاستلام" }, { key: "notes", label: "Notes", labelAr: "ملاحظات" }, { key: "created_at", label: "Created", labelAr: "تاريخ الإنشاء" }] },
 };
 
 export async function FinancialResourceListPage({ resource }: { resource: Resource }) {
-  const item = config[resource];
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
-  const tenantId = await resolveTenantId(user.id);
-  if (!tenantId) redirect("/login");
-
-  const permissions = await getEffectivePermissions(user.id, tenantId);
-  if (!permissions.includes(item.permission as never)) redirect("/financial-resources");
-  const capability = await canAccessCapability(tenantId, item.capability);
-  if (!capability.allowed) redirect("/financial-resources");
-
-  const localeCookie = (await cookies()).get("core-system-locale")?.value;
-  const locale: Locale = localeCookie === "ar" ? "ar" : "en";
-  const [{ data, error }, { data: tenant }] = await Promise.all([
-    supabase.from(item.table).select(item.select).eq("tenant_id", tenantId).order(item.orderBy, { ascending: false }).limit(200),
-    supabase.from("master_tenants").select("currency").eq("id", tenantId).maybeSingle(),
-  ]);
-  if (error) throw error;
-
-  const currency = tenant?.currency ?? "USD";
-  const formatMoney = (value: unknown) => {
-    const subunits = Number(value);
-    if (!Number.isFinite(subunits)) return "—";
-    return new Intl.NumberFormat(locale === "ar" ? "ar" : "en", { style: "currency", currency, minimumFractionDigits: 2 }).format(subunits / 100);
-  };
+  const item = config[resource]; const supabase = await createClient(); const { data: { user } } = await supabase.auth.getUser(); if (!user) redirect("/login"); const tenantId = await resolveTenantId(user.id); if (!tenantId) redirect("/login");
+  const permissions = await getEffectivePermissions(user.id, tenantId); if (!permissions.includes(item.permission as never)) redirect("/financial-resources");
+  const localeCookie = (await cookies()).get("core-system-locale")?.value; const locale: Locale = localeCookie === "ar" ? "ar" : "en";
+  const [{ data, error }, { data: tenant }] = await Promise.all([supabase.from(item.table).select(item.select).eq("tenant_id", tenantId).order(item.orderBy, { ascending: false }).limit(200), supabase.from("master_tenants").select("currency").eq("id", tenantId).maybeSingle()]);
+  if (error) throw error; const currency = tenant?.currency ?? "USD";
+  const formatMoney = (value: unknown) => { const subunits = Number(value); return Number.isFinite(subunits) ? new Intl.NumberFormat(locale === "ar" ? "ar" : "en", { style: "currency", currency, minimumFractionDigits: 2 }).format(subunits / 100) : "—"; };
   const formatDate = (value: unknown) => value ? new Intl.DateTimeFormat(locale === "ar" ? "ar" : "en", { dateStyle: "medium" }).format(new Date(String(value))) : "—";
-
   const columns = item.columns.map(({ key, label, labelAr }) => ({ key, label: locale === "ar" ? labelAr : label }));
-  const rows: Record<string, string | number | null>[] = Array.isArray(data)
-    ? data.map((row) => {
-        const source = row as unknown as Record<string, unknown>;
-        const display: Record<string, string | number | null> = {};
-        for (const [key, value] of Object.entries(source)) {
-          if (["id", "tenant_id", "patient_id", "treatment_plan_id", "invoice_id", "financial_plan_id", "insurance_profile_id", "item_id", "procedure_id", "session_id", "supplier_id", "purchase_order_id", "received_by", "created_by"].includes(key)) continue;
-          if (key.endsWith("_subunits")) display[key.replace(/_subunits$/, "")] = formatMoney(value);
-          else if (["created_at", "payment_date", "order_date", "expected_date", "received_at", "due_date", "prepared_at", "reconciled_at", "effective_from", "effective_to"].includes(key)) display[key] = formatDate(value);
-          else display[key] = value == null ? null : String(value);
-        }
-        return display;
-      })
-    : [];
-
+  const rows: Record<string, string | number | null>[] = Array.isArray(data) ? data.map((row) => { const source = row as unknown as Record<string, unknown>; const display: Record<string, string | number | null> = {}; for (const [key, value] of Object.entries(source)) { if (["id","tenant_id","patient_id","treatment_plan_id","invoice_id","financial_plan_id","insurance_profile_id","item_id","procedure_id","session_id","supplier_id","purchase_order_id","received_by","created_by"].includes(key)) continue; if (key.endsWith("_subunits")) display[key.replace(/_subunits$/, "")] = formatMoney(value); else if (["created_at","payment_date","order_date","expected_date","received_at","due_date","prepared_at","reconciled_at","effective_from","effective_to"].includes(key)) display[key] = formatDate(value); else display[key] = value == null ? null : String(value); } return display; }) : [];
   return <div className="space-y-4" dir={locale === "ar" ? "rtl" : "ltr"}><div><h1 className="text-2xl font-bold">{item.title[locale]}</h1><p className="text-sm text-muted-foreground">{locale === "ar" ? "المالية والموارد" : "Financial & Resources"}</p></div><FinancialResourceTable title={item.title[locale]} columns={columns} rows={rows} /></div>;
 }
