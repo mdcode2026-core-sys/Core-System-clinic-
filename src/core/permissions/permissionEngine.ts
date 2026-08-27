@@ -3,13 +3,21 @@
 import { createClient } from "@/infrastructure/supabase/server";
 import type { Permission } from "./types";
 
-/**
- * Clinic Admin is the tenant's operational administrator. During the current
- * foundation phase the role is intentionally not constrained by the temporary
- * subscription/entitlement catalogue. Future commercial gating may restrict
- * tenant-facing features, but it must not silently remove Clinic Admin's
- * ability to see and administer the current tenant platform surface.
- */
+/** Clinic Admin is the tenant's unrestricted administrative role for the current foundation phase. */
+export async function isClinicAdminUser(userId: string, tenantId: string): Promise<boolean> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("clinic_users")
+    .select("roles!clinic_users_role_id_fkey(role_key)")
+    .eq("auth_user_id", userId)
+    .eq("tenant_id", tenantId)
+    .eq("is_active", true)
+    .maybeSingle();
+  if (error || !data) return false;
+  const role = Array.isArray(data.roles) ? data.roles[0] : data.roles;
+  return (role as { role_key?: string } | null)?.role_key === "clinic_admin";
+}
+
 export async function getEffectivePermissions(userId: string, tenantId: string): Promise<Permission[]> {
   const supabase = await createClient();
   const { data: clinicUser, error: userError } = await supabase
@@ -26,8 +34,8 @@ export async function getEffectivePermissions(userId: string, tenantId: string):
   const roleId = clinicUser.role_id ?? clinicUser.role_template_id;
   if (!roleId) return [];
 
-  // Clinic Admin receives the complete permission catalogue for the tenant.
-  // This is intentionally independent of the temporary subscription model.
+  // During the foundation phase, Clinic Admin must see and administer the complete tenant platform surface.
+  // Subscription/entitlement gating is intentionally deferred to the later commercial model.
   if (roleKey === "clinic_admin") {
     const { data: allPermissions, error: allPermissionsError } = await supabase
       .from("permissions")
