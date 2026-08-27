@@ -24,7 +24,7 @@ function readRpcResult(data: unknown): Record<string, unknown> {
 
 export async function createInvoiceFromSession(input: CreateInvoiceFromSessionInput): Promise<ActionResult<{ invoice_id: string }>> {
   const ctx = await getAuthContext();
-  if ("error" in ctx) return { success: false, error: ctx.error };
+  if ("error" in ctx) return { success: false, error: ctx.error ?? "Unauthorized" };
   if (!(await requirePermission(ctx.user.id, ctx.tenantId, "invoices:create"))) return { success: false, error: "Permission denied" };
   const { data: session } = await ctx.supabase.from("clinic_visit_sessions").select("id, patient_id, session_status").eq("id", input.session_id).eq("tenant_id", ctx.tenantId).maybeSingle();
   if (!session) return { success: false, error: "Session not found" };
@@ -39,7 +39,7 @@ export async function createInvoiceFromSession(input: CreateInvoiceFromSessionIn
 
 export async function createManualInvoice(input: CreateManualInvoiceInput): Promise<ActionResult<{ invoice_id: string }>> {
   const ctx = await getAuthContext();
-  if ("error" in ctx) return { success: false, error: ctx.error };
+  if ("error" in ctx) return { success: false, error: ctx.error ?? "Unauthorized" };
   if (!(await requirePermission(ctx.user.id, ctx.tenantId, "invoices:create"))) return { success: false, error: "Permission denied" };
   const items = input.items.map((item) => ({
     procedure_id: item.procedure_id ?? null,
@@ -69,7 +69,7 @@ export async function createManualInvoice(input: CreateManualInvoiceInput): Prom
 
 export async function issueInvoice(input: IssueInvoiceInput): Promise<ActionResult<{ invoice_number: string }>> {
   const ctx = await getAuthContext();
-  if ("error" in ctx) return { success: false, error: ctx.error };
+  if ("error" in ctx) return { success: false, error: ctx.error ?? "Unauthorized" };
   if (!(await requirePermission(ctx.user.id, ctx.tenantId, "invoices:issue"))) return { success: false, error: "Permission denied" };
   const { data: invoice } = await ctx.supabase.from("clinic_invoices").select("id, invoice_status, invoice_number").eq("id", input.invoice_id).eq("tenant_id", ctx.tenantId).maybeSingle();
   if (!invoice) return { success: false, error: "Invoice not found" };
@@ -86,7 +86,7 @@ export async function issueInvoice(input: IssueInvoiceInput): Promise<ActionResu
 
 export async function recordPayment(input: RecordPaymentInput): Promise<ActionResult<{ payment_id: string }>> {
   const ctx = await getAuthContext();
-  if ("error" in ctx) return { success: false, error: ctx.error };
+  if ("error" in ctx) return { success: false, error: ctx.error ?? "Unauthorized" };
   if (!(await requirePermission(ctx.user.id, ctx.tenantId, "invoices:payment"))) return { success: false, error: "Permission denied" };
   if (!Number.isInteger(input.amount_subunits) || input.amount_subunits <= 0) return { success: false, error: "Payment amount must be positive" };
 
@@ -121,16 +121,16 @@ export async function recordPayment(input: RecordPaymentInput): Promise<ActionRe
 
 export async function applyDiscount(input: ApplyDiscountInput): Promise<ActionResult<void>> {
   const ctx = await getAuthContext();
-  if ("error" in ctx) return { success: false, error: ctx.error };
+  if ("error" in ctx) return { success: false, error: ctx.error ?? "Unauthorized" };
   if (!(await requirePermission(ctx.user.id, ctx.tenantId, "invoices:discount"))) return { success: false, error: "Permission denied" };
-  if (!Number.isInteger(input.discount_amount_subunits) || (input.discount_amount_subunits ?? 0) < 0) return { success: false, error: "Invalid discount amount" };
-  if (input.discount_percent !== undefined && (input.discount_percent < 0 || input.discount_percent > 100)) return { success: false, error: "Invalid discount percent" };
+  if (input.discount_amount_subunits === undefined || !Number.isInteger(input.discount_amount_subunits) || input.discount_amount_subunits < 0) return { success: false, error: "Invalid discount amount" };
+  if (input.discount_percent !== undefined && (!Number.isFinite(input.discount_percent) || input.discount_percent < 0 || input.discount_percent > 100)) return { success: false, error: "Invalid discount percent" };
   if (!input.discount_reason.trim()) return { success: false, error: "Discount reason is required" };
   const { data: invoice } = await ctx.supabase.from("clinic_invoices").select("id").eq("id", input.invoice_id).eq("tenant_id", ctx.tenantId).maybeSingle();
   if (!invoice) return { success: false, error: "Invoice not found" };
   const { data: canEdit } = await ctx.supabase.rpc("can_edit_invoice", { p_invoice_id: input.invoice_id });
   if (!canEdit) return { success: false, error: "Invoice can no longer be edited" };
-  const { error } = await ctx.supabase.from("clinic_invoices").update({ discount_approved_by: ctx.clinicUser.id, discount_reason: input.discount_reason.trim(), discount_subunits: input.discount_amount_subunits ?? 0 }).eq("id", input.invoice_id).eq("tenant_id", ctx.tenantId);
+  const { error } = await ctx.supabase.from("clinic_invoices").update({ discount_approved_by: ctx.clinicUser.id, discount_reason: input.discount_reason.trim(), discount_subunits: input.discount_amount_subunits }).eq("id", input.invoice_id).eq("tenant_id", ctx.tenantId);
   if (error) return { success: false, error: error.message };
   const { error: recalcError } = await ctx.supabase.rpc("recalculate_invoice_totals", { p_invoice_id: input.invoice_id });
   if (recalcError) return { success: false, error: recalcError.message };
@@ -140,7 +140,7 @@ export async function applyDiscount(input: ApplyDiscountInput): Promise<ActionRe
 
 export async function cancelInvoice(input: CancelInvoiceInput): Promise<ActionResult<void>> {
   const ctx = await getAuthContext();
-  if ("error" in ctx) return { success: false, error: ctx.error };
+  if ("error" in ctx) return { success: false, error: ctx.error ?? "Unauthorized" };
   if (!(await requirePermission(ctx.user.id, ctx.tenantId, "invoices:cancel"))) return { success: false, error: "Permission denied" };
   if (!input.reason.trim()) return { success: false, error: "Cancellation reason is required" };
   const { data: invoice } = await ctx.supabase.from("clinic_invoices").select("id").eq("id", input.invoice_id).eq("tenant_id", ctx.tenantId).maybeSingle();
@@ -156,7 +156,7 @@ export async function cancelInvoice(input: CancelInvoiceInput): Promise<ActionRe
 
 export async function getInvoiceWithDetails(invoiceId: string): Promise<ActionResult<InvoiceWithItems>> {
   const ctx = await getAuthContext();
-  if ("error" in ctx) return { success: false, error: ctx.error };
+  if ("error" in ctx) return { success: false, error: ctx.error ?? "Unauthorized" };
   if (!(await requirePermission(ctx.user.id, ctx.tenantId, "invoices:read"))) return { success: false, error: "Permission denied" };
   const { data: invoice, error } = await ctx.supabase.from("clinic_invoices").select("*, patient:patient_id(id, first_name, last_name, phone_primary), session:session_id(id, session_status, session_started_at)").eq("id", invoiceId).eq("tenant_id", ctx.tenantId).maybeSingle();
   if (error || !invoice) return { success: false, error: error?.message ?? "Invoice not found" };
