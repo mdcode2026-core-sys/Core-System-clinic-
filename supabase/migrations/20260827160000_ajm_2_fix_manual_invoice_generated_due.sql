@@ -16,17 +16,13 @@ begin
     if v_description='' or v_quantity is null or v_quantity<=0 or v_unit_price is null or v_unit_price<0 or v_discount_amount<0 or (v_discount_percent is not null and (v_discount_percent<0 or v_discount_percent>100)) then raise exception 'Invalid invoice item'; end if;
     v_tax_rate := coalesce(nullif(v_row->>'tax_rate_percent','')::numeric,16); if v_tax_rate<0 then raise exception 'Invalid tax rate'; end if;
     v_tax_included := false;
-    if nullif(v_row->>'procedure_id','') is not null then
-      select tax_rate_percent,tax_included into v_procedure from public.clinic_procedures where id=(v_row->>'procedure_id')::uuid and tenant_id=p_tenant_id and is_active=true;
-      if not found then raise exception 'Procedure not found'; end if;
-      v_tax_rate := coalesce(nullif(v_row->>'tax_rate_percent','')::numeric,v_procedure.tax_rate_percent); v_tax_included := v_procedure.tax_included;
-    end if;
+    if nullif(v_row->>'procedure_id','') is not null then select tax_rate_percent,tax_included into v_procedure from public.clinic_procedures where id=(v_row->>'procedure_id')::uuid and tenant_id=p_tenant_id and is_active=true; if not found then raise exception 'Procedure not found'; end if; v_tax_rate := coalesce(nullif(v_row->>'tax_rate_percent','')::numeric,v_procedure.tax_rate_percent); v_tax_included := v_procedure.tax_included; end if;
     if v_discount_percent is not null and v_discount_percent>0 then v_effective_discount := round((v_quantity*v_unit_price)*(v_discount_percent/100.0)); else v_effective_discount := v_discount_amount; end if;
     if v_effective_discount>(v_quantity*v_unit_price) then raise exception 'Discount exceeds item amount'; end if;
     v_amount_after_discount := (v_quantity*v_unit_price)-v_effective_discount;
     if v_tax_included then v_tax := round(v_amount_after_discount*(v_tax_rate/(100.0+v_tax_rate))); v_line_total := v_amount_after_discount; else v_tax := round(v_amount_after_discount*(v_tax_rate/100.0)); v_line_total := v_amount_after_discount+v_tax; end if;
-    insert into public.invoice_items(tenant_id,invoice_id,procedure_id,item_description,item_description_ar,quantity,unit_price_subunits,discount_subunits,tax_rate_percent,tax_subunits,line_total_subunits,sort_order)
-    values(p_tenant_id,v_invoice_id,nullif(v_row->>'procedure_id','')::uuid,v_description,nullif(v_row->>'description_ar',''),v_quantity,v_unit_price,v_effective_discount,v_tax_rate,v_tax,v_line_total,v_sort);
+    insert into public.invoice_items(tenant_id,invoice_id,procedure_id,item_description,item_description_ar,quantity,unit_price_subunits,discount_subunits,tax_rate_percent,tax_subunits,sort_order)
+    values(p_tenant_id,v_invoice_id,nullif(v_row->>'procedure_id','')::uuid,v_description,nullif(v_row->>'description_ar',''),v_quantity,v_unit_price,v_effective_discount,v_tax_rate,v_tax,v_sort);
     v_subtotal := v_subtotal+(v_quantity*v_unit_price); v_discount := v_discount+v_effective_discount; v_tax_total := v_tax_total+v_tax; v_total := v_total+v_line_total; v_sort := v_sort+1;
   end loop;
   update public.clinic_invoices set subtotal_subunits=v_subtotal,discount_subunits=v_discount,tax_subunits=v_tax_total,total_subunits=v_total,updated_at=now() where id=v_invoice_id and tenant_id=p_tenant_id;
