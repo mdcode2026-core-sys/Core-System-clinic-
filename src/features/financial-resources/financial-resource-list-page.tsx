@@ -73,7 +73,7 @@ export async function FinancialResourceListPage({ resource }: { resource: Resour
   const columns = item.columns.map(({ key, label, labelAr }) => ({ key, label: locale === "ar" ? labelAr : label }));
   const rows: Record<string, string | number | null>[] = Array.isArray(data)
     ? data.map((row) => {
-        const source = row as Record<string, unknown>;
+        const source = row as unknown as Record<string, unknown>;
         const display: Record<string, string | number | null> = {};
         for (const [key, value] of Object.entries(source)) {
           if (["id", "tenant_id", "insurance_profile_id", "created_by"].includes(key)) continue;
