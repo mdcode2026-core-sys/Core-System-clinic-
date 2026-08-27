@@ -3,7 +3,6 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/infrastructure/supabase/server";
 import { resolveTenantId } from "@/core/auth/resolveTenantId";
 import { getEffectivePermissions } from "@/core/permissions/permissionEngine";
-import { canAccessCapability } from "@/core/entitlements/entitlementEngine";
 import { getFinancialResourcesMessages } from "@/core/i18n/financialResourcesMessages";
 import { listPurchaseOrders, listSuppliers } from "@/domain/financial-resources/financial-resources.queries";
 import { FinancialResourcesCenter, type FinancialPlanSummary, type InsuranceSummary, type InventoryItemSummary, type PatientSummary, type PurchaseOrderSummary, type SupplierSummary } from "@/features/financial-resources/financial-resources-center";
@@ -16,12 +15,8 @@ export default async function FinancialResourcesPage() {
   const tenantId = await resolveTenantId(user.id);
   if (!tenantId) redirect("/login");
 
-  // Financial & Resources is one tenant-facing product surface. Clinic Admin
-  // must be able to see the complete implemented surface during the foundation
-  // phase; commercial entitlement packaging is intentionally deferred.
-  const access = await canAccessCapability(tenantId, "financial_resources.access");
-  if (!access.allowed) redirect("/");
-
+  // AJM-2 foundation rule: Clinic Admin visibility is not blocked by the temporary
+  // commercial entitlement package. Authorization remains permission/RLS based.
   const permissions = await getEffectivePermissions(user.id, tenantId);
   const canReadAny = permissions.includes("invoices:read") || permissions.includes("insurance:read") || permissions.includes("purchasing:read") || permissions.includes("inventory:read");
   if (!canReadAny) redirect("/");
