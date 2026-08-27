@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/infrastructure/supabase/server";
-import { WorkspaceShell } from "@/features/workspace/WorkspaceShell";
+import { EntitlementAwareWorkspaceShell } from "@/features/workspace/EntitlementAwareWorkspaceShell";
 import { AuthProvider } from "@/core/auth/AuthProvider";
 import { DirectionProvider } from "@/components/DirectionProvider";
 
@@ -22,9 +22,9 @@ export default async function DashboardLayout({
   return (
     <AuthProvider>
       <DirectionProvider>
-        <WorkspaceShell user={user}>
+        <EntitlementAwareWorkspaceShell user={user}>
           {children}
-        </WorkspaceShell>
+        </EntitlementAwareWorkspaceShell>
       </DirectionProvider>
     </AuthProvider>
   );
