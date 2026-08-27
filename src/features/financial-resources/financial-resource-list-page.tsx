@@ -27,5 +27,8 @@ export async function FinancialResourceListPage({ resource }: { resource: Resour
   if (!permissions.includes(item.permission as never)) redirect("/financial-resources");
   const { data, error } = await supabase.from(item.table).select(item.select).eq("tenant_id", tenantId).order("created_at", { ascending: false }).limit(200);
   if (error) throw error;
-  return <div className="space-y-4"><div><h1 className="text-2xl font-bold">{item.title}</h1><p className="text-sm text-muted-foreground">Financial & Resources</p></div><FinancialResourceTable title={item.title} columns={item.columns} rows={(data ?? []) as Record<string, string | number | null>[]} /></div>;
+  const rows: Record<string, string | number | null>[] = Array.isArray(data)
+    ? data.map((row) => Object.fromEntries(Object.entries(row as Record<string, unknown>).map(([key, value]) => [key, value == null ? null : String(value)])))
+    : [];
+  return <div className="space-y-4"><div><h1 className="text-2xl font-bold">{item.title}</h1><p className="text-sm text-muted-foreground">Financial & Resources</p></div><FinancialResourceTable title={item.title} columns={item.columns} rows={rows} /></div>;
 }
