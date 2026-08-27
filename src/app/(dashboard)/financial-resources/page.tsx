@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/infrastructure/supabase/server";
 import { resolveTenantId } from "@/core/auth/resolveTenantId";
 import { getEffectivePermissions } from "@/core/permissions/permissionEngine";
+import { canAccessCapability } from "@/core/entitlements/entitlementEngine";
 import { getFinancialResourcesMessages } from "@/core/i18n/financialResourcesMessages";
 import { listPurchaseOrders, listSuppliers } from "@/domain/financial-resources/financial-resources.queries";
 import { FinancialResourcesCenter, type FinancialPlanSummary, type InsuranceSummary, type InventoryItemSummary, type PatientSummary, type PurchaseOrderSummary, type SupplierSummary } from "@/features/financial-resources/financial-resources-center";
@@ -14,8 +15,12 @@ export default async function FinancialResourcesPage() {
   if (authError || !user) redirect("/login");
   const tenantId = await resolveTenantId(user.id);
   if (!tenantId) redirect("/login");
+
+  const access = await canAccessCapability(tenantId, "financial_resources.access");
+  if (!access.allowed) redirect("/");
+
   const permissions = await getEffectivePermissions(user.id, tenantId);
-  const canReadAny = permissions.includes("invoices:read") || permissions.includes("insurance:read") || permissions.includes("purchasing:read");
+  const canReadAny = permissions.includes("invoices:read") || permissions.includes("insurance:read") || permissions.includes("purchasing:read") || permissions.includes("inventory:read");
   if (!canReadAny) redirect("/");
 
   const cookieStore = await cookies();
