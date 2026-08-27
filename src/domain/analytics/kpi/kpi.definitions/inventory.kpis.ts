@@ -87,32 +87,30 @@ export const inventoryConsumptionRateKpi: KpiDefinition = {
 };
 
 // ── 3. Low Stock Risk Rate ───────────────────────────────────
-// Formula: items at or below reorder_threshold / total active items
+// Formula: items at or below reorder_threshold / total active items.
+// PostgREST filters compare a column to a literal value; they cannot safely
+// express current_stock <= reorder_threshold. Fetch the two numeric fields and
+// perform the scalar comparison locally after the tenant-scoped query.
 export const lowStockRiskRateKpi: KpiDefinition = {
   id: "inventory.low_stock_risk_rate",
   nameAr: "معدل مخاطر نقص المخزون",
   category: "inventory",
   calculator: async (supabase, tenantId, _dateRange) => {
-    const { count: lowStockCount, error: err1 } = await supabase
+    const { data: items, error } = await supabase
       .from("inventory_items")
-      .select("*", { count: "exact", head: true })
-      .eq("tenant_id", tenantId)
-      .eq("is_active", true)
-      .is("deleted_at", null)
-      .lte("current_stock", "reorder_threshold");
-    if (err1) throw err1;
-
-    const { count: totalItems, error: err2 } = await supabase
-      .from("inventory_items")
-      .select("*", { count: "exact", head: true })
+      .select("current_stock, reorder_threshold")
       .eq("tenant_id", tenantId)
       .eq("is_active", true)
       .is("deleted_at", null);
-    if (err2) throw err2;
+    if (error) throw error;
 
-    const low = lowStockCount ?? 0;
-    const total = totalItems ?? 0;
+    const rows = items ?? [];
+    const total = rows.length;
     if (total === 0) return 0;
+
+    const low = rows.filter((row) =>
+      Number(row.current_stock ?? 0) <= Number(row.reorder_threshold ?? 0)
+    ).length;
     return (low / total) * 100;
   },
   formatter: kpiFormatter.percentage,
