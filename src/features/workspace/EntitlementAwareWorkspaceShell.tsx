@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { LogOut, Menu, X } from "lucide-react";
-import { navigationRegistry, type NavItem } from "@/core/navigation/navigationRegistry";
+import { getSidebarNavigation, type NavItem } from "@/core/navigation/navigationRegistry";
 import { usePermissions } from "@/core/permissions/usePermissions";
 import { useEntitlements } from "@/core/entitlements/useEntitlements";
 import { createClient } from "@/infrastructure/supabase/client";
@@ -29,8 +29,13 @@ export function EntitlementAwareWorkspaceShell({ children, user }: WorkspaceShel
     (item.requiredPermission === null || hasPermission(item.requiredPermission)) &&
     (!item.capabilityKey || hasCapability(item.capabilityKey));
 
-  const filteredNav = navigationRegistry
-    .map((item) => ({ ...item, children: item.children?.filter(canSee) }))
+  const filterChildren = (item: NavItem): NavItem => ({
+    ...item,
+    children: item.children?.filter(canSee).map(filterChildren),
+  });
+
+  const filteredNav = getSidebarNavigation()
+    .map(filterChildren)
     .filter((item) => accessLoading || canSee(item) || (item.children && item.children.length > 0));
 
   useEffect(() => { setSidebarOpen(false); }, [pathname]);
