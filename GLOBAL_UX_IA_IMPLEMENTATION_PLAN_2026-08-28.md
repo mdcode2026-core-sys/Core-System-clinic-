@@ -1,419 +1,358 @@
 # CORE SYSTEM — Global UX / Information Architecture Implementation Plan
-## Post-Audit Execution Plan — 2026-08-28
+## Post-Audit Execution Plan — 2026-08-28 — AMENDED
 
-**Status:** Approved planning baseline; implementation has not started.
+**Status:** Documentation baseline updated. Product implementation has NOT started.
+**Authority:** `GLOBAL_UX_IA_FINAL_DECISIONS_AMENDMENT_2026-08-28.md`
 
 ## Governing rule
 
-No implementation begins until the documentation baseline has been committed and the affected legacy documentation is explicitly reconciled.
+No product implementation begins until the documentation baseline and affected legacy documentation have been reconciled.
 
-The execution sequence is:
+Execution sequence:
 
-`Documentation Baseline → Navigation/Workspace Reconciliation → Patient Flow Reconciliation → Global Search → UX Consistency → Runtime Validation → Regression → Closure Documentation`
+`Documentation Baseline → Repository/Data Reconciliation → Patient Flow/Queue Reconciliation → Workspace/Widget Reconciliation → Navigation → Global Search → UX Consistency → Mobile/I18N → Runtime → Regression → Closure Documentation`
 
----
+Use:
+
+`Inspect → Reuse → Extend → Reconcile → Create`
 
 ## Phase 0 — Documentation and Governance Baseline
 
-### Objective
-Make the documented architecture match the approved current model before changing product behavior.
+### Required records
 
-### Actions
+1. Final Global UX/IA audit.
+2. Final UX/IA decisions amendment.
+3. Current Workspace specification.
+4. Stage 6 historical reconciliation.
+5. AJM/PJ references affected by Workspace, Patient Flow, Queue, navigation or terminology.
+6. Any document that incorrectly treats Dashboard as Workspace, Workspace as a fixed Role screen, or Patient Flow as a child of Operations/Clinical.
 
-1. Record the final audit report.
-2. Reconcile Stage 6 Workspace documentation.
-3. Mark older Workspace wording as historical/superseded without losing architectural history.
-4. Identify every document that still treats Dashboard as the Workspace or describes a single undifferentiated Workspace.
-5. Update the relevant AJM/PJ references so terminology is consistent.
-6. Record Patient Flow as an independent cross-workspace surface.
-7. Record Global/Home, Operations, Clinical and Administration definitions.
-8. Record the rejection of Workspace Membership as a second authorization layer.
-9. Record Global Search as a required system capability.
+### Mandatory decisions recorded
+
+- Role is an organizational starting template, not a fixed screen.
+- Permissions determine actual capabilities and may cross conventional professional boundaries according to Clinic Admin configuration.
+- Workspace is a working environment.
+- Operations and Clinical remain meaningful working contexts without being hard-coded profession screens.
+- Administration is an administrative/configuration working context.
+- Global/Home is system-wide orientation/entry.
+- Patient Flow is one independent system with Operations, Clinical and Administrative interfaces.
+- Patient Flow requires explicit enablement/context and is not automatic from Role name.
+- Workspace is not a security boundary.
+- Widgets are permission-dependent user-selected working tools, not permissions.
+- Widgets may be operational/action-oriented, not only informational.
+- Not every Domain requires a Widget.
+- Widgets preserve usable sizes and may extend beyond one viewport through a movable/scrollable Workspace.
+- Widgets may also have a separated optional Sidebar quick-access area.
+- Dashboard, Overview and Workspace are distinct.
+- Workspace Membership is not a second authorization layer.
+- Global Search is system-wide.
+- Patient Context is contextual navigation over independent Domains.
 
 ### Gate
-No UI or navigation implementation starts before this documentation baseline is complete.
+No UI/navigation/Workspace/Widget product behavior changes before this documentation baseline is complete.
 
----
-
-## Phase 1 — Repository Reconciliation / Current-State Map
+## Phase 1 — Repository + Database Reconciliation
 
 ### Objective
-Identify the canonical implementations before touching navigation.
+Identify canonical implementations and determine whether current data structures support the approved model.
 
 ### Inspect
 
-- Navigation registry
-- Workspace registry/engine
-- Workspace shell
-- Operation Workspace
-- Clinical Workspace
-- Administration surfaces
-- Global/Home route
-- Queue surfaces
-- Patient Flow implementations
-- Overview components
-- Dashboard components
-- Reports
-- Analytics
-- Settings
-- legacy dashboard/workspace components
-- feature flags affecting visibility
-- permissions used by navigation
+- navigation registry/registries;
+- Workspace registry/engine/shell;
+- Operations Workspace;
+- Clinical Workspace;
+- Administration surfaces;
+- Global/Home;
+- Widget registry/definitions/components;
+- existing user Workspace configuration;
+- role templates;
+- permission bundles and role permissions;
+- Queue surfaces;
+- Patient Flow implementations;
+- Overview components;
+- Dashboard components;
+- Reports/Analytics;
+- Settings;
+- legacy implementations;
+- feature flags;
+- permissions used for visibility/actions;
+- relevant Supabase tables, relationships, RLS and server actions.
 
 ### Required output
-A repository-level map of:
 
-`Domain → Workspace → Surface → Route → Component → Permission → Feature`
+`Domain → Workspace → Surface → Route → Component → Permission → Widget → Data`
+
+plus:
+
+`Role/Template → Permission set → Default Workspace → Suggested Widgets`
 
 ### Gate
-Every planned change must point to an existing canonical implementation or a proven gap.
-
----
+Every planned change must point to an existing canonical implementation or a proven gap. No new table/registry may be introduced without evidence.
 
 ## Phase 2 — Patient Flow / Queue Reconciliation
 
 ### Objective
-Preserve the existing strength of CORE SYSTEM and eliminate duplicate implementations.
+Preserve CORE SYSTEM's existing patient movement capability and eliminate competing implementations.
 
-### Actions
+### Required
 
-1. Identify the canonical patient-flow state model.
-2. Identify the canonical queue persistence/state transitions.
-3. Map current Reception/Operations view.
-4. Map current Clinical view.
-5. Determine the correct Administrative monitoring/intervention view.
-6. Compare `Queue`, `LiveQueueBoard`, `MyQueueView`, `OperationWorkspace` and related surfaces.
-7. Remove only proven duplicate/legacy implementations after references are migrated.
-8. Preserve persisted drag-and-drop workflow behavior.
-9. Ensure each transition continues to use domain validation.
-10. Ensure Patient Flow remains independent from Operations and Clinical navigation ownership.
+1. Identify canonical persisted patient-flow state.
+2. Identify valid transitions.
+3. Identify the existing drag-and-drop behavior and preserve its real workflow meaning.
+4. Map Operations interface.
+5. Map Clinical interface.
+6. Map Administrative interface.
+7. Reconcile Queue, LiveQueueBoard, MyQueueView, OperationWorkspace and related surfaces.
+8. Remove only proven duplicates/legacy after reference migration.
+9. Ensure Patient Flow remains an independent Sidebar surface.
+10. Ensure Patient Flow visibility requires explicit configured access/context and is not inferred from Role name.
 
 ### Gate
-There must be one canonical Patient Flow domain/workflow implementation with multiple contextual views, not multiple competing workflows.
+One canonical Patient Flow/Queue workflow with three contextual interfaces. No duplicate workflow.
 
----
-
-## Phase 3 — Workspace Surface Reconciliation
-
-### Objective
-Make Workspaces actual working environments.
+## Phase 3 — Workspace Reconciliation
 
 ### Operations
-Ensure the Operations Workspace can present permitted operational actions/widgets such as:
+Make Operations a real working environment. Candidate operational tools include Quick Registration, Quick Appointment, Patient Search, operational tasks/requests and Patient Flow entry/actions where explicitly enabled.
 
-- Quick Registration
-- Quick Appointment
-- Patient Search
-- Patient Flow access
-- operational requests/tasks
-- other permitted operational capabilities
-
-Financial permissions may surface financial capabilities to a user without changing the user's workspace identity.
+A financial capability may appear in an Operations user's working environment when Clinic Admin granted the permission; this does not transfer Financial Domain ownership.
 
 ### Clinical
-Ensure clinical work appears through Clinical Workspace when the user has the relevant permissions.
+Make Clinical a real working environment for permitted clinical work, not a hard-coded Doctor screen.
 
 ### Administration
-Keep tenant administration/configuration separate from daily operational work.
+Keep tenant administration/configuration separate from daily operational work and from Dashboard monitoring.
 
 ### Global/Home
-Implement only after its final role is documented:
+Provide orientation, Global Search, permitted cross-system Quick Actions, recent/relevant work, attention items and controlled workspace entry. Do not turn it into a duplicate Dashboard.
 
-- orientation
-- global search
-- useful cross-system quick actions
-- recent/attention items
-- workspace entry points
-
-Do not turn Global/Home into a duplicate dashboard.
-
----
-
-## Phase 4 — Navigation / Information Architecture Reconciliation
+## Phase 4 — Widget Reconciliation and Library
 
 ### Objective
-Move from route-driven Sidebar design to information-architecture-driven navigation.
+Make Widgets real working tools, not decorative Dashboard cards.
 
-### Rules
+### Mandatory Domain-by-Domain assessment
 
-For every current Sidebar item ask:
+For every Domain:
+
+- identify frequent work;
+- identify urgent/attention work;
+- identify actions that benefit from acceleration;
+- identify useful information needed during work;
+- determine whether Widget is justified;
+- determine whether Quick Action is better;
+- determine whether no Widget is correct;
+- identify reusable existing implementation;
+- record required permission;
+- record destination/action;
+- record category and type;
+- record mobile behavior;
+- record Arabic/English behavior.
+
+### Widget rules
+
+- Widgets never grant permission.
+- Widget availability follows existing permissions.
+- Removing permission removes usable access through the Widget.
+- Widgets reuse canonical Domain logic.
+- Categories organize discovery only.
+- Not every Domain receives a Widget.
+- Operational/action/attention Widgets are valid.
+- Widget size remains usable.
+- Workspace may scroll/move through additional selected Widgets.
+- User may reorder selected Widgets by drag and drop.
+- User may restore defaults.
+- Optional separated Sidebar Widget quick access may be provided without replacing the full navigation hierarchy.
+
+## Phase 5 — Role Templates and Workspace Defaults
+
+Existing role templates remain organizational aids.
+
+For each useful template, the eventual model may provide:
+
+`Role template → initial Permissions → initial Workspace arrangement → suggested Widgets`
+
+Clinic Admin may modify everything and may create/save/reuse custom roles/templates.
+
+Templates do not impose professional permission limits.
+
+## Phase 6 — Navigation / Information Architecture Reconciliation
+
+For every Sidebar item determine:
 
 1. Domain?
 2. Sub-area?
 3. Feature?
 4. Setting?
 5. Workflow surface?
-6. Parent/child relationship?
+6. Report/Analytics?
 7. Contextual action?
-8. Does it genuinely need a top-level entry?
+8. Parent/child?
+9. Does it genuinely need top-level placement?
 
-### Actions
+Rules:
 
-- Reconcile duplicate navigation entries.
-- Establish parent/child hierarchy.
-- Keep Financial & Resources hierarchy as a reference pattern where appropriate.
-- Remove only proven obsolete/duplicate entries.
-- Do not create a top-level item merely because a route exists.
+- A route/table/component is not sufficient reason for top-level Sidebar placement.
+- Preserve independent Domain ownership.
 - Keep Patient Flow as an explicit independent surface.
+- Do not use Widgets as a substitute for full features.
+- Reconcile duplicate navigation registrations at the source.
 
----
+## Phase 7 — Patient Context / Cross-Domain Navigation
 
-## Phase 5 — Global Search
+Audit patient-centered contexts and provide authorized contextual access to related work such as visits, treatment plans, appointments, financial information, medical files/photos, follow-up, communication and Patient Portal.
 
-### Objective
-Build a true system-wide search.
+Do not transfer Domain ownership.
 
-### Functional scope
+## Phase 8 — Global Search
 
-Search must be capable of finding permitted records across relevant Domains, including as applicable:
+Build/complete true system-wide search across permitted tenant-scoped records and relevant features.
 
-- patients
-- appointments
-- staff
-- invoices
-- payments
-- financial plans/installments
-- insurance/claims
-- services/procedures
-- inventory
-- suppliers/purchasing
-- treatment plans
-- tasks/requests
-- communications
-- other indexed tenant-scoped records
+Search examples include patient, staff, appointment, invoice, payment, financial plan/installment, insurance/claims, service/procedure, inventory, supplier/purchase order, treatment plan, task/request, communication and other relevant records.
 
-### UX
+Results must identify type/context and navigate directly.
 
-Results must show:
+Respect existing authorization, tenant isolation, privacy and RLS. No parallel search permission model.
 
-- result type
-- useful context
-- relevant identifying information
-- direct navigation
+Arabic and English parity is required.
 
-The system should not force the user to know which Domain owns the record.
-
-### Security
-
-Global Search must use the existing authorization and tenant isolation model. It must not create a parallel search permission system.
-
-### Arabic/English
-
-Search labels, result types, empty states and navigation must have parity.
-
----
-
-## Phase 6 — Overview / Dashboard Reconciliation
-
-### Objective
-Remove the conceptual overlap.
-
-### Overview
-Only:
-
-- status
-- summary
-- attention
-- contextual KPIs
-- relevant quick context
-
-### Dashboard
-Only:
-
-- management monitoring
-- performance
-- trends
-- cross-system KPIs
-- administrative attention
+## Phase 9 — Overview / Dashboard / Workspace Reconciliation
 
 ### Workspace
-Actual work and actions.
+Actual work.
 
-No surface should become a second version of another surface.
+### Overview
+Contextual status, summary, attention, contextual KPIs and supporting information.
 
----
+### Dashboard
+Management/monitoring: performance, trends, cross-system KPIs, status and management attention.
 
-## Phase 7 — Discoverability / Interaction Consistency
+No surface becomes a duplicate of another.
 
-Audit and reconcile:
+## Phase 10 — Interaction / Discoverability
 
-- primary actions
-- secondary actions
-- contextual actions
-- tabs
-- drawers
-- modals
-- filters
-- sorting
-- pagination
-- bulk actions
-- breadcrumbs
-- back navigation
-- cross-domain links
-- empty states
-- error states
-- loading states
+Audit primary/secondary/contextual actions, tabs, drawers, modals, filters, sorting, pagination, bulk actions, breadcrumbs, back navigation, cross-domain links and empty/error/loading states.
 
-Use progressive disclosure rather than deleting capabilities.
+Use progressive disclosure. Do not hide valid capability as a visual shortcut.
 
----
+## Phase 11 — Mobile
 
-## Phase 8 — Mobile
+Validate Sidebar, Global Search, Workspace, Widget selection/reordering, Patient Flow, patient context, forms, tables, actions, drawers/modals and financial/operational/clinical screens.
 
-Validate and adapt:
+Widgets retain usable sizes and selected Widgets remain accessible beyond the initial viewport.
 
-- Sidebar
-- Global Search
-- Workspace switching
-- Patient Flow
-- patient context
-- forms
-- tables
-- actions
-- drawers/modals
-- financial screens
-- operational screens
-- clinical screens
+## Phase 12 — Arabic / English
 
-Mobile must preserve the same hierarchy and task logic.
+Validate navigation, Workspace, Widgets, Widget categories, Search, Patient Flow, Overview, Dashboard, actions, states, terminology, RTL/LTR, ordering and formatting.
 
----
+No second translation mechanism.
 
-## Phase 9 — Arabic / English
+## Phase 13 — Permissions / Tenant / Data Integrity
+
+Do not redesign authorization.
 
 Validate:
 
-- all navigation labels
-- workspace names
-- page titles
-- actions
-- search
-- empty/error/loading states
-- Patient Flow
-- Overview
-- Dashboard
-- RTL/LTR direction
-- Sidebar placement
-- number/date formatting
+- Clinic Admin can configure users/roles/permissions as intended;
+- Role remains distinct from Permission;
+- Workspace remains distinct from authorization;
+- Widget access follows permissions;
+- Patient Flow requires explicit configured access/context;
+- direct routes cannot bypass permissions;
+- Search cannot expose unauthorized data;
+- tenant isolation/RLS remain intact;
+- auditability remains intact.
 
-No hard-coded second translation system may be introduced.
+## Phase 14 — Runtime Validation
 
----
+Validate deployed runtime using representative configurations:
 
-## Phase 10 — Permissions / Tenant / Data Integrity
+- Clinic Admin;
+- Operations user without Patient Flow;
+- Operations user with Patient Flow Operations context;
+- Clinical user with Patient Flow Clinical context;
+- authorized administrative Patient Flow user;
+- mixed-permission user, including cross-domain permissions;
+- delegated administrator.
 
-No authorization redesign.
+Validate Workspace personalization, Widget add/remove/reorder, Sidebar Widget quick access, Patient Flow transitions, Search, navigation, permissions, data persistence, Arabic, English and mobile.
 
-Validate that:
+## Phase 15 — Regression / Legacy Cleanup
 
-- Clinic Admin can configure roles and permissions as intended.
-- Workspace visibility does not become a security boundary.
-- Actions respect permissions.
-- Tenant isolation remains intact.
-- RLS remains intact.
-- Existing auditability remains intact.
-- Direct routes cannot bypass permissions.
-- Search cannot expose unauthorized data.
+Search for:
 
----
+- duplicate routes;
+- duplicate components;
+- duplicate business logic;
+- duplicate navigation registrations;
+- legacy Workspace/Dashboard assumptions;
+- dead routes;
+- stale feature flags;
+- unused UI;
+- conflicting terminology;
+- old Queue/Patient Flow implementations.
 
-## Phase 11 — Runtime Validation
+Remove only proven duplicate, obsolete, broken or superseded implementations after references are migrated.
 
-Validate against the deployed system, not only source code.
+## Phase 16 — Closure Documentation
 
-Test representative users:
+Record:
 
-- Clinic Admin
-- Reception
-- Clinical user
-- user with mixed permissions
-- delegated administrative user
+1. every final decision implemented;
+2. every canonical implementation selected;
+3. every changed route/navigation relationship;
+4. every Widget added/reconciled;
+5. every Widget permission mapping;
+6. Patient Flow reconciliation;
+7. role/template relationship;
+8. database/data changes, if any;
+9. permission/tenant validation;
+10. mobile validation;
+11. Arabic/English validation;
+12. runtime evidence;
+13. removed/reconciled legacy implementations;
+14. deferred items.
 
-Validate:
+Update all affected architecture, AJM, PJ and UX documentation so the repository remains synchronized with the implemented system.
 
-- Global/Home
-- Operations
-- Clinical
-- Patient Flow in all approved contexts
-- Administration
-- Dashboard
-- Global Search
-- navigation
-- permissions
-- data persistence
-- errors
-- mobile
-- Arabic
-- English
-
----
-
-## Phase 12 — Regression and Cleanup
-
-Search for and reconcile:
-
-- duplicate routes
-- duplicate components
-- duplicate logic
-- legacy dashboard components
-- obsolete navigation registrations
-- dead routes
-- stale feature flags
-- unused UI
-- conflicting terminology
-- old workspace assumptions
-
-No removal without evidence that the implementation is duplicate, obsolete, broken, or superseded.
-
----
-
-## Phase 13 — Final Closure Documentation
-
-After runtime validation:
-
-1. Update implementation status.
-2. Record every changed route/navigation relationship.
-3. Record every removed/reconciled implementation.
-4. Record Global Search coverage.
-5. Record Patient Flow reconciliation.
-6. Record permission/tenant validation.
-7. Record mobile validation.
-8. Record Arabic/English validation.
-9. Record remaining deferred items.
-10. Update architecture and stage documents so the repository remains the source of truth.
-
----
-
-## Implementation Safety Rules
+## Safety Rules
 
 - Inspect before modifying.
 - Reuse canonical implementations.
 - Extend incomplete implementations.
-- Reconcile duplicates before creating anything.
+- Reconcile duplicates before creating.
 - Create only for proven gaps.
 - No visual hiding as a substitute for root-cause correction.
-- No duplicate wrappers or parallel navigation registries.
-- No parallel permission model.
+- No duplicate wrappers or parallel registries.
+- No parallel authorization model.
 - No Domain ownership changes for UX convenience.
 - No Patient Journey redefinition.
 - No feature removal merely to simplify navigation.
-- No architectural decision beyond the approved model without explicit Product Owner approval.
+- No Workspace Membership authorization layer.
+- No automatic Patient Flow access from Role name.
+- No Widget-based permission bypass.
+- No implementation of an architectural change requiring new Product Owner approval.
 
 ## Final Success Criteria
 
 The work is complete only when:
 
 1. Users can find functions without knowing CORE's internal architecture.
-2. Workspaces are real working environments.
-3. Patient Flow is one coherent cross-workspace workflow.
-4. Dashboard is not confused with administrative workspace.
-5. Overview is contextual rather than a duplicate workspace.
-6. Global Search works across permitted system data.
-7. Sidebar reflects information architecture rather than route count.
-8. Permissions remain independent from workspace presentation.
-9. Clinic Admin retains the required configuration freedom.
-10. No existing valid capability is lost.
-11. Mobile is usable.
-12. Arabic and English remain equivalent.
-13. Runtime matches the documented architecture.
-14. Documentation remains synchronized with the implementation.
+2. Workspace is a genuine working environment.
+3. Users can personalize Workspace within granted capabilities.
+4. Widgets accelerate real work and are not forced onto every Domain.
+5. Widget sizes remain usable and additional selected Widgets remain accessible.
+6. Sidebar remains the complete accessible system map.
+7. Optional Sidebar Widget quick access does not replace full navigation.
+8. Patient Flow is one coherent independent system with three contextual interfaces.
+9. Patient Flow does not appear merely from Role name.
+10. Dashboard is not confused with Workspace or Administration.
+11. Overview remains contextual.
+12. Global Search works across permitted system data.
+13. Permissions remain independent from presentation.
+14. Clinic Admin retains configuration freedom.
+15. Mobile is usable.
+16. Arabic and English remain equivalent.
+17. Runtime matches the documented architecture.
+18. Documentation remains synchronized and authoritative.
