@@ -13,6 +13,7 @@
     "ux:domain-surface": "node tools/domain-surface-audit.mjs",
     "ux:patient-flow-stage6": "node tools/patient-flow-stage6-audit.mjs",
     "ux:patient-context-stage7": "node tools/patient-context-stage7-audit.mjs",
+    "ux:global-search-stage8": "node tools/global-search-stage8-audit.mjs",
     "db:types": "supabase gen types typescript --project-id qaslsjyxjwvdoiczmhgq --schema public > src/infrastructure/supabase/database.types.ts",
     "db:migrate": "supabase migration up",
     "db:reset": "supabase db reset"
@@ -39,7 +40,7 @@
     "@radix-ui/react-dialog": "^1.1.1",
     "@radix-ui/react-avatar": "^1.1.1",
     "@radix-ui/react-separator": "^1.1.1",
-    "@radix-ui/react-label": "^2.1.0",
+    "@radix-ui/react-label": "^2.1.1",
     "autoprefixer": "^10.4.0",
     "tailwindcss-animate": "^1.0.0",
     "@radix-ui/react-checkbox": "^1.1.1",
