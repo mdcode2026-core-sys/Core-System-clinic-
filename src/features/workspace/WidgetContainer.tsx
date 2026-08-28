@@ -18,6 +18,7 @@ interface WidgetContainerProps {
   onMoveUp?: () => void;
   onMoveDown?: () => void;
   onDragStart?: (event: DragEvent<HTMLButtonElement>) => void;
+  onDragEnd?: () => void;
   onDragOver?: (event: DragEvent<HTMLDivElement>) => void;
   onDrop?: (event: DragEvent<HTMLDivElement>) => void;
   isDropTarget?: boolean;
@@ -63,6 +64,7 @@ export function WidgetContainer({
   onMoveUp,
   onMoveDown,
   onDragStart,
+  onDragEnd,
   onDragOver,
   onDrop,
   isDropTarget = false,
@@ -107,6 +109,7 @@ export function WidgetContainer({
           onMoveUp={onMoveUp}
           onMoveDown={onMoveDown}
           onDragStart={onDragStart}
+          onDragEnd={onDragEnd}
         />
       </div>
 
