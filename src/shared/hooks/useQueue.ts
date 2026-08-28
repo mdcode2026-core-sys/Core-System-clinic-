@@ -8,7 +8,7 @@ import { useEffect, useCallback } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { createClient } from "@/infrastructure/supabase/client";
 
-export function useQueueSubscription(tenantId: string | null) {
+export function useQueueSubscription(tenantId: string | null, onUpdate?: () => void) {
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -27,8 +27,8 @@ export function useQueueSubscription(tenantId: string | null) {
           filter: `tenant_id=eq.${tenantId}`,
         },
         () => {
-          // تحديث React Query Cache
           queryClient.invalidateQueries({ queryKey: ["queue", tenantId] });
+          onUpdate?.();
         }
       )
       .subscribe();
@@ -36,7 +36,7 @@ export function useQueueSubscription(tenantId: string | null) {
     return () => {
       channel.unsubscribe();
     };
-  }, [tenantId, queryClient]);
+  }, [tenantId, queryClient, onUpdate]);
 }
 
 // ── دالة تحديث يدوي (تُستدعى بعد Server Actions) ───────────
