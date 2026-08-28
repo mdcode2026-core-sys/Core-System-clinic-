@@ -4,6 +4,19 @@ Reconstructed baseline as of 2026-07-31 from committed migration files and archi
 
 ---
 
+## 2026-08-29 — Global UX/IA Stage 9 — Overview / Dashboard Reconciliation
+- Added the canonical management Dashboard at `/dashboard` while retaining `/` as the everyday Workspace and `/financial-resources/overview` as a contextual domain Overview.
+- Reused the existing Analytics KPI registry, Analytics engine, KPI grid, permission engine and tenant resolver; no parallel Dashboard, Workspace, authorization, entitlement, AJM or PJ architecture was created.
+- Added bilingual Dashboard messaging and permission-aware Sidebar navigation using the existing `analytics:read` permission.
+- Hardened Analytics server actions with authenticated caller verification, tenant membership resolution and effective-permission enforcement.
+- Added a blocking Stage 9 validation workflow covering lockfile, `npm ci`, TypeScript, i18n, Stage 5–8 audits, Stage 9 audit, changed-surface ESLint and production build.
+- No Stage 9 database migration was required.
+- Validated implementation commit: `65988b160136546d3b7c04cce1606c436c3d0529`.
+- Merged to `main` as `d85358577e84e6c6ed6a32fb13ca41751369d40d`; subsequent documentation commits continue the same validated implementation lineage.
+- Stage 9 findings register records unrelated repository-wide ESLint debt as deferred cross-workstream work and records historical runtime signatures as non-current evidence.
+
+---
+
 ## 2026-08-29 — Global UX/IA Stage 8 — Global Search — CLOSED / PRODUCTION READY
 - Implemented the canonical Global Search surface on the existing Workspace shell.
 - Reused existing permission resolution, Supabase server access, tenant boundaries, canonical Domain tables and i18n; no parallel authorization, entitlement, workspace, registry, Queue or Patient Journey architecture was created.
@@ -125,4 +138,4 @@ Reconstructed baseline as of 2026-07-31 from committed migration files and archi
 
 ## 2026-07-21 — Initial Schema Baseline
 - **Migration `20260721100539_remote_schema.sql`:** initial committed schema — full multi-tenant table set (patients, agenda, invoicing, queue/visit-sessions, inventory ledger, retention follow-ups, analytics snapshots, subscription/billing/platform tables, permissions/roles/role_permissions, audit trail), 34 RLS policies, and core Postgres functions.
-- **Migration `20260721112514_remote_schema.sql`:** same-day constraint refresh for core tables and allowed enum values.
+- **Migration `20260721112514_remote_schema.sql:** same-day constraint refresh for core tables and allowed enum values.
