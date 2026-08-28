@@ -74,7 +74,7 @@ for (const transition of [
 ]) requireText("src/domain/queue/queue.engine.ts", transition, `canonical transition ${transition}`);
 
 if (migration && /role_permissions/.test(migration)) failures.push("Stage 6 permission migration must not grant Patient Flow permissions automatically through role_permissions");
-if (stageDoc && !stageDoc.includes("No automatic role grants")) failures.push("Stage 6 implementation record must document explicit enablement/no automatic grants");
+if (stageDoc && !stageDoc.includes("zero automatic role grants")) failures.push("Stage 6 implementation record must document zero automatic role grants");
 
 if (failures.length) {
   console.error("Stage 6 Patient Flow audit FAILED:");
