@@ -1,5 +1,5 @@
 // src/core/navigation/navigationRegistry.ts
-// Single source of truth for dashboard navigation, permissions, and product-surface hierarchy.
+// Single source of truth for sidebar navigation, contextual routes, permissions, and product-surface hierarchy.
 
 import type { Permission } from "@/core/permissions/types";
 import { messages } from "@/core/i18n/messages";
@@ -9,7 +9,8 @@ import type { LucideIcon } from "lucide-react";
 export type NavigationLabelKey = keyof typeof messages.en.nav;
 export type NavigationLabel = { ar: string; en: string };
 export type SurfaceTier = "core" | "advanced" | "addon";
-export interface NavItem { href: string; labelKey: NavigationLabelKey | null; label?: NavigationLabel; icon: LucideIcon; requiredPermission: Permission | null; capabilityKey?: string; children?: NavItem[]; surface?: SurfaceTier; }
+export type NavigationVisibility = "sidebar" | "contextual";
+export interface NavItem { href: string; labelKey: NavigationLabelKey | null; label?: NavigationLabel; icon: LucideIcon; requiredPermission: Permission | null; capabilityKey?: string; children?: NavItem[]; surface?: SurfaceTier; visibility?: NavigationVisibility; }
 
 const financialResourcesChildren: NavItem[] = [
   { href: "/financial-resources/overview", label: { ar: "نظرة عامة", en: "Overview" }, labelKey: null, icon: LayoutDashboard, requiredPermission: null, capabilityKey: "financial_resources.overview", surface: "core" },
@@ -31,26 +32,33 @@ const financialResourcesChildren: NavItem[] = [
 ];
 
 export const navigationRegistry: NavItem[] = [
-  { href: "/", labelKey: "dashboard", icon: LayoutDashboard, requiredPermission: null },
-  { href: "/operation", labelKey: "operation", icon: BriefcaseBusiness, requiredPermission: "workspace:operation" },
-  { href: "/clinical", labelKey: "clinical", icon: Stethoscope, requiredPermission: "workspace:clinical" },
-  { href: "/treatment-plans", labelKey: "treatmentPlans", icon: ClipboardList, requiredPermission: "treatment_plans:read" },
-  { href: "/patients", labelKey: "patients", icon: Users, requiredPermission: "patients:read" },
-  { href: "/agenda", labelKey: "agenda", icon: CalendarDays, requiredPermission: "agenda:read" },
-  { href: "/queue", labelKey: "queue", icon: ListOrdered, requiredPermission: "sessions:read" },
-  { href: "/financial-resources", labelKey: null, label: { ar: "المالية والموارد", en: "Financial & Resources" }, icon: WalletCards, requiredPermission: null, capabilityKey: "financial_resources.access", children: financialResourcesChildren },
-  { href: "/reports", labelKey: "reports", icon: FileBarChart, requiredPermission: "reports:read" },
-  { href: "/analytics", labelKey: "analytics", icon: BarChart3, requiredPermission: "analytics:read" },
-  { href: "/follow-up", labelKey: "followUp", icon: PhoneCall, requiredPermission: "followup:read" },
-  { href: "/settings", labelKey: "settings", icon: Settings, requiredPermission: "settings:read" },
+  { href: "/", labelKey: null, label: { ar: "مساحة العمل", en: "Workspace" }, icon: LayoutDashboard, requiredPermission: null, surface: "core", visibility: "sidebar" },
+  // Canonical contextual routes retained for permission resolution and later Patient Flow reconciliation.
+  { href: "/operation", labelKey: "operation", icon: BriefcaseBusiness, requiredPermission: "workspace:operation", visibility: "contextual" },
+  { href: "/clinical", labelKey: "clinical", icon: Stethoscope, requiredPermission: "workspace:clinical", visibility: "contextual" },
+  { href: "/treatment-plans", labelKey: "treatmentPlans", icon: ClipboardList, requiredPermission: "treatment_plans:read", visibility: "sidebar" },
+  { href: "/patients", labelKey: "patients", icon: Users, requiredPermission: "patients:read", visibility: "sidebar" },
+  { href: "/agenda", labelKey: "agenda", icon: CalendarDays, requiredPermission: "agenda:read", visibility: "sidebar" },
+  { href: "/queue", labelKey: "queue", icon: ListOrdered, requiredPermission: "sessions:read", visibility: "contextual" },
+  { href: "/financial-resources", labelKey: null, label: { ar: "المالية والموارد", en: "Financial & Resources" }, icon: WalletCards, requiredPermission: null, capabilityKey: "financial_resources.access", children: financialResourcesChildren, visibility: "sidebar" },
+  { href: "/reports", labelKey: "reports", icon: FileBarChart, requiredPermission: "reports:read", visibility: "sidebar" },
+  { href: "/analytics", labelKey: "analytics", icon: BarChart3, requiredPermission: "analytics:read", visibility: "sidebar" },
+  { href: "/follow-up", labelKey: "followUp", icon: PhoneCall, requiredPermission: "followup:read", visibility: "sidebar" },
+  { href: "/settings", labelKey: "settings", icon: Settings, requiredPermission: "settings:read", visibility: "sidebar" },
 ];
+
+function flattenNavigation(items: NavItem[]): NavItem[] {
+  return items.flatMap((item) => [item, ...(item.children ? flattenNavigation(item.children) : [])]);
+}
 
 export function getRequiredPermission(pathname: string): Permission | null | undefined {
   const normalized = pathname.split("?")[0];
-  const all = navigationRegistry.flatMap((n) => n.children?.flatMap((c) => c.children ? [c, ...c.children] : [c]) ?? [n]);
-  const exact = all.find((n) => n.href.split("?")[0] === normalized);
+  const exact = flattenNavigation(navigationRegistry).find((item) => item.href.split("?")[0] === normalized);
   if (exact) return exact.requiredPermission;
-  const parent = navigationRegistry.find((n) => n.href !== "/" && normalized.startsWith(n.href + "/"));
-  if (parent) return parent.requiredPermission;
-  return undefined;
+  const parent = navigationRegistry.find((item) => item.href !== "/" && normalized.startsWith(item.href + "/"));
+  return parent?.requiredPermission;
+}
+
+export function getSidebarNavigation(): NavItem[] {
+  return navigationRegistry.filter((item) => item.visibility !== "contextual");
 }
