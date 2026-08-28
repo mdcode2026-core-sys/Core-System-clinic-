@@ -1,6 +1,8 @@
 name: Production Candidate Handoff
 
 on:
+  push:
+    branches: [main]
   workflow_run:
     workflows: ["UX Stages 0-7 CI"]
     types: [completed]
@@ -8,38 +10,79 @@ on:
 
 permissions:
   contents: read
+  actions: read
 
 jobs:
   candidate:
     name: Validate and deploy production candidate
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    if: >-
+      (github.event_name == 'push') ||
+      (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 40
     steps:
-      - name: Checkout validated commit
+      - name: Resolve candidate commit
+        id: candidate
+        env:
+          EVENT_SHA: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
+        run: echo "sha=$EVENT_SHA" >> "$GITHUB_OUTPUT"
+
+      - name: Checkout validated candidate
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.workflow_run.head_sha }}
+          ref: ${{ steps.candidate.outputs.sha }}
+
+      - name: Wait for GitHub UX 0-7 validation
+        if: ${{ github.event_name == 'push' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CANDIDATE_SHA: ${{ steps.candidate.outputs.sha }}
+        run: |
+          set -euo pipefail
+          for attempt in $(seq 1 60); do
+            run_json="$(gh run list --repo "$GITHUB_REPOSITORY" --workflow 'UX Stages 0-7 CI' --branch main --limit 20 --json databaseId,headSha,status,conclusion --jq '.[] | select(.headSha == env.CANDIDATE_SHA) | {id: .databaseId, status: .status, conclusion: .conclusion}' | head -n 1)"
+            if [ -n "$run_json" ]; then
+              status="$(printf '%s' "$run_json" | jq -r '.status')"
+              conclusion="$(printf '%s' "$run_json" | jq -r '.conclusion')"
+              echo "UX 0-7 validation: status=$status conclusion=$conclusion"
+              if [ "$status" = "completed" ]; then
+                test "$conclusion" = "success"
+                break
+              fi
+            else
+              echo "Waiting for UX 0-7 validation run for $CANDIDATE_SHA..."
+            fi
+            sleep 10
+            if [ "$attempt" = "60" ]; then
+              echo "Timed out waiting for the GitHub UX 0-7 validation run."
+              exit 1
+            fi
+          done
+
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
+
       - name: Install dependencies from lockfile
         run: npm ci
+
       - name: Verify production build
         env:
           NEXT_PUBLIC_SUPABASE_URL: https://qaslsjyxjwvdoiczmhgq.supabase.co
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
           NEXT_PUBLIC_APP_URL: https://core-system-clinic.vercel.app
         run: npm run build
-      - name: Deploy validated commit to Vercel Production
+
+      - name: Deploy validated candidate to Vercel Production
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: team_VlSz1DTffYBwmUEcYQtR8JiN
           VERCEL_PROJECT_ID: prj_DN3UgHVBUHrFG6i6ycxAWj0bXLbG
         run: npx vercel@latest deploy --prod --yes --non-interactive --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" --project "$VERCEL_PROJECT_ID"
+
       - name: Record deployed candidate
         run: |
-          echo "Production candidate: ${{ github.event.workflow_run.head_sha }}"
-          echo "Production deployment completed through the Vercel CLI after all GitHub validation gates passed."
+          echo "Production candidate: ${{ steps.candidate.outputs.sha }}"
+          echo "Production deployment completed only after GitHub UX 0-7 validation and production build succeeded."
