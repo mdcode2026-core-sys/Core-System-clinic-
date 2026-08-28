@@ -1,13 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
-import { navigationRegistry } from "@/core/navigation/navigationRegistry";
-import type { Permission } from "@/core/permissions/types";
-
-// خريطة الصلاحيات للمسارات — للبحث السريع O(1)
-const routePermissionMap = new Map<string, Permission | null>();
-for (const item of navigationRegistry) {
-  routePermissionMap.set(item.href, item.requiredPermission);
-}
+import { getRequiredPermission } from "@/core/navigation/navigationRegistry";
 
 // المسارات العامة فقط — تسجيل الدخول وإنشاء الحساب
 const publicRoutes = ["/login", "/register"];
@@ -15,7 +8,6 @@ const publicRoutes = ["/login", "/register"];
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({ request });
 
-  // 1. إنشاء عميل Supabase من كوكيز الطلب
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -24,9 +16,7 @@ export async function middleware(request: NextRequest) {
         getAll() {
           return request.cookies.getAll();
         },
-        setAll(
-          cookiesToSet: { name: string; value: string; options: Record<string, unknown> }[]
-        ) {
+        setAll(cookiesToSet: { name: string; value: string; options: Record<string, unknown> }[]) {
           cookiesToSet.forEach(({ name, value, options }) => {
             request.cookies.set(name, value);
             response.cookies.set(name, value, options);
@@ -36,40 +26,28 @@ export async function middleware(request: NextRequest) {
     }
   );
 
-  // 2. التحقق من المصادقة
   const {
     data: { user },
-    error: authError,
   } = await supabase.auth.getUser();
 
   const path = request.nextUrl.pathname;
 
-  // 3. المسارات العامة دائماً مسموحة
-  if (publicRoutes.includes(path)) {
-    return response;
-  }
+  if (publicRoutes.includes(path)) return response;
 
-  // 4. غير مسجل → تسجيل الدخول
   if (!user) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     return NextResponse.redirect(url);
   }
 
-  // 5. حل الصلاحية المطلوبة لهذا المسار
-  const requiredPermission = routePermissionMap.get(path);
+  // Navigation visibility and route authorization are related, but not identical.
+  // Contextual/legacy routes remain in the canonical registry so direct access is protected.
+  const requiredPermission = getRequiredPermission(path);
 
-  // إذا المسار غير مسجل في القائمة → اسمح (قد يكون مسار فرعي)
-  if (requiredPermission === undefined) {
-    return response;
-  }
+  // Unregistered application routes remain authenticated routes. Page/server boundaries
+  // continue to enforce their own domain-specific authorization where applicable.
+  if (requiredPermission === undefined || requiredPermission === null) return response;
 
-  // لوحة التحكم ("/") دائماً مرئية لأي مستخدم مسجل — لا تحتاج صلاحية
-  if (requiredPermission === null) {
-    return response;
-  }
-
-  // 6. حل صلاحيات المستخدم الفعلية
   const { data: clinicUsers, error: cuError } = await supabase
     .from("clinic_users")
     .select("role, tenant_id")
@@ -109,19 +87,17 @@ export async function middleware(request: NextRequest) {
 
   const userPermissions = new Set<string>();
   for (const rp of rolePerms ?? []) {
-    // @ts-expect-error — استعلام متداخل
+    // @ts-expect-error — nested Supabase relation
     const key = rp.permissions?.permission_key as string | undefined;
     if (key) userPermissions.add(key);
   }
 
-  // 7. هل المستخدم يملك الصلاحية المطلوبة؟
   if (!userPermissions.has(requiredPermission)) {
     const url = request.nextUrl.clone();
     url.pathname = "/";
     return NextResponse.redirect(url);
   }
 
-  // 8. مسموح — أكمل
   return response;
 }
 
