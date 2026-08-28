@@ -1,17 +1,17 @@
 # CORE SYSTEM — Global UX / Information Architecture / Interaction Audit
 ## Final Reconciliation Report — 2026-08-28
 
-**Status:** FINAL / APPROVED FOR IMPLEMENTATION PLANNING
-**Scope:** Global UX, Information Architecture, Navigation, Workspace model, Patient Flow, Dashboard/Overview distinction, Global Search, discoverability, duplication, terminology, mobile, Arabic/English parity, permissions/visibility, runtime alignment.
-**Implementation status:** NO PRODUCT/UX CODE IMPLEMENTATION PERFORMED AS PART OF THIS AUDIT.
+**Status:** FINAL / AUTHORITATIVE — AMENDED AFTER PRODUCT OWNER DECISIONS
+**Scope:** Global UX, Information Architecture, Navigation, Sidebar, Workspace model, Widget model, Patient Flow, Dashboard/Overview distinction, Global Search, discoverability, duplication, terminology, mobile, Arabic/English parity, permissions/visibility, runtime alignment.
+**Implementation status:** NO PRODUCT/UX CODE IMPLEMENTATION PERFORMED AS PART OF THIS AUDIT OR ITS AMENDMENT.
 
 ---
 
 ## 1. Executive Decision
 
-The audit confirms that CORE SYSTEM does not need a redesign from zero. It needs reconciliation of several presentation models that were developed at different stages.
+CORE SYSTEM does not need a redesign from zero. It needs reconciliation of presentation models developed at different stages.
 
-The target model is:
+The target experience is:
 
 `Global/Home → Workspaces → logical sub-areas → contextual features → operational actions`
 
@@ -19,418 +19,344 @@ while preserving:
 
 `Independent Domains + Integrated Platform`
 
-The system must remain powerful in the background while presenting a controlled and understandable surface to users.
+The system remains powerful in the background while presenting a controlled, understandable and personalized working surface to each user.
+
+The governing execution discipline is:
+
+`Inspect → Reuse → Extend → Reconcile → Create`
+
+Create only when a real gap is proven.
 
 ---
 
-## 2. Authoritative Decisions
+## 2. Authoritative User Model
 
-### 2.1 Workspace
+The user is a member of the clinic team whose access is configured by Clinic Admin.
 
-A Workspace is the user's working environment. It is not merely an Overview and it is not a container for every feature the user can access.
+`Role ≠ Permission ≠ Workspace ≠ Capability`
 
-The authoritative contexts are:
+Role is an organizational starting template. It is not a fixed screen and does not determine professional limits.
 
-- Operations Workspace
-- Clinical Workspace
-- Administration Workspace
-- Global/Home Workspace
+Permissions determine actual capabilities. Clinic Admin may assign any available permission to any user when that reflects the clinic's own operating model, including capabilities that cross conventional medical, operational and financial boundaries.
 
-Workspace does not replace roles or permissions.
+Workspace is the user's working environment. It is not a security boundary.
 
-`Workspace != Role != Permission != Capability`
+Capability is what the system can provide; its availability to a user remains permission-controlled.
 
-Clinic Admin remains free to define roles and permissions according to the clinic's real operating model. A user may therefore have permissions that cross conventional professional boundaries.
-
-### 2.2 Patient Flow — APPROVED
-
-Patient Flow is an independent Sidebar surface.
-
-It is not a child of Operations or Clinical because the same patient journey crosses both environments.
-
-Patient Flow has three presentation contexts:
-
-- Operations — reception/operational patient movement.
-- Clinical — clinician-facing patient movement and handoff.
-- Administrative — complete operational visibility and intervention for authorised administrators.
-
-The Clinic Admin may make Patient Flow available to any user according to the clinic's configuration. Existing permissions remain authoritative.
-
-The existing drag-and-drop patient movement is a real workflow interaction, not cosmetic reordering.
-
-### 2.3 Operations Workspace — APPROVED DIRECTION
-
-Operations is a working surface.
-
-It may contain widgets such as:
-
-- Quick Registration
-- Quick Appointment
-- Patient Search
-- Patient Flow entry/actions
-- Operational requests/tasks
-- Other permitted capabilities
-
-A capability granted by permission does not automatically change its domain ownership.
-
-Example:
-
-A receptionist with invoice permissions may see the permitted invoice function in the Operations working environment. If the same user receives clinical permissions, the clinical capability is surfaced through Clinical Workspace rather than being mixed into Operations.
-
-### 2.4 Clinical Workspace — APPROVED DIRECTION
-
-Clinical is a working environment for permitted clinical work.
-
-It is not a hard-coded "doctor screen". Clinic Admin determines the actual role and permission configuration.
-
-Clinical Overview widgets are contextual support and must not become a duplicate of the complete clinical workspace.
-
-### 2.5 Dashboard vs Workspace vs Overview — APPROVED
-
-These concepts are distinct:
-
-**Workspace:** where the user works.
-
-**Overview:** what the user needs to understand about the current workspace at a glance: status, summary, attention, KPIs where appropriate.
-
-**Dashboard:** management/monitoring view for authorised management users, focused on performance, status, KPIs, trends and attention across the system.
-
-Dashboard must not become an alternative operational workspace.
-
-Clinic Admin must retain complete visibility across the system according to the existing permission model. Delegated administrators receive only what their permissions allow.
-
-### 2.6 Global/Home Workspace — FINAL DECISION
-
-The Global/Home Workspace is the system-wide entry and orientation surface.
-
-It is not a fourth business domain and is not a duplicate of Administration Workspace.
-
-Its purposes are:
-
-- orient the user;
-- provide Global Search;
-- expose useful cross-system quick actions allowed to the user;
-- show relevant recent/attention work;
-- provide controlled entry into available workspaces.
-
-For Clinic Admin, Global/Home is intentionally administration-heavy and cross-system in nature. For other users, it is personalized to their permitted work without creating a separate hard-coded screen for each role.
-
-This is the selected model because it combines the strongest observed patterns without importing the weaknesses of any single reference product.
-
-### 2.7 Workspace Membership — REJECTED AS A SEPARATE USER-FACING LAYER
-
-A separate Workspace Membership concept is unnecessary as an authorization mechanism.
-
-Workspace availability should derive from the existing permission architecture and user configuration. Creating another membership layer would risk duplicating permissions and creating a second access model.
-
-User lifecycle remains separate:
-
-- invited
-- activated
-- active
-- suspended/deactivated
-- removed/disabled according to the existing account model
-
-These are account/user administration states, not Workspace Membership.
+Clinic Admin remains responsible for adding, editing, configuring and removing users and for defining/reusing/modifying roles and their permissions within the existing authorization model.
 
 ---
 
-## 3. Why the Global/Home Decision Was Selected
+## 3. Role Templates
 
-### Jane
+Existing role templates/models remain valid as aids for faster user setup.
 
-Jane demonstrates a strong task-oriented model: the Schedule is a primary working surface, and its Day Sheet brings scheduling, charting and payment into one work context. Patient search can be used directly from the scheduling workflow. This supports CORE's principle that a Workspace should help users perform work, not merely read metrics.
+They are not mandatory role definitions.
 
-### Pabau
+Clinic Admin may:
 
-Pabau's current Home page is a personalized starting point with widgets, recent activity, today's schedule, tasks and quick access. It also separates broader company KPI visibility from ordinary staff use through permissions. This supports the idea of a useful Global/Home surface without making it identical to a business Dashboard.
+- use a template;
+- change its permissions;
+- create a new role from scratch;
+- save a custom role/template for reuse;
+- change an individual user's configuration after assignment.
 
-### ERPNext
-
-ERPNext treats Workspaces as module-oriented working environments and supports dashboards, shortcuts and links inside them. Its global search also distinguishes navigation/search from broader record search and respects permissions. This supports CORE's distinction between Workspace navigation and true Global Search.
-
-### Final CORE conclusion
-
-CORE should not copy any one of these models.
-
-The best combined pattern is:
-
-`Global/Home = orientation + global access + controlled quick actions`
-
-`Workspace = actual work`
-
-`Overview = contextual understanding`
-
-`Dashboard = management/monitoring`
-
-This preserves the flexibility already established for CORE while avoiding the common problem of turning the Home page into another giant dashboard.
+Future templates may also provide an initial Workspace arrangement and suggested Widgets. They remain starting configurations, not restrictions.
 
 ---
 
-## 4. Patient Flow — Strategic Finding
+## 4. Workspace — Authoritative Decision
 
-Patient Flow is one of CORE SYSTEM's strongest differentiating workflow surfaces.
+A Workspace is the user's working environment, not merely an Overview and not a management Dashboard.
 
-It should not be reduced to a generic calendar, generic queue list, or role-specific page.
+Operations and Clinical remain meaningful working contexts in the CORE SYSTEM presentation model, but neither is a hard-coded profession screen. Administration remains the administrative/configuration working context. Global/Home is the system-wide orientation/entry surface and is not a business Domain.
 
-The underlying journey remains:
+The capabilities visible in a Workspace are determined by the permissions configured for that user. A capability may be surfaced in the working environment without changing the Domain that owns it.
 
-`Scheduled / Walk-in → Arrived → Waiting → With Provider → Pending Reception → Completed`
+Example: a user working in Operations may receive selected financial permissions. The permitted financial function may therefore be accessible from that user's working surface while Financial remains an independently owned Domain. If the user has clinical permissions, the corresponding clinical capability is presented through the Clinical working context.
 
-The operational handoff remains:
-
-`Operations → Clinical → Operations`
-
-Patient Flow makes this journey visible and actionable across the clinic while preserving each user's appropriate view.
-
-The existing persisted drag-and-drop behavior must be retained and reconciled rather than replaced.
+Workspace does not replace the full system navigation.
 
 ---
 
-## 5. Navigation / Information Architecture Findings
+## 5. Workspace Customization — Final Decision
 
-The current repository contains a mixture of:
+The Workspace is a personal working surface that the user may customize within the capabilities granted to them.
 
-- Workspaces
-- Domains
-- Features
-- Workflow surfaces
-- Reports
-- Analytics
-- Settings
+The user may:
 
-at comparable Sidebar levels.
+- add permitted Widgets;
+- remove Widgets from the Workspace;
+- reorder Widgets by drag and drop;
+- place frequently used tools earlier;
+- move/scroll through additional selected Widgets beyond the immediately visible viewport;
+- restore an appropriate default configuration.
 
-This is the primary IA problem.
+The system must provide useful defaults rather than requiring a blank-screen setup.
 
-The Financial & Resources hierarchy is already a strong example of the desired parent/child model:
+The Workspace must not force all selected Widgets into one viewport.
 
-`Financial & Resources → Financial Plans → Installments`
+Widgets retain usable natural sizes. The system must not solve density by shrinking Widgets until their content becomes difficult to use. Additional selected Widgets remain accessible through the movable/scrollable Workspace surface.
 
-`Financial & Resources → Insurance → Claims`
+The exact maximum visible count is determined by Widget dimensions and available device space; it is not a rule that removes or disables additional selected Widgets.
 
-`Financial & Resources → Purchasing → Suppliers / Receiving`
-
-The same principle must be applied globally after each relationship is validated.
-
-A route or database table is not sufficient reason to create a top-level Sidebar item.
+Mobile/touch interaction must support this model through appropriate drag, scrolling and reordering behavior.
 
 ---
 
-## 6. Queue / Patient Flow Reconciliation
+## 6. Widget Model — Final Decision
+
+Widgets are not limited to Overview cards.
+
+They may be:
+
+- Information;
+- Action;
+- Attention/Operational;
+- Context/Summary;
+- combinations of the above where genuinely useful.
+
+A Widget must accelerate or clarify real work. It must not exist merely because a Domain has data.
+
+Every Domain must be assessed individually. Some Domains may have several useful Widgets; some may have one; some may correctly have none.
+
+A Widget must reuse canonical Domain logic and must never grant a permission.
+
+Availability follows:
+
+`Capability exists → user has required permission → Widget is available → user may add it`
+
+If the underlying permission is removed, the Widget cannot remain a route around authorization.
+
+Widget categories are for discovery and organization, not authorization. Candidate categories include Patients, Appointments, Clinical, Financial, Operations, Communication, Tasks, Inventory/Resources, Analytics/Information and System. The final inventory must be based on actual Domain/workflow inspection rather than artificial symmetry.
+
+---
+
+## 7. Widgets and Sidebar
+
+Widgets may also be offered as a clearly separated quick-access area within the user's Sidebar when useful.
+
+This is an additional convenience only. It does not turn Widgets into Sidebar features, does not replace the full Domain/Feature hierarchy, and does not create a second authorization mechanism.
+
+The user's Workspace selection and ordering remain personal configuration.
+
+---
+
+## 8. Quick Actions
+
+Not every fast action must be a full Widget.
+
+Simple high-frequency actions may be compact Quick Actions within Workspace or other suitable surfaces, such as New Patient, New Appointment or Create Invoice.
+
+The choice between Widget and Quick Action must be driven by the actual workflow.
+
+---
+
+## 9. Patient Flow — Independent and Authoritative
+
+Patient Flow is an independent Sidebar surface and one coherent workflow system.
+
+It is not a child of Operations or Clinical, and it is not to be replaced by generic Queue functionality.
+
+Patient Flow has three interfaces for the same underlying system:
+
+1. Operations — reception/operational movement, routing, return and completion.
+2. Clinical — clinician-facing movement and clinical handoff/work.
+3. Administrative — complete operational visibility and intervention for authorized administrators.
+
+These are not three separate Patient Flow systems.
+
+Patient Flow must not appear merely because a user's Role is named Operations, Reception, Doctor or another profession/role.
+
+Clinic Admin must explicitly make Patient Flow available to the user through the existing authorization/configuration model and select the applicable context: Operations, Clinical or Administrative.
+
+Therefore an Operations user may have Operations Workspace without Patient Flow. If Patient Flow is enabled with Operations context, the user receives the Operations presentation. If enabled with Clinical context, the user receives the Clinical presentation. Administrative context provides the administrative presentation for an authorized user.
+
+The existing drag-and-drop Patient Flow interaction is a real workflow action that changes operational state. It must be retained and validated.
+
+The existing patient journey remains one continuous tenant-scoped workflow, including the Operations → Clinical → Operations handoff.
+
+---
+
+## 10. Queue Reconciliation
 
 The repository contains multiple Queue-related surfaces/implementations. These must be reconciled before implementation.
 
-No duplicate Queue system is to be created.
+No duplicate Queue system may be created.
 
-The final implementation must identify:
+The implementation must identify:
 
-- canonical patient movement domain logic;
-- canonical persisted queue state;
+- canonical patient movement logic;
+- canonical persisted state;
 - valid transitions;
-- current operational view;
-- current clinical view;
-- administrative monitoring view;
-- legacy/duplicate UI implementations.
+- Operations presentation;
+- Clinical presentation;
+- Administrative presentation;
+- legacy/duplicate UI.
 
-Only after this reconciliation may obsolete wrappers/components be removed.
-
----
-
-## 7. Global Search — FINAL REQUIREMENT
-
-CORE SYSTEM requires a real system-wide search.
-
-Definition of Done:
-
-1. Accessible from every major surface.
-2. Searches across permitted tenant-scoped record types.
-3. Supports names, identifiers, phone numbers and other meaningful fields.
-4. Clearly identifies result type and context.
-5. Opens the correct destination directly.
-6. Does not require the user to know which Domain owns the data.
-7. Respects role/permission rules.
-8. Respects tenant isolation and privacy.
-9. Works in Arabic and English.
-10. Does not become a replacement for contextual search where contextual search is faster.
-
-The technical search mechanism is intentionally not prescribed by this report.
+Only proven obsolete/duplicate implementations may be removed after references are migrated.
 
 ---
 
-## 8. Permissions / Visibility
+## 11. Overview vs Workspace vs Dashboard — Final Decision
 
-No new authorization model is approved.
+**Workspace:** where the user works.
 
-The existing principle remains:
+**Overview:** contextual understanding of the current working context: status, summary, attention, contextual KPIs and useful supporting information. Overview must not become a duplicate of the complete Workspace.
 
-- Role is not the same as permission.
-- Workspace is not a security boundary.
-- Clinic Admin controls the clinic's user/role/permission configuration.
-- Server-side authorization remains authoritative.
-- Tenant isolation remains mandatory.
+**Dashboard:** management/monitoring surface focused on performance, trends, cross-system KPIs, status and management attention.
 
-Navigation should simplify what a user sees, but hiding an item must never be mistaken for securing the underlying data.
+Dashboard is not an administrative Workspace.
+
+Clinic Admin retains complete system visibility and access according to the existing authorization model. Delegated administrators see what their permissions allow.
 
 ---
 
-## 9. Mobile
+## 12. Global/Home — Final Decision
 
-Mobile must be treated as a first-class surface, particularly for:
+Global/Home is the system-wide entry and orientation surface.
 
-- Operations
-- Patient Flow
-- Clinical
-- Global Search
-- patient context
-- tables/forms
-- actions and drawers
+It provides:
 
-The mobile solution must preserve the same information hierarchy rather than simply shrinking the desktop layout.
+- orientation;
+- Global Search;
+- permitted cross-system Quick Actions;
+- recent/relevant work;
+- attention items;
+- controlled entry into available Workspaces.
 
----
+For Clinic Admin it is intentionally administration-heavy and cross-system. For other users it is personalized to their permitted work.
 
-## 10. Arabic / English
-
-The unified render-time i18n architecture remains the basis.
-
-The UX audit must enforce parity for:
-
-- Workspace names
-- Sidebar
-- Page titles
-- Search
-- Actions
-- Empty/error/loading states
-- Patient Flow
-- Overview widgets
-- Dashboard
-- terminology
-- RTL/LTR behavior
-
-No second translation mechanism is to be introduced.
+It is not a fourth business Domain and must not become a duplicate Dashboard or operational Workspace.
 
 ---
 
-## 11. Documentation Reconciliation Finding
+## 13. Sidebar / Information Architecture
 
-The older `WORKSPACE_ARCHITECTURE_SPECIFICATION.md` describes a single undifferentiated Workspace and treats Dashboard as legacy terminology.
+The Sidebar is the user's complete map of accessible capabilities, organized according to Information Architecture.
 
-The later Stage 6 amendment established multiple workspace contexts and explicitly superseded conflicting earlier wording.
+It is not a list of every route, database table or component.
 
-The 2026-08-28 final audit further clarifies:
+For every current Sidebar item determine whether it is a Domain, sub-area, feature, workflow surface, setting, report/analytics surface, contextual action or child of another feature.
 
-- Operations as a working environment;
-- Clinical as a working environment;
-- Administration as administrative work;
-- Patient Flow as an independent cross-workspace surface;
-- Global/Home as the system-wide entry/orientation surface;
-- Dashboard as management/monitoring;
-- Overview as contextual summary.
+A route or table alone is never sufficient reason for a top-level Sidebar entry.
 
-The Stage 6 amendment has been reconciled in GitHub first, before any product implementation.
+Parent/child relationships follow Domain ownership, user mental model, workflow and actual use.
 
-The legacy specification must remain treated as historical material until the repository documentation cleanup is completed without losing architectural history.
+Patient Flow remains an explicit independent surface.
 
 ---
 
-## 12. Final Architecture Surface Map
+## 14. Patient Context / Contextual Navigation
 
-`CORE SYSTEM`
+When the user is working in a patient context, relevant cross-Domain patient-related information and actions should be reachable without repeatedly returning to the global Sidebar, where authorized.
 
-`├── Global/Home Workspace`
+Possible contextual destinations include visits, treatment plans, appointments, financial information, medical files/photos, follow-up, communication and Patient Portal.
 
-`│   ├── Global Search`
-
-`│   ├── Cross-system quick actions`
-
-`│   ├── Recent / attention work`
-
-`│   └── Entry to available Workspaces`
-
-`│`
-
-`├── Operations Workspace`
-
-`│   ├── Operational widgets`
-
-`│   ├── Quick actions`
-
-`│   └── Patient-flow-related operational work`
-
-`│`
-
-`├── Clinical Workspace`
-
-`│   ├── Clinical widgets`
-
-`│   └── Medical work`
-
-`│`
-
-`├── Patient Flow`
-
-`│   ├── Operations view`
-
-`│   ├── Clinical view`
-
-`│   └── Administrative view`
-
-`│`
-
-`├── Administration Workspace`
-
-`│   └── Tenant administration / configuration`
-
-`│`
-
-`├── Domains / logical sub-areas`
-
-`│   └── Contextual features and actions`
-
-`│`
-
-`└── Management surfaces`
-
-`    ├── Dashboard`
-
-`    ├── Reports`
-
-`    └── Analytics`
-
-This is an IA target map, not a permission map and not a claim that every branch must become a Sidebar item.
+This does not transfer Domain ownership; it is contextual navigation over independently owned Domains.
 
 ---
 
-## 13. Non-Goals
+## 15. Global Search — Final Requirement
 
-This audit does not authorize:
+Global Search is a true system-wide capability.
 
-- deleting features because a competitor does not have them;
-- changing Domain ownership for navigation convenience;
-- creating a new authorization model;
-- using Workspace as a security boundary;
-- removing capabilities to make the UI look simpler;
-- rewriting working domain logic unnecessarily;
-- creating duplicate Patient Flow/Queue implementations;
-- forcing every role into one fixed screen;
-- forcing every feature into the Sidebar.
+It must be reachable from major surfaces, search across permitted tenant-scoped records, identify result type/context, navigate directly to the correct destination, and not require knowledge of Domain ownership.
+
+It must respect existing permissions, tenant isolation and privacy, work in Arabic and English, and coexist with contextual searches where those are faster.
+
+No parallel search authorization model is permitted.
 
 ---
 
-## 14. Approval State
+## 16. Workspace Membership — Rejected
 
-The following decisions are now treated as approved direction for implementation:
+A separate user-facing Workspace Membership authorization layer is not part of the model.
 
-- Patient Flow as an independent Sidebar surface.
-- Operations and Clinical as working environments.
-- Clinic Admin freedom to define roles and permissions.
-- Dashboard distinct from Workspace.
-- Overview distinct from Dashboard and Workspace.
-- Global/Home as a controlled system-wide entry/orientation surface, administration-heavy for Clinic Admin.
-- Workspace Membership not used as a second authorization layer.
-- Global Search as a true system-wide capability.
-- Preserve and reconcile existing Patient Flow/Queue logic rather than replacing it.
-- Documentation must be updated before product implementation.
+Workspace availability is derived from the existing user/role/permission configuration and approved workspace context.
 
-Implementation remains gated by the execution plan below.
+Account lifecycle states remain user/account administration concerns.
+
+---
+
+## 17. Mobile
+
+Mobile is a first-class working surface. The same information hierarchy must remain understandable on small screens.
+
+Workspace Widgets retain usable sizes and the Workspace can scroll through additional selected Widgets. Touch drag/reordering must be supported appropriately.
+
+Explicit validation is required for Sidebar, Global Search, Workspace, Widget selection/reordering, Patient Flow, patient context, tables, forms, drawers/modals and operational/clinical actions.
+
+---
+
+## 18. Arabic / English
+
+Arabic and English must have equivalent meaning and behavior across Sidebar, Workspace, Widgets, Global Search, Patient Flow, Overview, Dashboard, actions, errors, empty/loading states, terminology, RTL/LTR behavior and formatting.
+
+The unified render-time i18n architecture remains the single presentation translation mechanism.
+
+---
+
+## 19. Data / Backend Preservation
+
+The UX work must reuse existing canonical data and business logic. Existing structures for users, roles, permissions, workspaces and Patient Flow/Queue must be inspected before introducing any new data structure.
+
+No database change is justified solely because the UI needs to look different.
+
+If an existing structure conflicts with the approved model, the root cause must be identified before changing it.
+
+---
+
+## 20. Documentation Governance
+
+This report, together with `GLOBAL_UX_IA_FINAL_DECISIONS_AMENDMENT_2026-08-28.md`, is the authoritative record of the final decisions reached in this audit.
+
+Every implementation stage must record decisions, canonical implementations, changed files/routes, data changes, permissions affected, reconciled legacy implementations, runtime verification and deferred items.
+
+No later wording may silently convert an authoritative decision into an optional recommendation.
+
+---
+
+## 21. Non-Goals
+
+Do not:
+
+- equate Role with a fixed screen;
+- equate profession with permission;
+- use Workspace as a security boundary;
+- make Patient Flow appear automatically from a Role name;
+- create three independent Patient Flow systems;
+- make every Domain a Sidebar item;
+- make every Domain a Widget;
+- make every Widget an Overview card;
+- make Dashboard a Workspace;
+- make Workspace a Dashboard;
+- use Widgets to grant permissions;
+- create a second authorization model;
+- delete valid capabilities to simplify navigation;
+- hide duplicate code without reconciling its source;
+- create duplicate navigation registries;
+- transfer Domain ownership for UX convenience.
+
+## 22. Final Approval Boundary
+
+The following are authoritative for subsequent implementation planning/execution:
+
+- Workspace is a working environment, not merely an Overview.
+- Role is an organizational starting template, not a fixed screen.
+- Permissions define actual capabilities and may cross conventional professional boundaries according to Clinic Admin configuration.
+- Users may personalize Workspace through permitted Widgets and Quick Actions.
+- Widgets may be operational/action-oriented, not only informational.
+- Widget size must remain usable; additional Widgets remain accessible through a movable/scrollable Workspace.
+- Widgets may have an optional separated Sidebar quick-access area.
+- Patient Flow is one independent system with Operations, Clinical and Administrative interfaces.
+- Patient Flow requires explicit enablement/context and does not appear merely from a Role name.
+- Dashboard, Overview and Workspace remain distinct.
+- Global/Home is system-wide orientation and access, administration-heavy for Clinic Admin.
+- Workspace Membership is not a second authorization layer.
+- Global Search is a real system-wide capability.
+- Patient Context is a contextual navigation layer over independent Domains.
+- Domain-by-Domain Widget assessment is mandatory.
+- Documentation must remain synchronized and must preserve decisions exactly.
+
+Any future change to these decisions requires explicit Product Owner approval before implementation.
