@@ -1,124 +1,53 @@
-# CORE SYSTEM — Global UX / IA Stage 6 — Patient Flow / Queue Reconciliation
+# CORE SYSTEM — Global UX / Information Architecture Stage 6 — Patient Flow / Queue Reconciliation
 
 **Date:** 2026-08-28
 **Stage:** Global UX / IA Stage 6
-**Status:** IMPLEMENTED — RUNTIME DEPLOYMENT GATE PENDING
+**Status:** IMPLEMENTED — GITHUB VALIDATION IN PROGRESS
 **Branch:** `ux-stage-6-patient-flow`
 **PR:** #28
 
-## 1. Governing authority
+## Governing authority
 
-Implementation follows:
+Implementation follows the repository's current UX/IA authority and execution plan, `PJ_STAGE6_WORKSPACE_ARCHITECTURE.md`, `WORKSPACE_ARCHITECTURE_STAGE6_AMENDMENT.md`, AJM Team & Access foundation, PJ Patient Journey references, the current Queue/Workspace implementation, and the live Supabase authorization/RLS state.
 
-- `GLOBAL_UX_IA_FINAL_AUTHORITY_2026-08-28.md`
-- `docs/GLOBAL-UX-IA-IMPLEMENTATION-PLAN-2026-08-28-FINAL.md`
-- `PJ_STAGE6_WORKSPACE_ARCHITECTURE.md`
-- `WORKSPACE_ARCHITECTURE_STAGE6_AMENDMENT.md`
-- AJM-1 Team & Access foundation
-- current repository Patient Flow / Queue implementation
-- live Supabase schema, RLS and permission state
+The current Global UX authority supersedes older fixed-role Workspace interpretations.
 
-The later Global UX authority supersedes any older fixed-role Workspace interpretation.
+## Inspect / Reuse / Reconcile
 
-## 2. Inspect
+Inspected the current repository baseline, Stage 0–5 records, AJM workspace membership/permission architecture, PJ Patient Journey references, canonical Queue/session implementation, navigation registry, Sidebar filtering, effective permission engine, and live Supabase state.
 
-Inspected the live repository at the Stage 5 baseline commit and the linked production Supabase project.
+No second Queue engine, visit-session table, tenant model, permission engine, or Patient Journey engine was created.
 
-Inspected implementation included:
-
-- canonical Queue domain: `src/domain/queue/*`;
-- persisted `clinic_visit_sessions` state and RLS;
-- existing Operation Workspace;
-- existing Clinical Workspace;
-- existing Queue page and Queue Widget;
-- navigation registry and Sidebar filtering;
-- AJM workspace membership model;
-- existing permission catalog/effective permission engine;
-- Stage 6 historical migration and workspace/queue state;
-- live session-status distribution.
-
-Live database state contained all six canonical operational states: `waiting`, `in_consultation`, `pending_close`, `completed`, `cancelled`, and `no_show`.
-
-## 3. Reuse
-
-No second Queue engine, visit-session table, tenant model, permission engine or Patient Journey engine was created.
-
-Reused:
+Patient Flow reuses:
 
 - `clinic_visit_sessions` as the canonical patient movement state;
-- `queueEngine.validateTransition()` as the transition authority;
-- existing `getQueue()` query and tenant/RLS boundary;
-- existing Queue subscription mechanism;
+- `queueEngine.validateTransition()` as transition authority;
+- existing `getQueue()` and tenant/RLS boundary;
+- existing Queue subscription behavior;
 - existing server-side effective permission calculation;
-- existing Operation/Clinical workspace transition logic;
-- existing `clinic_user_workspaces` only as organizational/default-surface data, not authorization.
+- existing Operation/Clinical transition logic;
+- `clinic_user_workspaces` only as organizational/default-surface data, never as a second authorization boundary.
 
-## 4. Reconcile
+## Implemented
 
-### Patient Flow visibility
+1. Explicit Patient Flow permissions:
+   - `patient_flow:operations`
+   - `patient_flow:clinical`
+   - `patient_flow:administrative`
+2. Independent Sidebar Patient Flow surface with Operations / Clinical / Administrative views.
+3. Patient Flow context selector and reusable board backed by the canonical Queue/session state.
+4. Operations, Clinical and Administrative movement/action surfaces.
+5. Server-side authorization for every Patient Flow state-changing action.
+6. Existing Queue mutation entry points hardened with tenant-scoped authorization.
+7. Revalidation of Queue, Operation, Clinical and Patient Flow surfaces after mutations.
 
-Patient Flow is now an independent Sidebar system with three explicit permissions:
+## Authorization decision
 
-- `patient_flow:operations`
-- `patient_flow:clinical`
-- `patient_flow:administrative`
+Patient Flow is **not** automatically granted by role, workspace membership, or professional category.
 
-No automatic role grants were added. Live validation confirms **0 automatic role grants** for these permissions.
+The migration intentionally creates **zero automatic role grants**. Live Supabase validation currently reports 0 `role_permissions` grants for all three Patient Flow permissions.
 
-Therefore:
-
-`Operations role ≠ Patient Flow`
-
-and:
-
-`Clinical role ≠ Patient Flow`
-
-Clinic Admin must explicitly assign the desired Patient Flow permission through the existing Team & Access permission architecture.
-
-### Workspace relationship
-
-Existing `/operation` and `/clinical` working surfaces remain intact. Patient Flow is not a replacement for those Workspaces; it is the independent cross-workspace patient-movement surface required by the UX authority.
-
-### Queue relationship
-
-The existing Queue/session engine remains canonical. Patient Flow uses it instead of recreating Queue logic.
-
-## 5. Implement
-
-Implemented:
-
-1. Explicit Patient Flow permission catalog entries.
-2. Independent Sidebar Patient Flow parent item with Operations / Clinical / Administrative child views.
-3. Patient Flow context selector.
-4. Reusable Patient Flow board using the canonical Queue query/session data.
-5. Operations view with persisted drag/drop and operational actions.
-6. Clinical view with clinical handoff and return-to-reception behavior.
-7. Administrative view with full visibility and authorized intervention.
-8. Server-side Patient Flow authorization for every state-changing action.
-9. Existing Queue Server Actions hardened so mutation entry points require `sessions:update` and patient lookup requires authenticated tenant-scoped `patients:read`.
-10. Revalidation of Queue, Operation, Clinical and Patient Flow surfaces after mutations.
-
-## 6. Canonical state flow
-
-The implemented transition authority remains:
-
-`waiting → in_consultation → pending_close → completed`
-
-with `no_show` and `cancelled` as terminal outcomes.
-
-The Patient Flow UI restricts drag/drop/action targets according to its assigned context while the server still validates every transition through the canonical Queue rules.
-
-## 7. Security / authorization evidence
-
-Live Supabase verification confirmed:
-
-- Patient Flow permissions exist in the production permission catalog.
-- No Patient Flow permission is automatically granted through `role_permissions`.
-- `clinic_visit_sessions` SELECT RLS requires the existing session/visit read permissions and tenant isolation.
-- `clinic_visit_sessions` UPDATE RLS requires the existing session/visit update permissions and tenant isolation.
-- Patient Flow mutations additionally verify the explicit Patient Flow context permission server-side.
-
-This preserves:
+The governing model is:
 
 `Role ≠ Permission`
 
@@ -128,46 +57,76 @@ This preserves:
 
 `Visibility ≠ Authorization`
 
-## 8. AJM / PJ reconciliation
+Clinic Admin explicitly assigns the required Patient Flow permission through the existing Team & Access permission architecture.
 
-AJM-1 remains the authorization foundation. `clinic_user_workspaces` remains organizational/default-surface data and is not used as a second security boundary.
+## Canonical flow
 
-PJ remains the owner/reference for the Patient Journey. Patient Flow exposes the existing journey state without transferring Domain ownership to UX/IA.
+The existing Queue authority remains:
 
-## 9. Unchanged
+`waiting → in_consultation → pending_close → completed`
 
-The following were deliberately not rebuilt or duplicated:
+with `no_show` and `cancelled` terminal outcomes.
 
-- Queue engine;
-- Queue persistence;
-- Patient Journey state model;
-- Operation Workspace;
-- Clinical Workspace;
-- tenant resolution;
-- permission engine;
-- RLS architecture;
-- roles/role-permission architecture;
-- workspace membership architecture;
-- subscription/entitlement architecture.
+The UI restricts available targets by context, while the server validates every transition through the canonical Queue engine.
 
-## 10. Runtime validation gate
+## AJM / PJ reconciliation
 
-Repository/DB implementation validation completed. The GitHub PR was created to trigger the repository CI and Vercel preview validation.
+AJM remains the authorization and administrative foundation. PJ remains the Patient Journey reference/owner. Patient Flow exposes and operates the established journey state without transferring Domain ownership to UX/IA and without creating a second Journey/Queue model.
 
-The Vercel status for the Stage 6 commit currently reports a **build-rate-limit failure** on the Hobby project rather than a source/build error. No Stage 6 preview deployment was created. The existing production deployment for `main` remains `READY`.
+Existing `/operation` and `/clinical` working surfaces remain intact. Patient Flow is an independent cross-workspace patient-movement surface, not a replacement for those Workspaces.
 
-Therefore runtime validation of the new Stage 6 UI on the deployed branch is intentionally **not claimed as complete** until the Vercel build-rate-limit gate permits a deployment.
+## Database / migration reconciliation
 
-## 11. Closure rule
+The live database already contained two historical Stage 6-named migration records not represented by repository migration filenames. The implementation migration was therefore reconciled to the latest applied Stage 6 history instead of introducing another future migration version.
 
-Stage 6 implementation is code-complete and database-verified. Final Stage 6 closure requires:
+The repository now carries:
 
-- successful repository CI;
-- successful Stage 6 preview deployment;
-- runtime verification of all three Patient Flow views;
-- drag/drop persistence verification;
-- permission visibility regression;
-- Arabic/English parity verification;
-- final documentation closure update.
+`supabase/migrations/20260828185953_pj_stage6_patient_flow_permissions.sql`
 
-No contradictory Patient Flow architecture is introduced by this implementation.
+and live migration history contains version `20260828185953` with the same migration name. The migration is idempotent and intentionally creates no role grants.
+
+## Validation gates
+
+GitHub is the primary engineering validation gate. The Stage 6 workflow now performs, in order:
+
+1. lockfile synchronization;
+2. dependency installation;
+3. TypeScript;
+4. I18N audit;
+5. I18N parity;
+6. Stage 5 Widget Catalog audit;
+7. Stage 5 Domain Surface audit;
+8. Stage 6 Patient Flow repository audit;
+9. full-repository ESLint diagnostic as a reported diagnostic;
+10. blocking Stage 6 changed-surface ESLint gate;
+11. production build.
+
+The full-repository ESLint findings that pre-date Stage 6 remain recorded in the existing Stage 5 Unrelated Findings Register and are not silenced. They are outside the Stage 6 implementation surface and remain assigned to their owning workstreams.
+
+## Live Supabase evidence
+
+Verified in the production Supabase project:
+
+- all three Patient Flow permissions exist;
+- all three currently have 0 automatic role grants;
+- canonical `clinic_visit_sessions` contains all six operational states: `waiting`, `in_consultation`, `pending_close`, `completed`, `cancelled`, `no_show`.
+
+## Runtime gate
+
+No Stage 6 production-readiness claim is made until GitHub validation completes successfully and the required runtime verification is performed.
+
+Vercel is deliberately deferred until the GitHub candidate gate passes. If Vercel's build-rate limit blocks the candidate deployment, the limitation will be recorded as an infrastructure/deployment gate rather than misreported as a source or Stage 6 failure.
+
+## Closure Definition
+
+Stage 6 may be marked **CLOSED / Production Ready** only after:
+
+- GitHub Stage 6 workflow passes;
+- TypeScript, I18N, Stage 5 audits, Stage 6 audit, changed-surface ESLint and production build pass;
+- runtime verification covers all three Patient Flow views;
+- drag/drop and state persistence are verified;
+- permission visibility and authorization regression are verified;
+- Arabic/English parity is verified;
+- production deployment is verified when the UX/IA DoD requires it;
+- documentation and handoff status are updated;
+- final repository and live database re-check finds no unresolved Stage 6 blocker.
