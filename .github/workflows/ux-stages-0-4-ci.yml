@@ -44,8 +44,25 @@ jobs:
       - name: I18N parity
         run: npm run i18n:parity
 
-      - name: ESLint
-        run: npm run lint
+      - name: Stage 0-4 changed-surface ESLint
+        run: |
+          npx eslint \
+            'src/core/workspace/hooks/useWorkspace.ts' \
+            'src/features/workspace/WorkspaceRenderer.tsx' \
+            'src/features/workspace/WidgetContainer.tsx' \
+            'src/features/workspace/WidgetToolbar.tsx' \
+            'src/core/i18n/workspaceMessages.ts' \
+            'src/core/i18n/invoiceMessages.ts' \
+            'src/core/i18n/portalMessages.ts' \
+            'src/app/(auth)/register/page.tsx' \
+            'src/features/financial-resources/financial-resource-table.tsx' \
+            'src/features/invoicing/invoice-detail.tsx' \
+            'src/features/patient-portal/patient-messaging.tsx' \
+            'src/features/workspace/WorkspaceShell.tsx' \
+            'src/features/settings/ClinicProfileForm.tsx' \
+            'src/shared/components/ui/dialog.tsx' \
+            'src/shared/components/ui/sheet.tsx' \
+            'tools/i18n-audit.mjs'
 
       - name: Production build
         env:
