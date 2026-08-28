@@ -1,10 +1,9 @@
 // src/app/(dashboard)/page.tsx
-// Workspace Architecture — Dashboard home route
+// Global/Home route — the user's Workspace, not the management Dashboard.
 // Renders through WorkspaceRenderer + widgetRegistry instead of hardcoded JSX.
-// Per Package 3.1.1: this file replaces the need for src/app/page.tsx redirect.
 
 import { WorkspaceRenderer } from "@/features/workspace/WorkspaceRenderer";
 
-export default function DashboardPage() {
+export default function WorkspaceHomePage() {
   return <WorkspaceRenderer />;
 }
