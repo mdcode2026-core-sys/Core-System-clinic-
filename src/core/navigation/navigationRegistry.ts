@@ -33,6 +33,7 @@ const financialResourcesChildren: NavItem[] = [
 
 export const navigationRegistry: NavItem[] = [
   { href: "/", labelKey: null, label: { ar: "مساحة العمل", en: "Workspace" }, icon: LayoutDashboard, requiredPermission: null, surface: "core", visibility: "sidebar" },
+  { href: "/dashboard", labelKey: "dashboard", icon: LayoutDashboard, requiredPermission: "analytics:read", surface: "core", visibility: "sidebar" },
   // Canonical workspace contexts remain contextual working surfaces.
   { href: "/operation", labelKey: "operation", icon: BriefcaseBusiness, requiredPermission: "workspace:operation", visibility: "contextual" },
   { href: "/clinical", labelKey: "clinical", icon: Stethoscope, requiredPermission: "workspace:clinical", visibility: "contextual" },
