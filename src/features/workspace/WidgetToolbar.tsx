@@ -17,6 +17,7 @@ interface WidgetToolbarProps {
   onMoveUp?: () => void;
   onMoveDown?: () => void;
   onDragStart?: (event: DragEvent<HTMLButtonElement>) => void;
+  onDragEnd?: () => void;
 }
 
 export function WidgetToolbar({
@@ -29,6 +30,7 @@ export function WidgetToolbar({
   onMoveUp,
   onMoveDown,
   onDragStart,
+  onDragEnd,
 }: WidgetToolbarProps) {
   const { workspace } = useI18n();
   const isHidden = currentState === "hidden";
@@ -45,6 +47,7 @@ export function WidgetToolbar({
         type="button"
         draggable
         onDragStart={onDragStart}
+        onDragEnd={onDragEnd}
         className="hidden cursor-grab rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 sm:inline-flex"
         title={workspace.dragToReorder}
         aria-label={workspace.dragToReorder}
