@@ -1,7 +1,7 @@
 # Documentation Status & Authority
 
-**Status:** ACTIVE / CURRENT UX/IA STAGE 7 DOCUMENTED — PRODUCTION RUNTIME BLOCKED
-**Last reviewed:** 2026-08-28
+**Status:** ACTIVE / CURRENT UX/IA STAGE 7 CLOSED — PRODUCTION READY
+**Last reviewed:** 2026-08-29
 
 This file is the repository documentation authority and freshness registry.
 
@@ -31,7 +31,7 @@ When documentation and implementation disagree:
 - `docs/GLOBAL-UX-IA-STAGE-5-WIDGET-LIBRARY-2026-08-28.md` — Stage 5 implementation record.
 - `docs/STAGE-5-UNRELATED-FINDINGS-REGISTER-2026-08-28.md` — Stage 5 findings requiring owning-workstream repair/reconciliation.
 - `docs/STAGE-7-IMPLEMENTATION-RECORD-2026-08-28.md` — Stage 7 implementation and production-readiness record.
-- `docs/STAGE-7-UNRESOLVED-FINDINGS-REGISTER-2026-08-28.md` — Stage 7 unresolved findings.
+- `docs/STAGE-7-UNRESOLVED-FINDINGS-REGISTER-2026-08-28.md` — Stage 7 finding disposition.
 - `ADR-012-PATIENT-PORTAL.md` — Patient Portal architecture.
 - `PJ_E2E_DEMO_DATASET.md` — persistent PJ E2E dataset contract.
 - `PJ_STAGE15_CLOSURE.md` — Stage 15 closure evidence.
@@ -47,11 +47,11 @@ When documentation and implementation disagree:
 - Stage 4 — Workspace Personalization: implemented/documented; canonical Workspace persistence and personalization retained.
 - Stage 5 — Widget Library & Classification: implemented / CI validated / documented.
 - Stage 6 — Patient Flow: implemented / CI validated / documented.
-- Stage 7 — Patient Context: implementation and engineering validation completed; **production runtime verification is blocked by an external Vercel deployment issue and Stage 7 is therefore NOT CLOSED**.
+- Stage 7 — Patient Context: **CLOSED / PRODUCTION READY**.
 
 ### Stage 7 validation model
 
-The repository's `.github/workflows/ux-stages-0-4-ci.yml` now acts as the shared **UX Stages 0–7 Pre-deployment Validation** workflow. It performs:
+The repository's `.github/workflows/ux-stages-0-4-ci.yml` acts as the shared **UX Stages 0–7 Pre-deployment Validation** workflow. It performs:
 
 - lockfile synchronization;
 - `npm ci`;
@@ -66,7 +66,15 @@ The repository's `.github/workflows/ux-stages-0-4-ci.yml` now acts as the shared
 - Stage 7 changed-surface ESLint gate;
 - production build.
 
-The Production Candidate Handoff workflow is wired to the **UX Stages 0–7 CI** completion event and independently verifies the production build. Vercel remains a runtime/production evidence gate rather than a small-change validation tool.
+The Production Candidate Handoff workflow is wired to the **UX Stages 0–7 CI** completion event and independently verifies the production build. Vercel Git integration is the production deployment authority for `main`; a `VERCEL_TOKEN` repository secret is not required.
+
+Final validation evidence:
+
+- UX Stages 0–7 CI run #84: PASS.
+- Production Candidate Handoff run #24: PASS.
+- Validated SHA: `832d49d888d343018c36fb51454ea6caa0306e80`.
+- Vercel production deployment `dpl_2fqPkrb34SUtuAntbFNBqmQAaJxg`: READY.
+- Production `/login`: HTTP 200.
 
 ## 4. Findings Governance Rule
 
@@ -81,7 +89,7 @@ The executor must:
 5. never suppress a real defect merely to make CI green;
 6. return unresolved findings for explicit disposition when required.
 
-Stage 7's external deployment blocker is recorded in `docs/STAGE-7-UNRESOLVED-FINDINGS-REGISTER-2026-08-28.md`.
+Stage 7 blocker `S7-BLOCKER-001` is CLOSED in `docs/STAGE-7-UNRESOLVED-FINDINGS-REGISTER-2026-08-28.md`.
 
 ## 5. PJ Current State
 
@@ -131,7 +139,7 @@ Every completed PJ stage must update, as applicable:
 
 For Global UX/IA stages, update the applicable stage record, execution-plan update, `PROJECT_HANDOFF.md`, `CHANGELOG.md` and this registry when current implementation state changes materially.
 
-Stage 7 has an implementation record and findings register. Final closure remains pending until Vercel production deployment and runtime verification are complete.
+Stage 7 implementation, finding disposition, project handoff and production evidence are now recorded as closed/current.
 
 ## 11. Cleanup Result
 
