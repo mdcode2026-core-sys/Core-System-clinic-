@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
 import { createClient } from "@/infrastructure/supabase/server";
 import { resolveTenantId } from "@/core/auth/resolveTenantId";
 import { getEffectivePermissions } from "@/core/permissions/permissionEngine";
@@ -14,7 +15,8 @@ export default async function FinancialResourcesOverviewPage() {
   const permissions = await getEffectivePermissions(user.id, tenantId);
   const canRead = permissions.includes("invoices:read") || permissions.includes("insurance:read") || permissions.includes("purchasing:read") || permissions.includes("inventory:read");
   if (!canRead) redirect("/");
-  const locale: Locale = (await import("next/headers")).cookies().then((c) => c.get("core-system-locale")?.value === "ar" ? "ar" : "en");
+  const cookieStore = await cookies();
+  const locale: Locale = cookieStore.get("core-system-locale")?.value === "ar" ? "ar" : "en";
   const t = getFinancialResourcesMessages(locale);
   const [plans, insurance, suppliers, purchases, invoices, inventory] = await Promise.all([
     permissions.includes("invoices:read") ? supabase.from("financial_plans").select("id, status, installments:financial_installments(id, status)").eq("tenant_id", tenantId) : Promise.resolve({ data: [] }),
@@ -26,7 +28,7 @@ export default async function FinancialResourcesOverviewPage() {
   ]);
   const overdueInvoices = (invoices.data ?? []).filter((x: { invoice_status?: string }) => String(x.invoice_status).toLowerCase() === "overdue").length;
   const openPlans = (plans.data ?? []).filter((x: { status?: string }) => !["completed", "closed", "cancelled"].includes(String(x.status).toLowerCase())).length;
-  const openInstallments = (plans.data ?? []).reduce((n: number, p: { installments?: { status?: string }[] }) => n + (p.installments ?? []).filter((i) => !["paid", "completed"].includes(String(i.status).toLowerCase())).length, 0);
+  const openInstallments = (plans.data ?? []).reduce((n: number, p: { installments?: { status?: string }[] }) => n + (p.installments ?? []).filter((i: { status?: string }) => !["paid", "completed"].includes(String(i.status).toLowerCase())).length, 0);
   const activeInsurance = (insurance.data ?? []).filter((x: { status?: string }) => String(x.status).toLowerCase() !== "inactive").length;
   const pendingClaims = (insurance.data ?? []).filter((x: { claim_ready?: boolean }) => x.claim_ready).length;
   const activeSuppliers = (suppliers.data ?? []).filter((x: { status?: string }) => String(x.status).toLowerCase() !== "inactive").length;
