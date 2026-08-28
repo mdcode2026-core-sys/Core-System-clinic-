@@ -1,7 +1,6 @@
 "use client";
 
 import { useI18n } from "@/core/i18n/I18nProvider";
-import { useWorkspace } from "@/core/workspace/hooks/useWorkspace";
 import type { WorkspaceSurfaceKey } from "@/core/workspace/workspaceSurfaces";
 import type { WidgetState } from "@/core/workspace/workspace.types";
 import { Eye, EyeOff, ChevronDown, Pin, PinOff } from "lucide-react";
@@ -11,23 +10,24 @@ interface WidgetToolbarProps {
   widgetKey: string;
   currentState: WidgetState;
   workspaceKey?: WorkspaceSurfaceKey;
+  onStateChange?: (widgetKey: string, state: WidgetState) => void;
 }
 
-export function WidgetToolbar({ widgetKey, currentState, workspaceKey = "global" }: WidgetToolbarProps) {
-  const { updateWidgetState } = useWorkspace(workspaceKey);
+export function WidgetToolbar({ widgetKey, currentState, onStateChange }: WidgetToolbarProps) {
   const { workspace } = useI18n();
 
   const isHidden = currentState === "hidden";
   const isCollapsed = currentState === "collapsed";
   const isPinned = currentState === "pinned";
 
-  const handleHide = () => updateWidgetState(widgetKey, isHidden ? "visible" : "hidden");
-  const handleCollapse = () => updateWidgetState(widgetKey, isCollapsed ? "visible" : "collapsed");
-  const handlePin = () => updateWidgetState(widgetKey, isPinned ? "visible" : "pinned");
+  const handleHide = () => onStateChange?.(widgetKey, isHidden ? "visible" : "hidden");
+  const handleCollapse = () => onStateChange?.(widgetKey, isCollapsed ? "visible" : "collapsed");
+  const handlePin = () => onStateChange?.(widgetKey, isPinned ? "visible" : "pinned");
 
   return (
     <div className="flex items-center gap-1">
       <button
+        type="button"
         onClick={handleCollapse}
         className={cn(
           "rounded p-1 transition-colors",
@@ -40,6 +40,7 @@ export function WidgetToolbar({ widgetKey, currentState, workspaceKey = "global"
       </button>
 
       <button
+        type="button"
         onClick={handlePin}
         className={cn(
           "rounded p-1 transition-colors",
@@ -52,6 +53,7 @@ export function WidgetToolbar({ widgetKey, currentState, workspaceKey = "global"
       </button>
 
       <button
+        type="button"
         onClick={handleHide}
         className={cn(
           "rounded p-1 transition-colors",
