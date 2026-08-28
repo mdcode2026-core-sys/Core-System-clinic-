@@ -114,7 +114,11 @@ without turning contextual routes into top-level navigation entries.
 
 Nested children remain permission/entitlement filtered.
 
-### 5.3 Middleware authorization
+### 5.3 Legacy Workspace shell alignment
+
+`src/features/workspace/WorkspaceShell.tsx`, although not the active dashboard layout shell, was also reconciled to the same `getSidebarNavigation()` contract. This prevents a second shell implementation from retaining the superseded Sidebar model if it is reused later.
+
+### 5.4 Middleware authorization
 
 `middleware.ts` previously constructed a route permission map from root navigation entries only. That meant nested routes and contextual route semantics could diverge from the canonical registry.
 
@@ -122,7 +126,7 @@ It now resolves the required permission through `getRequiredPermission()` from t
 
 This is a root-cause reconciliation, not a visual hiding patch.
 
-### 5.4 Workspace naming
+### 5.5 Workspace naming
 
 `src/app/(dashboard)/page.tsx` now identifies `/` as the Workspace home route rather than naming it a Dashboard page. The rendered implementation remains the existing `WorkspaceRenderer`.
 
@@ -155,11 +159,13 @@ These remain in their governing stages.
 
 - Navigation registry inspected before modification.
 - Active Workspace shell inspected before modification.
+- Legacy Workspace shell inspected before modification.
 - Middleware route-permission behavior inspected before modification.
 - `/`, `/operation`, `/clinical`, `/queue` route behavior inspected.
 - Financial parent/child hierarchy inspected.
 - AJM and PJ ownership boundaries inspected.
 - Main branch was re-read after implementation to verify the commits are present.
+- Vercel production runtime errors were rechecked; the existing four error groups are pre-existing production issues and are not attributed to Stage 1 source changes.
 
 ### Runtime validation gate
 
@@ -179,6 +185,7 @@ This document remains `IMPLEMENTED — RUNTIME VALIDATION PENDING` until a deplo
 - [x] Sidebar is derived from explicit navigation visibility rather than route existence.
 - [x] Nested route permission resolution is centralized in the navigation registry.
 - [x] Middleware still protects contextual routes after Sidebar removal.
+- [x] Both current and legacy Workspace shells use the same Sidebar visibility contract.
 - [x] No PJ/AJM domain ownership was changed.
 - [ ] Production deployment containing Stage 1 commits is READY.
 - [ ] Production Sidebar verified in Arabic and English.
