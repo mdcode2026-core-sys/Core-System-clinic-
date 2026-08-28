@@ -13,9 +13,8 @@ interface WorkspaceRendererProps {
 
 /**
  * Canonical renderer for the reusable Workspace surface.
- * It provides the working-surface chrome and delegates business work to the
- * existing permission-aware Widget registry. It is deliberately not a new
- * authorization or Domain engine.
+ * Stage 3 establishes this component as the principal working-surface entry,
+ * while business ownership and authorization remain in their existing layers.
  */
 export function WorkspaceRenderer({ context, workspaceKey = "global" }: WorkspaceRendererProps) {
   const { visibleWidgets, isLoading, hasErrors } = useWorkspace(workspaceKey);
