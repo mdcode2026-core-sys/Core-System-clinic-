@@ -33,8 +33,8 @@ export function WorkspaceShell({ children, user }: WorkspaceShellProps) {
   const groupContainsPath = (item: NavItem): boolean => item.children?.some((child) => pathname === child.href.split("?")[0] || pathname.startsWith(`${child.href.split("?")[0]}/`) || groupContainsPath(child)) ?? false;
 
   useEffect(() => {
-    const financialPaths = ["/financial-resources", "/invoices", "/payments", "/financial-plans", "/installments", "/insurance", "/inventory", "/consumption", "/suppliers", "/purchasing", "/receiving"];
-    if (financialPaths.some((path) => pathname === path || pathname.startsWith(`${path}/`))) setOpenGroups((v) => ({ ...v, "/financial-resources": true }));
+    const financialGroup = navigationRegistry.find((item) => item.href === "/financial-resources");
+    if (financialGroup && (pathname === "/financial-resources" || groupContainsPath(financialGroup))) setOpenGroups((v) => ({ ...v, "/financial-resources": true }));
   }, [pathname]);
 
   useEffect(() => { setMobileSidebarOpen(false); }, [locale]);
