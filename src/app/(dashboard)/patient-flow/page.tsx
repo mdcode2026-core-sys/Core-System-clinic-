@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/infrastructure/supabase/server";
 import { getEffectivePermissions } from "@/core/permissions/permissionEngine";
@@ -25,13 +26,15 @@ export default async function PatientFlowPage() {
   const permissions = await getEffectivePermissions(user.id, tenantId);
   const available = views.filter((view) => permissions.includes(view.permission));
   if (available.length === 0) redirect("/");
-  const copy = pageCopy.ar;
+  const cookieStore = await cookies();
+  const locale = cookieStore.get("core-system-locale")?.value === "ar" ? "ar" : "en";
+  const copy = pageCopy[locale];
   return (
-    <div className="mx-auto max-w-5xl space-y-6" dir="auto">
+    <div className="mx-auto max-w-5xl space-y-6" dir={locale === "ar" ? "rtl" : "ltr"}>
       <div><h1 className="text-3xl font-bold">{copy.title}</h1><p className="mt-1 text-muted-foreground">{copy.description}</p></div>
       <div className="grid gap-4 md:grid-cols-3">
         {available.map((view) => <Link key={view.key} href={view.href} className="block">
-          <Card className="h-full transition hover:-translate-y-0.5 hover:shadow-md"><CardHeader><CardTitle>{view.ar} / {view.en}</CardTitle></CardHeader><CardContent className="text-sm text-muted-foreground">{view.descriptionAr}<br />{view.descriptionEn}</CardContent></Card>
+          <Card className="h-full transition hover:-translate-y-0.5 hover:shadow-md"><CardHeader><CardTitle>{locale === "ar" ? view.ar : view.en}</CardTitle></CardHeader><CardContent className="text-sm text-muted-foreground">{locale === "ar" ? view.descriptionAr : view.descriptionEn}</CardContent></Card>
         </Link>)}
       </div>
     </div>
