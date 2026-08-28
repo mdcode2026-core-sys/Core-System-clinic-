@@ -2,7 +2,7 @@ name: Production Candidate Handoff
 
 on:
   workflow_run:
-    workflows: ["UX Stages 0-6 CI"]
+    workflows: ["UX Stages 0-7 CI"]
     types: [completed]
     branches: [main]
 
