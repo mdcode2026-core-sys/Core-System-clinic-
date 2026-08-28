@@ -1,6 +1,6 @@
 # Documentation Status & Authority
 
-**Status:** ACTIVE / Global UX/IA Stage 8 CLOSED — PRODUCTION READY
+**Status:** ACTIVE / Global UX/IA Stage 9 implementation merged; production closure pending final deployment verification
 **Last reviewed:** 2026-08-29
 
 This file is the repository documentation authority and freshness registry.
@@ -26,11 +26,11 @@ When documentation and implementation disagree:
 - `CHANGELOG.md` — historical implementation changes.
 - `DATABASE_SCHEMA.md` — current structural schema reference.
 - `GLOBAL_UX_IA_FINAL_AUTHORITY_2026-08-28.md` — current UX/IA authority.
-- `GLOBAL_UX_IA_IMPLEMENTATION_PLAN_2026-08-28.md` — UX/IA implementation plan.
 - `docs/GLOBAL-UX-IA-IMPLEMENTATION-PLAN-2026-08-28-FINAL.md` — approved UX/IA execution plan.
-- `docs/STAGE-5-UNRELATED-FINDINGS-REGISTER-2026-08-28.md` — Stage 5 findings requiring owning-workstream repair/reconciliation.
-- `docs/STAGE-7-IMPLEMENTATION-RECORD-2026-08-28.md` — Stage 7 implementation and production-readiness record.
-- `docs/STAGE-7-UNRESOLVED-FINDINGS-REGISTER-2026-08-28.md` — Stage 7 finding disposition.
+- `docs/GLOBAL-UX-IA-STAGE-9-EXECUTION-ADDENDUM-2026-08-29.md` — Stage 9 execution reconciliation against the approved plan.
+- `docs/STAGE-9-IMPLEMENTATION-RECORD-2026-08-29.md` — Stage 9 implementation and validation record.
+- `docs/STAGE-9-UNRESOLVED-FINDINGS-REGISTER-2026-08-29.md` — Stage 9 finding disposition.
+- `docs/STAGE-9-CLOSURE-PRODUCTION-READINESS-2026-08-29.md` — final Stage 9 closure/readiness record.
 - `docs/STAGE-8-IMPLEMENTATION-RECORD-2026-08-29.md` — Stage 8 implementation, validation and closure record.
 - `docs/STAGE-8-UNRESOLVED-FINDINGS-REGISTER-2026-08-29.md` — Stage 8 finding disposition.
 - `ADR-012-PATIENT-PORTAL.md` — Patient Portal architecture.
@@ -50,17 +50,18 @@ When documentation and implementation disagree:
 - Stage 6 — Patient Flow: implemented / CI validated / documented.
 - Stage 7 — Patient Context: **CLOSED / PRODUCTION READY**.
 - Stage 8 — Global Search: **CLOSED / PRODUCTION READY**.
+- Stage 9 — Overview / Dashboard Reconciliation: **IMPLEMENTED / CI VALIDATED / MERGED; FINAL PRODUCTION CLOSURE PENDING**.
 
-### Stage 8 validation model
+### Stage 9 validation model
 
-Stage 8 uses the shared UX validation workflow plus a dedicated Stage 8 validation workflow. Required Stage 5–8 audits, TypeScript, i18n audits/parity, changed-surface ESLint and production build passed for the validated application lineage. Vercel Git integration is the production deployment authority for `main`; no `VERCEL_TOKEN` repository secret is required.
+Stage 9 uses a dedicated blocking validation workflow plus the existing Stage 0–8 validation lineage. The Stage 9 candidate passed lockfile verification, `npm ci`, TypeScript, i18n audit/parity, Stage 5–8 audits, Stage 9 audit, changed-surface ESLint and production build.
 
-Final Stage 8 production evidence:
+Stage 9 implementation evidence:
 
-- Production candidate SHA: `88559c4db32f32e2a074ad735ea97538e62171bf`.
-- Vercel production deployment `dpl_Hh9uJkAywQHn1Xe9gDd1SbdoLzVh`: READY.
-- Production `/`: HTTP 200 and unauthenticated access resolves to `/login`.
-- No runtime logs/errors were reported for the final deployment verification window.
+- Validated implementation SHA: `65988b160136546d3b7c04cce1606c436c3d0529`.
+- Merged `main` SHA: `d85358577e84e6c6ed6a32fb13ca41751369d40d`.
+- Vercel preview deployment for the implementation SHA: READY.
+- No Stage 9 database migration was required.
 
 ## 4. Findings Governance Rule
 
@@ -76,6 +77,8 @@ The executor must:
 6. return unresolved findings for explicit disposition when required.
 
 Stage 8 has no unresolved blocker. S8-F-001 is explicitly deferred to AJM / Tenant Administration and Medical Master Library as a future cross-workstream refinement. S8-F-002 is resolved.
+
+Stage 9 has no unresolved Stage 9 blocker. S9-F-001 records pre-existing repository-wide ESLint debt as non-blocking cross-workstream work; S9-F-002 records historical runtime signatures not reproduced on the validated current deployment; S9-F-003 confirms no database change was required.
 
 ## 5. PJ Current State
 
@@ -108,7 +111,7 @@ Extend this labelled dataset for future scenarios instead of introducing random 
 
 `DATABASE_SCHEMA.md` was reconciled against live Supabase on 2026-08-24. It remains a structural reference and must be refreshed after schema-changing work.
 
-Stage 8 introduced no database schema change.
+Stage 9 introduced no database schema change.
 
 ## 10. Maintenance Rule
 
@@ -120,7 +123,7 @@ Every completed Global UX/IA stage must update, as applicable:
 - relevant ADRs when architecture changes;
 - `DATABASE_SCHEMA.md` when schema changes.
 
-Stage 8 implementation, finding disposition, project handoff and production evidence are now recorded as closed/current.
+Stage 9 implementation, finding disposition, and execution addendum are now recorded. Final closure/readiness is recorded only after the final production verification gate passes.
 
 ## 11. Cleanup Result
 
