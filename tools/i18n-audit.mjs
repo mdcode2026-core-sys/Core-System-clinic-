@@ -10,10 +10,7 @@ const technicalLiteral = /^(https?:\/\/|\/|#|[a-z0-9_:.\-/]+:[a-z0-9_:.\-/]+$|[A
 const uiAttributeNames = new Set(["aria-label", "aria-description", "placeholder", "title", "alt", "label"]);
 const technicalPropertyNames = new Set(["href", "id", "key", "className", "type", "name", "role", "variant", "size", "value", "method", "action", "route", "path", "permission", "permissionKey", "class", "target", "rel"]);
 const ignoredCalls = new Set(["console.log", "console.error", "console.warn", "console.info", "JSON.stringify", "JSON.parse"]);
-const userFacingCallNames = new Set([
-  "toast", "success", "error", "warning", "info", "notify", "alert", "setError", "setStatus", "setMessage",
-  "setErrorMessage", "setSuccessMessage", "setWarningMessage", "setInfoMessage"
-]);
+const userFacingCallNames = new Set(["toast", "success", "error", "warning", "info", "notify", "alert", "setError", "setStatus", "setMessage", "setErrorMessage", "setSuccessMessage", "setWarningMessage", "setInfoMessage"]);
 const dynamicMessageNames = new Set(["throw", "Error"]);
 
 function walk(dir, out = []) {
@@ -31,9 +28,7 @@ function isExcluded(file) {
   return excludedPathFragments.some((fragment) => relative.startsWith(fragment));
 }
 
-function normalized(text) {
-  return text.replace(/\s+/g, " ").trim();
-}
+function normalized(text) { return text.replace(/\s+/g, " ").trim(); }
 
 function isCandidate(text) {
   const value = normalized(text);
@@ -47,7 +42,11 @@ function isCandidate(text) {
 function callName(node) {
   if (!ts.isCallExpression(node)) return "";
   if (ts.isIdentifier(node.expression)) return node.expression.text;
-  if (ts.isPropertyAccessExpression(node.expression)) return node.expression.name.text;
+  if (ts.isPropertyAccessExpression(node.expression)) {
+    const owner = node.expression.expression;
+    if (ts.isIdentifier(owner) && owner.text === "console") return `console.${node.expression.name.text}`;
+    return node.expression.name.text;
+  }
   return "";
 }
 
@@ -58,11 +57,11 @@ for (const file of walk(ROOT)) {
   const kind = file.endsWith(".tsx") ? ts.ScriptKind.TSX : file.endsWith(".jsx") ? ts.ScriptKind.JSX : ts.ScriptKind.TS;
   const sf = ts.createSourceFile(file, source, ts.ScriptTarget.Latest, true, kind);
 
-  function add(node, kind, value) {
+  function add(node, findingKind, value) {
     const normalizedValue = normalized(value);
     if (!isCandidate(normalizedValue)) return;
     const pos = sf.getLineAndCharacterOfPosition(node.getStart(sf));
-    findings.push({ file: path.relative(process.cwd(), file), line: pos.line + 1, kind, value: normalizedValue.slice(0, 200) });
+    findings.push({ file: path.relative(process.cwd(), file), line: pos.line + 1, kind: findingKind, value: normalizedValue.slice(0, 200) });
   }
 
   function visit(node) {
