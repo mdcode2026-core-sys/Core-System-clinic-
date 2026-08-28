@@ -1,6 +1,6 @@
 # Documentation Status & Authority
 
-**Status:** ACTIVE / CURRENT UX/IA STAGE 5 DOCUMENTED
+**Status:** ACTIVE / CURRENT UX/IA STAGE 7 DOCUMENTED — PRODUCTION RUNTIME BLOCKED
 **Last reviewed:** 2026-08-28
 
 This file is the repository documentation authority and freshness registry.
@@ -28,9 +28,10 @@ When documentation and implementation disagree:
 - `GLOBAL_UX_IA_FINAL_AUTHORITY_2026-08-28.md` — current UX/IA authority.
 - `GLOBAL_UX_IA_IMPLEMENTATION_PLAN_2026-08-28.md` — UX/IA implementation plan.
 - `docs/GLOBAL-UX-IA-IMPLEMENTATION-PLAN-2026-08-28-FINAL.md` — approved UX/IA execution plan.
-- `docs/GLOBAL-UX-IA-EXECUTION-PLAN-STAGE-5-UPDATE-2026-08-28.md` — Stage 5 plan/update and workflow governance.
 - `docs/GLOBAL-UX-IA-STAGE-5-WIDGET-LIBRARY-2026-08-28.md` — Stage 5 implementation record.
-- `docs/STAGE-5-UNRELATED-FINDINGS-REGISTER-2026-08-28.md` — findings requiring repair/reconciliation in their owning workstreams.
+- `docs/STAGE-5-UNRELATED-FINDINGS-REGISTER-2026-08-28.md` — Stage 5 findings requiring owning-workstream repair/reconciliation.
+- `docs/STAGE-7-IMPLEMENTATION-RECORD-2026-08-28.md` — Stage 7 implementation and production-readiness record.
+- `docs/STAGE-7-UNRESOLVED-FINDINGS-REGISTER-2026-08-28.md` — Stage 7 unresolved findings.
 - `ADR-012-PATIENT-PORTAL.md` — Patient Portal architecture.
 - `PJ_E2E_DEMO_DATASET.md` — persistent PJ E2E dataset contract.
 - `PJ_STAGE15_CLOSURE.md` — Stage 15 closure evidence.
@@ -44,22 +45,28 @@ When documentation and implementation disagree:
 - Stage 2 — User Surface Model: implemented/documented; runtime validation remains governed by the applicable validation gate.
 - Stage 3 — Workspace Foundation: implemented/documented; canonical Workspace engine/renderer/registry/persistence retained.
 - Stage 4 — Workspace Personalization: implemented/documented; canonical Workspace persistence and personalization retained.
-- Stage 5 — Widget Library & Classification: **IMPLEMENTED / CI VALIDATED / DOCUMENTED**. The seven currently registered Widgets have governed classification metadata and automated catalog validation. Stage 5 does not grant authorization, recreate Domains, or replace Patient Flow.
+- Stage 5 — Widget Library & Classification: implemented / CI validated / documented.
+- Stage 6 — Patient Flow: implemented / CI validated / documented.
+- Stage 7 — Patient Context: implementation and engineering validation completed; **production runtime verification is blocked by an external Vercel deployment issue and Stage 7 is therefore NOT CLOSED**.
 
-### Stage 5 validation model
+### Stage 7 validation model
 
-The repository's `.github/workflows/ux-stages-0-4-ci.yml` is now the shared **UX Stages 0–5 Pre-deployment Validation** workflow. It performs immutable pre-deployment validation before Vercel is used for runtime evidence:
+The repository's `.github/workflows/ux-stages-0-4-ci.yml` now acts as the shared **UX Stages 0–7 Pre-deployment Validation** workflow. It performs:
 
-- lockfile synchronization check;
+- lockfile synchronization;
 - `npm ci`;
 - TypeScript;
 - I18N audit;
 - I18N parity;
 - Stage 5 Widget Catalog audit;
-- Stage 0–5 changed-surface ESLint;
+- Stage 5 Domain Surface audit;
+- Stage 6 Patient Flow audit;
+- Stage 7 Patient Context audit;
+- full-repository ESLint diagnostic;
+- Stage 7 changed-surface ESLint gate;
 - production build.
 
-A successful CI run is required before deployment. Vercel is not used for small/early checks.
+The Production Candidate Handoff workflow is wired to the **UX Stages 0–7 CI** completion event and independently verifies the production build. Vercel remains a runtime/production evidence gate rather than a small-change validation tool.
 
 ## 4. Findings Governance Rule
 
@@ -74,7 +81,7 @@ The executor must:
 5. never suppress a real defect merely to make CI green;
 6. return unresolved findings for explicit disposition when required.
 
-Stage 5's unrelated findings are recorded in `docs/STAGE-5-UNRELATED-FINDINGS-REGISTER-2026-08-28.md` and must not be silently forgotten.
+Stage 7's external deployment blocker is recorded in `docs/STAGE-7-UNRESOLVED-FINDINGS-REGISTER-2026-08-28.md`.
 
 ## 5. PJ Current State
 
@@ -109,7 +116,7 @@ Extend this labelled dataset for future scenarios instead of introducing random 
 
 `DATABASE_SCHEMA.md` was reconciled against live Supabase on 2026-08-24. It remains a structural reference and must be refreshed after schema-changing work.
 
-Stage 5 introduced no database schema change.
+Stage 7 introduced no database schema change.
 
 ## 10. Maintenance Rule
 
@@ -124,7 +131,7 @@ Every completed PJ stage must update, as applicable:
 
 For Global UX/IA stages, update the applicable stage record, execution-plan update, `PROJECT_HANDOFF.md`, `CHANGELOG.md` and this registry when current implementation state changes materially.
 
-Do not create new dated handoff/progress documents in the root for routine work.
+Stage 7 has an implementation record and findings register. Final closure remains pending until Vercel production deployment and runtime verification are complete.
 
 ## 11. Cleanup Result
 
