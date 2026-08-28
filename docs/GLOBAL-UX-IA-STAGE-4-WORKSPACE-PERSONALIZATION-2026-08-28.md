@@ -145,6 +145,7 @@ The following remain unchanged and were preserved deliberately:
 - `src/features/workspace/WidgetContainer.tsx`
 - `src/features/workspace/WorkspaceRenderer.tsx`
 - `src/core/i18n/workspaceMessages.ts`
+- `.github/workflows/global-ux-stage4-verification.yml`
 - `docs/GLOBAL-UX-IA-STAGE-4-WORKSPACE-PERSONALIZATION-2026-08-28.md`
 - `DOCUMENTATION_STATUS.md`
 - `PROJECT_HANDOFF.md`
@@ -167,9 +168,13 @@ No Workspace or Domain implementation was deleted.
 - Confirm no Supabase migration is required.
 - Confirm Arabic/English labels are provided through the existing i18n catalogue.
 
+### Automated repository validation
+
+`npx tsc --noEmit` completed successfully on the Stage 4 branch. The repository's existing full `npm run lint` command remains red because of 15 pre-existing errors in unrelated follow-up, patient-portal, reports, settings, treatment-plan and workspace-shell files; these errors are outside the Stage 4 diff. An isolated Stage 4 verification workflow was added to run TypeScript, targeted ESLint on the Stage 4 files, i18n parity and the production build independently of those unrelated baseline lint failures.
+
 ### Preview build note
 
-The first Vercel preview was created from the initial branch commit before the subsequent i18n and Workspace commits had landed in the branch. That preview failed because it referenced the older `workspaceMessages` type and therefore did not contain the completed Stage 4 source. The branch was subsequently updated with the complete implementation; a new READY deployment must be used for closure verification rather than treating that stale first preview as a Stage 4 build result.
+The first Vercel preview was created from the initial branch commit before the subsequent i18n and Workspace commits had landed in the branch. That preview failed because it referenced the older `workspaceMessages` type and therefore did not contain the completed Stage 4 source. Vercel subsequently reported the project-level deployment quota as exhausted (`api-deployments-free-per-day`, more than 100 deployments), so Vercel cannot currently provide a fresh deployment for this branch. A READY deployment after the quota window is therefore still required for runtime closure.
 
 ### Runtime closure requirements
 
