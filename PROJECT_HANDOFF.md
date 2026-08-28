@@ -6,6 +6,34 @@
 
 ## Current Global UX/IA State
 
+### Stage 7 — Patient Context
+
+**Status: IMPLEMENTED / ENGINEERING VALIDATED / NOT CLOSED — EXTERNAL VERCEL BLOCKER.**
+
+Stage 7 established a canonical patient-context presentation surface on the existing Patient Detail surface. It reuses the existing AJM/PJ/domain implementations and does not create a parallel patient registry, journey, queue, authorization, entitlement or workspace architecture.
+
+Completed:
+
+- Patient Context is embedded in the canonical Patient Detail surface.
+- Existing Patient History, Agenda, Treatment Plans, Invoices, Follow-up and Patient Portal capabilities are reused.
+- Patient-scoped context is preserved into Agenda and Invoices, while existing Follow-up and Treatment Plan surfaces receive the patient context through their supported query paths.
+- UI visibility is permission-derived and existing server-side domain authorization remains authoritative.
+- Arabic/English catalog parity and RTL/LTR behavior remain under the canonical i18n system.
+- No Stage 7 database migration was introduced.
+- Stage 5, Stage 6 and Stage 7 audits, TypeScript, ESLint changed-surface gate and production build passed.
+- Production Candidate Handoff passed after it was wired to the Stage 7 CI workflow.
+
+Not yet verified:
+
+- No new Vercel production deployment exists for the validated Stage 7 `main` commit.
+- Therefore production runtime/UX verification cannot be truthfully marked PASS.
+
+Canonical records:
+
+- `docs/STAGE-7-IMPLEMENTATION-RECORD-2026-08-28.md`
+- `docs/STAGE-7-UNRESOLVED-FINDINGS-REGISTER-2026-08-28.md`
+- `.github/workflows/production-gated-deploy.yml`
+
 ### Stage 6 — Patient Flow / Queue
 
 **Status: CLOSED — PRODUCTION READY (STAGE SCOPE).**
@@ -41,11 +69,11 @@ Stage 5 established governed classification metadata for the existing Widget Reg
 
 ### Stage 0–4 continuity
 
-Stages 0–4 remain governed by their existing records and the Global UX/IA Final Authority. Stage 5 and Stage 6 did not reopen or replace them.
+Stages 0–4 remain governed by their existing records and the Global UX/IA Final Authority. Stage 5, Stage 6 and Stage 7 did not reopen or replace them.
 
 ## Findings governance
 
-Every discovered issue must be investigated; safe/authorized defects are fixed immediately, while cross-workstream architectural or ownership-dependent issues are documented and carried to their owning workstream. Stage 6 closed all Stage 6-owned blockers. Existing production dependency vulnerabilities remain explicitly registered as non-Stage-6 security debt and must be handled by the dependency/security workstream.
+Every discovered issue must be investigated; safe/authorized defects are fixed immediately, while cross-workstream architectural or ownership-dependent issues are documented and carried to their owning workstream. Stage 7's unresolved production blocker is recorded in `docs/STAGE-7-UNRESOLVED-FINDINGS-REGISTER-2026-08-28.md`.
 
 ## Purpose
 
@@ -91,6 +119,7 @@ Random disposable demo data should not replace this baseline. Extend the labelle
 - Workspace is a presentation/work surface and is not a security boundary.
 - Patient Flow remains independent and continues to use the canonical Queue/patient-movement implementation.
 - Widget metadata/classification does not grant access; authorization remains capability/permission based.
+- Patient Context is a presentation/orchestration surface and does not own domain data or authorization.
 
 ## Current Schema Reference
 
@@ -108,7 +137,8 @@ Use:
 - `MASTER_ROADMAP.md` — product roadmap.
 - `GLOBAL_UX_IA_FINAL_AUTHORITY_2026-08-28.md` — current UX/IA authority.
 - `docs/GLOBAL-UX-IA-IMPLEMENTATION-PLAN-2026-08-28-FINAL.md` — approved Global UX/IA execution plan.
-- `docs/GLOBAL-UX-IA-STAGE-6-PATIENT-FLOW-QUEUE-2026-08-28.md` — Stage 6 implementation record.
+- `docs/STAGE-7-IMPLEMENTATION-RECORD-2026-08-28.md` — Stage 7 implementation/readiness record.
+- `docs/STAGE-7-UNRESOLVED-FINDINGS-REGISTER-2026-08-28.md` — Stage 7 finding disposition.
 - `docs/STAGE-6-PRODUCTION-READINESS-RECORD-2026-08-28.md` — Stage 6 closure/readiness record.
 - `docs/STAGE-6-UNRESOLVED-FINDINGS-REGISTER-2026-08-28.md` — Stage 6 finding dispositions.
 - `.github/workflows/production-gated-deploy.yml` — validated production candidate handoff.
@@ -124,7 +154,7 @@ Dated handoffs, progress reports, Kimi packages, old security plans, old roadmap
 
 ## Next Work
 
-The next Global UX/IA stage must begin from the current repository and live database state. Read the complete Global UX/IA master execution document, the current final execution plan, the relevant AJM/PJ reconciliation documents and the current status registry before implementation. Do not rely on conversation memory.
+Stage 7 cannot be declared closed until the external Vercel deployment blocker is resolved, a production deployment of the validated `main` SHA exists, and the Stage 7 routes/contextual workflows are runtime-verified. Once that evidence exists, update the Stage 7 record, findings register, this handoff, `DOCUMENTATION_STATUS.md` and `CHANGELOG.md` to the final closure state.
 
 ### Mandatory stage execution rule
 
