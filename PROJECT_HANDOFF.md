@@ -6,29 +6,41 @@
 
 ## Current Global UX/IA State
 
-### Stage 3 — Workspace Foundation
+### Stage 5 — Widget Library & Classification
 
-**Status:** IMPLEMENTED — RUNTIME VALIDATION PENDING.
+**Status:** IMPLEMENTED — CI VALIDATED — DOCUMENTED.
 
-Stage 3 established the existing Workspace implementation as the canonical working-surface foundation. The implementation reuses the existing Workspace engine, renderer, shell, Widget registry and persistence rather than creating a second Workspace system.
+Stage 5 established governed classification metadata for the existing Widget Registry without creating a parallel registry, authorization system or Domain implementation.
 
 Completed:
 
-- Global/Home remains the canonical `/` Workspace entry surface.
-- WorkspaceRenderer now presents explicit bilingual working-surface context.
-- Existing Widgets have explicit default Workspace contexts for Global/Home, Operations and Clinical.
-- Existing Widget presentation state is scoped by authenticated user + Workspace surface.
-- Workspace context is carried through the existing Widget container/toolbar path.
-- Existing permission + feature checks remain authoritative for Widget visibility.
-- No new authorization or Workspace Membership security layer was introduced.
-- No database migration was required.
-- Existing AJM and PJ Domain ownership was preserved.
-- Patient Flow/Queue was not recreated or replaced.
+- All 7 currently registered Widgets are classified.
+- Classification records Domain ownership, purpose, Arabic/English purpose, contexts, natural size, Quick Action status, Sidebar capability and rationale.
+- Existing `widgetRegistry.ts` remains the canonical implementation registry.
+- `src/core/workspace/widgetCatalog.ts` is presentation/governance metadata only and does not grant authorization.
+- Existing Permission + Feature/Entitlement checks remain authoritative.
+- Queue is explicitly a contextual surface of the existing Patient Flow capability and does not replace/recreate Patient Flow.
+- AJM Domain ownership remains unchanged.
+- PJ ownership and Patient Flow implementation remain unchanged.
+- `tools/widget-catalog-audit.mjs` verifies one-to-one Registry → Catalog coverage and required metadata completeness.
+- `.github/workflows/ux-stages-0-4-ci.yml` was extended to `UX Stages 0–5 Pre-deployment Validation`.
+- The pre-deployment workflow is immutable: it verifies lockfile synchronization instead of committing generated changes during CI.
+- GitHub is the primary pre-deployment engineering gate; Vercel is reserved for final runtime/deployment evidence.
+- Final Stage 5 CI passed TypeScript, I18N audit/parity, Widget Catalog audit, Domain Surface audit, changed-surface ESLint and production build.
 
-Canonical Stage 3 record:
-`docs/GLOBAL-UX-IA-STAGE-3-WORKSPACE-FOUNDATION-2026-08-28.md`
+Canonical records:
 
-Runtime closure still requires a READY deployment containing the final Stage 3 head plus authenticated, mobile and Arabic/English verification.
+- `docs/GLOBAL-UX-IA-STAGE-5-WIDGET-LIBRARY-2026-08-28.md`
+- `docs/GLOBAL-UX-IA-EXECUTION-PLAN-STAGE-5-UPDATE-2026-08-28.md`
+- `docs/STAGE-5-UNRELATED-FINDINGS-REGISTER-2026-08-28.md`
+
+### Stage 0–4 continuity
+
+Stages 0–4 remain governed by their existing records and the Global UX/IA Final Authority. Stage 5 did not reopen or replace them.
+
+## Findings governance
+
+During Stage 5, additional defects/warnings outside the immediate Widget Library scope were investigated rather than silently ignored. The resulting findings are recorded in `docs/STAGE-5-UNRELATED-FINDINGS-REGISTER-2026-08-28.md` with ownership/disposition guidance. Future stages must follow the same rule: every discovered issue must be investigated; safe/authorized defects are fixed immediately, while cross-workstream architectural or ownership-dependent issues are documented and carried to their owning stage.
 
 ## Purpose
 
@@ -61,26 +73,9 @@ See `DOCUMENTATION_STATUS.md` for the documentation authority registry.
 
 `PJ_E2E_DEMO_DATASET.md` is the persistent synthetic test-data contract.
 
-The tenant associated with the designated clinic-admin verification account `xalkair@gmail.com` contains labelled synthetic scenarios covering:
-
-- patients and patient lifecycle states;
-- appointments: scheduled, confirmed, arrived, in-session, completed, no-show, cancelled and rescheduled;
-- visit sessions and clinical closure states;
-- procedures;
-- multi-stage treatment plans with historical and future stages;
-- treatment-plan lifecycle states and item states;
-- medical-file lifecycle states;
-- follow-up lifecycle and delivery states;
-- notification queue states;
-- success, failure and exception paths.
+The tenant associated with the designated clinic-admin verification account `xalkair@gmail.com` contains labelled synthetic scenarios covering patients, appointments, visit sessions, procedures, treatment plans, medical files, follow-ups, notifications and success/failure/exception paths.
 
 Random disposable demo data should not replace this baseline. Extend the labelled E2E dataset when a new scenario is required.
-
-## Treatment Plans
-
-The standalone Treatment Plans workspace displays existing tenant treatment plans without requiring a patient context. Patient context remains required for patient-specific create/manage operations.
-
-The persistent E2E data includes completed historical courses, active multi-session courses, on-hold plans, cancelled courses, future courses and mixed historical/future stage timelines.
 
 ## Architecture Decisions Currently Binding
 
@@ -92,12 +87,13 @@ The persistent E2E data includes completed historical courses, active multi-sess
 - Global UX/IA authority is `GLOBAL_UX_IA_FINAL_AUTHORITY_2026-08-28.md`.
 - Workspace is a presentation/work surface and is not a security boundary.
 - Patient Flow remains independent and continues to use the canonical Queue/patient-movement implementation.
+- Widget metadata/classification does not grant access; authorization remains capability/permission based.
 
 ## Current Schema Reference
 
 `DATABASE_SCHEMA.md` is a live-schema reference generated/reconciled against Supabase on 2026-08-24. It must be refreshed after schema-changing PJ or platform work.
 
-The active tenant model is `master_tenants` + `clinic_users`. Patient Journey schema includes, among others, `clinic_patients`, `master_agenda_events`, `clinic_visit_sessions`, `clinic_visit_procedures`, `clinic_treatment_plans`, `clinic_treatment_plan_items`, `clinic_treatment_plan_visits`, `medical_files`, `medical_file_storage_locations`, `medical_file_sync_events`, `retention_followups`, `notification_queue`, and Patient Portal tables.
+The active tenant model is `master_tenants` + `clinic_users`.
 
 ## Current Documentation Set
 
@@ -106,26 +102,39 @@ Use:
 - `DOCUMENTATION_STATUS.md` — authority/freshness registry.
 - `ENGINEERING_CONSTITUTION.md` — engineering governance.
 - `ARCHITECTURE_DECISIONS.md` — chronological architectural decisions.
-- `MASTER_ROADMAP.md` — product roadmap reconciled to PJ execution.
+- `MASTER_ROADMAP.md` — product roadmap.
 - `GLOBAL_UX_IA_FINAL_AUTHORITY_2026-08-28.md` — current UX/IA authority.
-- `docs/GLOBAL-UX-IA-IMPLEMENTATION-PLAN-2026-08-28-FINAL.md` — Global UX/IA execution plan.
-- `docs/GLOBAL-UX-IA-STAGE-3-WORKSPACE-FOUNDATION-2026-08-28.md` — Stage 3 implementation record.
+- `docs/GLOBAL-UX-IA-IMPLEMENTATION-PLAN-2026-08-28-FINAL.md` — approved Global UX/IA execution plan.
+- `docs/GLOBAL-UX-IA-EXECUTION-PLAN-STAGE-5-UPDATE-2026-08-28.md` — Stage 5 plan/governance update.
+- `docs/GLOBAL-UX-IA-STAGE-5-WIDGET-LIBRARY-2026-08-28.md` — Stage 5 implementation record.
+- `docs/STAGE-5-UNRELATED-FINDINGS-REGISTER-2026-08-28.md` — unresolved cross-workstream findings.
+- `.github/workflows/ux-stages-0-4-ci.yml` — shared UX 0–5 pre-deployment gate.
 - `CHANGELOG.md` — historical implementation changes.
 - `DATABASE_SCHEMA.md` — current structural database reference.
 - `PJ_E2E_DEMO_DATASET.md` — persistent E2E dataset contract.
-- `PJ_STAGE15_CLOSURE.md` — Stage 15 closure record.
+- `PJ_STAGE15_CLOSURE.md` — PJ Stage 15 closure record.
 - `ADR-012-PATIENT-PORTAL.md` — Patient Portal architecture.
 
 ## Historical Material
 
-Dated handoffs, progress reports, Kimi packages, old security plans, old roadmap versions and other one-time implementation artifacts live under `/archive/`. They are evidence of past work, not current requirements.
+Dated handoffs, progress reports, Kimi packages, old security plans, old roadmap versions and other one-time implementation artifacts live under `/archive/`. Historical artifacts are evidence, not current requirements.
 
 ## Next Work
 
-The next Global UX/IA stage must begin from the current repository and live database state. Stage 4 is Workspace Personalization and must build on the Stage 3 foundation; it must not create a parallel Workspace system. Before implementation, reconcile the requested scope against the current UX authority, AJM reconciliation and PJ reconciliation documents.
+The next Global UX/IA stage must begin from the current repository and live database state. Read the complete Global UX/IA master execution document, the current final execution plan, the relevant AJM/PJ reconciliation documents and the current status registry before implementation. Do not rely on conversation memory.
 
-AJM remains separately governed. Current AJM matrix status must be read from `docs/AJM-IMPLEMENTATION-STATUS-MATRIX-2026-08-28.md`; Stage 3 does not reopen or close AJM stages.
+### Mandatory stage execution rule
+
+Once a stage begins, execution continues through its complete Definition of Done without returning intermediate status messages. Return to the owner only when the stage is complete, when an explicit approval is required by an existing governing document, or when a blocking external/system condition makes further execution impossible.
+
+### Mandatory issue handling rule
+
+No discovered error may be dismissed merely because it is outside the current stage. Investigate it, classify it, identify its owner, repair it when safe and authorized, or record it in the applicable findings register with evidence and recommended disposition. The final stage report must disclose all intentionally deferred findings.
+
+### Deployment efficiency rule
+
+Use local/repository validation and GitHub Actions for build/type/lint/static/integration checks before consuming Vercel deployments. Do not trigger Vercel for trivial inspection or intermediate fixes. Vercel is used when the applicable validation gate requires deployment/runtime evidence.
 
 ## Verification Rule
 
-A document saying that something exists is not sufficient evidence that it works. For implementation closure, verify repository state, database state and runtime/manual behavior where applicable. If Vercel production runtime is unavailable, use an equivalent repository/database/build/runtime verification path rather than stopping the workflow.
+A document saying that something exists is not sufficient evidence that it works. For implementation closure, verify repository state, database state and runtime/manual behavior where applicable. A successful GitHub build is necessary but is not by itself runtime proof when runtime behavior is part of the Definition of Done.
