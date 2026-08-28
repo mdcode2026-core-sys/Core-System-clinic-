@@ -1,8 +1,8 @@
 # Stage 7 — Patient Context
 
 Date: 2026-08-28
-Status: **NOT CLOSED**
-Production Ready: **NO — external Vercel deployment blocker**
+Status: **PRODUCTION CANDIDATE — FINAL RUNTIME VERIFICATION PENDING**
+Production Ready: **PENDING VERCEL RUNTIME VERIFICATION**
 
 ## Authority and scope
 
@@ -20,7 +20,7 @@ Stage 7 was derived from the repository's Global UX/IA execution authority, espe
 - No Stage 7 database migration or parallel authorization/domain architecture is introduced.
 - Stage 5 and Stage 6 audits remain green.
 - GitHub TypeScript, i18n, Stage 5, Stage 6, Stage 7, changed-surface ESLint, and production build gates pass.
-- Production candidate handoff passes.
+- Production candidate handoff path is defined and uses the canonical Vercel project/team identifiers.
 - Vercel production deployment and runtime verification are required for final closure.
 
 ## Implementation
@@ -32,6 +32,8 @@ Stage 7 was derived from the repository's Global UX/IA execution authority, espe
 - Reused existing Treatment Plan, Invoicing, Follow-up, Agenda, Patient History, and Patient Portal capabilities.
 - Added `tools/patient-context-stage7-audit.mjs`.
 - Extended `.github/workflows/ux-stages-0-4-ci.yml` to the Stage 7 gate and wired the production candidate workflow to the new gate name.
+- Corrected the Patient Context Portal label to use the canonical Patient Portal i18n namespace.
+- Corrected the production handoff workflow to target the actual Vercel project and team identifiers.
 
 ## Architecture reconciliation
 
@@ -43,25 +45,25 @@ No migration was added for Stage 7. Production schema inspection confirmed the r
 
 ## GitHub validation evidence
 
-- PR #29 merged into `main`.
-- Final Stage 7 CI run before merge: `UX Stages 0-7 CI`, run #70, successful.
-- Main branch Stage 7 CI after merge and production-gate workflow correction: run #71, successful.
-- Main I18N Verification after merge: run #571, successful.
-- Production Candidate Handoff after Stage 7 gate correction: run #9, successful.
-- Production build passed in both the Stage 7 CI gate and Production Candidate Handoff.
+- Final Stage 7 CI candidate: `UX Stages 0-7 CI`, run #80, commit `7d12477e0844bb0087fcd4a8f2f9b70c83b14f1a`, successful.
+- Run #80 passed lockfile synchronization, dependency installation, TypeScript, I18N audit/parity, Stage 5 Widget Catalog audit, Stage 5 Domain Surface audit, Stage 6 Patient Flow audit, Stage 7 Patient Context audit, changed-surface ESLint, and production build.
+- Full-repository ESLint remains a diagnostic gate and reports pre-existing findings outside the Stage 7 changed surface.
+- Production dependency audit remains a diagnostic finding because the current dependency graph contains high-severity transitive advisories, including a Next.js advisory for the currently pinned version; no forced dependency upgrade was made without a compatibility validation cycle.
 
-## Vercel blocker
+## Vercel verification
 
-The repository reached a validated production candidate, but no new Vercel deployment for the final `main` commit was created. The latest Vercel deployment after the Stage 7 work was still the earlier PR preview deployment and was in `ERROR`; the latest production deployment remained on the pre-Stage-7 commit.
+The canonical Vercel project is `core-system-clinic` with project ID `prj_DN3UgHVBUHrFG6i6ycxAWj0bXLbG` and team ID `team_VlSz1DTffYBwmUEcYQtR8JiN`.
 
-The available Vercel deployment action could not be invoked because its exposed schema rejects the required deployment arguments while presenting a no-argument interface. Git integration also did not create a deployment for the validated `main` commit during the verification window.
+The previous failed production deployment `dpl_giREeTD4XP5uueRMvQqbbNJ8uqSt` was for commit `aa7edcc308a1f89e6715ee2f5c0c82f226044087` and failed during type checking because Patient Context referenced a non-existent `messages.patientPortal` namespace. That code defect has since been corrected; the current Patient Context uses the canonical Portal namespace and GitHub production build passes.
 
-Therefore runtime verification of Stage 7 cannot be truthfully marked PASS.
+The exposed Vercel deployment action currently rejects the deployment arguments required by its backend schema, so deployment is being handled through the repository's canonical Vercel Git/production handoff path rather than by bypassing the validated GitHub gate.
 
 ## Final state
 
-Stage 7 implementation and engineering validation: **PASS**.
+Engineering implementation: **PASS**.
+GitHub Stage 7 validation: **PASS**.
+Production build: **PASS**.
 Production candidate: **PASS**.
-Production deployment: **NOT VERIFIED**.
-Runtime/UX production verification: **NOT VERIFIED**.
-Stage 7 closure: **NOT CLOSED** until the external Vercel deployment blocker is resolved and the validated production deployment is runtime-verified.
+Vercel production deployment for the final validated candidate: **PENDING**.
+Runtime/UX production verification: **PENDING**.
+Stage 7 closure: **PENDING FINAL VERCEL RUNTIME VERIFICATION**.
