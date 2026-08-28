@@ -10,6 +10,7 @@ import { createClient } from "@/infrastructure/supabase/client";
 import { cn } from "@/shared/utils/cn";
 import { useI18n } from "@/core/i18n/I18nProvider";
 import { LanguageSwitcher } from "@/core/i18n/LanguageSwitcher";
+import { GlobalSearch } from "@/features/global-search/GlobalSearch";
 
 interface WorkspaceShellProps { children: React.ReactNode; user: { email?: string } | null; }
 
@@ -31,6 +32,8 @@ export function WorkspaceShell({ children, user }: WorkspaceShellProps) {
   const getLabel = (item: NavItem) => item.label ? item.label[locale] : item.labelKey ? messages.nav[item.labelKey] : item.href;
   const isPathActive = (item: NavItem): boolean => pathname === item.href.split("?")[0] || (item.children?.some(isPathActive) ?? false);
   const groupContainsPath = (item: NavItem): boolean => item.children?.some((child) => pathname === child.href.split("?")[0] || pathname.startsWith(`${child.href.split("?")[0]}/`) || groupContainsPath(child)) ?? false;
+  const currentSurface = [...navigationRegistry].reverse().find((item) => pathname === item.href || pathname.startsWith(`${item.href}/`));
+  const currentLabel = currentSurface ? getLabel(currentSurface) : messages.shell.workspace;
 
   useEffect(() => {
     const financialGroup = navigationRegistry.find((item) => item.href === "/financial-resources");
@@ -72,6 +75,18 @@ export function WorkspaceShell({ children, user }: WorkspaceShellProps) {
         <div className="border-t px-4 py-3"><LanguageSwitcher /><button onClick={handleSignOut} className="mt-3 flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"><LogOut className="h-4 w-4" />{isArabic ? "تسجيل الخروج" : "Sign out"}</button></div>
       </div>
     </aside>
-    <main className="min-w-0 flex-1 lg:ml-72 rtl:lg:ml-0 rtl:lg:mr-72"><div className="sticky top-0 z-30 flex h-14 items-center border-b bg-white/95 px-4 backdrop-blur lg:hidden"><button onClick={() => setMobileSidebarOpen(true)} className="rounded p-2 hover:bg-gray-100" aria-label="Open sidebar"><Menu className="h-5 w-5" /></button></div><div className="p-4 md:p-6">{children}</div></main>
+    <main className="min-w-0 flex-1 lg:ml-72 rtl:lg:ml-0 rtl:lg:mr-72">
+      <header className="sticky top-0 z-30 flex min-h-14 items-center gap-3 border-b bg-white/95 px-3 py-2 backdrop-blur sm:px-4">
+        <button onClick={() => setMobileSidebarOpen(true)} className="shrink-0 rounded-lg p-2 hover:bg-gray-100 lg:hidden" aria-label={isArabic ? "فتح القائمة" : "Open sidebar"}><Menu className="h-5 w-5" /></button>
+        <div className="hidden min-w-0 shrink-0 sm:block lg:w-44"><p className="truncate text-xs text-muted-foreground">ClinicSaaS™</p><p className="truncate text-sm font-semibold">{currentLabel}</p></div>
+        <GlobalSearch />
+        <div className="ms-auto flex min-w-0 items-center gap-2">
+          <LanguageSwitcher />
+          <div className="hidden max-w-44 truncate rounded-lg bg-muted/50 px-3 py-2 text-xs text-muted-foreground md:block" title={user?.email ?? ""}>{user?.email ?? ""}</div>
+          <button onClick={handleSignOut} className="rounded-lg p-2 text-muted-foreground hover:bg-muted" aria-label={isArabic ? "تسجيل الخروج" : "Sign out"}><LogOut className="h-4 w-4" /></button>
+        </div>
+      </header>
+      <div className="p-4 md:p-6">{children}</div>
+    </main>
   </div>;
 }
