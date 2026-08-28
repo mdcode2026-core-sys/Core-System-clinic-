@@ -64,6 +64,11 @@ export function WorkspaceRenderer({ context, workspaceKey = "global" }: Workspac
     event.dataTransfer.setData("text/plain", key);
   }, []);
 
+  const handleDragEnd = useCallback(() => {
+    setDraggedKey(null);
+    setDropTargetKey(null);
+  }, []);
+
   const handleDrop = useCallback(
     (targetKey: string, event: DragEvent<HTMLDivElement>) => {
       event.preventDefault();
@@ -114,6 +119,7 @@ export function WorkspaceRenderer({ context, workspaceKey = "global" }: Workspac
         onMoveUp={() => moveWithinLayer(resolvedWidget.definition.key, -1)}
         onMoveDown={() => moveWithinLayer(resolvedWidget.definition.key, 1)}
         onDragStart={(event) => handleDragStart(resolvedWidget.definition.key, event)}
+        onDragEnd={handleDragEnd}
         onDragOver={(event) => {
           event.preventDefault();
           event.dataTransfer.dropEffect = "move";
