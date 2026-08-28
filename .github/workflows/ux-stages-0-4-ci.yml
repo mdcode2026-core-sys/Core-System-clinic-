@@ -43,30 +43,8 @@ jobs:
         run: npm run ux:widget-catalog
       - name: Stage 5 Domain Surface audit
         run: npm run ux:domain-surface
-      - name: Stage 0-5 changed-surface ESLint
-        run: |
-          npx eslint \
-            'src/core/workspace/hooks/useWorkspace.ts' \
-            'src/core/workspace/widgetCatalog.ts' \
-            'src/core/workspace/domainSurfaceCatalog.ts' \
-            'src/core/workspace/widgetRegistry.ts' \
-            'src/features/workspace/WorkspaceRenderer.tsx' \
-            'src/features/workspace/WidgetContainer.tsx' \
-            'src/features/workspace/WidgetToolbar.tsx' \
-            'src/core/i18n/workspaceMessages.ts' \
-            'src/core/i18n/invoiceMessages.ts' \
-            'src/core/i18n/portalMessages.ts' \
-            'src/app/(auth)/register/page.tsx' \
-            'src/features/financial-resources/financial-resource-table.tsx' \
-            'src/features/invoicing/invoice-detail.tsx' \
-            'src/features/patient-portal/patient-messaging.tsx' \
-            'src/features/workspace/WorkspaceShell.tsx' \
-            'src/features/settings/ClinicProfileForm.tsx' \
-            'src/shared/components/ui/dialog.tsx' \
-            'src/shared/components/ui/sheet.tsx' \
-            'tools/i18n-audit.mjs' \
-            'tools/widget-catalog-audit.mjs' \
-            'tools/domain-surface-audit.mjs'
+      - name: Full repository ESLint diagnostic
+        run: npx eslint .
       - name: Production build
         env:
           NEXT_PUBLIC_SUPABASE_URL: https://qaslsjyxjwvdoiczmhgq.supabase.co
