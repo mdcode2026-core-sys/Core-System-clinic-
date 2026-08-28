@@ -56,13 +56,13 @@ Reconstructed baseline as of 2026-07-31 from committed migration files and archi
 
 ## 2026-08-04 — Reports Module (Package 3.1.7)
 - **New shared infrastructure `src/core/features/featureRegistry.ts`:** `isFeatureEnabled(tenantId, moduleKey)` queries `feature_flags` for global or tenant-specific enabled flags. Reusable beyond Reports per ADR-007.
-- **Seed migration `20260804_seed_feature_flags.sql`:** inserts 6 globally-enabled `feature_flags` rows (`patients`, `agenda`, `queue`, `billing`, `inventory`, `followup`) with `tenant_id = NULL`, preserving current behavior.
+- **Seed migration `20260808_seed_feature_flags.sql`:** inserts 6 globally-enabled `feature_flags` rows (`tenant_id = NULL`), preserving current behavior.
 - **New `src/domain/reports/moduleRegistry.ts`:** 6 modules with exact keys, labels, and required permissions per Package 3.1.7 table.
 - **New `src/domain/reports/reportRegistry.ts`:** 18 reports (3 per module) with exact `dataSource` values per Package 3.1.7 table. No substitutions.
 - **New `src/domain/reports/reports.queries.ts`:** one query function per report key, implementing exactly the data source specified. Includes `runReport()` dispatcher.
 - **New `src/app/(dashboard)/reports/page.tsx`:** server-side `reports:read` guard via `getEffectivePermissions()`, renders client shell.
 - **New `src/features/reports/reports-shell.tsx`:** module dropdown (filtered by `hasPermission + isFeatureEnabled`), report dropdown, date-range picker (shown only when `needsDateRange = true`), Run/Print/Export PDF buttons.
-- **`src/features/reports/report-viewer.tsx`:** table render of report results, summary block, Print + Export PDF via `window.print()`.
+- **New `src/features/reports/report-viewer.tsx`:** table render of report results, summary block, Print + Export PDF via `window.print()`.
 - **No new PDF-generation library added** — `package.json` confirmed none exists; `window.print()` used per ADR-007 scope.
 - **No changes to:** 34 RLS policies, `clinic_users.role` CHECK constraint, `clinic_owner`/`nurse` roles, existing module code, Analytics engine.
 - **Verified pending:** build pass, each of 18 reports against real data, module dropdown filtering, Print/Export PDF functionality.
