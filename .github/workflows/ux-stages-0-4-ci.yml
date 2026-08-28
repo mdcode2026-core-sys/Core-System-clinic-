@@ -1,4 +1,4 @@
-name: UX Stages 0-6 CI
+name: UX Stages 0-7 CI
 
 on:
   pull_request:
@@ -11,12 +11,12 @@ permissions:
   contents: read
 
 concurrency:
-  group: ux-stages-0-6-${{ github.ref }}
+  group: ux-stages-0-7-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   static-validation:
-    name: UX 0-6 Pre-deployment Validation
+    name: UX 0-7 Pre-deployment Validation
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -49,19 +49,22 @@ jobs:
         run: npm run ux:domain-surface
       - name: Stage 6 Patient Flow audit
         run: npm run ux:patient-flow-stage6
+      - name: Stage 7 Patient Context audit
+        run: npm run ux:patient-context-stage7
       - name: Full repository ESLint diagnostic
         id: full-eslint
         continue-on-error: true
         run: npx eslint .
-      - name: Stage 6 changed-surface ESLint gate
+      - name: Stage 7 changed-surface ESLint gate
         run: >-
           npx eslint
-          "src/app/(dashboard)/patient-flow/**/*.tsx"
+          "src/app/(dashboard)/agenda/page.tsx"
+          "src/app/(dashboard)/invoices/page.tsx"
+          "src/features/patient-context/PatientContextPanel.tsx"
+          src/features/patients/patient-detail.tsx
+          src/core/i18n/messages.ts
           src/core/navigation/navigationRegistry.ts
           src/core/permissions/types.ts
-          src/domain/queue/queue.actions.ts
-          src/domain/queue/workspace.actions.ts
-          src/features/patient-flow/PatientFlowBoard.tsx
       - name: Production build
         env:
           NEXT_PUBLIC_SUPABASE_URL: https://qaslsjyxjwvdoiczmhgq.supabase.co
@@ -77,8 +80,8 @@ jobs:
             echo "Production dependency audit passed at high severity." >> "$GITHUB_STEP_SUMMARY"
           fi
           if [ "${{ steps.full-eslint.outcome }}" = "failure" ]; then
-            echo "Full-repository ESLint reports pre-existing/non-Stage-6 findings." >> "$GITHUB_STEP_SUMMARY"
-            echo "The blocking Stage 6 changed-surface ESLint gate above must pass." >> "$GITHUB_STEP_SUMMARY"
+            echo "Full-repository ESLint reports pre-existing/non-Stage-7 findings." >> "$GITHUB_STEP_SUMMARY"
+            echo "The blocking Stage 7 changed-surface ESLint gate above must pass." >> "$GITHUB_STEP_SUMMARY"
           else
             echo "Full-repository ESLint passed." >> "$GITHUB_STEP_SUMMARY"
           fi
