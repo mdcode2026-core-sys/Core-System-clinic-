@@ -1,10 +1,39 @@
 # PROJECT_HANDOFF.md
 
 **Project:** CORE SYSTEM — ClinicSaaS™  
-**Status:** ACTIVE DEVELOPMENT / Global UX/IA Stage Track  
+**Status:** ACTIVE DEVELOPMENT / Global UX/IA Stage 9 implementation merged; final production closure pending verification  
 **Last Updated:** 2026-08-29
 
 ## Current Global UX/IA State
+
+### Stage 9 — Overview / Dashboard Reconciliation
+
+**Status: IMPLEMENTED — CI VALIDATED — MERGED TO MAIN; FINAL PRODUCTION VERIFICATION PENDING.**
+
+Stage 9 separates the management Dashboard from the everyday Workspace and contextual Overview surfaces.
+
+Completed and verified:
+
+- Added `/dashboard` as the management/monitoring Dashboard.
+- Preserved `/` as the everyday Workspace and existing Workspace renderer/engine/persistence.
+- Preserved `/financial-resources/overview` as the contextual financial Overview surface.
+- Reused the canonical Analytics KPI registry/engine and KPI grid for Dashboard data.
+- Reused the existing `analytics:read` permission and effective-permission engine.
+- Hardened Analytics server actions with authenticated caller verification, tenant membership and effective permission checks.
+- Added bilingual Dashboard messaging and permission-aware Sidebar navigation.
+- Added blocking Stage 9 validation workflow.
+- No Stage 9 database migration was required.
+- Stage 9 validation passed lockfile, `npm ci`, TypeScript, i18n, Stage 5–8 audits, Stage 9 audit, changed-surface ESLint and production build.
+- Validated implementation SHA: `65988b160136546d3b7c04cce1606c436c3d0529`.
+- Merged to `main`: `d85358577e84e6c6ed6a32fb13ca41751369d40d`.
+
+Canonical records:
+
+- `docs/STAGE-9-IMPLEMENTATION-RECORD-2026-08-29.md`
+- `docs/STAGE-9-UNRESOLVED-FINDINGS-REGISTER-2026-08-29.md`
+- `docs/GLOBAL-UX-IA-STAGE-9-EXECUTION-ADDENDUM-2026-08-29.md`
+- `docs/STAGE-9-CLOSURE-PRODUCTION-READINESS-2026-08-29.md`
+- `.github/workflows/stage9-validation.yml`
 
 ### Stage 8 — Global Search
 
@@ -48,11 +77,17 @@ Canonical records:
 
 ### Stage 0–4 continuity
 
-Stages 0–4 remain governed by their existing records and the Global UX/IA Final Authority. Stage 5, Stage 6, Stage 7 and Stage 8 did not reopen or replace settled stages.
+Stages 0–4 remain governed by their existing records and the Global UX/IA Final Authority. Stage 5, Stage 6, Stage 7, Stage 8 and Stage 9 did not reopen or replace settled stages.
 
 ## Findings governance
 
-Every discovered issue must be investigated; safe/authorized defects are fixed immediately, while cross-workstream architectural or ownership-dependent issues are documented and carried to their owning workstream. Stage 8 has no unresolved blocker. S8-F-001 remains explicitly deferred to AJM / Tenant Administration and Medical Master Library workstreams.
+Every discovered issue must be investigated; safe/authorized defects are fixed immediately, while cross-workstream architectural or ownership-dependent issues are documented and carried to their owning workstream. Stage 9 has no unresolved Stage 9 blocker.
+
+Current Stage 9 findings:
+
+- S9-F-001: repository-wide ESLint diagnostic debt is deferred cross-workstream engineering cleanup; the Stage 9 changed-surface gate passes.
+- S9-F-002: historical runtime signatures were not reproduced on the validated current deployment and are retained as non-current evidence.
+- S9-F-003: no Stage 9 database migration was required.
 
 ## Purpose
 
@@ -90,7 +125,7 @@ Random disposable demo data should not replace this baseline. Extend the labelle
 ## Architecture Decisions Currently Binding
 
 - `clinic_owner` is retired from the active architecture and must not be reintroduced.
-- Clinic Admin is the tenant administrator/highest clinic authority.
+- Clinic Admin is the clinic administrator/highest clinic authority.
 - Super Admin is the platform owner/lessor and does not operate clinic daily workflows.
 - Patient Portal is subscription-controlled and has the approved two-layer public/paid model.
 - Patient Journey implementation follows the approved PJ workflow; implementation reality supersedes stale documentation when the repository/database is the evidence.
@@ -100,6 +135,7 @@ Random disposable demo data should not replace this baseline. Extend the labelle
 - Widget metadata/classification does not grant access; authorization remains capability/permission based.
 - Patient Context is a presentation/orchestration surface and does not own domain data or authorization.
 - Global Search is a Workspace-shell presentation/orchestration surface and does not own Domain data or authorization.
+- Dashboard is a management/monitoring surface and does not replace Workspace or contextual Domain Overview surfaces.
 
 ## Current Schema Reference
 
@@ -117,11 +153,12 @@ Use:
 - `MASTER_ROADMAP.md` — product roadmap.
 - `GLOBAL_UX_IA_FINAL_AUTHORITY_2026-08-28.md` — current UX/IA authority.
 - `docs/GLOBAL-UX-IA-IMPLEMENTATION-PLAN-2026-08-28-FINAL.md` — approved Global UX/IA execution plan.
+- `docs/GLOBAL-UX-IA-STAGE-9-EXECUTION-ADDENDUM-2026-08-29.md` — Stage 9 execution addendum.
+- `docs/STAGE-9-IMPLEMENTATION-RECORD-2026-08-29.md` — Stage 9 implementation/validation record.
+- `docs/STAGE-9-UNRESOLVED-FINDINGS-REGISTER-2026-08-29.md` — Stage 9 finding disposition.
+- `docs/STAGE-9-CLOSURE-PRODUCTION-READINESS-2026-08-29.md` — Stage 9 closure/readiness record.
 - `docs/STAGE-8-IMPLEMENTATION-RECORD-2026-08-29.md` — Stage 8 implementation/readiness/closure record.
 - `docs/STAGE-8-UNRESOLVED-FINDINGS-REGISTER-2026-08-29.md` — Stage 8 finding disposition.
-- `docs/STAGE-7-IMPLEMENTATION-RECORD-2026-08-28.md` — Stage 7 implementation/readiness record.
-- `docs/STAGE-7-UNRESOLVED-FINDINGS-REGISTER-2026-08-28.md` — Stage 7 finding disposition.
-- `docs/STAGE-6-PRODUCTION-READINESS-RECORD-2026-08-28.md` — Stage 6 closure/readiness record.
 - `.github/workflows/production-gated-deploy.yml` — validated production candidate handoff.
 - `CHANGELOG.md` — historical implementation changes.
 - `DATABASE_SCHEMA.md` — current structural database reference.
@@ -135,7 +172,7 @@ Dated handoffs, progress reports, Kimi packages, old security plans, old roadmap
 
 ## Next Work
 
-Stage 8 is closed. Future work proceeds from the next approved roadmap/workstream item. S8-F-001 remains a documented future cross-workstream refinement owned by AJM / Tenant Administration and Medical Master Library; it does not block Stage 8.
+Stage 9 is implemented and awaiting final production verification. After closure, future work proceeds from the next approved roadmap/workstream item. S9-F-001 remains a documented future cross-workstream engineering cleanup and does not block Stage 9.
 
 ### Mandatory stage execution rule
 
@@ -153,6 +190,6 @@ Use local/repository validation and GitHub Actions for build/type/lint/static/in
 
 A document saying that something exists is not sufficient evidence that it works. For implementation closure, verify repository state, database state and runtime/manual behavior where applicable. A successful GitHub build is necessary but is not by itself runtime proof when runtime behavior is part of the Definition of Done.
 
-## Final Stage 8 Re-check
+## Final Stage 9 Re-check
 
-The closure candidate is anchored to production candidate SHA `88559c4db32f32e2a074ad735ea97538e62171bf`, whose Vercel production deployment reached READY. The Stage 8 closure record and findings register are part of the same closure tree.
+Final Stage 9 closure must anchor to the `main` commit that contains the completed implementation and closure documentation, and to the Vercel Production deployment created from that same `main` SHA. The final closure record must not be marked PASS until the deployment SHA and runtime verification are confirmed.
