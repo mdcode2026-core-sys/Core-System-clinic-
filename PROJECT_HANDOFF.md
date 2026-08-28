@@ -145,3 +145,7 @@ Use local/repository validation and GitHub Actions for build/type/lint/static/in
 ## Verification Rule
 
 A document saying that something exists is not sufficient evidence that it works. For implementation closure, verify repository state, database state and runtime/manual behavior where applicable. A successful GitHub build is necessary but is not by itself runtime proof when runtime behavior is part of the Definition of Done.
+
+## Final Stage 7 Re-check
+
+The repository final re-check is anchored to the current `main` HEAD after closure documentation updates. The final production deployment must correspond to that final HEAD before the stage is considered fully closed.
