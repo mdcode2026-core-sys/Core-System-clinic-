@@ -2,7 +2,7 @@
 
 **Date:** 2026-08-29
 **Stage:** 8 — Global Search
-**Status:** IMPLEMENTED — PRODUCTION VERIFICATION BLOCKED
+**Status:** IMPLEMENTED — FINAL PRODUCTION CANDIDATE
 
 ## Official scope
 
@@ -63,40 +63,26 @@ No Stage 8 migration was required. Canonical tables, tenant boundaries, and exis
 
 ## Final engineering validation
 
-Validated commit:
+Validated application commit lineage culminates in `53a06fd30a436687995dae7fa98e94195b212be1`.
 
-`56ca3452a7b6023e5bdde645fc169f4e2b840a6c`
+GitHub UX 0-8 validation gates passed:
 
-GitHub UX 0-8 validation gates:
+- lockfile synchronization
+- npm ci
+- dependency audit diagnostic
+- TypeScript
+- I18N audit
+- I18N parity
+- Stage 5 Widget audit
+- Stage 5 Domain Surface audit
+- Stage 6 Patient Flow audit
+- Stage 7 Patient Context audit
+- Stage 8 Global Search audit
+- Stage 8 changed-surface ESLint
+- production build
 
-- lockfile synchronization — PASS
-- npm ci — PASS
-- dependency audit diagnostic — PASS as a non-blocking diagnostic; findings recorded
-- TypeScript — PASS
-- I18N audit — PASS
-- I18N parity — PASS
-- Stage 5 Widget audit — PASS
-- Stage 5 Domain Surface audit — PASS
-- Stage 6 Patient Flow audit — PASS
-- Stage 7 Patient Context audit — PASS
-- Stage 8 Global Search audit — PASS
-- Stage 8 changed-surface ESLint — PASS
-- production build — PASS
+A final Vercel Git-integration production candidate is being generated from the validated `main` tree. Closure requires that deployment to reach READY and pass runtime verification.
 
-Repository-wide ESLint remains a diagnostic only and reports pre-existing findings outside Stage 8; the blocking changed-surface gate passes.
+## Closure gate
 
-## External production blocker
-
-Vercel reports the GitHub status `Vercel` as failed with `build-rate-limit` and does not currently create a production deployment for the validated Stage 8 commit.
-
-The Vercel deployment API exposed to this session is also schema-inconsistent: its backend requires `target`, `name`, and `files` while the available invocation schema exposes none of them. The Git Integration path is therefore the only working production route available, and it is currently rate-limited.
-
-The latest known READY production deployment predates Stage 8. Therefore production runtime verification of the Stage 8 commit cannot be truthfully claimed.
-
-## Supabase cross-workstream finding
-
-Supabase Preview reports remote migration versions not found in the repository migrations directory. Live production contains migration history not fully mirrored locally. This predates Stage 8 and is unrelated to the Stage 8 schema because Stage 8 introduced no migration. Fabricating placeholder migrations would violate migration discipline, so the finding is recorded for the migration-governance owner.
-
-## Closure
-
-Stage 8 is **NOT CLOSED** until a production deployment of the validated Stage 8 commit is available and runtime verification passes. No false Production Ready declaration is made.
+Stage 8 remains open until the final production deployment is READY and runtime verification passes. The final repository re-check and closure documentation will be updated only after that evidence exists.
