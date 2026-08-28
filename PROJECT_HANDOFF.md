@@ -6,41 +6,46 @@
 
 ## Current Global UX/IA State
 
+### Stage 6 — Patient Flow / Queue
+
+**Status: CLOSED — PRODUCTION READY (STAGE SCOPE).**
+
+Stage 6 reconciled the existing Patient Flow / Queue surface with the Global UX/IA authority without creating a parallel Queue, Patient Journey, Workspace, tenant, or permission architecture.
+
+Completed and production-verified:
+
+- Canonical Queue and `clinic_visit_sessions` remain the source of truth.
+- Patient Flow exposes Operations, Clinical and Administrative contexts.
+- Server-side authorization and tenant scoping are enforced.
+- Patient Flow permissions are explicit and currently have 0 automatic role grants.
+- Transition validation and drag/drop pathways reuse the existing Queue domain rather than creating a parallel movement engine.
+- Stage 6 i18n, TypeScript, Stage 5/6 audits, changed-surface ESLint and production build passed.
+- GitHub is the primary engineering validation gate.
+- Vercel Git Integration is the production deployment path; the repository workflow no longer requires Vercel deployment secrets.
+- Production deployment for the validated `main` commit is READY.
+- Production protected-route probes for `/patient-flow`, `/patient-flow/operations`, `/patient-flow/clinical`, and `/patient-flow/administrative` correctly resolve unauthenticated requests to `/login`.
+- Production runtime verification window contained no Vercel runtime errors.
+
+Canonical records:
+
+- `docs/GLOBAL-UX-IA-STAGE-6-PATIENT-FLOW-QUEUE-2026-08-28.md`
+- `docs/STAGE-6-PRODUCTION-READINESS-RECORD-2026-08-28.md`
+- `docs/STAGE-6-UNRESOLVED-FINDINGS-REGISTER-2026-08-28.md`
+- `.github/workflows/production-gated-deploy.yml`
+
 ### Stage 5 — Widget Library & Classification
 
 **Status:** IMPLEMENTED — CI VALIDATED — DOCUMENTED.
 
 Stage 5 established governed classification metadata for the existing Widget Registry without creating a parallel registry, authorization system or Domain implementation.
 
-Completed:
-
-- All 7 currently registered Widgets are classified.
-- Classification records Domain ownership, purpose, Arabic/English purpose, contexts, natural size, Quick Action status, Sidebar capability and rationale.
-- Existing `widgetRegistry.ts` remains the canonical implementation registry.
-- `src/core/workspace/widgetCatalog.ts` is presentation/governance metadata only and does not grant authorization.
-- Existing Permission + Feature/Entitlement checks remain authoritative.
-- Queue is explicitly a contextual surface of the existing Patient Flow capability and does not replace/recreate Patient Flow.
-- AJM Domain ownership remains unchanged.
-- PJ ownership and Patient Flow implementation remain unchanged.
-- `tools/widget-catalog-audit.mjs` verifies one-to-one Registry → Catalog coverage and required metadata completeness.
-- `.github/workflows/ux-stages-0-4-ci.yml` was extended to `UX Stages 0–5 Pre-deployment Validation`.
-- The pre-deployment workflow is immutable: it verifies lockfile synchronization instead of committing generated changes during CI.
-- GitHub is the primary pre-deployment engineering gate; Vercel is reserved for final runtime/deployment evidence.
-- Final Stage 5 CI passed TypeScript, I18N audit/parity, Widget Catalog audit, Domain Surface audit, changed-surface ESLint and production build.
-
-Canonical records:
-
-- `docs/GLOBAL-UX-IA-STAGE-5-WIDGET-LIBRARY-2026-08-28.md`
-- `docs/GLOBAL-UX-IA-EXECUTION-PLAN-STAGE-5-UPDATE-2026-08-28.md`
-- `docs/STAGE-5-UNRELATED-FINDINGS-REGISTER-2026-08-28.md`
-
 ### Stage 0–4 continuity
 
-Stages 0–4 remain governed by their existing records and the Global UX/IA Final Authority. Stage 5 did not reopen or replace them.
+Stages 0–4 remain governed by their existing records and the Global UX/IA Final Authority. Stage 5 and Stage 6 did not reopen or replace them.
 
 ## Findings governance
 
-During Stage 5, additional defects/warnings outside the immediate Widget Library scope were investigated rather than silently ignored. The resulting findings are recorded in `docs/STAGE-5-UNRELATED-FINDINGS-REGISTER-2026-08-28.md` with ownership/disposition guidance. Future stages must follow the same rule: every discovered issue must be investigated; safe/authorized defects are fixed immediately, while cross-workstream architectural or ownership-dependent issues are documented and carried to their owning stage.
+Every discovered issue must be investigated; safe/authorized defects are fixed immediately, while cross-workstream architectural or ownership-dependent issues are documented and carried to their owning workstream. Stage 6 closed all Stage 6-owned blockers. Existing production dependency vulnerabilities remain explicitly registered as non-Stage-6 security debt and must be handled by the dependency/security workstream.
 
 ## Purpose
 
@@ -73,8 +78,6 @@ See `DOCUMENTATION_STATUS.md` for the documentation authority registry.
 
 `PJ_E2E_DEMO_DATASET.md` is the persistent synthetic test-data contract.
 
-The tenant associated with the designated clinic-admin verification account `xalkair@gmail.com` contains labelled synthetic scenarios covering patients, appointments, visit sessions, procedures, treatment plans, medical files, follow-ups, notifications and success/failure/exception paths.
-
 Random disposable demo data should not replace this baseline. Extend the labelled E2E dataset when a new scenario is required.
 
 ## Architecture Decisions Currently Binding
@@ -91,7 +94,7 @@ Random disposable demo data should not replace this baseline. Extend the labelle
 
 ## Current Schema Reference
 
-`DATABASE_SCHEMA.md` is a live-schema reference generated/reconciled against Supabase on 2026-08-24. It must be refreshed after schema-changing PJ or platform work.
+`DATABASE_SCHEMA.md` is the live-schema reference. It must be refreshed after schema-changing PJ or platform work.
 
 The active tenant model is `master_tenants` + `clinic_users`.
 
@@ -105,10 +108,10 @@ Use:
 - `MASTER_ROADMAP.md` — product roadmap.
 - `GLOBAL_UX_IA_FINAL_AUTHORITY_2026-08-28.md` — current UX/IA authority.
 - `docs/GLOBAL-UX-IA-IMPLEMENTATION-PLAN-2026-08-28-FINAL.md` — approved Global UX/IA execution plan.
-- `docs/GLOBAL-UX-IA-EXECUTION-PLAN-STAGE-5-UPDATE-2026-08-28.md` — Stage 5 plan/governance update.
-- `docs/GLOBAL-UX-IA-STAGE-5-WIDGET-LIBRARY-2026-08-28.md` — Stage 5 implementation record.
-- `docs/STAGE-5-UNRELATED-FINDINGS-REGISTER-2026-08-28.md` — unresolved cross-workstream findings.
-- `.github/workflows/ux-stages-0-4-ci.yml` — shared UX 0–5 pre-deployment gate.
+- `docs/GLOBAL-UX-IA-STAGE-6-PATIENT-FLOW-QUEUE-2026-08-28.md` — Stage 6 implementation record.
+- `docs/STAGE-6-PRODUCTION-READINESS-RECORD-2026-08-28.md` — Stage 6 closure/readiness record.
+- `docs/STAGE-6-UNRESOLVED-FINDINGS-REGISTER-2026-08-28.md` — Stage 6 finding dispositions.
+- `.github/workflows/production-gated-deploy.yml` — validated production candidate handoff.
 - `CHANGELOG.md` — historical implementation changes.
 - `DATABASE_SCHEMA.md` — current structural database reference.
 - `PJ_E2E_DEMO_DATASET.md` — persistent E2E dataset contract.
