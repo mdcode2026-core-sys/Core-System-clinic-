@@ -1,7 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import type { WidgetLayoutEntry, WorkspaceUserState } from "../workspace.types";
+import type { WorkspaceUserState } from "../workspace.types";
+import type { WorkspaceSurfaceKey } from "../workspaceSurfaces";
 import { WORKSPACE_STORAGE_PREFIX } from "../workspace.constants";
 import { createClient } from "@/infrastructure/supabase/client";
 
@@ -10,9 +11,9 @@ const DEFAULT_STATE: WorkspaceUserState = {
   lastUpdated: new Date().toISOString(),
 };
 
-function getStorageKey(userId: string | undefined): string {
-  if (!userId) return `${WORKSPACE_STORAGE_PREFIX}_anonymous`;
-  return `${WORKSPACE_STORAGE_PREFIX}_${userId}`;
+function getStorageKey(userId: string | undefined, workspaceKey: WorkspaceSurfaceKey): string {
+  const identity = userId ?? "anonymous";
+  return `${WORKSPACE_STORAGE_PREFIX}_${identity}_${workspaceKey}`;
 }
 
 function readFromStorage(key: string): WorkspaceUserState {
@@ -43,31 +44,28 @@ export interface UseWidgetPersistenceResult {
   reset: () => void;
 }
 
-export function useWidgetPersistence(): UseWidgetPersistenceResult {
-  // storageKey and layout are hydrated together once the real user id
-  // resolves, inside the async callback below — not synchronously in the
-  // effect body. This also removes a real race that existed previously:
-  // a separate "re-read on storageKey change" effect could run interleaved
-  // with the "write on layout change" effect and persist the anonymous
-  // layout under the newly-resolved user key.
-  const [storageKey, setStorageKey] = useState<string>(() => getStorageKey(undefined));
-  const [layout, setInternalLayout] = useState<WorkspaceUserState>(() =>
-    readFromStorage(getStorageKey(undefined))
-  );
+/**
+ * Persist presentation state per authenticated user and Workspace surface.
+ * This is presentation state only and never grants authorization.
+ */
+export function useWidgetPersistence(workspaceKey: WorkspaceSurfaceKey = "global"): UseWidgetPersistenceResult {
+  const initialKey = getStorageKey(undefined, workspaceKey);
+  const [storageKey, setStorageKey] = useState<string>(initialKey);
+  const [layout, setInternalLayout] = useState<WorkspaceUserState>(() => readFromStorage(initialKey));
 
   useEffect(() => {
     let cancelled = false;
     const supabase = createClient();
     supabase.auth.getUser().then(({ data }) => {
       if (cancelled) return;
-      const resolvedKey = getStorageKey(data.user?.id);
+      const resolvedKey = getStorageKey(data.user?.id, workspaceKey);
       setStorageKey(resolvedKey);
       setInternalLayout(readFromStorage(resolvedKey));
     });
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [workspaceKey]);
 
   useEffect(() => {
     writeToStorage(storageKey, layout);
@@ -77,12 +75,10 @@ export function useWidgetPersistence(): UseWidgetPersistenceResult {
     (updater: (prev: WorkspaceUserState) => WorkspaceUserState) => {
       setInternalLayout((prev) => updater(prev));
     },
-    []
+    [],
   );
 
-  const reset = useCallback(() => {
-    setInternalLayout(DEFAULT_STATE);
-  }, []);
+  const reset = useCallback(() => setInternalLayout(DEFAULT_STATE), []);
 
   return { layout, setLayout, reset };
 }

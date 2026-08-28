@@ -4,6 +4,17 @@ Reconstructed baseline as of 2026-07-31 from committed migration files and archi
 
 ---
 
+## 2026-08-28 — Global UX/IA Stage 3 — Workspace Foundation
+- Reused the existing canonical Workspace engine, renderer, shell, registry and persistence instead of creating a second Workspace system.
+- Established the existing `/` surface as an explicit working surface with bilingual context/title/description and separated Quick Actions from Status/Analytics presentation.
+- Added explicit default Workspace contexts to the existing Widget registry so the same Widget catalogue can be presented appropriately across Global/Home, Operations and Clinical contexts.
+- Scoped existing Workspace presentation state to authenticated user + Workspace surface, preventing Home preferences from bleeding into Operations or Clinical.
+- Threaded Workspace context through the existing Widget renderer/toolbar path without changing authorization or Domain ownership.
+- Added bilingual Working Surface messaging through the existing render-time i18n catalogue.
+- No database schema/data migration was required; live production Workspace permissions were verified directly.
+- No PJ Patient Flow/Queue logic, AJM Domain ownership, authorization engine, Global Search, Dashboard, or Administration Workspace route was changed.
+- Runtime/production validation remains the final closure gate for Stage 3.
+
 ## 2026-08-08 — Session 11 Recovery (Workspace Architecture)
 - **Root cause of build failure:** `workspaceEngine.ts` called the async `isFeatureEnabled()` (from `featureRegistry.ts`) synchronously — a `Promise<boolean>` passed where `boolean` was expected, rejected by `tsconfig strict:true`. Confirmed against real Vercel build log (previous deployment failed at this exact type-check line).
 - **`src/core/workspace/workspaceEngine.ts`:** reduced to only the pure, synchronous `resolveWidgetVisibility()` — no Supabase, no async, no React. Matches WORKSPACE_ARCHITECTURE_SPECIFICATION.md §21.
@@ -28,7 +39,7 @@ Reconstructed baseline as of 2026-07-31 from committed migration files and archi
 - **`src/app/layout.tsx` — RTL regression introduced, then corrected same day:** the QueryClientProvider fix above was first applied together with `<html lang="en">` (dropping `lang="ar" dir="rtl"`). Neither `(auth)/login` nor `(auth)/register` nor `(auth)/layout.tsx` set their own `dir`, so they were relying entirely on the root layout for RTL — this would have silently rendered the login/register pages left-to-right. Restored `lang="ar" dir="rtl"` on the same `<html>` tag that now also has the correct `QueryClientProvider`.
 - **`src/features/workspace/WorkspaceShell.tsx`:** nav icons were rendered as `{item.icon}` (a component reference, not a valid React child) instead of `<item.icon />`. Fixed.
 - **`src/features/workspace/widgets/patients/QuickRegistrationWidget.tsx`:** called `createPatientFromObject` with `full_name`/`phone` — the real `PatientInsert` type (`src/domain/patients/patients.types.ts`) requires `first_name`/`last_name`/`phone_primary`. This was incorrectly marked "no issues found" in the earlier manual-only review pass — a real build/type-check catches what manual cross-referencing can miss. Widget now splits the single name input into `first_name`/`last_name` client-side and uses `phone_primary`.
-- **`src/core/workspace/widgetRegistry.ts` — moduleKey for the Analytics widget changed back to `ADVANCED_ANALYTICS`** (from `analytics`, which this recovery had restored per `WORKSPACE_ARCHITECTURE_SPECIFICATION.md` §9 and seeded into `feature_flags` accordingly — see entry above). **This directly conflicts with that seed and with §9 and has not been resolved either way — see `PROJECT_HANDOFF.md` Open Item #9.** Left as delivered; not silently overridden in either direction.
+- **`src/core/workspace/widgetRegistry.ts` — moduleKey for the Analytics widget changed back to `ADVANCED_ANALYTICS`** (from `analytics`, which this recovery had restored per `WORKSPACE_ARCHITECTURE_SPECIFICATION.md` §9 and seeded into `feature_flags` accordingly — see entry above). **This directly conflicts with that seed and with §9 and has not been resolved either way — see `PROJECT_HANDOFF.md Open Item #9`.** Left as delivered; not silently overridden in either direction.
 
 ## 2026-08-04 — Reports Module (Package 3.1.7)
 - **New shared infrastructure `src/core/features/featureRegistry.ts`:** `isFeatureEnabled(tenantId, moduleKey)` queries `feature_flags` for global or tenant-specific enabled flags. Reusable beyond Reports per ADR-007.

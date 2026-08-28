@@ -1,11 +1,5 @@
 // src/core/workspace/hooks/useWorkspace.ts
 // Workspace Architecture — Main workspace hook (orchestration layer)
-//
-// This hook owns everything the pure Engine (workspaceEngine.ts) is not
-// allowed to own: fetching permissions (usePermissions), fetching feature
-// flags (useFeatureFlags), and reading/writing the persisted layout
-// (useWidgetPersistence). Once all async data is resolved, it calls the
-// pure, synchronous resolveWidgetVisibility() for each registered widget.
 
 "use client";
 
@@ -16,6 +10,7 @@ import type {
   ResolvedWidget,
   WidgetLayoutEntry,
 } from "../workspace.types";
+import type { WorkspaceSurfaceKey } from "../workspaceSurfaces";
 import { resolveWidgetVisibility } from "../workspaceEngine";
 import { widgetRegistry } from "../widgetRegistry";
 import { usePermissions } from "@/core/permissions/usePermissions";
@@ -32,23 +27,25 @@ export interface UseWorkspaceResult {
   resetLayout: () => void;
 }
 
-export function useWorkspace(): UseWorkspaceResult {
-  const { layout, setLayout, reset } = useWidgetPersistence();
+/**
+ * Resolve one existing Workspace implementation against a presentation
+ * context. Context changes which registered Widgets are appropriate defaults;
+ * it never changes authorization and never creates a second Workspace engine.
+ */
+export function useWorkspace(workspaceKey: WorkspaceSurfaceKey = "global"): UseWorkspaceResult {
+  const { layout, setLayout, reset } = useWidgetPersistence(workspaceKey);
   const { hasPermission, isLoading: permissionsLoading } = usePermissions();
 
-  // All distinct module keys referenced by the registry — fetched once.
   const moduleKeys = useMemo(
     () => Array.from(new Set(widgetRegistry.map((w) => w.moduleKey))),
-    []
+    [],
   );
   const { isFeatureEnabled, isLoading: featuresLoading } = useFeatureFlags(moduleKeys);
 
   const userHiddenKeys = useMemo(() => {
     const hidden = new Set<string>();
     for (const entry of layout.widgets) {
-      if (entry.state === "hidden") {
-        hidden.add(entry.key);
-      }
+      if (entry.state === "hidden") hidden.add(entry.key);
     }
     return hidden;
   }, [layout.widgets]);
@@ -56,30 +53,24 @@ export function useWorkspace(): UseWorkspaceResult {
   const isLoading = permissionsLoading || featuresLoading;
 
   const resolved = useMemo(() => {
-    // Wait for both async sources before resolving — resolveWidgetVisibility
-    // itself stays pure/sync; we only decide *when* to call it here.
-    if (isLoading) {
-      return [];
-    }
+    if (isLoading) return [];
 
+    const surfaceWidgets = widgetRegistry.filter(
+      (widget) => !widget.defaultWorkspaces || widget.defaultWorkspaces.includes(workspaceKey),
+    );
     const results: ResolvedWidget[] = [];
 
-    for (const def of widgetRegistry) {
+    for (const def of surfaceWidgets) {
       const vis = resolveWidgetVisibility(def, hasPermission, isFeatureEnabled, userHiddenKeys);
-
       const layoutEntry = layout.widgets.find((l) => l.key === def.key);
       const widgetLayout: WidgetLayoutEntry = layoutEntry ?? {
         key: def.key,
-        order: widgetRegistry.indexOf(def),
+        order: surfaceWidgets.indexOf(def),
         size: def.defaultSize,
         state: vis.isVisible ? "visible" : "hidden",
       };
 
-      results.push({
-        definition: def,
-        layout: widgetLayout,
-        isVisible: vis.isVisible,
-      });
+      results.push({ definition: def, layout: widgetLayout, isVisible: vis.isVisible });
     }
 
     results.sort((a, b) => {
@@ -90,28 +81,27 @@ export function useWorkspace(): UseWorkspaceResult {
     });
 
     return results;
-  }, [isLoading, hasPermission, isFeatureEnabled, userHiddenKeys, layout.widgets]);
+  }, [isLoading, hasPermission, isFeatureEnabled, userHiddenKeys, layout.widgets, workspaceKey]);
 
-  const visibleWidgets = useMemo(
-    () => resolved.filter((r) => r.isVisible),
-    [resolved]
-  );
-
-  const hasErrors = useMemo(
-    () => resolved.some((r) => r.layout.state === "error"),
-    [resolved]
-  );
+  const visibleWidgets = useMemo(() => resolved.filter((r) => r.isVisible), [resolved]);
+  const hasErrors = useMemo(() => resolved.some((r) => r.layout.state === "error"), [resolved]);
 
   const updateWidgetState = useCallback(
     (key: string, state: WidgetState) => {
       setLayout((prev: WorkspaceUserState) => {
         const idx = prev.widgets.findIndex((w) => w.key === key);
         if (idx === -1) {
+          const definition = widgetRegistry.find((widget) => widget.key === key);
           return {
             ...prev,
             widgets: [
               ...prev.widgets,
-              { key, order: prev.widgets.length, size: { width: "half", height: "standard" }, state },
+              {
+                key,
+                order: prev.widgets.length,
+                size: definition?.defaultSize ?? { width: "half", height: "standard" },
+                state,
+              },
             ],
             lastUpdated: new Date().toISOString(),
           };
@@ -121,7 +111,7 @@ export function useWorkspace(): UseWorkspaceResult {
         return { ...prev, widgets: next, lastUpdated: new Date().toISOString() };
       });
     },
-    [setLayout]
+    [setLayout],
   );
 
   const reorderWidgets = useCallback(
@@ -134,12 +124,10 @@ export function useWorkspace(): UseWorkspaceResult {
         return { ...prev, widgets: next, lastUpdated: new Date().toISOString() };
       });
     },
-    [setLayout]
+    [setLayout],
   );
 
-  const resetLayout = useCallback(() => {
-    reset();
-  }, [reset]);
+  const resetLayout = useCallback(() => reset(), [reset]);
 
   return {
     resolved,
