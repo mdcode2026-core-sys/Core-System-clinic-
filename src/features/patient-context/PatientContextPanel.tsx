@@ -21,7 +21,7 @@ interface PatientContextPanelProps { patient: Patient; history: PatientHistory |
 export function PatientContextPanel({ patient, history }: PatientContextPanelProps) {
   const { tenantId } = useAuth();
   const { hasPermission, isLoading: permissionsLoading } = usePermissions();
-  const { locale, messages } = useI18n();
+  const { locale, messages, portal } = useI18n();
   const t = messages.patientContext;
   const direction = locale === "ar" ? "rtl" : "ltr";
   const canAgenda = !permissionsLoading && hasPermission("agenda:read");
@@ -56,7 +56,7 @@ export function PatientContextPanel({ patient, history }: PatientContextPanelPro
         {canInvoices && <Card><CardHeader className="pb-2"><CardTitle className="flex items-center gap-2 text-sm"><CreditCard className="h-4 w-4" />{t.financial}</CardTitle></CardHeader><CardContent><div className="text-2xl font-bold">{invoiceRows.length}</div><p className="text-xs text-muted-foreground">{t.amountDue}: {amountDue}</p><Link className="mt-2 inline-flex items-center text-xs underline" href={`/invoices?patientId=${encodeURIComponent(patient.id)}`}>{t.openInvoices}<ExternalLink className="ms-1 h-3 w-3" /></Link></CardContent></Card>}
       </div>
       {canFollowup && <Card><CardHeader className="pb-2"><CardTitle className="flex items-center gap-2 text-sm"><FileClock className="h-4 w-4" />{t.followup}</CardTitle></CardHeader><CardContent className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between"><div><div className="font-semibold">{openFollowups} {t.openItems}</div><p className="text-xs text-muted-foreground">{followupData.success ? t.patientFiltered : t.loadFailed}</p></div><Link className="inline-flex items-center text-sm underline" href={`/follow-up?patientId=${encodeURIComponent(patient.id)}`}>{t.openFollowup}<ExternalLink className="ms-1 h-3 w-3" /></Link></CardContent></Card>}
-      {canPatientRead && tenantId && <Card><CardHeader className="pb-2"><CardTitle className="flex items-center gap-2 text-sm"><ExternalLink className="h-4 w-4" />{t.portal}</CardTitle></CardHeader><CardContent><PatientPortalInviteButton patientId={patient.id} tenantId={tenantId} hasEmail={Boolean(patient.email)} hasPhone={Boolean(patient.phone_primary)} /></CardContent></Card>}
+      {canPatientRead && tenantId && <Card><CardHeader className="pb-2"><CardTitle className="flex items-center gap-2 text-sm"><ExternalLink className="h-4 w-4" />{portal.title}</CardTitle></CardHeader><CardContent><PatientPortalInviteButton patientId={patient.id} tenantId={tenantId} hasEmail={Boolean(patient.email)} hasPhone={Boolean(patient.phone_primary)} /></CardContent></Card>}
       <Card><CardHeader className="pb-2"><CardTitle className="flex items-center gap-2 text-sm"><MessageSquare className="h-4 w-4" />{t.communication}</CardTitle></CardHeader><CardContent><p className="text-sm text-muted-foreground">{t.communicationDeferred}</p></CardContent></Card>
     </section>
   );
