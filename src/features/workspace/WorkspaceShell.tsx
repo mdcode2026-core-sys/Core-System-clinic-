@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { LogOut, Menu, X, ChevronDown } from "lucide-react";
-import { navigationRegistry, type NavItem } from "@/core/navigation/navigationRegistry";
+import { getSidebarNavigation, type NavItem } from "@/core/navigation/navigationRegistry";
 import { usePermissions } from "@/core/permissions/usePermissions";
 import { createClient } from "@/infrastructure/supabase/client";
 import { cn } from "@/shared/utils/cn";
@@ -24,16 +24,15 @@ export function WorkspaceShell({ children, user }: WorkspaceShellProps) {
   const isArabic = locale === "ar";
 
   const canSee = (item: NavItem) => item.requiredPermission === null || hasPermission(item.requiredPermission);
-  const filteredNav = navigationRegistry
-    .map((item) => ({ ...item, children: item.children?.filter(canSee).map((child) => ({ ...child, children: child.children?.filter(canSee) })) }))
-    .filter((item) => canSee(item) || (item.children && item.children.length > 0));
+  const filterChildren = (item: NavItem): NavItem => ({ ...item, children: item.children?.filter(canSee).map(filterChildren) });
+  const filteredNav = getSidebarNavigation().map(filterChildren).filter((item) => canSee(item) || (item.children && item.children.length > 0));
 
   const getLabel = (item: NavItem) => item.label ? item.label[locale] : item.labelKey ? messages.nav[item.labelKey] : item.href;
   const isPathActive = (item: NavItem): boolean => pathname === item.href.split("?")[0] || (item.children?.some(isPathActive) ?? false);
   const groupContainsPath = (item: NavItem): boolean => item.children?.some((child) => pathname === child.href.split("?")[0] || pathname.startsWith(`${child.href.split("?")[0]}/`) || groupContainsPath(child)) ?? false;
 
   useEffect(() => {
-    const financialGroup = navigationRegistry.find((item) => item.href === "/financial-resources");
+    const financialGroup = getSidebarNavigation().find((item) => item.href === "/financial-resources");
     if (financialGroup && (pathname === "/financial-resources" || groupContainsPath(financialGroup))) setOpenGroups((v) => ({ ...v, "/financial-resources": true }));
   }, [pathname]);
 
