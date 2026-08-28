@@ -1,0 +1,45 @@
+name: UX Stages 0-4 CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ux-stages-0-4-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  static-validation:
+    name: UX 0-4 Static Validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: TypeScript
+        run: npx tsc --noEmit
+
+      - name: I18N audit
+        run: npm run i18n:audit
+
+      - name: I18N parity
+        run: npm run i18n:parity
+
+      - name: ESLint
+        run: npm run lint
+
+      - name: Production build
+        run: npm run build
