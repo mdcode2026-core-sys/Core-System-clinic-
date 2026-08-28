@@ -1,0 +1,26 @@
+name: Global UX IA Stage 4 Verification
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "src/core/workspace/**"
+      - "src/core/i18n/**"
+      - "src/features/workspace/**"
+      - "docs/GLOBAL-UX-IA-STAGE-4-WORKSPACE-PERSONALIZATION-2026-08-28.md"
+  workflow_dispatch:
+
+jobs:
+  verify-stage4:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm install
+      - run: npx tsc --noEmit
+      - run: npx eslint src/core/workspace/hooks/useWorkspace.ts src/core/i18n/workspaceMessages.ts src/features/workspace/WidgetContainer.tsx src/features/workspace/WidgetLibrary.tsx src/features/workspace/WidgetToolbar.tsx src/features/workspace/WorkspaceRenderer.tsx
+      - run: npm run i18n:parity
+      - run: npm run build
