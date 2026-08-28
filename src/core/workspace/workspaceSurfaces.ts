@@ -2,11 +2,10 @@ import type { Permission } from "@/core/permissions/types";
 
 /**
  * User-facing workspace contexts. Global/Home is the always-available system
- * entry surface; business workspace availability is permission-derived.
+ * entry surface; implemented business workspace availability is permission-derived.
  *
- * Workspace is presentation only. These permissions are used to determine
- * which working surface can be offered, never to replace server-side
- * authorization for any action or data.
+ * Workspace is presentation only. These permissions determine which working
+ * surface can be offered; they never replace server-side authorization.
  */
 export type WorkspaceSurfaceKey = "global" | "administration" | "operation" | "clinical";
 
@@ -14,8 +13,9 @@ export interface WorkspaceSurfaceDefinition {
   key: WorkspaceSurfaceKey;
   label: { ar: string; en: string };
   description: { ar: string; en: string };
-  href: string;
+  href: string | null;
   requiredPermission: Permission | null;
+  implemented: boolean;
 }
 
 export const WORKSPACE_SURFACES: readonly WorkspaceSurfaceDefinition[] = [
@@ -25,6 +25,7 @@ export const WORKSPACE_SURFACES: readonly WorkspaceSurfaceDefinition[] = [
     description: { ar: "الوصول العام والعمل المخصص", en: "Global entry and personalized work" },
     href: "/",
     requiredPermission: null,
+    implemented: true,
   },
   {
     key: "operation",
@@ -32,6 +33,7 @@ export const WORKSPACE_SURFACES: readonly WorkspaceSurfaceDefinition[] = [
     description: { ar: "العمل التشغيلي والتنسيق اليومي", en: "Daily operational work and coordination" },
     href: "/operation",
     requiredPermission: "workspace:operation",
+    implemented: true,
   },
   {
     key: "clinical",
@@ -39,23 +41,24 @@ export const WORKSPACE_SURFACES: readonly WorkspaceSurfaceDefinition[] = [
     description: { ar: "العمل الطبي والسريري", en: "Clinical and medical work" },
     href: "/clinical",
     requiredPermission: "workspace:clinical",
+    implemented: true,
   },
   {
     key: "administration",
     label: { ar: "مساحة الإدارة", en: "Administration" },
     description: { ar: "إدارة العيادة والإعدادات", en: "Clinic administration and configuration" },
-    // Administration Workspace is a declared surface in the approved model.
-    // The current repository has no canonical /administration working route;
-    // do not create a fake route in Stage 2. It will be surfaced when the
-    // Workspace Foundation stage establishes its authoritative implementation.
-    href: "/settings",
+    // Declared by the approved model, but there is currently no canonical
+    // Administration Workspace route. Stage 2 must not manufacture one.
+    href: null,
     requiredPermission: "workspace:administration",
+    implemented: false,
   },
 ] as const;
 
 export function getAvailableWorkspaceSurfaces(hasPermission: (permission: Permission) => boolean) {
   return WORKSPACE_SURFACES.filter(
-    (surface) => surface.requiredPermission === null || hasPermission(surface.requiredPermission),
+    (surface) => surface.implemented &&
+      (surface.requiredPermission === null || hasPermission(surface.requiredPermission)),
   );
 }
 
@@ -64,5 +67,6 @@ export function canUseWorkspaceSurface(
   hasPermission: (permission: Permission) => boolean,
 ) {
   const surface = WORKSPACE_SURFACES.find((item) => item.key === key);
-  return !!surface && (surface.requiredPermission === null || hasPermission(surface.requiredPermission));
+  return !!surface && surface.implemented &&
+    (surface.requiredPermission === null || hasPermission(surface.requiredPermission));
 }
