@@ -18,12 +18,8 @@ function requireText(file, text, label = text) {
   if (content && !content.includes(text)) failures.push(`${file}: missing ${label}`);
 }
 
-const nav = read("src/core/navigation/navigationRegistry.ts");
-const permissions = read("src/core/permissions/types.ts");
-const actions = read("src/domain/queue/workspace.actions.ts");
-const engine = read("src/domain/queue/queue.engine.ts");
-const board = read("src/features/patient-flow/PatientFlowBoard.tsx");
-const migration = read("supabase/migrations/20260828214500_pj_stage6_patient_flow_permissions.sql");
+const migrationPath = "supabase/migrations/20260828185953_pj_stage6_patient_flow_permissions.sql";
+const migration = read(migrationPath);
 const stageDoc = read("docs/GLOBAL-UX-IA-STAGE-6-PATIENT-FLOW-QUEUE-2026-08-28.md");
 
 for (const permission of [
@@ -33,7 +29,7 @@ for (const permission of [
 ]) {
   requireText("src/core/permissions/types.ts", permission);
   requireText("src/core/navigation/navigationRegistry.ts", permission);
-  requireText("supabase/migrations/20260828214500_pj_stage6_patient_flow_permissions.sql", permission);
+  requireText(migrationPath, permission);
 }
 
 for (const route of [
@@ -72,7 +68,9 @@ for (const transition of [
   'waiting: ["in_consultation", "no_show", "cancelled"]',
   'in_consultation: ["pending_close", "cancelled"]',
   'pending_close: ["completed", "cancelled"]',
-  'completed: [], cancelled: [], no_show: [],',
+  'completed: [],',
+  'cancelled: [],',
+  'no_show: [],',
 ]) requireText("src/domain/queue/queue.engine.ts", transition, `canonical transition ${transition}`);
 
 if (migration && /role_permissions/.test(migration)) failures.push("Stage 6 permission migration must not grant Patient Flow permissions automatically through role_permissions");
