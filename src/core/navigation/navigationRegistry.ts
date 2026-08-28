@@ -33,12 +33,17 @@ const financialResourcesChildren: NavItem[] = [
 
 export const navigationRegistry: NavItem[] = [
   { href: "/", labelKey: null, label: { ar: "مساحة العمل", en: "Workspace" }, icon: LayoutDashboard, requiredPermission: null, surface: "core", visibility: "sidebar" },
-  // Canonical contextual routes retained for permission resolution and later Patient Flow reconciliation.
+  // Canonical workspace contexts remain contextual working surfaces.
   { href: "/operation", labelKey: "operation", icon: BriefcaseBusiness, requiredPermission: "workspace:operation", visibility: "contextual" },
   { href: "/clinical", labelKey: "clinical", icon: Stethoscope, requiredPermission: "workspace:clinical", visibility: "contextual" },
   { href: "/treatment-plans", labelKey: "treatmentPlans", icon: ClipboardList, requiredPermission: "treatment_plans:read", visibility: "sidebar" },
   { href: "/patients", labelKey: "patients", icon: Users, requiredPermission: "patients:read", visibility: "sidebar" },
   { href: "/agenda", labelKey: "agenda", icon: CalendarDays, requiredPermission: "agenda:read", visibility: "sidebar" },
+  { href: "/patient-flow", label: { ar: "رحلة المريض", en: "Patient Flow" }, labelKey: null, icon: ListOrdered, requiredPermission: null, capabilityKey: "patient_flow", visibility: "sidebar", children: [
+    { href: "/patient-flow/operations", label: { ar: "التشغيل", en: "Operations" }, labelKey: null, icon: BriefcaseBusiness, requiredPermission: "patient_flow:operations", capabilityKey: "patient_flow.operations", visibility: "sidebar" },
+    { href: "/patient-flow/clinical", label: { ar: "المعاينة السريرية", en: "Clinical" }, labelKey: null, icon: Stethoscope, requiredPermission: "patient_flow:clinical", capabilityKey: "patient_flow.clinical", visibility: "sidebar" },
+    { href: "/patient-flow/administrative", label: { ar: "الإدارة", en: "Administrative" }, labelKey: null, icon: LayoutDashboard, requiredPermission: "patient_flow:administrative", capabilityKey: "patient_flow.administrative", visibility: "sidebar" },
+  ] },
   { href: "/queue", labelKey: "queue", icon: ListOrdered, requiredPermission: "sessions:read", visibility: "contextual" },
   { href: "/financial-resources", labelKey: null, label: { ar: "المالية والموارد", en: "Financial & Resources" }, icon: WalletCards, requiredPermission: null, capabilityKey: "financial_resources.access", children: financialResourcesChildren, visibility: "sidebar" },
   { href: "/reports", labelKey: "reports", icon: FileBarChart, requiredPermission: "reports:read", visibility: "sidebar" },

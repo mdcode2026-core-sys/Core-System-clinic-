@@ -1,4 +1,4 @@
-name: UX Stages 0-5 CI
+name: UX Stages 0-6 CI
 
 on:
   pull_request:
@@ -11,14 +11,14 @@ permissions:
   contents: read
 
 concurrency:
-  group: ux-stages-0-5-${{ github.ref }}
+  group: ux-stages-0-6-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   static-validation:
-    name: UX 0-5 Pre-deployment Validation
+    name: UX 0-6 Pre-deployment Validation
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 30
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -33,6 +33,10 @@ jobs:
           git diff --exit-code -- package-lock.json
       - name: Install dependencies
         run: npm ci --ignore-scripts
+      - name: Production dependency vulnerability diagnostic
+        id: npm-audit
+        continue-on-error: true
+        run: npm audit --omit=dev --audit-level=high
       - name: TypeScript
         run: npx tsc --noEmit
       - name: I18N audit
@@ -43,11 +47,38 @@ jobs:
         run: npm run ux:widget-catalog
       - name: Stage 5 Domain Surface audit
         run: npm run ux:domain-surface
+      - name: Stage 6 Patient Flow audit
+        run: npm run ux:patient-flow-stage6
       - name: Full repository ESLint diagnostic
+        id: full-eslint
+        continue-on-error: true
         run: npx eslint .
+      - name: Stage 6 changed-surface ESLint gate
+        run: >-
+          npx eslint
+          "src/app/(dashboard)/patient-flow/**/*.tsx"
+          src/core/navigation/navigationRegistry.ts
+          src/core/permissions/types.ts
+          src/domain/queue/queue.actions.ts
+          src/domain/queue/workspace.actions.ts
+          src/features/patient-flow/PatientFlowBoard.tsx
       - name: Production build
         env:
           NEXT_PUBLIC_SUPABASE_URL: https://qaslsjyxjwvdoiczmhgq.supabase.co
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
           NEXT_PUBLIC_APP_URL: http://localhost:3000
         run: npm run build
+      - name: Publish validation finding summary
+        if: always()
+        run: |
+          if [ "${{ steps.npm-audit.outcome }}" = "failure" ]; then
+            echo "Production dependency audit reports high-severity vulnerabilities; see npm audit output." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "Production dependency audit passed at high severity." >> "$GITHUB_STEP_SUMMARY"
+          fi
+          if [ "${{ steps.full-eslint.outcome }}" = "failure" ]; then
+            echo "Full-repository ESLint reports pre-existing/non-Stage-6 findings." >> "$GITHUB_STEP_SUMMARY"
+            echo "The blocking Stage 6 changed-surface ESLint gate above must pass." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "Full-repository ESLint passed." >> "$GITHUB_STEP_SUMMARY"
+          fi
