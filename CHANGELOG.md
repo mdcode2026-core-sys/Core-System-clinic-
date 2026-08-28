@@ -4,6 +4,21 @@ Reconstructed baseline as of 2026-07-31 from committed migration files and archi
 
 ---
 
+## 2026-08-29 — Global UX/IA Stage 8 — Global Search — CLOSED / PRODUCTION READY
+- Implemented the canonical Global Search surface on the existing Workspace shell.
+- Reused existing permission resolution, Supabase server access, tenant boundaries, canonical Domain tables and i18n; no parallel authorization, entitlement, workspace, registry, Queue or Patient Journey architecture was created.
+- Search coverage includes Patients, Staff, Invoices, Appointments, Treatment Plans, Services/Procedures, Inventory, Suppliers, Purchase Orders and Patient Portal communication context.
+- Added dedicated Stage 8 audit and validation workflow; shared UX Stages 0–8 validation passed including TypeScript, i18n, Stage 5–8 audits, changed-surface ESLint and production build.
+- Final production candidate SHA: `4a496d269446345a51215cd4217d84dd3ec1f849`.
+- Vercel production deployment: `dpl_6hE65ifG3SoFdbvf93f1qE5GugH2` — READY.
+- Production `/` returned HTTP 200 and correctly resolved unauthenticated access to `/login`.
+- Final deployment runtime log query reported no runtime errors/log entries during the verification window.
+- No Stage 8 database migration was required.
+- S8-F-001 remains deferred as a non-blocking AJM / Tenant Administration / Medical Master Library refinement because creating new detail routes solely for Search would violate the reuse/reconcile rule.
+- S8-F-002 (earlier Vercel rate-limit condition) is resolved; no token-based workaround or repository secret was introduced.
+
+---
+
 ## 2026-08-29 — Global UX/IA Stage 7 — Patient Context — CLOSED / PRODUCTION READY
 - Closed Stage 7 after engineering, architecture, GitHub CI, production build, Vercel deployment and available production runtime verification gates passed.
 - Patient Context remains a presentation/orchestration surface on the canonical Patient Detail surface; no parallel Patient Journey, Queue, registry, authorization, entitlement or Workspace architecture was created.
