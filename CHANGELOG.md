@@ -4,6 +4,19 @@ Reconstructed baseline as of 2026-07-31 from committed migration files and archi
 
 ---
 
+## 2026-08-28 — Global UX/IA Stage 4 — Workspace Personalization
+- Extended the canonical Stage 3 Workspace implementation with a permission/feature-aware Widget Library for adding authorized Widgets.
+- Added Widget add/remove personalization while preserving Widget definitions and Domain ownership.
+- Added desktop native drag-and-drop reordering within the existing Widget layers.
+- Added mobile-friendly move-up/move-down controls so personalization does not depend on desktop drag-and-drop.
+- Preserved natural Widget sizing and normal vertical scrolling for additional Widgets instead of forcing a fixed visible set.
+- Allowed explicitly selected authorized Widgets to persist on a surface even when they are not that surface's default Widget set.
+- Kept presentation persistence scoped to authenticated user + Workspace surface and retained the existing local persistence boundary.
+- Connected Widget toolbar actions to the single WorkspaceRenderer orchestration state, eliminating independent per-Widget hook state and ensuring immediate UI updates.
+- Added bilingual Arabic/English labels for all new personalization controls through the existing render-time i18n catalogue.
+- No database migration, authorization redesign, Workspace Membership layer, PJ change, AJM Domain change, Patient Flow change or Queue replacement was introduced.
+- Runtime validation remains the final closure gate for Stage 4.
+
 ## 2026-08-28 — Global UX/IA Stage 3 — Workspace Foundation
 - Reused the existing canonical Workspace engine, renderer, shell, registry and persistence instead of creating a second Workspace system.
 - Established the existing `/` surface as an explicit working surface with bilingual context/title/description and separated Quick Actions from Status/Analytics presentation.
@@ -49,7 +62,7 @@ Reconstructed baseline as of 2026-07-31 from committed migration files and archi
 - **New `src/domain/reports/reports.queries.ts`:** one query function per report key, implementing exactly the data source specified. Includes `runReport()` dispatcher.
 - **New `src/app/(dashboard)/reports/page.tsx`:** server-side `reports:read` guard via `getEffectivePermissions()`, renders client shell.
 - **New `src/features/reports/reports-shell.tsx`:** module dropdown (filtered by `hasPermission + isFeatureEnabled`), report dropdown, date-range picker (shown only when `needsDateRange = true`), Run/Print/Export PDF buttons.
-- **New `src/features/reports/report-viewer.tsx`:** table render of report results, summary block, Print + Export PDF via `window.print()`.
+- **`src/features/reports/report-viewer.tsx`:** table render of report results, summary block, Print + Export PDF via `window.print()`.
 - **No new PDF-generation library added** — `package.json` confirmed none exists; `window.print()` used per ADR-007 scope.
 - **No changes to:** 34 RLS policies, `clinic_users.role` CHECK constraint, `clinic_owner`/`nurse` roles, existing module code, Analytics engine.
 - **Verified pending:** build pass, each of 18 reports against real data, module dropdown filtering, Print/Export PDF functionality.
@@ -90,18 +103,11 @@ Reconstructed baseline as of 2026-07-31 from committed migration files and archi
 ## 2026-07-29 — Signup Flow Fix, Queue Diagnostics, Queue Schema Fix
 - **Migration `20260729120000_add_file_number_to_clinic_patients.sql`:** added `file_number` (varchar 50) to `clinic_patients` — root-cause fix for the `/queue` failure (`column clinic_patients_1.file_number does not exist`).
 - **Migration `20260729100000_capture_invoice_items_and_payments.sql`:** added `invoice_items` and `invoice_payments` tables.
-- **`create_tenant_with_subscription()` rewritten:** stopped writing to legacy tables (`tenants`, `users`, `subscriptions`, `subscription_events`, `roles`, `subscription_plans`); now writes only to `master_tenants` and `clinic_users` (see `ARCHITECTURE_DECISIONS.md` ADR-000).
-- **`src/core/auth/actions.ts` updated:** explicitly writes `tenant_id`/`role` into both `user_metadata` and `app_metadata` after tenant creation, since the `handle_new_user` trigger fires before the `clinic_users` row exists.
-- **`src/infrastructure/supabase/server.ts` updated:** switched from a raw `set_config` RPC call to the dedicated `set_tenant_id()` function.
-- **Security fix applied:** `set_tenant_id()` was found using database-connection-wide config scope (`set_config(..., false)`) instead of transaction-local (`true`) — a genuine tenant-isolation risk under connection pooling. Corrected to `true`.
-- **Diagnosed and fully reverted:** temporary debug patch on `src/app/(dashboard)/queue/page.tsx` used to capture the exact `/queue` error, then cleanly reverted.
+- `create_tenant_with_subscription()` rewritten: stopped writing to legacy tables (`tenants`, `users`, `subscriptions`, `subscription_events`, `roles`, `subscription_plans`); now writes only to `master_tenants` and `clinic_users` (see `ARCHITECTURE_DECISIONS.md` ADR-000).
+- `src/core/auth/actions.ts updated: explicitly writes tenant_id/role into both user_metadata and app_metadata after tenant creation, since the handle_new_user trigger fires before the clinic_users row exists.
+- `src/infrastructure/supabase/server.ts updated: switched from a raw set_config RPC call to the dedicated set_tenant_id() function.
+- Security fix applied: set_tenant_id() was found using database-connection-wide config scope (set_config(..., false)) instead of transaction-local (true) — a genuine tenant-isolation risk under connection pooling. Corrected to true.
+- Diagnosed and fully reverted: temporary debug patch on src/app/(dashboard)/queue/page.tsx used to capture the exact /queue error, then cleanly reverted.
 
 ## 2026-07-21 — Initial Schema Baseline
-- **Migration `20260721100539_remote_schema.sql`:** initial committed schema — full multi-tenant table set (patients, agenda, invoicing, queue/visit-sessions, inventory ledger, retention follow-ups, analytics snapshots, subscription/billing/platform tables, permissions/roles/role_permissions, audit trail), 34 RLS policies, and all core Postgres functions (`get_current_tenant_id`, `get_current_user_role`, `create_tenant_with_subscription`, `handle_new_user`, invoicing business logic, trigger helpers).
-- **Migration `20260721112514_remote_schema.sql`:** same-day constraint refresh — dropped and re-added several `CHECK` constraints (`billing_events`, `clinic_inquiries`, `clinic_invoices`, `clinic_patients`, `clinic_rooms`, `clinic_users`) to update allowed enum values.
-
----
-
-## Format Going Forward
-
-Each entry should include: date, short title, and either a migration filename (for schema changes) or a file path (for code changes) plus a one-line reason. Task-level detail belongs in `PROJECT_HANDOFF.md`, not here — this file stays a scannable timeline.
+- Migration `20260721100539_remote_schema.sql`: initial committed schema — full multi-tenant table set (patients, agenda, invoicing, queue/visit-sessions, inventory ledger, retention follow-ups, analytics snapshots, subscription/billing/platform... (truncated)
