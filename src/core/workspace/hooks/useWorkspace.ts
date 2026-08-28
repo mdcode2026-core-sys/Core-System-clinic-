@@ -2,13 +2,7 @@
 "use client";
 
 import { useCallback, useMemo } from "react";
-import type {
-  WidgetState,
-  WorkspaceUserState,
-  ResolvedWidget,
-  WidgetLayoutEntry,
-  WidgetDefinition,
-} from "../workspace.types";
+import type { WidgetState, WorkspaceUserState, ResolvedWidget, WidgetLayoutEntry, WidgetDefinition } from "../workspace.types";
 import type { WorkspaceSurfaceKey } from "../workspaceSurfaces";
 import { resolveWidgetVisibility } from "../workspaceEngine";
 import { widgetRegistry } from "../widgetRegistry";
@@ -38,8 +32,8 @@ export function useWorkspace(workspaceKey: WorkspaceSurfaceKey = "global"): UseW
   const isLoading = permissionsLoading || featuresLoading;
 
   const surfaceWidgets = useMemo(
-    () => widgetRegistry.filter((widget) => !widget.defaultWorkspaces || widget.defaultWorkspaces.includes(workspaceKey)),
-    [workspaceKey],
+    () => widgetRegistry.filter((widget) => widget.defaultWorkspaces?.includes(workspaceKey) || layout.widgets.some((entry) => entry.key === widget.key)),
+    [workspaceKey, layout.widgets],
   );
 
   const userHiddenKeys = useMemo(() => {
@@ -54,12 +48,7 @@ export function useWorkspace(workspaceKey: WorkspaceSurfaceKey = "global"): UseW
     for (const def of surfaceWidgets) {
       const vis = resolveWidgetVisibility(def, hasPermission, isFeatureEnabled, userHiddenKeys);
       const layoutEntry = layout.widgets.find((l) => l.key === def.key);
-      const widgetLayout: WidgetLayoutEntry = layoutEntry ?? {
-        key: def.key,
-        order: surfaceWidgets.indexOf(def),
-        size: def.defaultSize,
-        state: vis.isVisible ? "visible" : "hidden",
-      };
+      const widgetLayout: WidgetLayoutEntry = layoutEntry ?? { key: def.key, order: surfaceWidgets.indexOf(def), size: def.defaultSize, state: vis.isVisible ? "visible" : "hidden" };
       results.push({ definition: def, layout: widgetLayout, isVisible: vis.isVisible });
     }
     results.sort((a, b) => a.layout.order - b.layout.order || a.definition.layer - b.definition.layer);
@@ -93,9 +82,7 @@ export function useWorkspace(workspaceKey: WorkspaceSurfaceKey = "global"): UseW
     if (!definition || !hasPermission(definition.requiredPermission) || !isFeatureEnabled(definition.moduleKey)) return;
     setLayout((prev) => {
       const existing = prev.widgets.find((w) => w.key === key);
-      if (existing) {
-        return { ...prev, widgets: prev.widgets.map((w) => w.key === key ? { ...w, state: "visible" as WidgetState } : w), lastUpdated: new Date().toISOString() };
-      }
+      if (existing) return { ...prev, widgets: prev.widgets.map((w) => w.key === key ? { ...w, state: "visible" as WidgetState } : w), lastUpdated: new Date().toISOString() };
       return { ...prev, widgets: [...prev.widgets, { key, order: prev.widgets.length, size: definition.defaultSize, state: "visible" }], lastUpdated: new Date().toISOString() };
     });
   }, [hasPermission, isFeatureEnabled, setLayout]);
