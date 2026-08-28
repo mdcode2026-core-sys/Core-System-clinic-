@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { useAuth } from "@/core/auth/AuthContext";
 import { usePermissions } from "@/core/permissions/usePermissions";
 import { usePatients, useDeletePatient } from "@/domain/patients/patients.queries";
@@ -19,9 +20,17 @@ import { useI18n } from "@/core/i18n/I18nProvider";
 interface PatientListProps { onAdd?: () => void; onBookAppointment?: (patientId: string) => void; }
 
 export function PatientList({ onAdd, onBookAppointment }: PatientListProps) {
-  const { tenantId } = useAuth(); const { data: patients, isLoading } = usePatients(tenantId); const deletePatient = useDeletePatient(); const { hasPermission, isLoading: permsLoading } = usePermissions(); const { locale, messages } = useI18n(); const t = messages.patients;
+  const { tenantId } = useAuth(); const { data: patients, isLoading } = usePatients(tenantId); const deletePatient = useDeletePatient(); const { hasPermission, isLoading: permsLoading } = usePermissions(); const { locale, messages } = useI18n(); const t = messages.patients; const searchParams = useSearchParams();
   const [searchQuery, setSearchQuery] = useState(""); const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null); const [detailPatientId, setDetailPatientId] = useState<string | null>(null); const [isFormOpen, setIsFormOpen] = useState(false); const [isDetailOpen, setIsDetailOpen] = useState(false); const [checkingInId, setCheckingInId] = useState<string | null>(null);
-  const filteredPatients = patients?.filter(patient => { const query = searchQuery.toLowerCase(); const fullName = `${patient.first_name} ${patient.last_name}`.toLowerCase(); return fullName.includes(query) || patient.phone_primary.includes(query) || Boolean(patient.email?.toLowerCase().includes(query)); });
+
+  useEffect(() => {
+    const patientId = searchParams.get("patientId");
+    const search = searchParams.get("search");
+    if (search) setSearchQuery(search);
+    if (patientId) { setDetailPatientId(patientId); setIsDetailOpen(true); }
+  }, [searchParams]);
+
+  const filteredPatients = patients?.filter(patient => { const query = searchQuery.toLowerCase(); const fullName = `${patient.first_name} ${patient.last_name}`.toLowerCase(); const arabicName = `${patient.first_name_ar ?? ""} ${patient.last_name_ar ?? ""}`.toLowerCase(); return fullName.includes(query) || arabicName.includes(query) || patient.phone_primary.includes(query) || Boolean(patient.email?.toLowerCase().includes(query)) || Boolean(patient.file_number?.toLowerCase().includes(query)); });
   const getStatusBadge = (status: string) => { const variants: Record<string, "default" | "secondary" | "destructive" | "outline"> = { active: "default", inactive: "secondary", archived: "outline", blocked: "destructive" }; const labels: Record<string, string> = { active: t.active, inactive: t.inactive, archived: t.archived, blocked: t.blocked }; return <Badge variant={variants[status] || "default"}>{labels[status] || status}</Badge>; };
   const handleEdit = (patient: Patient) => { setSelectedPatient(patient); setIsFormOpen(true); }; const handleViewDetail = (patientId: string) => { setDetailPatientId(patientId); setIsDetailOpen(true); };
   async function handleQuickCheckIn(patientId: string) { setCheckingInId(patientId); try { await checkInPatient({ patient_id: patientId }); } catch (err) { console.error("Check-in failed:", err); } finally { setCheckingInId(null); } }
