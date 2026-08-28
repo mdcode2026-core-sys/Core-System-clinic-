@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { getQueue } from "@/domain/queue/queue.queries";
 import { moveFromPatientFlow } from "@/domain/queue/workspace.actions";
 import type { EnrichedSession, SessionStatus } from "@/domain/queue/queue.types";
@@ -65,8 +65,6 @@ export function PatientFlowBoard({ context, initialQueue = [] }: { context: Pati
   const [search, setSearch] = useState("");
   const [draggedId, setDraggedId] = useState<string | null>(null);
 
-  useQueueSubscription(tenantId || "");
-
   const refresh = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -75,7 +73,7 @@ export function PatientFlowBoard({ context, initialQueue = [] }: { context: Pati
     finally { setLoading(false); }
   }, [t.failed]);
 
-  useEffect(() => { void refresh(); }, [refresh]);
+  useQueueSubscription(tenantId || "", refresh);
 
   const visible = useMemo(() => {
     const q = search.trim().toLowerCase();
