@@ -1,8 +1,34 @@
 # PROJECT_HANDOFF.md
 
 **Project:** CORE SYSTEM — ClinicSaaS™
-**Status:** ACTIVE DEVELOPMENT / PJ STAGE TRACK
-**Last Updated:** 2026-08-24
+**Status:** ACTIVE DEVELOPMENT / Global UX/IA Stage Track
+**Last Updated:** 2026-08-28
+
+## Current Global UX/IA State
+
+### Stage 3 — Workspace Foundation
+
+**Status:** IMPLEMENTED — RUNTIME VALIDATION PENDING.
+
+Stage 3 established the existing Workspace implementation as the canonical working-surface foundation. The implementation reuses the existing Workspace engine, renderer, shell, Widget registry and persistence rather than creating a second Workspace system.
+
+Completed:
+
+- Global/Home remains the canonical `/` Workspace entry surface.
+- WorkspaceRenderer now presents explicit bilingual working-surface context.
+- Existing Widgets have explicit default Workspace contexts for Global/Home, Operations and Clinical.
+- Existing Widget presentation state is scoped by authenticated user + Workspace surface.
+- Workspace context is carried through the existing Widget container/toolbar path.
+- Existing permission + feature checks remain authoritative for Widget visibility.
+- No new authorization or Workspace Membership security layer was introduced.
+- No database migration was required.
+- Existing AJM and PJ Domain ownership was preserved.
+- Patient Flow/Queue was not recreated or replaced.
+
+Canonical Stage 3 record:
+`docs/GLOBAL-UX-IA-STAGE-3-WORKSPACE-FOUNDATION-2026-08-28.md`
+
+Runtime closure still requires a READY deployment containing the final Stage 3 head plus authenticated, mobile and Arabic/English verification.
 
 ## Purpose
 
@@ -63,6 +89,9 @@ The persistent E2E data includes completed historical courses, active multi-sess
 - Super Admin is the platform owner/lessor and does not operate clinic daily workflows.
 - Patient Portal is subscription-controlled and has the approved two-layer public/paid model.
 - Patient Journey implementation follows the approved PJ workflow; implementation reality supersedes stale documentation when the repository/database is the evidence.
+- Global UX/IA authority is `GLOBAL_UX_IA_FINAL_AUTHORITY_2026-08-28.md`.
+- Workspace is a presentation/work surface and is not a security boundary.
+- Patient Flow remains independent and continues to use the canonical Queue/patient-movement implementation.
 
 ## Current Schema Reference
 
@@ -78,6 +107,9 @@ Use:
 - `ENGINEERING_CONSTITUTION.md` — engineering governance.
 - `ARCHITECTURE_DECISIONS.md` — chronological architectural decisions.
 - `MASTER_ROADMAP.md` — product roadmap reconciled to PJ execution.
+- `GLOBAL_UX_IA_FINAL_AUTHORITY_2026-08-28.md` — current UX/IA authority.
+- `docs/GLOBAL-UX-IA-IMPLEMENTATION-PLAN-2026-08-28-FINAL.md` — Global UX/IA execution plan.
+- `docs/GLOBAL-UX-IA-STAGE-3-WORKSPACE-FOUNDATION-2026-08-28.md` — Stage 3 implementation record.
 - `CHANGELOG.md` — historical implementation changes.
 - `DATABASE_SCHEMA.md` — current structural database reference.
 - `PJ_E2E_DEMO_DATASET.md` — persistent E2E dataset contract.
@@ -90,7 +122,9 @@ Dated handoffs, progress reports, Kimi packages, old security plans, old roadmap
 
 ## Next Work
 
-The next PJ/admin stage must begin from the current repository and live database state. Do not resume the old Milestone 3 / Session 11 sequence. Before implementation, reconcile the requested scope against the current PJ decisions and the E2E baseline.
+The next Global UX/IA stage must begin from the current repository and live database state. Stage 4 is Workspace Personalization and must build on the Stage 3 foundation; it must not create a parallel Workspace system. Before implementation, reconcile the requested scope against the current UX authority, AJM reconciliation and PJ reconciliation documents.
+
+AJM remains separately governed. Current AJM matrix status must be read from `docs/AJM-IMPLEMENTATION-STATUS-MATRIX-2026-08-28.md`; Stage 3 does not reopen or close AJM stages.
 
 ## Verification Rule
 
