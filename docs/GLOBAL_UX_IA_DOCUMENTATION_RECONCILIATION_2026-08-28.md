@@ -121,13 +121,35 @@ and:
 
 **Inspect → Reuse → Extend → Reconcile → Create**.
 
-## 8. Documentation integrity rule
+## 8. Stage 1 navigation reconciliation record
+
+Stage 1 has now been implemented in the repository through the canonical navigation registry, active Workspace shell, middleware route-permission resolution and root Workspace naming.
+
+The resulting model distinguishes Sidebar navigation from contextual routes:
+
+- `/` → Workspace, Sidebar.
+- `/operation` → contextual protected route.
+- `/clinical` → contextual protected route.
+- `/queue` → contextual protected compatibility route; it is not presented as Patient Flow.
+- Treatment Plans, Patients, Agenda, Financial & Resources, Reports, Analytics, Follow-up and Settings remain direct Sidebar capabilities according to effective access.
+
+The Financial & Resources parent/child hierarchy remains the canonical hierarchy pattern.
+
+Operations/Clinical/Queue were not deleted because their implementations remain active PJ/Queue anchors and Stage 6 is the authorized reconciliation point for Patient Flow.
+
+A route cannot lose authorization merely because it leaves Sidebar. The middleware now resolves route permissions from the same canonical navigation registry, including nested routes and contextual entries.
+
+Stage record: `docs/GLOBAL-UX-IA-STAGE-1-NAVIGATION-IA-2026-08-28.md`.
+
+Stage 1 current status: **IMPLEMENTED — RUNTIME VALIDATION PENDING** until a Vercel deployment containing the Stage 1 commits is READY and the changed navigation flows are verified.
+
+## 9. Documentation integrity rule
 
 Every subsequent UX/IA implementation must update its stage record and the relevant master/reference document in the same change set or immediately linked documentation change.
 
 No implementation is considered documented merely because code was committed.
 
-## 9. Historical-document rule
+## 10. Historical-document rule
 
 Older documents are not deleted solely because they are historical. When they describe superseded UX/IA behavior, the conflict must be explicit so that future agents cannot mistake historical wording for the current decision.
 
