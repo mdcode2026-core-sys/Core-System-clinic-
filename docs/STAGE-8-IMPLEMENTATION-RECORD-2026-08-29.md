@@ -2,7 +2,7 @@
 
 **Date:** 2026-08-29
 **Stage:** 8 — Global Search
-**Status:** IMPLEMENTED — VALIDATION IN PROGRESS
+**Status:** IMPLEMENTED — VALIDATION CANDIDATE
 
 ## Official scope
 
