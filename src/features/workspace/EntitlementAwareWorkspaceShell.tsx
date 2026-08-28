@@ -11,6 +11,7 @@ import { createClient } from "@/infrastructure/supabase/client";
 import { cn } from "@/shared/utils/cn";
 import { useI18n } from "@/core/i18n/I18nProvider";
 import { LanguageSwitcher } from "@/core/i18n/LanguageSwitcher";
+import { WorkspaceSurfaceNav } from "./WorkspaceSurfaceNav";
 
 interface WorkspaceShellProps { children: React.ReactNode; user: { email?: string } | null; }
 
@@ -81,7 +82,11 @@ export function EntitlementAwareWorkspaceShell({ children, user }: WorkspaceShel
       </aside>
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
         <header className="flex flex-wrap items-center justify-between gap-3 border-b bg-white px-4 py-3 lg:px-6">
-          <div className="flex min-w-0 items-center gap-3"><button type="button" onClick={() => setSidebarOpen(true)} className="rounded-md p-1.5 hover:bg-gray-100" aria-label={messages.shell.openMenu} title={messages.shell.openMenu}><Menu className="h-5 w-5 text-gray-600" /></button><h1 className="truncate text-lg font-semibold text-gray-900">{messages.shell.workspace}</h1></div>
+          <div className="flex min-w-0 items-center gap-3">
+            <button type="button" onClick={() => setSidebarOpen(true)} className="rounded-md p-1.5 hover:bg-gray-100" aria-label={messages.shell.openMenu} title={messages.shell.openMenu}><Menu className="h-5 w-5 text-gray-600" /></button>
+            <h1 className="truncate text-lg font-semibold text-gray-900">{messages.shell.workspace}</h1>
+          </div>
+          <div className="flex min-w-0 flex-1 justify-center px-2"><WorkspaceSurfaceNav /></div>
           <div className="flex shrink-0 items-center gap-2 sm:gap-4"><LanguageSwitcher /><span className="hidden max-w-[240px] truncate text-sm text-gray-600 sm:inline">{user?.email}</span><button type="button" onClick={handleSignOut} className="flex items-center gap-1.5 rounded-md bg-gray-100 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-200"><LogOut className="h-4 w-4" /><span className="hidden sm:inline">{messages.shell.signOut}</span></button></div>
         </header>
         <main className="min-w-0 flex-1 overflow-y-auto p-4 lg:p-6">{children}</main>
