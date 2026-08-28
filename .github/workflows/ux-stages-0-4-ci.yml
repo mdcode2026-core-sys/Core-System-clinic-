@@ -53,10 +53,6 @@ jobs:
         run: npm run ux:patient-context-stage7
       - name: Stage 8 Global Search audit
         run: npm run ux:global-search-stage8
-      - name: Full repository ESLint diagnostic
-        id: full-eslint
-        continue-on-error: true
-        run: npx eslint .
       - name: Stage 8 changed-surface ESLint gate
         run: >-
           npx eslint
@@ -79,9 +75,21 @@ jobs:
           else
             echo "Production dependency audit passed at high severity." >> "$GITHUB_STEP_SUMMARY"
           fi
-          if [ "${{ steps.full-eslint.outcome }}" = "failure" ]; then
-            echo "Full-repository ESLint reports pre-existing/non-Stage-8 findings." >> "$GITHUB_STEP_SUMMARY"
-            echo "The blocking Stage 8 changed-surface ESLint gate above must pass." >> "$GITHUB_STEP_SUMMARY"
-          else
-            echo "Full-repository ESLint passed." >> "$GITHUB_STEP_SUMMARY"
-          fi
+
+  repository-eslint-diagnostic:
+    name: Repository-wide ESLint Diagnostic
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    continue-on-error: true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install dependencies
+        run: npm ci --ignore-scripts --no-audit --no-fund --prefer-offline
+      - name: Full repository ESLint diagnostic
+        run: npx eslint .
