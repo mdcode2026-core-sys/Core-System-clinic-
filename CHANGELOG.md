@@ -56,7 +56,7 @@ Reconstructed baseline as of 2026-07-31 from committed migration files and archi
 
 ## 2026-08-04 — Reports Module (Package 3.1.7)
 - **New shared infrastructure `src/core/features/featureRegistry.ts`:** `isFeatureEnabled(tenantId, moduleKey)` queries `feature_flags` for global or tenant-specific enabled flags. Reusable beyond Reports per ADR-007.
-- **Seed migration `20260804_seed_feature_flags.sql`:** inserts 6 globally-enabled `feature_flags` rows (`tenant_id = NULL`), preserving current behavior.
+- **Seed migration `20260804_seed_feature_flags.sql`:** inserts 6 globally-enabled `feature_flags` rows (`patients`, `agenda`, `queue`, `billing`, `inventory`, `followup`) with `tenant_id = NULL`, preserving current behavior.
 - **New `src/domain/reports/moduleRegistry.ts`:** 6 modules with exact keys, labels, and required permissions per Package 3.1.7 table.
 - **New `src/domain/reports/reportRegistry.ts`:** 18 reports (3 per module) with exact `dataSource` values per Package 3.1.7 table. No substitutions.
 - **New `src/domain/reports/reports.queries.ts`:** one query function per report key, implementing exactly the data source specified. Includes `runReport()` dispatcher.
