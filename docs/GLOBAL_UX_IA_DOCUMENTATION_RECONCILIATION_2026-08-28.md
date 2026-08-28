@@ -109,7 +109,18 @@ AJM domain ownership remains unchanged. UX reorganization changes presentation a
 
 No new authorization model is introduced. Workspace, Widget, Patient Flow, Search and Dashboard visibility must continue to respect the established effective-permission model and tenant isolation.
 
-## 7. Implementation gate
+## 7. Stage 0 baseline closure
+
+The Stage 0 baseline is recorded in:
+
+- `docs/GLOBAL-UX-IA-STAGE-0-BASELINE-2026-08-28.md`
+- `docs/AJM-IMPLEMENTATION-STATUS-MATRIX-2026-08-28.md`
+
+Stage 0 confirms that the repository already contains reusable navigation, Workspace, Widget and Queue foundations, while also recording unresolved reconciliation points including Queue/Patient Flow surface duplication, explicit Patient Flow assignment/context, Global Search absence, Workspace personalization gaps, `/` Dashboard naming and the AJM-1 contradictory validation-status records.
+
+No broad product restructuring was performed as part of Stage 0.
+
+## 8. Implementation gate
 
 Before implementation of UX/IA changes, the implementation agent must inspect repository, database and runtime behavior and identify the authoritative existing implementation for each affected capability.
 
@@ -121,13 +132,13 @@ and:
 
 **Inspect → Reuse → Extend → Reconcile → Create**.
 
-## 8. Documentation integrity rule
+## 9. Documentation integrity rule
 
 Every subsequent UX/IA implementation must update its stage record and the relevant master/reference document in the same change set or immediately linked documentation change.
 
 No implementation is considered documented merely because code was committed.
 
-## 9. Historical-document rule
+## 10. Historical-document rule
 
 Older documents are not deleted solely because they are historical. When they describe superseded UX/IA behavior, the conflict must be explicit so that future agents cannot mistake historical wording for the current decision.
 
