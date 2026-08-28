@@ -35,8 +35,10 @@ export function UserSettingsManager() {
   useEffect(() => {
     if (!data) return;
     const stored = data.default_workspace as WorkspaceSurfaceKey | null | undefined;
-    const isAvailable = !!stored && availableWorkspaces.some((surface) => surface.key === stored);
-    setWorkspace(isAvailable ? stored : GLOBAL_VALUE);
+    const availableKey = stored && availableWorkspaces.some((surface) => surface.key === stored)
+      ? stored
+      : GLOBAL_VALUE;
+    setWorkspace(availableKey);
     setCollapsed(!!data.sidebar_collapsed);
   }, [data, availableWorkspaces]);
 
