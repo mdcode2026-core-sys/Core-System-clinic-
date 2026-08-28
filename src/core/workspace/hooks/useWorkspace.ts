@@ -1,11 +1,5 @@
 // src/core/workspace/hooks/useWorkspace.ts
 // Workspace Architecture — Main workspace hook (orchestration layer)
-//
-// This hook owns everything the pure Engine (workspaceEngine.ts) is not
-// allowed to own: fetching permissions (usePermissions), fetching feature
-// flags (useFeatureFlags), and reading/writing the persisted layout
-// (useWidgetPersistence). Once all async data is resolved, it calls the
-// pure, synchronous resolveWidgetVisibility() for each registered widget.
 
 "use client";
 
@@ -39,10 +33,9 @@ export interface UseWorkspaceResult {
  * it never changes authorization and never creates a second Workspace engine.
  */
 export function useWorkspace(workspaceKey: WorkspaceSurfaceKey = "global"): UseWorkspaceResult {
-  const { layout, setLayout, reset } = useWidgetPersistence();
+  const { layout, setLayout, reset } = useWidgetPersistence(workspaceKey);
   const { hasPermission, isLoading: permissionsLoading } = usePermissions();
 
-  // All distinct module keys referenced by the registry — fetched once.
   const moduleKeys = useMemo(
     () => Array.from(new Set(widgetRegistry.map((w) => w.moduleKey))),
     [],
@@ -62,10 +55,10 @@ export function useWorkspace(workspaceKey: WorkspaceSurfaceKey = "global"): UseW
   const resolved = useMemo(() => {
     if (isLoading) return [];
 
-    const results: ResolvedWidget[] = [];
     const surfaceWidgets = widgetRegistry.filter(
       (widget) => !widget.defaultWorkspaces || widget.defaultWorkspaces.includes(workspaceKey),
     );
+    const results: ResolvedWidget[] = [];
 
     for (const def of surfaceWidgets) {
       const vis = resolveWidgetVisibility(def, hasPermission, isFeatureEnabled, userHiddenKeys);
@@ -77,11 +70,7 @@ export function useWorkspace(workspaceKey: WorkspaceSurfaceKey = "global"): UseW
         state: vis.isVisible ? "visible" : "hidden",
       };
 
-      results.push({
-        definition: def,
-        layout: widgetLayout,
-        isVisible: vis.isVisible,
-      });
+      results.push({ definition: def, layout: widgetLayout, isVisible: vis.isVisible });
     }
 
     results.sort((a, b) => {
@@ -94,15 +83,8 @@ export function useWorkspace(workspaceKey: WorkspaceSurfaceKey = "global"): UseW
     return results;
   }, [isLoading, hasPermission, isFeatureEnabled, userHiddenKeys, layout.widgets, workspaceKey]);
 
-  const visibleWidgets = useMemo(
-    () => resolved.filter((r) => r.isVisible),
-    [resolved],
-  );
-
-  const hasErrors = useMemo(
-    () => resolved.some((r) => r.layout.state === "error"),
-    [resolved],
-  );
+  const visibleWidgets = useMemo(() => resolved.filter((r) => r.isVisible), [resolved]);
+  const hasErrors = useMemo(() => resolved.some((r) => r.layout.state === "error"), [resolved]);
 
   const updateWidgetState = useCallback(
     (key: string, state: WidgetState) => {
