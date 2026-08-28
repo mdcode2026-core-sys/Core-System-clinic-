@@ -14,7 +14,7 @@ permissions:
 
 jobs:
   candidate:
-    name: Validate and deploy production candidate
+    name: Validate production candidate
     if: >-
       (github.event_name == 'push') ||
       (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
@@ -75,14 +75,14 @@ jobs:
           NEXT_PUBLIC_APP_URL: https://core-system-clinic.vercel.app
         run: npm run build
 
-      - name: Deploy validated candidate to Vercel Production
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          VERCEL_ORG_ID: team_VlSz1DTffYBwmUEcYQtR8JiN
-          VERCEL_PROJECT_ID: prj_DN3UgHVBUHrFG6i6ycxAWj0bXLbG
-        run: npx vercel@latest deploy --prod --yes --non-interactive --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" --project "$VERCEL_PROJECT_ID"
+      - name: Production deployment handoff
+        run: |
+          echo "Validated production candidate: ${{ steps.candidate.outputs.sha }}"
+          echo "GitHub engineering gates and production build passed."
+          echo "Production deployment is delegated to the existing Vercel Git integration on main."
+          echo "No VERCEL_TOKEN secret is required for this handoff."
 
-      - name: Record deployed candidate
+      - name: Record candidate
         run: |
           echo "Production candidate: ${{ steps.candidate.outputs.sha }}"
-          echo "Production deployment completed only after GitHub UX 0-7 validation and production build succeeded."
+          echo "Vercel Git integration is the production deployment authority for main."
