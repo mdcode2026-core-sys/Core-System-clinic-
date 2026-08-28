@@ -30,4 +30,4 @@ if (missing.length || failed.length) {
   process.exit(1);
 }
 
-console.log(`Stage 8 Global Search audit PASS — ${checks.length} checks`);
+process.stdout.write(`Stage 8 Global Search audit PASS — ${checks.length} checks\n`);
