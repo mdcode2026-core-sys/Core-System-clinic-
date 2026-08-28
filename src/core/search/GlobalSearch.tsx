@@ -19,10 +19,7 @@ export function GlobalSearch() {
 
   useEffect(() => {
     const value = query.trim();
-    if (value.length < 2) {
-      setResults([]);
-      return;
-    }
+    if (value.length < 2) return;
     const timer = window.setTimeout(() => {
       startTransition(async () => {
         const next = await globalSearch(value);
@@ -42,6 +39,7 @@ export function GlobalSearch() {
   }, []);
 
   const typeLabel = (type: GlobalSearchResult["type"]) => messages.types[type];
+  const hasSearchQuery = query.trim().length >= 2;
 
   return (
     <div ref={wrapperRef} className="relative w-full max-w-2xl">
@@ -50,7 +48,7 @@ export function GlobalSearch() {
         <input
           value={query}
           onChange={(event) => setQuery(event.target.value)}
-          onFocus={() => query.trim().length >= 2 && setOpen(true)}
+          onFocus={() => hasSearchQuery && setOpen(true)}
           placeholder={messages.placeholder}
           aria-label={messages.label}
           className="h-10 min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-gray-400"
@@ -60,7 +58,7 @@ export function GlobalSearch() {
 
       {open && (
         <div className="absolute inset-x-0 top-12 z-50 max-h-[min(70vh,32rem)] overflow-y-auto rounded-xl border bg-white p-2 shadow-xl">
-          {query.trim().length < 2 ? (
+          {!hasSearchQuery ? (
             <p className="px-3 py-4 text-sm text-gray-500">{messages.minChars}</p>
           ) : isPending ? (
             <p className="flex items-center gap-2 px-3 py-4 text-sm text-gray-500"><Loader2 className="h-4 w-4 animate-spin" />{messages.loading}</p>
