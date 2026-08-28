@@ -167,6 +167,10 @@ No Workspace or Domain implementation was deleted.
 - Confirm no Supabase migration is required.
 - Confirm Arabic/English labels are provided through the existing i18n catalogue.
 
+### Preview build note
+
+The first Vercel preview was created from the initial branch commit before the subsequent i18n and Workspace commits had landed in the branch. That preview failed because it referenced the older `workspaceMessages` type and therefore did not contain the completed Stage 4 source. The branch was subsequently updated with the complete implementation; a new READY deployment must be used for closure verification rather than treating that stale first preview as a Stage 4 build result.
+
 ### Runtime closure requirements
 
 A READY Vercel deployment containing the final Stage 4 commit must be verified for:
