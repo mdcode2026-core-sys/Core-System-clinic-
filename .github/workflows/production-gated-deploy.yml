@@ -11,10 +11,10 @@ permissions:
 
 jobs:
   candidate:
-    name: Confirm validated production candidate
+    name: Validate and deploy production candidate
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 30
     steps:
       - name: Checkout validated commit
         uses: actions/checkout@v4
@@ -28,8 +28,20 @@ jobs:
       - name: Install dependencies from lockfile
         run: npm ci
       - name: Verify production build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://qaslsjyxjwvdoiczmhgq.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          NEXT_PUBLIC_APP_URL: https://core-system-clinic.vercel.app
         run: npm run build
-      - name: Record candidate commit
+      - name: Link Vercel production project
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: npx vercel@latest link --project core-system-clinic --scope mdcode2026-core-sys-projects --yes --token "$VERCEL_TOKEN"
+      - name: Deploy validated commit to Vercel Production
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: npx vercel@latest deploy --prod --yes --token "$VERCEL_TOKEN"
+      - name: Record deployed candidate
         run: |
           echo "Production candidate: ${{ github.event.workflow_run.head_sha }}"
-          echo "Vercel deployment is delegated to the repository's Git integration."
+          echo "Production deployment completed through the Vercel CLI after all GitHub validation gates passed."
