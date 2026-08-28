@@ -1,4 +1,4 @@
-name: UX Stages 0-4 CI
+name: UX Stages 0-5 CI
 
 on:
   pull_request:
@@ -11,12 +11,12 @@ permissions:
   contents: write
 
 concurrency:
-  group: ux-stages-0-4-${{ github.ref }}
+  group: ux-stages-0-5-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   static-validation:
-    name: UX 0-4 Static Validation
+    name: UX 0-5 Pre-deployment Validation
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
@@ -44,10 +44,15 @@ jobs:
       - name: I18N parity
         run: npm run i18n:parity
 
-      - name: Stage 0-4 changed-surface ESLint
+      - name: Stage 5 Widget Catalog audit
+        run: npm run ux:widget-catalog
+
+      - name: Stage 0-5 changed-surface ESLint
         run: |
           npx eslint \
             'src/core/workspace/hooks/useWorkspace.ts' \
+            'src/core/workspace/widgetCatalog.ts' \
+            'src/core/workspace/widgetRegistry.ts' \
             'src/features/workspace/WorkspaceRenderer.tsx' \
             'src/features/workspace/WidgetContainer.tsx' \
             'src/features/workspace/WidgetToolbar.tsx' \
@@ -62,7 +67,8 @@ jobs:
             'src/features/settings/ClinicProfileForm.tsx' \
             'src/shared/components/ui/dialog.tsx' \
             'src/shared/components/ui/sheet.tsx' \
-            'tools/i18n-audit.mjs'
+            'tools/i18n-audit.mjs' \
+            'tools/widget-catalog-audit.mjs'
 
       - name: Production build
         env:
