@@ -17,6 +17,7 @@ import { useFeatureFlags } from "@/core/features/useFeatureFlags";
 import { useWidgetPersistence } from "./useWidgetPersistence";
 
 export interface UseWorkspaceResult {
+  layout: WorkspaceUserState;
   resolved: ResolvedWidget[];
   visibleWidgets: ResolvedWidget[];
   availableWidgets: WidgetDefinition[];
@@ -32,7 +33,6 @@ export interface UseWorkspaceResult {
 export function useWorkspace(workspaceKey: WorkspaceSurfaceKey = "global"): UseWorkspaceResult {
   const { layout, setLayout, reset } = useWidgetPersistence(workspaceKey);
   const { hasPermission, isLoading: permissionsLoading } = usePermissions();
-
   const moduleKeys = useMemo(() => Array.from(new Set(widgetRegistry.map((w) => w.moduleKey))), []);
   const { isFeatureEnabled, isLoading: featuresLoading } = useFeatureFlags(moduleKeys);
   const isLoading = permissionsLoading || featuresLoading;
@@ -80,11 +80,7 @@ export function useWorkspace(workspaceKey: WorkspaceSurfaceKey = "global"): UseW
       if (idx === -1) {
         const definition = widgetRegistry.find((widget) => widget.key === key);
         if (!definition) return prev;
-        return {
-          ...prev,
-          widgets: [...prev.widgets, { key, order: prev.widgets.length, size: definition.defaultSize, state }],
-          lastUpdated: new Date().toISOString(),
-        };
+        return { ...prev, widgets: [...prev.widgets, { key, order: prev.widgets.length, size: definition.defaultSize, state }], lastUpdated: new Date().toISOString() };
       }
       const next = [...prev.widgets];
       next[idx] = { ...next[idx], state };
@@ -98,37 +94,24 @@ export function useWorkspace(workspaceKey: WorkspaceSurfaceKey = "global"): UseW
     setLayout((prev) => {
       const existing = prev.widgets.find((w) => w.key === key);
       if (existing) {
-        const next = prev.widgets.map((w) => w.key === key ? { ...w, state: "visible" as WidgetState } : w);
-        return { ...prev, widgets: next, lastUpdated: new Date().toISOString() };
+        return { ...prev, widgets: prev.widgets.map((w) => w.key === key ? { ...w, state: "visible" as WidgetState } : w), lastUpdated: new Date().toISOString() };
       }
-      return {
-        ...prev,
-        widgets: [...prev.widgets, { key, order: prev.widgets.length, size: definition.defaultSize, state: "visible" }],
-        lastUpdated: new Date().toISOString(),
-      };
+      return { ...prev, widgets: [...prev.widgets, { key, order: prev.widgets.length, size: definition.defaultSize, state: "visible" }], lastUpdated: new Date().toISOString() };
     });
   }, [hasPermission, isFeatureEnabled, setLayout]);
 
   const removeWidget = useCallback((key: string) => {
-    setLayout((prev) => ({
-      ...prev,
-      widgets: prev.widgets.map((w) => w.key === key ? { ...w, state: "hidden" as WidgetState } : w),
-      lastUpdated: new Date().toISOString(),
-    }));
+    setLayout((prev) => ({ ...prev, widgets: prev.widgets.map((w) => w.key === key ? { ...w, state: "hidden" as WidgetState } : w), lastUpdated: new Date().toISOString() }));
   }, [setLayout]);
 
   const reorderWidgets = useCallback((orderedKeys: string[]) => {
     setLayout((prev) => {
       const positions = new Map(orderedKeys.map((key, index) => [key, index]));
-      return {
-        ...prev,
-        widgets: prev.widgets.map((w) => positions.has(w.key) ? { ...w, order: positions.get(w.key)! } : w),
-        lastUpdated: new Date().toISOString(),
-      };
+      return { ...prev, widgets: prev.widgets.map((w) => positions.has(w.key) ? { ...w, order: positions.get(w.key)! } : w), lastUpdated: new Date().toISOString() };
     });
   }, [setLayout]);
 
   const resetLayout = useCallback(() => reset(), [reset]);
 
-  return { resolved, visibleWidgets, availableWidgets, isLoading, hasErrors, updateWidgetState, addWidget, removeWidget, reorderWidgets, resetLayout };
+  return { layout, resolved, visibleWidgets, availableWidgets, isLoading, hasErrors, updateWidgetState, addWidget, removeWidget, reorderWidgets, resetLayout };
 }
