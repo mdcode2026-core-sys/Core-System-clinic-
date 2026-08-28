@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import type { WidgetLayoutEntry, WorkspaceUserState } from "../workspace.types";
+import type { WorkspaceUserState } from "../workspace.types";
 import type { WorkspaceSurfaceKey } from "../workspaceSurfaces";
 import { WORKSPACE_STORAGE_PREFIX } from "../workspace.constants";
 import { createClient } from "@/infrastructure/supabase/client";
@@ -46,9 +46,7 @@ export interface UseWidgetPersistenceResult {
 
 /**
  * Persist presentation state per authenticated user and Workspace surface.
- * Workspace personalization remains a presentation concern and never grants
- * access. Per-surface storage prevents a preference on Home from silently
- * changing the working layout of Operations or Clinical.
+ * This is presentation state only and never grants authorization.
  */
 export function useWidgetPersistence(workspaceKey: WorkspaceSurfaceKey = "global"): UseWidgetPersistenceResult {
   const initialKey = getStorageKey(undefined, workspaceKey);
@@ -80,9 +78,7 @@ export function useWidgetPersistence(workspaceKey: WorkspaceSurfaceKey = "global
     [],
   );
 
-  const reset = useCallback(() => {
-    setInternalLayout(DEFAULT_STATE);
-  }, []);
+  const reset = useCallback(() => setInternalLayout(DEFAULT_STATE), []);
 
   return { layout, setLayout, reset };
 }
