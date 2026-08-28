@@ -1,6 +1,6 @@
 # Documentation Status & Authority
 
-**Status:** ACTIVE / Global UX/IA Stage 9 implementation merged; production closure pending final deployment verification
+**Status:** ACTIVE / Global UX/IA Stage 9 CLOSED / PRODUCTION READY
 **Last reviewed:** 2026-08-29
 
 This file is the repository documentation authority and freshness registry.
@@ -50,17 +50,18 @@ When documentation and implementation disagree:
 - Stage 6 — Patient Flow: implemented / CI validated / documented.
 - Stage 7 — Patient Context: **CLOSED / PRODUCTION READY**.
 - Stage 8 — Global Search: **CLOSED / PRODUCTION READY**.
-- Stage 9 — Overview / Dashboard Reconciliation: **IMPLEMENTED / CI VALIDATED / MERGED; FINAL PRODUCTION CLOSURE PENDING**.
+- Stage 9 — Overview / Dashboard Reconciliation: **CLOSED / PRODUCTION READY**.
 
-### Stage 9 validation model
+### Stage 9 final validation
 
-Stage 9 uses a dedicated blocking validation workflow plus the existing Stage 0–8 validation lineage. The Stage 9 candidate passed lockfile verification, `npm ci`, TypeScript, i18n audit/parity, Stage 5–8 audits, Stage 9 audit, changed-surface ESLint and production build.
+Stage 9 implementation passed the dedicated blocking validation workflow on the implementation commit, including lockfile verification, `npm ci`, TypeScript, i18n audit/parity, Stage 5–8 audits, Stage 9 audit, changed-surface ESLint and production build. The final documentation-bearing `main` commit then passed the shared UX 0–8 validation workflow, i18n verification, Vercel Production deployment and runtime verification.
 
-Stage 9 implementation evidence:
+Final production candidate:
 
-- Validated implementation SHA: `65988b160136546d3b7c04cce1606c436c3d0529`.
-- Merged `main` SHA: `d85358577e84e6c6ed6a32fb13ca41751369d40d`.
-- Vercel preview deployment for the implementation SHA: READY.
+- `main` SHA: `8e7972f58e3500427170598d7369dcb2473ddc93`
+- Vercel Production deployment: `dpl_HgEcYYGcEkrtTSFVnw1c8vrKGim9`
+- Deployment state: READY
+- Deployment `githubCommitSha`: `8e7972f58e3500427170598d7369dcb2473ddc93`
 - No Stage 9 database migration was required.
 
 ## 4. Findings Governance Rule
@@ -78,7 +79,7 @@ The executor must:
 
 Stage 8 has no unresolved blocker. S8-F-001 is explicitly deferred to AJM / Tenant Administration and Medical Master Library as a future cross-workstream refinement. S8-F-002 is resolved.
 
-Stage 9 has no unresolved Stage 9 blocker. S9-F-001 records pre-existing repository-wide ESLint debt as non-blocking cross-workstream work; S9-F-002 records historical runtime signatures not reproduced on the validated current deployment; S9-F-003 confirms no database change was required.
+Stage 9 has no unresolved Stage 9 blocker. S9-F-001 records pre-existing repository-wide ESLint debt as non-blocking cross-workstream work; S9-F-002 records historical runtime signatures not reproduced on the final deployment; S9-F-003 confirms no database change was required.
 
 ## 5. PJ Current State
 
@@ -123,7 +124,7 @@ Every completed Global UX/IA stage must update, as applicable:
 - relevant ADRs when architecture changes;
 - `DATABASE_SCHEMA.md` when schema changes.
 
-Stage 9 implementation, finding disposition, and execution addendum are now recorded. Final closure/readiness is recorded only after the final production verification gate passes.
+Stage 9 implementation, finding disposition, execution addendum, closure record and final production evidence are recorded.
 
 ## 11. Cleanup Result
 
