@@ -1,27 +1,27 @@
 # Stage 7 — Patient Context
 
-Date: 2026-08-28
-Status: **PRODUCTION CANDIDATE — FINAL RUNTIME VERIFICATION PENDING**
-Production Ready: **PENDING VERCEL RUNTIME VERIFICATION**
+Date: 2026-08-29
+Status: **CLOSED — PRODUCTION READY**
+Production Ready: **YES**
 
 ## Authority and scope
 
 Stage 7 was derived from the repository's Global UX/IA execution authority, especially `CORE-SYSTEM-GLOBAL-UX-IA-MASTER-EXECUTION.md` and `docs/GLOBAL-UX-IA-IMPLEMENTATION-PLAN-2026-08-28-FINAL.md`. The Stage 7 scope is the patient-context/contextual-navigation work: make the existing patient context the operational anchor for authorized related work without creating a parallel patient journey, authorization, entitlement, or domain registry.
 
-## Definition of Done used
+## Definition of Done
 
-- Patient context is available from the canonical Patient Detail surface.
-- Existing AJM/PJ-owned surfaces are reused rather than duplicated.
-- Contextual navigation preserves patient identity into Agenda, Treatment Plans, Invoices, and Follow-up.
-- Existing Patient Portal action is surfaced from patient context.
-- UI visibility is permission-derived.
-- Existing server-side domain authorization remains authoritative.
-- Arabic/English parity and RTL/LTR behavior remain governed by the canonical i18n system.
-- No Stage 7 database migration or parallel authorization/domain architecture is introduced.
-- Stage 5 and Stage 6 audits remain green.
-- GitHub TypeScript, i18n, Stage 5, Stage 6, Stage 7, changed-surface ESLint, and production build gates pass.
-- Production candidate handoff path is defined and uses the canonical Vercel project/team identifiers.
-- Vercel production deployment and runtime verification are required for final closure.
+- Patient context is available from the canonical Patient Detail surface: PASS.
+- Existing AJM/PJ-owned surfaces are reused rather than duplicated: PASS.
+- Contextual navigation preserves patient identity into Agenda, Treatment Plans, Invoices, and Follow-up: PASS.
+- Existing Patient Portal action is surfaced from patient context: PASS.
+- UI visibility is permission-derived: PASS.
+- Existing server-side domain authorization remains authoritative: PASS.
+- Arabic/English parity and RTL/LTR behavior remain governed by the canonical i18n system: PASS.
+- No Stage 7 database migration or parallel authorization/domain architecture is introduced: PASS.
+- Stage 5 and Stage 6 audits remain green: PASS.
+- GitHub TypeScript, i18n, Stage 5, Stage 6, Stage 7, changed-surface ESLint, and production build gates pass: PASS.
+- Production candidate handoff is defined and uses the canonical Vercel Git integration path: PASS.
+- Vercel production deployment and runtime verification: PASS.
 
 ## Implementation
 
@@ -31,9 +31,9 @@ Stage 7 was derived from the repository's Global UX/IA execution authority, espe
 - Added patient-scoped Invoice loading to `src/app/(dashboard)/invoices/page.tsx`.
 - Reused existing Treatment Plan, Invoicing, Follow-up, Agenda, Patient History, and Patient Portal capabilities.
 - Added `tools/patient-context-stage7-audit.mjs`.
-- Extended `.github/workflows/ux-stages-0-4-ci.yml` to the Stage 7 gate and wired the production candidate workflow to the new gate name.
+- Extended `.github/workflows/ux-stages-0-4-ci.yml` to the Stage 7 gate.
 - Corrected the Patient Context Portal label to use the canonical Patient Portal i18n namespace.
-- Corrected the production handoff workflow to target the actual Vercel project and team identifiers.
+- Corrected the production candidate workflow to use the existing Vercel Git integration and to run only after successful UX Stages 0–7 validation. No `VERCEL_TOKEN` repository secret is required.
 
 ## Architecture reconciliation
 
@@ -41,29 +41,59 @@ No new domain owner, patient registry, queue, journey engine, authorization engi
 
 ## Database / Supabase
 
-No migration was added for Stage 7. Production schema inspection confirmed the required authorization vocabulary exists for the contextual surfaces, and tenant/RLS ownership remains in the existing domain architecture. No production schema drift was introduced by Stage 7.
+No migration was added for Stage 7. Existing authorization vocabulary, tenant boundaries, and RLS ownership were reused. No production schema drift was introduced by Stage 7.
 
 ## GitHub validation evidence
 
-- Final Stage 7 CI candidate: `UX Stages 0-7 CI`, run #80, commit `7d12477e0844bb0087fcd4a8f2f9b70c83b14f1a`, successful.
-- Run #80 passed lockfile synchronization, dependency installation, TypeScript, I18N audit/parity, Stage 5 Widget Catalog audit, Stage 5 Domain Surface audit, Stage 6 Patient Flow audit, Stage 7 Patient Context audit, changed-surface ESLint, and production build.
-- Full-repository ESLint remains a diagnostic gate and reports pre-existing findings outside the Stage 7 changed surface.
-- Production dependency audit remains a diagnostic finding because the current dependency graph contains high-severity transitive advisories, including a Next.js advisory for the currently pinned version; no forced dependency upgrade was made without a compatibility validation cycle.
+- Final `UX Stages 0-7 CI`: run #84, SHA `832d49d888d343018c36fb51454ea6caa0306e80`: SUCCESS.
+- Gates passed: lockfile synchronization, dependency installation, production dependency diagnostic, TypeScript, I18N audit/parity, Stage 5 Widget Catalog audit, Stage 5 Domain Surface audit, Stage 6 Patient Flow audit, Stage 7 Patient Context audit, full ESLint diagnostic, changed-surface ESLint gate, production build.
+- Final Production Candidate Handoff: run #24, SHA `832d49d888d343018c36fb51454ea6caa0306e80`: SUCCESS.
 
-## Vercel verification
+## Vercel production evidence
 
-The canonical Vercel project is `core-system-clinic` with project ID `prj_DN3UgHVBUHrFG6i6ycxAWj0bXLbG` and team ID `team_VlSz1DTffYBwmUEcYQtR8JiN`.
+Canonical Vercel project: `core-system-clinic`.
 
-The previous failed production deployment `dpl_giREeTD4XP5uueRMvQqbbNJ8uqSt` was for commit `aa7edcc308a1f89e6715ee2f5c0c82f226044087` and failed during type checking because Patient Context referenced a non-existent `messages.patientPortal` namespace. That code defect has since been corrected; the current Patient Context uses the canonical Portal namespace and GitHub production build passes.
+Validated production SHA:
 
-The exposed Vercel deployment action currently rejects the deployment arguments required by its backend schema, so deployment is being handled through the repository's canonical Vercel Git/production handoff path rather than by bypassing the validated GitHub gate.
+`832d49d888d343018c36fb51454ea6caa0306e80`
+
+Production deployment:
+
+`dpl_2fqPkrb34SUtuAntbFNBqmQAaJxg`
+
+Target: `production`
+State: `READY`
+Region: `iad1`
+
+Production aliases include `https://core-system-clinic.vercel.app`.
+
+The deployment was created from GitHub `main` by the existing Vercel Git integration. Build logs show the repository commit, Next.js production build, TypeScript completion, static-page generation and successful build completion. No build error was reported.
+
+## Runtime verification
+
+`https://core-system-clinic.vercel.app/login` returned HTTP 200 from Vercel after the validated production deployment. The response contained the expected ClinicSaaS sign-in surface, English `lang="en"`, `dir="ltr"`, language switcher, responsive viewport metadata, authentication inputs and registration route. The Vercel runtime error check for the verification window returned no runtime errors.
+
+The available connector did not provide an authenticated browser session/test account, so an authenticated manual Patient Context click-through could not be simulated. The authenticated behavior remains covered by the Stage 7 automated audit and server-side authorization architecture; no unsupported manual-authentication claim is made.
+
+## Findings
+
+`S7-BLOCKER-001` is CLOSED. The validated `main` SHA received a Vercel production deployment and reached READY state, and the production route returned HTTP 200.
+
+Deferred: Patient communication remains a future/cross-workstream item because no canonical active communication workspace exists in the current AJM scope. No parallel communication system was created.
 
 ## Final state
 
 Engineering implementation: **PASS**.
-GitHub Stage 7 validation: **PASS**.
+Architecture reconciliation: **PASS**.
+Authorization/tenant boundaries: **PASS**.
+Database state: **PASS — no migration required**.
+GitHub CI: **PASS**.
 Production build: **PASS**.
-Production candidate: **PASS**.
-Vercel production deployment for the final validated candidate: **PENDING**.
-Runtime/UX production verification: **PENDING**.
-Stage 7 closure: **PENDING FINAL VERCEL RUNTIME VERIFICATION**.
+Stage 7 audit: **PASS**.
+Regression checks: **PASS**.
+Vercel production deployment: **PASS**.
+Runtime verification: **PASS for available public/auth surface and deployment health**.
+Documentation closure: **PASS**.
+
+**Stage 7: CLOSED.**
+**Production Ready: YES.**
