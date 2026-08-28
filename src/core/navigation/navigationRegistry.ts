@@ -12,7 +12,7 @@ export type SurfaceTier = "core" | "advanced" | "addon";
 export interface NavItem { href: string; labelKey: NavigationLabelKey | null; label?: NavigationLabel; icon: LucideIcon; requiredPermission: Permission | null; capabilityKey?: string; children?: NavItem[]; surface?: SurfaceTier; }
 
 const financialResourcesChildren: NavItem[] = [
-  { href: "/financial-resources", label: { ar: "نظرة عامة", en: "Overview" }, labelKey: null, icon: LayoutDashboard, requiredPermission: null, capabilityKey: "financial_resources.overview", surface: "core" },
+  { href: "/financial-resources/overview", label: { ar: "نظرة عامة", en: "Overview" }, labelKey: null, icon: LayoutDashboard, requiredPermission: null, capabilityKey: "financial_resources.overview", surface: "core" },
   { href: "/invoices", label: { ar: "الفواتير", en: "Invoices" }, labelKey: null, icon: FileText, requiredPermission: "invoices:read", capabilityKey: "financial_resources.invoices", surface: "core" },
   { href: "/financial-resources?section=payments", label: { ar: "المدفوعات", en: "Payments" }, labelKey: null, icon: CreditCard, requiredPermission: "invoices:read", capabilityKey: "financial_resources.payments", surface: "core" },
   { href: "/financial-resources?section=financial-plans", label: { ar: "الخطط المالية", en: "Financial Plans" }, labelKey: null, icon: WalletCards, requiredPermission: "invoices:read", capabilityKey: "financial_resources.financial_plans", surface: "core" },
