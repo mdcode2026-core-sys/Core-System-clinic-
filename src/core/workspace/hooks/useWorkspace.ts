@@ -9,6 +9,7 @@ import type {
   WorkspaceUserState,
   ResolvedWidget,
   WidgetLayoutEntry,
+  WidgetDefinition,
 } from "../workspace.types";
 import type { WorkspaceSurfaceKey } from "../workspaceSurfaces";
 import { resolveWidgetVisibility } from "../workspaceEngine";
@@ -20,17 +21,20 @@ import { useWidgetPersistence } from "./useWidgetPersistence";
 export interface UseWorkspaceResult {
   resolved: ResolvedWidget[];
   visibleWidgets: ResolvedWidget[];
+  availableWidgets: WidgetDefinition[];
   isLoading: boolean;
   hasErrors: boolean;
   updateWidgetState: (key: string, state: WidgetState) => void;
+  addWidget: (key: string) => void;
+  removeWidget: (key: string) => void;
   reorderWidgets: (orderedKeys: string[]) => void;
   resetLayout: () => void;
 }
 
 /**
- * Resolve one existing Workspace implementation against a presentation
- * context. Context changes which registered Widgets are appropriate defaults;
- * it never changes authorization and never creates a second Workspace engine.
+ * Resolve the canonical Workspace implementation against a presentation
+ * context. Personalization changes presentation only; authorization remains
+ * in the existing permission + feature layers.
  */
 export function useWorkspace(workspaceKey: WorkspaceSurfaceKey = "global"): UseWorkspaceResult {
   const { layout, setLayout, reset } = useWidgetPersistence(workspaceKey);
@@ -42,6 +46,15 @@ export function useWorkspace(workspaceKey: WorkspaceSurfaceKey = "global"): UseW
   );
   const { isFeatureEnabled, isLoading: featuresLoading } = useFeatureFlags(moduleKeys);
 
+  const isLoading = permissionsLoading || featuresLoading;
+
+  const availableWidgets = useMemo(() => {
+    if (isLoading) return [];
+    return widgetRegistry.filter(
+      (widget) => hasPermission(widget.requiredPermission) && isFeatureEnabled(widget.moduleKey),
+    );
+  }, [isLoading, hasPermission, isFeatureEnabled]);
+
   const userHiddenKeys = useMemo(() => {
     const hidden = new Set<string>();
     for (const entry of layout.widgets) {
@@ -50,16 +63,23 @@ export function useWorkspace(workspaceKey: WorkspaceSurfaceKey = "global"): UseW
     return hidden;
   }, [layout.widgets]);
 
-  const isLoading = permissionsLoading || featuresLoading;
-
   const resolved = useMemo(() => {
     if (isLoading) return [];
 
-    const surfaceWidgets = widgetRegistry.filter(
-      (widget) => !widget.defaultWorkspaces || widget.defaultWorkspaces.includes(workspaceKey),
+    const defaultSurfaceKeys = new Set(
+      widgetRegistry
+        .filter((widget) => !widget.defaultWorkspaces || widget.defaultWorkspaces.includes(workspaceKey))
+        .map((widget) => widget.key),
     );
-    const results: ResolvedWidget[] = [];
 
+    // Defaults belong to the current surface. A personalized widget that is
+    // explicitly present in this user's layout remains available on this
+    // surface even when it is not a default for that context.
+    const surfaceWidgets = widgetRegistry.filter(
+      (widget) => defaultSurfaceKeys.has(widget.key) || layout.widgets.some((entry) => entry.key === widget.key),
+    );
+
+    const results: ResolvedWidget[] = [];
     for (const def of surfaceWidgets) {
       const vis = resolveWidgetVisibility(def, hasPermission, isFeatureEnabled, userHiddenKeys);
       const layoutEntry = layout.widgets.find((l) => l.key === def.key);
@@ -88,6 +108,7 @@ export function useWorkspace(workspaceKey: WorkspaceSurfaceKey = "global"): UseW
 
   const updateWidgetState = useCallback(
     (key: string, state: WidgetState) => {
+      if (!widgetRegistry.some((widget) => widget.key === key)) return;
       setLayout((prev: WorkspaceUserState) => {
         const idx = prev.widgets.findIndex((w) => w.key === key);
         if (idx === -1) {
@@ -114,13 +135,47 @@ export function useWorkspace(workspaceKey: WorkspaceSurfaceKey = "global"): UseW
     [setLayout],
   );
 
+  const addWidget = useCallback(
+    (key: string) => {
+      if (!availableWidgets.some((widget) => widget.key === key)) return;
+      setLayout((prev: WorkspaceUserState) => {
+        const existing = prev.widgets.findIndex((w) => w.key === key);
+        if (existing >= 0) {
+          const next = [...prev.widgets];
+          next[existing] = { ...next[existing], state: "visible" };
+          return { ...prev, widgets: next, lastUpdated: new Date().toISOString() };
+        }
+        const definition = widgetRegistry.find((widget) => widget.key === key);
+        if (!definition) return prev;
+        const maxOrder = prev.widgets.reduce((max, widget) => Math.max(max, widget.order), -1);
+        return {
+          ...prev,
+          widgets: [
+            ...prev.widgets,
+            { key, order: maxOrder + 1, size: definition.defaultSize, state: "visible" },
+          ],
+          lastUpdated: new Date().toISOString(),
+        };
+      });
+    },
+    [availableWidgets, setLayout],
+  );
+
+  const removeWidget = useCallback(
+    (key: string) => {
+      if (!availableWidgets.some((widget) => widget.key === key)) return;
+      updateWidgetState(key, "hidden");
+    },
+    [availableWidgets, updateWidgetState],
+  );
+
   const reorderWidgets = useCallback(
     (orderedKeys: string[]) => {
+      const orderByKey = new Map(orderedKeys.map((key, index) => [key, index]));
       setLayout((prev: WorkspaceUserState) => {
-        const next = prev.widgets.map((w) => {
-          const newOrder = orderedKeys.indexOf(w.key);
-          return newOrder >= 0 ? { ...w, order: newOrder } : w;
-        });
+        const next = prev.widgets.map((widget) =>
+          orderByKey.has(widget.key) ? { ...widget, order: orderByKey.get(widget.key) ?? widget.order } : widget,
+        );
         return { ...prev, widgets: next, lastUpdated: new Date().toISOString() };
       });
     },
@@ -132,9 +187,12 @@ export function useWorkspace(workspaceKey: WorkspaceSurfaceKey = "global"): UseW
   return {
     resolved,
     visibleWidgets,
+    availableWidgets,
     isLoading,
     hasErrors,
     updateWidgetState,
+    addWidget,
+    removeWidget,
     reorderWidgets,
     resetLayout,
   };

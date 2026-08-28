@@ -1,6 +1,6 @@
 # Documentation Status & Authority
 
-**Status:** ACTIVE / CURRENT UX/IA STAGE 3 DOCUMENTED
+**Status:** ACTIVE / CURRENT UX/IA STAGE 4 DOCUMENTED
 **Last reviewed:** 2026-08-28
 
 This file is the repository documentation authority and freshness registry.
@@ -29,6 +29,7 @@ When documentation and implementation disagree:
 - `GLOBAL_UX_IA_IMPLEMENTATION_PLAN_2026-08-28.md` — UX/IA implementation plan.
 - `docs/GLOBAL-UX-IA-IMPLEMENTATION-PLAN-2026-08-28-FINAL.md` — approved UX/IA execution plan.
 - `docs/GLOBAL-UX-IA-STAGE-3-WORKSPACE-FOUNDATION-2026-08-28.md` — Stage 3 implementation record.
+- `docs/GLOBAL-UX-IA-STAGE-4-WORKSPACE-PERSONALIZATION-2026-08-28.md` — Stage 4 implementation record.
 - `ADR-012-PATIENT-PORTAL.md` — Patient Portal architecture.
 - `PJ_E2E_DEMO_DATASET.md` — persistent PJ E2E dataset contract.
 - `PJ_STAGE15_CLOSURE.md` — Stage 15 closure evidence.
@@ -40,9 +41,10 @@ When documentation and implementation disagree:
 - Stage 0 — Baseline Lock: implemented/documented.
 - Stage 1 — Navigation & IA Reconciliation: implemented/documented.
 - Stage 2 — User Surface Model: implemented; runtime validation remains a separate recorded gate.
-- Stage 3 — Workspace Foundation: implemented on branch `feat/global-ux-stage-3-workspace-foundation`; runtime validation remains the final closure gate until a READY deployment containing the final head is verified.
+- Stage 3 — Workspace Foundation: implemented; runtime validation remains the final closure gate until a READY deployment containing the final Stage 3 head is verified.
+- Stage 4 — Workspace Personalization: implemented on branch `feat/global-ux-stage-4-workspace-personalization`; runtime validation remains the final closure gate until a READY deployment containing the final Stage 4 head is verified.
 
-Stage 3 uses the existing Workspace engine/renderer/registry and does not create a parallel Workspace system.
+Stage 4 extends the canonical Workspace engine/renderer/registry and existing per-user/per-surface presentation persistence. It does not create a parallel Workspace system or authorization layer.
 
 ## 4. PJ Current State
 
@@ -59,7 +61,7 @@ Do not infer PJ status from archived Milestone/Session documents.
 
 Current AJM status is governed by `docs/AJM-IMPLEMENTATION-STATUS-MATRIX-2026-08-28.md`.
 
-Stage 3 does not reopen or close AJM stages and does not change AJM Domain ownership.
+Stage 4 does not reopen or close AJM stages and does not change AJM Domain ownership.
 
 ## 6. Archived Documentation
 
@@ -77,7 +79,7 @@ Extend this labelled dataset for future scenarios instead of introducing random 
 
 `DATABASE_SCHEMA.md` was reconciled against live Supabase on 2026-08-24. It remains a structural reference and must be refreshed after schema-changing work.
 
-Stage 3 introduced no database schema change.
+Stage 4 introduced no database schema change.
 
 ## 9. Maintenance Rule
 

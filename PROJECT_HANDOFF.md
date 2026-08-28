@@ -6,29 +6,42 @@
 
 ## Current Global UX/IA State
 
+### Stage 4 — Workspace Personalization
+
+**Status:** IMPLEMENTED — RUNTIME VALIDATION PENDING.
+
+Stage 4 extends the canonical Stage 3 Workspace foundation with user-controlled Widget personalization without creating a parallel Workspace system or authorization layer.
+
+Completed in repository:
+
+- Permission/feature-aware Widget Library for adding authorized Widgets.
+- Add/remove (hide) Widget controls.
+- Desktop drag-and-drop reordering within the existing Widget layer.
+- Mobile-friendly move-up/move-down reordering controls.
+- Additional Widgets remain reachable through normal vertical scrolling.
+- Per-authenticated-user + per-Workspace-surface persistence remains the presentation state boundary.
+- Reset restores the canonical default Workspace configuration.
+- Widget controls now update the single canonical Workspace state owned by `WorkspaceRenderer` rather than creating independent hook state per Widget.
+- Non-default authorized Widgets can be intentionally added to a surface and remain there through persistence.
+- Permission/feature checks remain authoritative; personalization cannot grant access.
+- Arabic/English personalization labels use the existing render-time i18n catalogue.
+- No database migration was required.
+- AJM Domain ownership and PJ ownership/behavior remain unchanged.
+- Patient Flow/Queue was not recreated or replaced.
+
+Canonical Stage 4 record:
+`docs/GLOBAL-UX-IA-STAGE-4-WORKSPACE-PERSONALIZATION-2026-08-28.md`
+
+Runtime closure still requires a READY deployment containing the final Stage 4 head plus authenticated, mobile and Arabic/English verification.
+
 ### Stage 3 — Workspace Foundation
 
 **Status:** IMPLEMENTED — RUNTIME VALIDATION PENDING.
 
-Stage 3 established the existing Workspace implementation as the canonical working-surface foundation. The implementation reuses the existing Workspace engine, renderer, shell, Widget registry and persistence rather than creating a second Workspace system.
-
-Completed:
-
-- Global/Home remains the canonical `/` Workspace entry surface.
-- WorkspaceRenderer now presents explicit bilingual working-surface context.
-- Existing Widgets have explicit default Workspace contexts for Global/Home, Operations and Clinical.
-- Existing Widget presentation state is scoped by authenticated user + Workspace surface.
-- Workspace context is carried through the existing Widget container/toolbar path.
-- Existing permission + feature checks remain authoritative for Widget visibility.
-- No new authorization or Workspace Membership security layer was introduced.
-- No database migration was required.
-- Existing AJM and PJ Domain ownership was preserved.
-- Patient Flow/Queue was not recreated or replaced.
+Stage 3 established the canonical Workspace working-surface foundation and remains the architectural base for Stage 4.
 
 Canonical Stage 3 record:
 `docs/GLOBAL-UX-IA-STAGE-3-WORKSPACE-FOUNDATION-2026-08-28.md`
-
-Runtime closure still requires a READY deployment containing the final Stage 3 head plus authenticated, mobile and Arabic/English verification.
 
 ## Purpose
 
@@ -110,6 +123,7 @@ Use:
 - `GLOBAL_UX_IA_FINAL_AUTHORITY_2026-08-28.md` — current UX/IA authority.
 - `docs/GLOBAL-UX-IA-IMPLEMENTATION-PLAN-2026-08-28-FINAL.md` — Global UX/IA execution plan.
 - `docs/GLOBAL-UX-IA-STAGE-3-WORKSPACE-FOUNDATION-2026-08-28.md` — Stage 3 implementation record.
+- `docs/GLOBAL-UX-IA-STAGE-4-WORKSPACE-PERSONALIZATION-2026-08-28.md` — Stage 4 implementation record.
 - `CHANGELOG.md` — historical implementation changes.
 - `DATABASE_SCHEMA.md` — current structural database reference.
 - `PJ_E2E_DEMO_DATASET.md` — persistent E2E dataset contract.
@@ -122,9 +136,9 @@ Dated handoffs, progress reports, Kimi packages, old security plans, old roadmap
 
 ## Next Work
 
-The next Global UX/IA stage must begin from the current repository and live database state. Stage 4 is Workspace Personalization and must build on the Stage 3 foundation; it must not create a parallel Workspace system. Before implementation, reconcile the requested scope against the current UX authority, AJM reconciliation and PJ reconciliation documents.
+Stage 4 Workspace Personalization is implemented on `feat/global-ux-stage-4-workspace-personalization`. Its remaining gate is runtime verification of the deployed authenticated Workspace behavior. The next Global UX/IA stage after closure is Stage 5 — Widget Library + Domain Classification.
 
-AJM remains separately governed. Current AJM matrix status must be read from `docs/AJM-IMPLEMENTATION-STATUS-MATRIX-2026-08-28.md`; Stage 3 does not reopen or close AJM stages.
+AJM remains separately governed. Current AJM matrix status must be read from `docs/AJM-IMPLEMENTATION-STATUS-MATRIX-2026-08-28.md`; Global UX/IA stages do not reopen or close AJM stages unless their evidence explicitly changes an AJM status.
 
 ## Verification Rule
 

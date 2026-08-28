@@ -4,6 +4,19 @@ Reconstructed baseline as of 2026-07-31 from committed migration files and archi
 
 ---
 
+## 2026-08-28 — Global UX/IA Stage 4 — Workspace Personalization
+- Extended the canonical Stage 3 Workspace implementation with a permission/feature-aware Widget Library for adding authorized Widgets.
+- Added Widget add/remove personalization while preserving Widget definitions and Domain ownership.
+- Added desktop native drag-and-drop reordering within the existing Widget layers.
+- Added mobile-friendly move-up/move-down controls so personalization does not depend on desktop drag-and-drop.
+- Preserved natural Widget sizing and normal vertical scrolling for additional Widgets instead of forcing a fixed visible set.
+- Allowed explicitly selected authorized Widgets to persist on a surface even when they are not that surface's default Widget set.
+- Kept presentation persistence scoped to authenticated user + Workspace surface and retained the existing local persistence boundary.
+- Connected Widget toolbar actions to the single WorkspaceRenderer orchestration state, eliminating independent per-Widget hook state and ensuring immediate UI updates.
+- Added bilingual Arabic/English labels for all new personalization controls through the existing render-time i18n catalogue.
+- No database migration, authorization redesign, Workspace Membership layer, PJ change, AJM Domain change, Patient Flow change or Queue replacement was introduced.
+- Runtime validation remains the final closure gate for Stage 4.
+
 ## 2026-08-28 — Global UX/IA Stage 3 — Workspace Foundation
 - Reused the existing canonical Workspace engine, renderer, shell, registry and persistence instead of creating a second Workspace system.
 - Established the existing `/` surface as an explicit working surface with bilingual context/title/description and separated Quick Actions from Status/Analytics presentation.

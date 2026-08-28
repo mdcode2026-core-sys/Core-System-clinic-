@@ -1,33 +1,83 @@
 "use client";
 
+import type { DragEvent } from "react";
 import { useI18n } from "@/core/i18n/I18nProvider";
-import { useWorkspace } from "@/core/workspace/hooks/useWorkspace";
 import type { WorkspaceSurfaceKey } from "@/core/workspace/workspaceSurfaces";
 import type { WidgetState } from "@/core/workspace/workspace.types";
-import { Eye, EyeOff, ChevronDown, Pin, PinOff } from "lucide-react";
+import { ArrowDown, ArrowUp, ChevronDown, Eye, EyeOff, GripVertical, Pin, PinOff } from "lucide-react";
 import { cn } from "@/shared/utils/cn";
 
 interface WidgetToolbarProps {
   widgetKey: string;
   currentState: WidgetState;
   workspaceKey?: WorkspaceSurfaceKey;
+  canMoveUp?: boolean;
+  canMoveDown?: boolean;
+  onStateChange: (state: WidgetState) => void;
+  onMoveUp?: () => void;
+  onMoveDown?: () => void;
+  onDragStart?: (event: DragEvent<HTMLButtonElement>) => void;
+  onDragEnd?: () => void;
 }
 
-export function WidgetToolbar({ widgetKey, currentState, workspaceKey = "global" }: WidgetToolbarProps) {
-  const { updateWidgetState } = useWorkspace(workspaceKey);
+export function WidgetToolbar({
+  widgetKey,
+  currentState,
+  workspaceKey: _workspaceKey,
+  canMoveUp = false,
+  canMoveDown = false,
+  onStateChange,
+  onMoveUp,
+  onMoveDown,
+  onDragStart,
+  onDragEnd,
+}: WidgetToolbarProps) {
   const { workspace } = useI18n();
-
   const isHidden = currentState === "hidden";
   const isCollapsed = currentState === "collapsed";
   const isPinned = currentState === "pinned";
 
-  const handleHide = () => updateWidgetState(widgetKey, isHidden ? "visible" : "hidden");
-  const handleCollapse = () => updateWidgetState(widgetKey, isCollapsed ? "visible" : "collapsed");
-  const handlePin = () => updateWidgetState(widgetKey, isPinned ? "visible" : "pinned");
+  const handleHide = () => onStateChange(isHidden ? "visible" : "hidden");
+  const handleCollapse = () => onStateChange(isCollapsed ? "visible" : "collapsed");
+  const handlePin = () => onStateChange(isPinned ? "visible" : "pinned");
 
   return (
     <div className="flex items-center gap-1">
       <button
+        type="button"
+        draggable
+        onDragStart={onDragStart}
+        onDragEnd={onDragEnd}
+        className="hidden cursor-grab rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 sm:inline-flex"
+        title={workspace.dragToReorder}
+        aria-label={workspace.dragToReorder}
+      >
+        <GripVertical className="h-4 w-4" />
+      </button>
+
+      <button
+        type="button"
+        onClick={onMoveUp}
+        disabled={!canMoveUp}
+        className={cn("rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 disabled:cursor-not-allowed disabled:opacity-30 sm:hidden")}
+        title={workspace.moveUp}
+        aria-label={workspace.moveUp}
+      >
+        <ArrowUp className="h-4 w-4" />
+      </button>
+      <button
+        type="button"
+        onClick={onMoveDown}
+        disabled={!canMoveDown}
+        className={cn("rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 disabled:cursor-not-allowed disabled:opacity-30 sm:hidden")}
+        title={workspace.moveDown}
+        aria-label={workspace.moveDown}
+      >
+        <ArrowDown className="h-4 w-4" />
+      </button>
+
+      <button
+        type="button"
         onClick={handleCollapse}
         className={cn(
           "rounded p-1 transition-colors",
@@ -40,6 +90,7 @@ export function WidgetToolbar({ widgetKey, currentState, workspaceKey = "global"
       </button>
 
       <button
+        type="button"
         onClick={handlePin}
         className={cn(
           "rounded p-1 transition-colors",
@@ -52,6 +103,7 @@ export function WidgetToolbar({ widgetKey, currentState, workspaceKey = "global"
       </button>
 
       <button
+        type="button"
         onClick={handleHide}
         className={cn(
           "rounded p-1 transition-colors",
@@ -62,6 +114,8 @@ export function WidgetToolbar({ widgetKey, currentState, workspaceKey = "global"
       >
         {isHidden ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
       </button>
+
+      <span className="sr-only">{widgetKey}</span>
     </div>
   );
 }
