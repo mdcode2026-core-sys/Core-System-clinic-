@@ -28,6 +28,7 @@ export type Permission =
   | "notifications:manage"
   | "procedures:read" | "procedures:create" | "procedures:update" | "procedures:delete"
   | "workspace:operation" | "workspace:clinical" | "workspace:administration"
+  | "patient_flow:operations" | "patient_flow:clinical" | "patient_flow:administrative"
   | "medical_files:read" | "medical_files:upload" | "medical_files:update"
   | "medical_files:archive" | "medical_files:reassociate" | "medical_files:manage";
 
