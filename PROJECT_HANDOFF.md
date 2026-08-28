@@ -1,42 +1,46 @@
 # PROJECT_HANDOFF.md
 
-**Project:** CORE SYSTEM — ClinicSaaS™
-**Status:** ACTIVE DEVELOPMENT / Global UX/IA Stage Track
+**Project:** CORE SYSTEM — ClinicSaaS™  
+**Status:** ACTIVE DEVELOPMENT / Global UX/IA Stage Track  
 **Last Updated:** 2026-08-29
 
 ## Current Global UX/IA State
+
+### Stage 8 — Global Search
+
+**Status: CLOSED — PRODUCTION READY.**
+
+Stage 8 implemented the canonical Global Search surface on the existing Workspace shell. It searches authorized information across the existing Domains while preserving tenant isolation, permissions, privacy, Arabic/English behavior, and direct navigation to existing canonical surfaces.
+
+Completed and verified:
+
+- Existing Workspace shell reused; no parallel workspace or navigation system created.
+- Existing permission engine and server-side authorization reused.
+- Existing canonical Domain tables and tenant boundaries reused.
+- Patients, Staff, Invoices, Appointments, Treatment Plans, Services/Procedures, Inventory, Suppliers, Purchase Orders and Patient Portal communication context are searchable.
+- Arabic/English parity and the canonical i18n architecture are preserved.
+- No Stage 8 database migration was required.
+- Stage 5, Stage 6, Stage 7 and Stage 8 audits, TypeScript, changed-surface ESLint and production build passed.
+- Final production candidate SHA: `88559c4db32f32e2a074ad735ea97538e62171bf`.
+- Vercel production deployment `dpl_Hh9uJkAywQHn1Xe9gDd1SbdoLzVh` reached READY.
+- Production `/` returned HTTP 200 and correctly resolved unauthenticated access to `/login`.
+- No runtime logs/errors were reported for the final deployment verification window.
+- Earlier Vercel rate-limit behavior is resolved and is retained only as historical evidence.
+
+Canonical records:
+
+- `docs/STAGE-8-IMPLEMENTATION-RECORD-2026-08-29.md`
+- `docs/STAGE-8-UNRESOLVED-FINDINGS-REGISTER-2026-08-29.md`
+- `.github/workflows/stage8-validation.yml`
+- `.github/workflows/ux-stages-0-4-ci.yml`
 
 ### Stage 7 — Patient Context
 
 **Status: CLOSED — PRODUCTION READY.**
 
-Stage 7 established a canonical patient-context presentation surface on the existing Patient Detail surface. It reuses the existing AJM/PJ/domain implementations and does not create a parallel patient registry, journey, queue, authorization, entitlement or workspace architecture.
-
-Completed and verified:
-
-- Patient Context is embedded in the canonical Patient Detail surface.
-- Existing Patient History, Agenda, Treatment Plans, Invoices, Follow-up and Patient Portal capabilities are reused.
-- Patient-scoped context is preserved into Agenda and Invoices, while existing Follow-up and Treatment Plan surfaces receive the patient context through their supported query paths.
-- UI visibility is permission-derived and existing server-side domain authorization remains authoritative.
-- Arabic/English catalog parity and RTL/LTR behavior remain under the canonical i18n system.
-- No Stage 7 database migration was introduced.
-- Stage 5, Stage 6 and Stage 7 audits, TypeScript, ESLint changed-surface gate and production build passed.
-- Final GitHub UX Stages 0-7 CI run #84 passed for SHA `832d49d888d343018c36fb51454ea6caa0306e80`.
-- Final Production Candidate Handoff run #24 passed for the same SHA.
-- Vercel production deployment `dpl_2fqPkrb34SUtuAntbFNBqmQAaJxg` for the validated SHA reached READY.
-- Production `/login` returned HTTP 200 after the final validated deployment; no runtime errors were reported in the verification window.
-
-Canonical records:
-
-- `docs/STAGE-7-IMPLEMENTATION-RECORD-2026-08-28.md`
-- `docs/STAGE-7-UNRESOLVED-FINDINGS-REGISTER-2026-08-28.md`
-- `.github/workflows/production-gated-deploy.yml`
-
 ### Stage 6 — Patient Flow / Queue
 
 **Status: CLOSED — PRODUCTION READY (STAGE SCOPE).**
-
-Stage 6 reconciled the existing Patient Flow / Queue surface with the Global UX/IA authority without creating a parallel Queue, Patient Journey, Workspace, tenant, or permission architecture.
 
 ### Stage 5 — Widget Library & Classification
 
@@ -44,11 +48,11 @@ Stage 6 reconciled the existing Patient Flow / Queue surface with the Global UX/
 
 ### Stage 0–4 continuity
 
-Stages 0–4 remain governed by their existing records and the Global UX/IA Final Authority. Stage 5, Stage 6 and Stage 7 did not reopen or replace them.
+Stages 0–4 remain governed by their existing records and the Global UX/IA Final Authority. Stage 5, Stage 6, Stage 7 and Stage 8 did not reopen or replace settled stages.
 
 ## Findings governance
 
-Every discovered issue must be investigated; safe/authorized defects are fixed immediately, while cross-workstream architectural or ownership-dependent issues are documented and carried to their owning workstream. Stage 7 blocker `S7-BLOCKER-001` is now CLOSED and remains documented for historical evidence.
+Every discovered issue must be investigated; safe/authorized defects are fixed immediately, while cross-workstream architectural or ownership-dependent issues are documented and carried to their owning workstream. Stage 8 has no unresolved blocker. S8-F-001 remains explicitly deferred to AJM / Tenant Administration and Medical Master Library workstreams.
 
 ## Purpose
 
@@ -95,6 +99,7 @@ Random disposable demo data should not replace this baseline. Extend the labelle
 - Patient Flow remains independent and continues to use the canonical Queue/patient-movement implementation.
 - Widget metadata/classification does not grant access; authorization remains capability/permission based.
 - Patient Context is a presentation/orchestration surface and does not own domain data or authorization.
+- Global Search is a Workspace-shell presentation/orchestration surface and does not own Domain data or authorization.
 
 ## Current Schema Reference
 
@@ -112,6 +117,8 @@ Use:
 - `MASTER_ROADMAP.md` — product roadmap.
 - `GLOBAL_UX_IA_FINAL_AUTHORITY_2026-08-28.md` — current UX/IA authority.
 - `docs/GLOBAL-UX-IA-IMPLEMENTATION-PLAN-2026-08-28-FINAL.md` — approved Global UX/IA execution plan.
+- `docs/STAGE-8-IMPLEMENTATION-RECORD-2026-08-29.md` — Stage 8 implementation/readiness/closure record.
+- `docs/STAGE-8-UNRESOLVED-FINDINGS-REGISTER-2026-08-29.md` — Stage 8 finding disposition.
 - `docs/STAGE-7-IMPLEMENTATION-RECORD-2026-08-28.md` — Stage 7 implementation/readiness record.
 - `docs/STAGE-7-UNRESOLVED-FINDINGS-REGISTER-2026-08-28.md` — Stage 7 finding disposition.
 - `docs/STAGE-6-PRODUCTION-READINESS-RECORD-2026-08-28.md` — Stage 6 closure/readiness record.
@@ -128,7 +135,7 @@ Dated handoffs, progress reports, Kimi packages, old security plans, old roadmap
 
 ## Next Work
 
-Stage 7 is closed. Future work proceeds from the next approved roadmap/workstream item. The Patient communication surface remains a documented future/cross-workstream item and was not introduced as a parallel system during Stage 7.
+Stage 8 is closed. Future work proceeds from the next approved roadmap/workstream item. S8-F-001 remains a documented future cross-workstream refinement owned by AJM / Tenant Administration and Medical Master Library; it does not block Stage 8.
 
 ### Mandatory stage execution rule
 
@@ -146,6 +153,6 @@ Use local/repository validation and GitHub Actions for build/type/lint/static/in
 
 A document saying that something exists is not sufficient evidence that it works. For implementation closure, verify repository state, database state and runtime/manual behavior where applicable. A successful GitHub build is necessary but is not by itself runtime proof when runtime behavior is part of the Definition of Done.
 
-## Final Stage 7 Re-check
+## Final Stage 8 Re-check
 
-The repository final re-check is anchored to the current `main` HEAD after closure documentation updates. The final production deployment must correspond to that final HEAD before the stage is considered fully closed.
+The closure candidate is anchored to production candidate SHA `88559c4db32f32e2a074ad735ea97538e62171bf`, whose Vercel production deployment reached READY. The Stage 8 closure record and findings register are part of the same closure tree.
