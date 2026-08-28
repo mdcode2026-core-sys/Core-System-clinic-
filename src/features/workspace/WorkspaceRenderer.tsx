@@ -17,7 +17,6 @@ export function WorkspaceRenderer({ context, workspaceKey = "global" }: Workspac
   const {
     visibleWidgets,
     availableWidgets,
-    layout,
     isLoading,
     hasErrors,
     updateWidgetState,
@@ -25,7 +24,7 @@ export function WorkspaceRenderer({ context, workspaceKey = "global" }: Workspac
     removeWidget,
     reorderWidgets,
     resetLayout,
-  } = useWorkspace(workspaceKey) as ReturnType<typeof useWorkspace> & { layout: { widgets: { key: string }[] } };
+  } = useWorkspace(workspaceKey);
   const { locale, workspace } = useI18n();
   const [customizing, setCustomizing] = useState(false);
   const [draggedKey, setDraggedKey] = useState<string | null>(null);
@@ -75,12 +74,7 @@ export function WorkspaceRenderer({ context, workspaceKey = "global" }: Workspac
           <button type="button" className="rounded border px-2 py-1 hover:bg-gray-50" onClick={() => moveWithinLayer(layerItems, resolved.definition.key, 1)} aria-label={workspace.moveDown}>↓</button>
         </div>
       </div>
-      <WidgetContainer
-        resolved={resolved}
-        context={context}
-        workspaceKey={workspaceKey}
-        onStateChange={updateWidgetState}
-      />
+      <WidgetContainer resolved={resolved} context={context} workspaceKey={workspaceKey} onStateChange={updateWidgetState} />
     </div>
   );
 
@@ -111,49 +105,22 @@ export function WorkspaceRenderer({ context, workspaceKey = "global" }: Workspac
               <h2 className="text-base font-semibold text-gray-900">{workspace.widgetLibrary}</h2>
               <p className="mt-1 text-sm text-gray-500">{workspace.customizationHint}</p>
             </div>
-            <button type="button" onClick={resetLayout} className="inline-flex items-center justify-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium hover:bg-gray-50">
-              <RotateCcw className="h-4 w-4" />{workspace.restoreDefaults}
-            </button>
+            <button type="button" onClick={resetLayout} className="inline-flex items-center justify-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium hover:bg-gray-50"><RotateCcw className="h-4 w-4" />{workspace.restoreDefaults}</button>
           </div>
           <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
             {availableWidgets.map((widget) => {
               const selected = selectedKeys.has(widget.key);
-              return (
-                <div key={widget.key} className="flex items-center justify-between rounded-lg border p-3">
-                  <span className="min-w-0 truncate text-sm font-medium text-gray-800">{locale === "ar" ? widget.labelAr : widget.label}</span>
-                  {selected ? (
-                    <button type="button" onClick={() => removeWidget(widget.key)} className="shrink-0 rounded-md border px-2 py-1 text-xs hover:bg-gray-50">{workspace.removeWidget}</button>
-                  ) : (
-                    <button type="button" onClick={() => addWidget(widget.key)} className="inline-flex shrink-0 items-center gap-1 rounded-md border px-2 py-1 text-xs hover:bg-gray-50"><Plus className="h-3 w-3" />{workspace.addWidget}</button>
-                  )}
-                </div>
-              );
+              return <div key={widget.key} className="flex items-center justify-between rounded-lg border p-3"><span className="min-w-0 truncate text-sm font-medium text-gray-800">{locale === "ar" ? widget.labelAr : widget.label}</span>{selected ? <button type="button" onClick={() => removeWidget(widget.key)} className="shrink-0 rounded-md border px-2 py-1 text-xs hover:bg-gray-50">{workspace.removeWidget}</button> : <button type="button" onClick={() => addWidget(widget.key)} className="inline-flex shrink-0 items-center gap-1 rounded-md border px-2 py-1 text-xs hover:bg-gray-50"><Plus className="h-3 w-3" />{workspace.addWidget}</button>}</div>;
             })}
             {availableWidgets.length === 0 && <p className="text-sm text-gray-500">{workspace.noAvailableWidgets}</p>}
           </div>
         </section>
       )}
 
-      {layer2.length > 0 && (
-        <section aria-labelledby="workspace-actions-heading">
-          <h2 id="workspace-actions-heading" className="mb-3 text-sm font-semibold uppercase tracking-wide text-gray-500">{workspace.layerQuickActions}</h2>
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">{layer2.map((resolved) => renderWidget(resolved, layer2))}</div>
-        </section>
-      )}
+      {layer2.length > 0 && <section aria-labelledby="workspace-actions-heading"><h2 id="workspace-actions-heading" className="mb-3 text-sm font-semibold uppercase tracking-wide text-gray-500">{workspace.layerQuickActions}</h2><div className="grid grid-cols-1 gap-4 md:grid-cols-2">{layer2.map((resolved) => renderWidget(resolved, layer2))}</div></section>}
+      {layer3.length > 0 && <section aria-labelledby="workspace-status-heading"><h2 id="workspace-status-heading" className="mb-3 text-sm font-semibold uppercase tracking-wide text-gray-500">{workspace.layerStatusAnalytics}</h2><div className="grid grid-cols-1 gap-4 xl:grid-cols-3">{layer3.map((resolved) => renderWidget(resolved, layer3))}</div></section>}
 
-      {layer3.length > 0 && (
-        <section aria-labelledby="workspace-status-heading">
-          <h2 id="workspace-status-heading" className="mb-3 text-sm font-semibold uppercase tracking-wide text-gray-500">{workspace.layerStatusAnalytics}</h2>
-          <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">{layer3.map((resolved) => renderWidget(resolved, layer3))}</div>
-        </section>
-      )}
-
-      {visibleWidgets.length === 0 && !hasErrors && (
-        <div className="flex min-h-[240px] flex-col items-center justify-center rounded-2xl border-2 border-dashed border-gray-200 bg-white px-6 text-center">
-          <p className="text-lg font-medium text-gray-700">{workspace.noWidgets}</p>
-          <p className="mt-1 max-w-md text-sm text-gray-500">{workspace.contactAdmin}</p>
-        </div>
-      )}
+      {visibleWidgets.length === 0 && !hasErrors && <div className="flex min-h-[240px] flex-col items-center justify-center rounded-2xl border-2 border-dashed border-gray-200 bg-white px-6 text-center"><p className="text-lg font-medium text-gray-700">{workspace.noWidgets}</p><p className="mt-1 max-w-md text-sm text-gray-500">{workspace.contactAdmin}</p></div>}
     </div>
   );
 }
