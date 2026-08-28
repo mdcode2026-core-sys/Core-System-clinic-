@@ -1,7 +1,7 @@
 # Documentation Status & Authority
 
-**Status:** ACTIVE / CLEANUP COMPLETE
-**Last reviewed:** 2026-08-24
+**Status:** ACTIVE / CURRENT UX/IA STAGE 3 DOCUMENTED
+**Last reviewed:** 2026-08-28
 
 This file is the repository documentation authority and freshness registry.
 
@@ -15,6 +15,7 @@ When documentation and implementation disagree:
 4. **PROJECT_HANDOFF.md** = current operational summary.
 5. **CHANGELOG.md** = historical change evidence.
 6. Historical reports and old implementation packages are evidence only.
+7. `GLOBAL_UX_IA_FINAL_AUTHORITY_2026-08-28.md` = current UX/IA authority.
 
 ## 2. Current Canonical Documents
 
@@ -24,13 +25,26 @@ When documentation and implementation disagree:
 - `PROJECT_HANDOFF.md` — current living implementation handoff.
 - `CHANGELOG.md` — historical implementation changes.
 - `DATABASE_SCHEMA.md` — current structural schema reference.
+- `GLOBAL_UX_IA_FINAL_AUTHORITY_2026-08-28.md` — current UX/IA authority.
+- `GLOBAL_UX_IA_IMPLEMENTATION_PLAN_2026-08-28.md` — UX/IA implementation plan.
+- `docs/GLOBAL-UX-IA-IMPLEMENTATION-PLAN-2026-08-28-FINAL.md` — approved UX/IA execution plan.
+- `docs/GLOBAL-UX-IA-STAGE-3-WORKSPACE-FOUNDATION-2026-08-28.md` — Stage 3 implementation record.
 - `ADR-012-PATIENT-PORTAL.md` — Patient Portal architecture.
 - `PJ_E2E_DEMO_DATASET.md` — persistent PJ E2E dataset contract.
 - `PJ_STAGE15_CLOSURE.md` — Stage 15 closure evidence.
 - `DOCUMENTATION_STATUS.md` — this registry.
 - `DOCUMENTATION_CONSOLIDATION_PLAN.md` — completed cleanup record.
 
-## 3. PJ Current State
+## 3. Current Global UX/IA State
+
+- Stage 0 — Baseline Lock: implemented/documented.
+- Stage 1 — Navigation & IA Reconciliation: implemented/documented.
+- Stage 2 — User Surface Model: implemented; runtime validation remains a separate recorded gate.
+- Stage 3 — Workspace Foundation: implemented on branch `feat/global-ux-stage-3-workspace-foundation`; runtime validation remains the final closure gate until a READY deployment containing the final head is verified.
+
+Stage 3 uses the existing Workspace engine/renderer/registry and does not create a parallel Workspace system.
+
+## 4. PJ Current State
 
 - Stages 0–10: closed.
 - Stage 11: closed.
@@ -41,25 +55,31 @@ When documentation and implementation disagree:
 
 Do not infer PJ status from archived Milestone/Session documents.
 
-## 4. Archived Documentation
+## 5. AJM Current State
+
+Current AJM status is governed by `docs/AJM-IMPLEMENTATION-STATUS-MATRIX-2026-08-28.md`.
+
+Stage 3 does not reopen or close AJM stages and does not change AJM Domain ownership.
+
+## 6. Archived Documentation
 
 Superseded root-level artifacts have been moved to `/archive/`, including old dated handoffs, analytics/queue progress logs, Kimi implementation packages, old security planning/audit documents, old roadmap/design snapshots and the obsolete Supabase data dump.
 
 Archived documents are historical evidence only and must not be used as current implementation instructions.
 
-## 5. E2E Data Contract
+## 7. E2E Data Contract
 
 `PJ_E2E_DEMO_DATASET.md` is the persistent synthetic dataset contract covering patients, appointments, visits, procedures, multi-stage treatment plans, treatment-plan items, medical files, follow-ups and notifications.
 
 Extend this labelled dataset for future scenarios instead of introducing random disposable fixtures.
 
-## 6. Schema Freshness
+## 8. Schema Freshness
 
 `DATABASE_SCHEMA.md` was reconciled against live Supabase on 2026-08-24. It remains a structural reference and must be refreshed after schema-changing work.
 
-Before schema-sensitive implementation, verify live Supabase and repository migrations together.
+Stage 3 introduced no database schema change.
 
-## 7. Maintenance Rule
+## 9. Maintenance Rule
 
 Every completed PJ stage must update, as applicable:
 
@@ -70,8 +90,10 @@ Every completed PJ stage must update, as applicable:
 - `PJ_E2E_DEMO_DATASET.md` when E2E coverage changes;
 - `DATABASE_SCHEMA.md` when schema changes.
 
+For Global UX/IA stages, update the applicable stage record, `PROJECT_HANDOFF.md`, `CHANGELOG.md` and this registry when current implementation state changes materially.
+
 Do not create new dated handoff/progress documents in the root for routine work.
 
-## 8. Cleanup Result
+## 10. Cleanup Result
 
-The repository root is now reserved for current/canonical documentation. Historical documentation is retained under `/archive/` and is no longer part of the active documentation surface.
+The repository root is reserved for current/canonical documentation. Historical documentation is retained under `/archive/` and is no longer part of the active documentation surface.
