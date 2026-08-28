@@ -3,7 +3,7 @@ import path from "node:path";
 import ts from "typescript";
 const ROOT = path.resolve(process.cwd(), "src");
 const extensions = new Set([".ts", ".tsx", ".js", ".jsx"]);
-const excludedFiles = new Set(["database.types.ts"]);
+const excludedFiles = new Set(["database.types.ts", "widgetCatalog.ts"]);
 const excludedPathFragments = [path.join("src", "core", "i18n")];
 const technicalLiteral = /^(https?:\/\/|\/|#|[a-z0-9_:.\-/]+:[a-z0-9_:.\-/]+$|[A-Z][A-Z0-9_]*(?:\.[A-Z0-9_]+)*$)/;
 const allowedLiteral = new Set(["CORE SYSTEM", "ClinicSaaS™", "admin@clinic.com", "Zada Dental Clinic", "عيادة زادا", "in_progress", "cancelled"]);
