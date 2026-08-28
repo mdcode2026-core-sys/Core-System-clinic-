@@ -12,6 +12,7 @@ import { getTreatmentPlans } from "@/domain/treatment-plan/treatment-plan.action
 import { listInvoices } from "@/domain/invoicing/invoicing.queries";
 import { listFollowups } from "@/domain/followup/followup.queries";
 import type { Patient, PatientHistory } from "@/domain/patients/patients.types";
+import { PatientPortalInviteButton } from "@/features/patient-portal/patient-portal-invite-button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { Button } from "@/shared/components/ui/button";
 
@@ -28,6 +29,7 @@ export function PatientContextPanel({ patient, history }: PatientContextPanelPro
   const canInvoices = !permissionsLoading && hasPermission("invoices:read");
   const canFollowup = !permissionsLoading && hasPermission("followup:read");
   const canVisits = !permissionsLoading && hasPermission("visits:read");
+  const canPatientRead = !permissionsLoading && hasPermission("patients:read");
   const appointmentFilter = useMemo(() => ({ patientId: patient.id }), [patient.id]);
   const agendaQuery = useAgendaEventsFiltered(canAgenda ? tenantId : null, appointmentFilter);
   const treatmentQuery = useQuery({ queryKey: ["patient-context", "treatment-plans", patient.id], queryFn: () => getTreatmentPlans(patient.id), enabled: canTreatment });
@@ -54,6 +56,7 @@ export function PatientContextPanel({ patient, history }: PatientContextPanelPro
         {canInvoices && <Card><CardHeader className="pb-2"><CardTitle className="flex items-center gap-2 text-sm"><CreditCard className="h-4 w-4" />{t.financial}</CardTitle></CardHeader><CardContent><div className="text-2xl font-bold">{invoiceRows.length}</div><p className="text-xs text-muted-foreground">{t.amountDue}: {amountDue}</p><Link className="mt-2 inline-flex items-center text-xs underline" href={`/invoices?patientId=${encodeURIComponent(patient.id)}`}>{t.openInvoices}<ExternalLink className="ms-1 h-3 w-3" /></Link></CardContent></Card>}
       </div>
       {canFollowup && <Card><CardHeader className="pb-2"><CardTitle className="flex items-center gap-2 text-sm"><FileClock className="h-4 w-4" />{t.followup}</CardTitle></CardHeader><CardContent className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between"><div><div className="font-semibold">{openFollowups} {t.openItems}</div><p className="text-xs text-muted-foreground">{followupData.success ? t.patientFiltered : t.loadFailed}</p></div><Link className="inline-flex items-center text-sm underline" href={`/follow-up?patientId=${encodeURIComponent(patient.id)}`}>{t.openFollowup}<ExternalLink className="ms-1 h-3 w-3" /></Link></CardContent></Card>}
+      {canPatientRead && tenantId && <Card><CardHeader className="pb-2"><CardTitle className="flex items-center gap-2 text-sm"><ExternalLink className="h-4 w-4" />{t.portal}</CardTitle></CardHeader><CardContent><PatientPortalInviteButton patientId={patient.id} tenantId={tenantId} hasEmail={Boolean(patient.email)} hasPhone={Boolean(patient.phone_primary)} /></CardContent></Card>}
       <Card><CardHeader className="pb-2"><CardTitle className="flex items-center gap-2 text-sm"><MessageSquare className="h-4 w-4" />{t.communication}</CardTitle></CardHeader><CardContent><p className="text-sm text-muted-foreground">{t.communicationDeferred}</p></CardContent></Card>
     </section>
   );
