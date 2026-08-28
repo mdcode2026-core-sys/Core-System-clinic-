@@ -9,6 +9,7 @@
     "lint": "eslint .",
     "i18n:audit": "node tools/i18n-audit.mjs",
     "i18n:parity": "node tools/i18n-catalog-parity.mjs",
+    "ux:widget-catalog": "node tools/widget-catalog-audit.mjs",
     "db:types": "supabase gen types typescript --project-id qaslsjyxjwvdoiczmhgq --schema public > src/infrastructure/supabase/database.types.ts",
     "db:migrate": "supabase migration up",
     "db:reset": "supabase db reset"
