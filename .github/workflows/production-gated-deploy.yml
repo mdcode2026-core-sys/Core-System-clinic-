@@ -33,14 +33,12 @@ jobs:
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
           NEXT_PUBLIC_APP_URL: https://core-system-clinic.vercel.app
         run: npm run build
-      - name: Link Vercel production project
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-        run: npx vercel@latest link --project core-system-clinic --scope mdcode2026-core-sys-projects --yes --token "$VERCEL_TOKEN"
       - name: Deploy validated commit to Vercel Production
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-        run: npx vercel@latest deploy --prod --yes --token "$VERCEL_TOKEN"
+          VERCEL_ORG_ID: team_VlSz1DTffYBwmUEcYQtR8JiN
+          VERCEL_PROJECT_ID: prj_DN3UgHVBUHrFG6i6ycxAWj0bXLbG
+        run: npx vercel@latest deploy --prod --yes --non-interactive --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" --project "$VERCEL_PROJECT_ID"
       - name: Record deployed candidate
         run: |
           echo "Production candidate: ${{ github.event.workflow_run.head_sha }}"
