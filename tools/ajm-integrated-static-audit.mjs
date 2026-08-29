@@ -19,7 +19,6 @@ const registry = fs.readFileSync(path.join(root, "src/core/navigation/navigation
 for (const route of ["/workforce", "/communications", "/work-center"]) {
   if (!registry.includes(`href:\"${route}\"`)) { console.error(`AJM canonical route missing from navigation registry: ${route}`); process.exit(1); }
 }
-const forbidden = ["src/domain/agenda", "src/domain/treatment-plan"];
 const comm = fs.readFileSync(path.join(root, "src/domain/communications/communications.actions.ts"), "utf8");
 if (comm.includes("createAppointment") || comm.includes("createTreatmentPlan")) { console.error("Communications must not own Agenda or Treatment Plan creation."); process.exit(1); }
 console.log("AJM integrated static audit: PASS");
