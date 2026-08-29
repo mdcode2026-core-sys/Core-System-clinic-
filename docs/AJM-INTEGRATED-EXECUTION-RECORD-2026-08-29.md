@@ -15,7 +15,7 @@ Execution principle:
 
 The working release candidate is accumulated on AJM execution branch/PR #55 and contains the current AJM-3 through AJM-8 implementation slices plus required integrated validation fixes.
 
-Current candidate head SHA: `dd8e2e01e2a215307d59baf71f062a05405900ff`
+Current candidate head SHA: `e55f0e503138d8569eaca67c4aeaeed7a4845dcd`
 
 PR #55 remains open and unmerged.
 
@@ -65,12 +65,12 @@ Implemented RLS mutation-path hardening, assignee authorization, sensitive workf
 
 - Analytics category typing mismatch: diagnosed and fixed with the canonical `AnalyticsCategory` type.
 - Stage 10 Sidebar audit: diagnosed as brittle formatting/source-parsing assertions; audit made formatting-robust without weakening semantic checks.
-- Integrated AJM static audit: hardened against formatting assumptions and expanded for route uniqueness, server authorization, KPI consolidation and Communications ownership boundaries.
+- Integrated AJM static audit: hardened against formatting assumptions and expanded for route uniqueness, server authorization, KPI consolidation and Communications ownership boundaries. The Workforce permission assertion was then corrected to match the actual mutation permission model without weakening server authorization requirements.
 - Operational work history RLS: diagnosed missing INSERT policy against actual server-action behavior; explicit tenant/user/work-scoped INSERT policy added.
 - Tenant integrity: additional same-tenant foreign keys added for Workforce audit/user references and Communications patient/user references.
 - Integrated migration audit added and wired into the Stage 15 validation workflow.
-- Latest observed Stage 10 and Stage 12 validation runs completed successfully through their required pre-build gates; Stage 13 Runtime E2E, Stage 14 Legacy Cleanup, Stage 15 Documentation Closure and I18N Verification also have successful observed runs for the candidate validation cycle.
-- The final integrated workflow set for commit `dd8e2e01e2a215307d59baf71f062a05405900ff` currently contains 10 pull-request runs; several are still queued/in progress. Therefore all-green CI has NOT yet been claimed.
+- Candidate `e55f0e503138d8569eaca67c4aeaeed7a4845dcd` completed all 10 observed pull-request workflow runs successfully: I18N Verification, Stage 8, Stage 9, Stage 10, Stage 11, Stage 12, Stage 13 Runtime E2E, Stage 14 Legacy Cleanup, Stage 15 Documentation Closure, and UX Stages 0-8 CI.
+- Stage 15 completed TypeScript, lint, I18N audit/parity, UX audits, mobile/security/legacy checks, AJM integrated static audit, AJM migration sequence audit, documentation audit, and Production build successfully.
 
 ## Integrated migration sequence
 
@@ -84,20 +84,34 @@ PR #55 contains this dependency-ordered sequence:
 6. `20260829180000_ajm_7_cross_domain_links.sql`
 7. `20260829190000_ajm_8_security_runtime_hardening.sql`
 
-A repository audit now checks the exact sequence, timestamp ordering, non-destructive DDL, required RLS/security invariants and absence of unexpected AJM migrations in the integrated timestamp window.
+A repository audit checks the exact sequence, timestamp ordering, non-destructive DDL, required RLS/security invariants and absence of unexpected AJM migrations in the integrated timestamp window.
 
 Live Supabase was checked directly. None of the current-cycle Workforce/Communications/Operational Work tables are currently present, and none of the seven migration versions above are recorded in `supabase_migrations.schema_migrations`. No partial production migration has been applied.
 
+## Integrated acceptance result before Production Gate
+
+The candidate is now **INTEGRATED RELEASE-READY / PRODUCTION-DEFERRED** for the non-production acceptance gates: the full observed CI set is green and the integrated AJM static/migration audits pass. This status does not imply Production deployment or Production authorization/tenant-isolation acceptance.
+
+The candidate has not been merged to `main` because the Master Prompt requires Production acceptance before final closure and the current Production Gate is not yet satisfiable.
+
 ## Production gate dependencies
 
-1. Vercel build-rate limit remains a Production Gate dependency only; it does not block engineering/CI work.
+1. Vercel build-rate limit remains a Production Gate dependency only; it does not block engineering or CI.
 2. Approved authenticated Production E2E identity remains unavailable and is not invented.
 3. Production DB migration must be applied as the complete integrated sequence, not piecemeal, followed by verification.
 
+## Required final Production Gate sequence
+
+`Integrated Candidate → final validation → complete migration sequence → one Production deployment where feasible → Production verification → authenticated E2E with approved identity → evidence/documentation → Final Production Closure`
+
 ## Current acceptance state
 
-AJM-3 through AJM-7 remain `RELEASE-DEFERRED` pending the final production gate. AJM-8 remains `PARTIALLY CLOSED / BLOCKED at production gate`.
+AJM-3 through AJM-7: `RELEASE-DEFERRED` pending the final Production Gate.
+
+AJM-8: `PARTIALLY CLOSED / BLOCKED at Production Gate`.
+
+Integrated candidate: `INTEGRATED RELEASE-READY / PRODUCTION-DEFERRED`.
 
 No AJM Stage is marked `CLOSED`.
 
-Closure requires implementation, AJM/UX/PJ reconciliation, DB/RLS/Auth/Entitlement validation, critical workflows, build, Production deployment, Production verification, documentation and complete evidence as required by the Master Prompt.
+Closure requires implementation, AJM/UX/PJ reconciliation, DB/RLS/Auth/Entitlement validation, critical workflows, build, Production deployment, Production verification, authenticated E2E where required, documentation and complete evidence as required by the Master Prompt.
