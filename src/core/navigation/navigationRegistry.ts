@@ -3,7 +3,7 @@
 
 import type { Permission } from "@/core/permissions/types";
 import { messages } from "@/core/i18n/messages";
-import { LayoutDashboard, Users, CalendarDays, ListOrdered, FileText, FileBarChart, BarChart3, PhoneCall, Settings, BriefcaseBusiness, Stethoscope, ClipboardList, CreditCard, WalletCards, ShieldCheck, Boxes, Truck, ShoppingCart, ClipboardCheck, MessageCircle } from "lucide-react";
+import { LayoutDashboard, Users, CalendarDays, ListOrdered, FileText, FileBarChart, BarChart3, PhoneCall, Settings, BriefcaseBusiness, Stethoscope, ClipboardList, CreditCard, WalletCards, ShieldCheck, Boxes, Truck, ShoppingCart, ClipboardCheck, MessageCircle, ListChecks } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 export type NavigationLabelKey = keyof typeof messages.en.nav;
@@ -17,8 +17,8 @@ const financialResourcesChildren:NavItem[]=[
  {href:"/invoices",label:{ar:"الفواتير",en:"Invoices"},labelKey:null,icon:FileText,requiredPermission:"invoices:read",capabilityKey:"financial_resources.invoices",surface:"core"},
  {href:"/financial-resources/payments",label:{ar:"المدفوعات",en:"Payments"},labelKey:null,icon:CreditCard,requiredPermission:"invoices:read",capabilityKey:"financial_resources.payments",surface:"core"},
  {href:"/financial-resources/financial-plans",label:{ar:"الخطط المالية",en:"Financial Plans"},labelKey:null,icon:WalletCards,requiredPermission:"invoices:read",capabilityKey:"financial_resources.financial_plans",navigationOnly:true,surface:"core",children:[{href:"/financial-resources/financial-plans/installments",label:{ar:"الأقساط",en:"Installments"},labelKey:null,icon:ClipboardList,requiredPermission:"invoices:read",capabilityKey:"financial_resources.installments",surface:"core"}]},
- {href:"/financial-resources/insurance",label:{ar:"التأمين",en:"Insurance"},labelKey:null,icon:ShieldCheck,requiredPermission:"insurance:read",capabilityKey:"financial_resources.insurance",navigationOnly:true,surface:"core",children:[{href:"/financial-resources/insurance/claims",label:{ar:"المطالبات",en:"Claims"},labelKey:null,icon:ClipboardCheck,requiredPermission:"insurance:read",capabilityKey:"financial_resources.insurance.claims",surface:"core"}]},
- {href:"/inventory",label:{ar:"المخزون",en:"Inventory"},labelKey:null,icon:Boxes,requiredPermission:"inventory:read",capabilityKey:"financial_resources.inventory",navigationOnly:true,surface:"core",children:[{href:"/financial-resources/inventory/consumption",label:{ar:"الاستهلاك",en:"Consumption"},labelKey:null,icon:ClipboardCheck,requiredPermission:"inventory:read",capabilityKey:"financial_resources.consumption",surface:"core"}]},
+ {href:"/financial-resources/insurance",label:{ar:"التأمين",en:"Insurance"},labelKey:null,icon:ShieldCheck,requiredPermission:"insurance:read",capabilityKey:"financial_resources.insurance",navigationOnly:true,children:[{href:"/financial-resources/insurance/claims",label:{ar:"المطالبات",en:"Claims"},labelKey:null,icon:ClipboardCheck,requiredPermission:"insurance:read",capabilityKey:"financial_resources.insurance.claims",surface:"core"}]},
+ {href:"/inventory",label:{ar:"المخزون",en:"Inventory"},labelKey:null,icon:Boxes,requiredPermission:"inventory:read",capabilityKey:"financial_resources.inventory",navigationOnly:true,children:[{href:"/financial-resources/inventory/consumption",label:{ar:"الاستهلاك",en:"Consumption"},labelKey:null,icon:ClipboardCheck,requiredPermission:"inventory:read",capabilityKey:"financial_resources.consumption",surface:"core"}]},
  {href:"/financial-resources/purchasing",label:{ar:"المشتريات",en:"Purchasing"},labelKey:null,icon:ShoppingCart,requiredPermission:"purchasing:read",capabilityKey:"financial_resources.purchasing",navigationOnly:true,children:[{href:"/financial-resources/purchasing/suppliers",label:{ar:"الموردون",en:"Suppliers"},labelKey:null,icon:Truck,requiredPermission:"purchasing:read",capabilityKey:"financial_resources.suppliers",surface:"core"},{href:"/financial-resources/purchasing/receiving",label:{ar:"الاستلام",en:"Receiving"},labelKey:null,icon:ClipboardCheck,requiredPermission:"purchasing:read",capabilityKey:"financial_resources.receiving",surface:"core"}]},
 ];
 
@@ -30,6 +30,7 @@ export const navigationRegistry:NavItem[]=[
  {href:"/treatment-plans",labelKey:"treatmentPlans",icon:ClipboardList,requiredPermission:"treatment_plans:read",visibility:"sidebar"},
  {href:"/workforce",label:{ar:"القوى العاملة والعمليات",en:"Workforce & Operations"},labelKey:null,icon:BriefcaseBusiness,requiredPermission:"workforce:read",capabilityKey:"workforce.access",surface:"core",visibility:"sidebar"},
  {href:"/communications",label:{ar:"الاتصالات",en:"Communications"},labelKey:null,icon:MessageCircle,requiredPermission:"communications:read",capabilityKey:"communications.access",surface:"core",visibility:"sidebar"},
+ {href:"/work-center",label:{ar:"مركز العمل",en:"Work Center"},labelKey:null,icon:ListChecks,requiredPermission:"work:read",capabilityKey:"coordination.work_center",surface:"core",visibility:"sidebar"},
  {href:"/financial-resources",labelKey:null,label:{ar:"المالية والموارد",en:"Financial & Resources"},icon:WalletCards,requiredPermission:null,capabilityKey:"financial_resources.access",navigationOnly:true,children:financialResourcesChildren,visibility:"sidebar"},
  {href:"/follow-up",labelKey:"followUp",icon:PhoneCall,requiredPermission:"followup:read",visibility:"sidebar"},
  {href:"/reports",labelKey:"reports",icon:FileBarChart,requiredPermission:"reports:read",visibility:"sidebar"},
