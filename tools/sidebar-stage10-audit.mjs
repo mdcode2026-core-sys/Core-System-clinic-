@@ -26,10 +26,14 @@ expect(registry.includes('href: "/operation"') && registry.includes('requiredPer
 expect(registry.includes('href: "/clinical"') && registry.includes('requiredPermission: "workspace:clinical"'), "Clinical contextual route is missing or not permission-bound");
 expect(registry.includes('href: "/queue"') && registry.includes('requiredPermission: "sessions:read"'), "Queue compatibility route is missing or not permission-bound");
 expect(registry.includes('navigationOnly: true, visibility: "sidebar"'), "Sidebar group contract is missing");
-expect(registry.includes('navigationOnly: true, visibility: "sidebar", children: financialResourcesChildren'), "Financial & Resources must be a navigation group");
+expect(/href: "\/financial-resources"[^\n]*navigationOnly: true/.test(registry), "Financial & Resources must be a navigation group");
 expect(registry.includes('href: "/patient-flow/operations"') && registry.includes('href: "/patient-flow/clinical"') && registry.includes('href: "/patient-flow/administrative"'), "Patient Flow must expose the three approved child views");
 expect(registry.includes('href: "/dashboard"') && registry.includes('requiredPermission: "analytics:read"'), "Dashboard must remain permission-aware");
 expect(registry.includes('function flattenNavigation') && registry.includes('getRequiredPermission'), "Canonical recursive route permission resolver is missing");
+expect(registry.includes('href: "/financial-resources/financial-plans"') && registry.includes('navigationOnly: true'), "Financial Plans must be a disclosure group");
+expect(registry.includes('href: "/financial-resources/insurance"') && registry.includes('navigationOnly: true'), "Insurance must be a disclosure group");
+expect(registry.includes('href: "/inventory"') && registry.includes('navigationOnly: true'), "Inventory must be a disclosure group");
+expect(registry.includes('href: "/financial-resources/purchasing"') && registry.includes('navigationOnly: true'), "Purchasing must be a disclosure group");
 
 expect(!shell.includes('WorkspaceSurfaceNav'), "Fixed WorkspaceSurfaceNav must not remain in the active Sidebar shell");
 expect(shell.includes('navigationOnly'), "Active Sidebar shell must honor navigation-only groups");
@@ -55,4 +59,4 @@ if (failures.length) {
 console.log("Stage 10 Sidebar audit PASSED");
 console.log(`Canonical Sidebar entries checked: ${expectedSidebarOrder.length}`);
 console.log("Contextual Operations / Clinical / Queue routes remain outside the Sidebar while retaining route permissions.");
-console.log("Patient Flow and Financial & Resources are navigation groups; Workspace is the only top-level working surface.");
+console.log("Patient Flow and Financial & Resources are navigation groups; nested financial groups are disclosure-only; Workspace is the only top-level working surface.");
