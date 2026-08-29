@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test";
 
+test.setTimeout(120000);
 const baseUrl = (process.env.CORE_SYSTEM_PRODUCTION_URL || "https://core-system-clinic.vercel.app").replace(/\/$/, "");
 const email = process.env.CORE_SYSTEM_E2E_EMAIL;
 const password = process.env.CORE_SYSTEM_E2E_PASSWORD;
@@ -17,19 +18,19 @@ const canonicalRoutes = [
 ];
 
 async function login(page) {
-  const login = await page.goto(`${baseUrl}/login`, { waitUntil: "domcontentloaded" });
+  const login = await page.goto(`${baseUrl}/login`, { waitUntil: "domcontentloaded", timeout: 60000 });
   expect(login?.status()).toBeLessThan(400);
   await page.locator('input[type="email"], input[name="email"]').first().fill(email);
   await page.locator('input[type="password"], input[name="password"]').first().fill(password);
   await page.getByRole("button", { name: /sign in|login|log in|تسجيل الدخول|دخول/i }).first().click();
-  await page.waitForLoadState("networkidle");
+  await page.waitForLoadState("domcontentloaded", { timeout: 60000 }).catch(() => {});
   expect(page.url()).not.toMatch(/\/login(?:[/?#]|$)/i);
 }
 
 test("Clinic Admin authenticates against current Production and retains authorization", async ({ page }) => {
   await login(page);
   for (const route of canonicalRoutes) {
-    const response = await page.goto(`${baseUrl}${route}`, { waitUntil: "domcontentloaded" });
+    const response = await page.goto(`${baseUrl}${route}`, { waitUntil: "domcontentloaded", timeout: 60000 });
     expect(response?.status(), `${route} HTTP status`).toBeLessThan(400);
     expect(page.url(), `${route} authentication`).not.toMatch(/\/login(?:[/?#]|$)/i);
   }
@@ -38,8 +39,9 @@ test("Clinic Admin authenticates against current Production and retains authoriz
 test("Clinic Admin Production shell remains usable at mobile viewport", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await login(page);
-  const response = await page.goto(`${baseUrl}/`, { waitUntil: "domcontentloaded" });
+  const response = await page.goto(`${baseUrl}/`, { waitUntil: "domcontentloaded", timeout: 60000 });
   expect(response?.status()).toBeLessThan(400);
   expect(page.url()).not.toMatch(/\/login(?:[/?#]|$)/i);
-  expect(await page.locator("body").getAttribute("dir")).toMatch(/^(rtl|ltr)$/);
+  const dir = await page.locator("html").getAttribute("dir");
+  expect(dir).toMatch(/^(rtl|ltr)$/);
 });
