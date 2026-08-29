@@ -51,7 +51,7 @@ jobs:
         run: npm run ux:mobile-stage11
       - name: Production build
         env:
-          NEXT_PUBLIC_SUPABASE_URL: https://qaslsjyxjwvdoiczmhgq.co
+          NEXT_PUBLIC_SUPABASE_URL: https://qaslsjyxjwvdoiczmhgq.supabase.co
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
           NEXT_PUBLIC_APP_URL: http://localhost:3000
         run: npm run build
