@@ -5,7 +5,18 @@ const email = process.env.CORE_SYSTEM_E2E_EMAIL;
 const password = process.env.CORE_SYSTEM_E2E_PASSWORD;
 if (!email || !password) throw new Error("Missing CORE_SYSTEM_E2E_EMAIL or CORE_SYSTEM_E2E_PASSWORD");
 
-test("Clinic Admin authenticates against Production and retains authorization", async ({ page }) => {
+const canonicalRoutes = [
+  "/", "/agenda", "/analytics", "/clinical", "/communications", "/dashboard",
+  "/financial-resources", "/financial-resources/financial-plans", "/financial-resources/financial-plans/installments",
+  "/financial-resources/insurance", "/financial-resources/insurance/claims", "/financial-resources/inventory/consumption",
+  "/financial-resources/overview", "/financial-resources/payments", "/financial-resources/purchasing",
+  "/financial-resources/purchasing/receiving", "/financial-resources/purchasing/suppliers", "/follow-up",
+  "/inventory", "/invoices", "/operation", "/patient-flow", "/patient-flow/administrative",
+  "/patient-flow/clinical", "/patient-flow/operations", "/patients", "/portal", "/queue", "/reports",
+  "/settings", "/treatment-plans", "/work-center", "/workforce"
+];
+
+async function login(page) {
   const login = await page.goto(`${baseUrl}/login`, { waitUntil: "domcontentloaded" });
   expect(login?.status()).toBeLessThan(400);
   await page.locator('input[type="email"], input[name="email"]').first().fill(email);
@@ -13,9 +24,22 @@ test("Clinic Admin authenticates against Production and retains authorization", 
   await page.getByRole("button", { name: /sign in|login|log in|تسجيل الدخول|دخول/i }).first().click();
   await page.waitForLoadState("networkidle");
   expect(page.url()).not.toMatch(/\/login(?:[/?#]|$)/i);
-  for (const route of ["/", "/agenda", "/patients", "/analytics", "/settings"]) {
+}
+
+test("Clinic Admin authenticates against current Production and retains authorization", async ({ page }) => {
+  await login(page);
+  for (const route of canonicalRoutes) {
     const response = await page.goto(`${baseUrl}${route}`, { waitUntil: "domcontentloaded" });
     expect(response?.status(), `${route} HTTP status`).toBeLessThan(400);
     expect(page.url(), `${route} authentication`).not.toMatch(/\/login(?:[/?#]|$)/i);
   }
+});
+
+test("Clinic Admin Production shell remains usable at mobile viewport", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await login(page);
+  const response = await page.goto(`${baseUrl}/`, { waitUntil: "domcontentloaded" });
+  expect(response?.status()).toBeLessThan(400);
+  expect(page.url()).not.toMatch(/\/login(?:[/?#]|$)/i);
+  expect(await page.locator("body").getAttribute("dir")).toMatch(/^(rtl|ltr)$/);
 });
