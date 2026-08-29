@@ -1,0 +1,33 @@
+name: Stage 14 Legacy Cleanup
+on:
+  push:
+    branches: [stage14-legacy-cleanup]
+  pull_request:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  stage14:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx tsc --noEmit
+      - run: npm run lint
+      - run: npm run i18n:audit
+      - run: npm run i18n:parity
+      - run: npm run ux:security-stage12
+      - run: npm run ux:legacy-stage14
+      - run: |
+          npm run ux:widget-catalog
+          npm run ux:domain-surface
+          npm run ux:patient-flow-stage6
+          npm run ux:patient-context-stage7
+          npm run ux:global-search-stage8
+          npm run ux:mobile-stage11
+      - run: npm run build
