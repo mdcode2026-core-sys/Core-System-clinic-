@@ -1,6 +1,6 @@
 # Documentation Status & Authority
 
-**Status:** ACTIVE / Global UX/IA Stage 11 CLOSED — PRODUCTION READY
+**Status:** ACTIVE / Stages 12–15 implementation and validation reconciled; final Production SHA gate PENDING
 **Last reviewed:** 2026-08-29
 
 This file is the repository documentation authority and freshness registry.
@@ -26,6 +26,14 @@ When documentation and implementation disagree, use:
 - `DATABASE_SCHEMA.md`
 - `GLOBAL_UX_IA_FINAL_AUTHORITY_2026-08-28.md`
 - `docs/GLOBAL-UX-IA-IMPLEMENTATION-PLAN-2026-08-28-FINAL.md`
+- `docs/STAGE12-IMPLEMENTATION-RECORD-2026-08-29.md`
+- `docs/STAGE12-CLOSURE-PRODUCTION-READINESS-2026-08-29.md`
+- `docs/STAGE13-IMPLEMENTATION-RECORD-2026-08-29.md`
+- `docs/STAGE13-CLOSURE-PRODUCTION-READINESS-2026-08-29.md`
+- `docs/STAGE14-IMPLEMENTATION-RECORD-2026-08-29.md`
+- `docs/STAGE14-CLOSURE-PRODUCTION-READINESS-2026-08-29.md`
+- `docs/STAGE15-DOCUMENTATION-CLOSURE-2026-08-29.md`
+- `docs/STAGES12-15-UNRESOLVED-FINDINGS-REGISTER-2026-08-29.md`
 - `docs/STAGE-11-IMPLEMENTATION-RECORD-2026-08-29.md`
 - `docs/STAGE-11-UNRESOLVED-FINDINGS-REGISTER-2026-08-29.md`
 - `docs/STAGE-11-CLOSURE-PRODUCTION-READINESS-2026-08-29.md`
@@ -44,29 +52,35 @@ When documentation and implementation disagree, use:
 - Stage 4 — Workspace Personalization: implemented/documented.
 - Stage 5 — Widget Library & Classification: implemented / CI validated / documented.
 - Stage 6 — Patient Flow: implemented / CI validated / documented.
-- Stage 7 — Patient Context: **CLOSED / PRODUCTION READY**.
-- Stage 8 — Global Search: **CLOSED / PRODUCTION READY**.
-- Stage 9 — Overview / Dashboard Reconciliation: **CLOSED / PRODUCTION READY**.
-- Stage 10 — Sidebar Finalization: **CLOSED / PRODUCTION READY**.
-- Stage 11 — Mobile & Language Validation: **IMPLEMENTATION CLOSED / PRODUCTION DEPLOYMENT BLOCKED**.
+- Stage 7 — Patient Context: CLOSED at scope level; final global production gate remains governed by the current final SHA rule.
+- Stage 8 — Global Search: CLOSED at scope level; final global production gate remains governed by the current final SHA rule.
+- Stage 9 — Overview / Dashboard Reconciliation: CLOSED at scope level; final global production gate remains governed by the current final SHA rule.
+- Stage 10 — Sidebar Finalization: CLOSED at scope level; final global production gate remains governed by the current final SHA rule.
+- Stage 11 — Mobile & Language Validation: implementation/CI CLOSED; production deployment had been blocked by Vercel rate-limit state.
+- Stage 12 — Security / Permission Regression: implementation/CI PASS; final Production SHA gate PENDING.
+- Stage 13 — Runtime / E2E Validation: CI and runtime smoke PASS; final Production SHA gate PENDING.
+- Stage 14 — Legacy Cleanup: CI and legacy audit PASS; no unsafe speculative removals made.
+- Stage 15 — Documentation Closure: reconciliation candidate in progress; final closure follows the final delivery gate.
 
-Stage 11 final main SHA: `4b5b642bd2fa28cfe99d8df6d82f0e532ba0fe17`.
+## Current production-readiness gate
+
+`Production SHA = final main SHA` is mandatory. Documentation, CI, PR merge or Preview READY status alone cannot produce `Production Ready = YES`.
 
 ## Findings governance
 
 Every warning, defect, security issue or architecture conflict must be investigated. Safe/authorized defects are fixed; cross-workstream items are documented with evidence, owner, severity and disposition. Real defects must not be hidden to make CI green.
 
-Stage 11 has no blocker. `S11-F-001` records pre-existing repository-wide ESLint diagnostic debt as cross-workstream deferred work; the blocking Stage 11 changed-surface ESLint gate passed.
+Stages 12–15 current register: `docs/STAGES12-15-UNRESOLVED-FINDINGS-REGISTER-2026-08-29.md`.
 
 ## PJ / AJM state
 
-PJ status remains governed by the PJ-MASTER-DOCS and current implementation records. Stage 11 did not change PJ workflow ownership.
+PJ status remains governed by the PJ-MASTER-DOCS and current implementation records. Stages 12–15 did not create duplicate Patient Journey, Treatment Plan, Medical File, Medical Photo, Follow-up or Patient Portal architecture.
 
-AJM status remains governed by `docs/AJM-IMPLEMENTATION-STATUS-MATRIX-2026-08-28.md`. Stage 11 did not change AJM Domain ownership.
+AJM status remains governed by `docs/AJM-IMPLEMENTATION-STATUS-MATRIX-2026-08-28.md`. Stages 12–15 did not change AJM domain ownership.
 
 ## Schema freshness
 
-`DATABASE_SCHEMA.md` remains the structural schema reference. Stage 11 introduced no database migration or Supabase schema/RLS/function/Auth change.
+`DATABASE_SCHEMA.md` remains the structural schema reference. Stages 12–15 introduced no new database architecture or tenant model.
 
 ## Maintenance rule
 
