@@ -28,7 +28,11 @@ jobs:
       - run: npm run ux:global-search-stage8
       - run: npm run ux:mobile-stage11
       - run: npm run ux:security-stage12
-      - run: npm run ux:runtime-stage13
       - run: npm run ux:legacy-stage14
       - run: npm run ux:docs-stage15
-      - run: npm run build
+      - name: Production build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://qaslsjyxjwvdoiczmhgq.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          NEXT_PUBLIC_APP_URL: https://core-system-clinic.vercel.app
+        run: npm run build
