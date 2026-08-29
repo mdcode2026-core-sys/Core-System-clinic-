@@ -1,5 +1,6 @@
-/** Stage 5 — domain-to-surface decisions. This catalog records where a capability belongs; it does not grant authorization. */
+/** Stage 5 — domain-to-surface decisions. This catalog records presentation placement; it does not define AJM Domain ownership or grant authorization. */
 export type DomainSurfaceDecision = {
+  /** Subject label used by the UX surface catalog; not necessarily an AJM business Domain. */
   domain: string;
   surface: "workspace" | "sidebar" | "contextual" | "settings";
   widget: "yes" | "no";
@@ -16,7 +17,7 @@ export const DOMAIN_SURFACE_CATALOG: readonly DomainSurfaceDecision[] = [
   { domain: "Reports", surface: "sidebar", widget: "no", widgetRationale: "Reporting is a management/reporting surface; it should not be reduced to a generic Workspace Widget.", quickAction: "no" },
   { domain: "Analytics", surface: "sidebar", widget: "yes", widgetRationale: "Analytics Overview can provide concise management context while full analytics remains authoritative.", quickAction: "no" },
   { domain: "Follow-up", surface: "sidebar", widget: "yes", widgetRationale: "Follow-up is actionable operational work and benefits from an attention/worklist Widget.", quickAction: "no" },
-  { domain: "Patient Flow", surface: "contextual", widget: "yes", widgetRationale: "Queue is a contextual surface of the existing Patient Flow system and must not replace it; full Patient Flow reconciliation is Stage 6.", quickAction: "no" },
+  { domain: "Patient Flow", surface: "sidebar", widget: "yes", widgetRationale: "Patient Flow is a first-class authorized Sidebar system; Queue remains its underlying operational mechanism and is not replaced by a Widget.", quickAction: "no" },
   { domain: "Operations", surface: "contextual", widget: "no", widgetRationale: "Operations is a contextual route in the current IA; Patient Flow owns the relevant movement system and is reconciled separately.", quickAction: "no" },
   { domain: "Clinical", surface: "contextual", widget: "no", widgetRationale: "Clinical is a contextual route; clinical workflow remains in its authoritative domain surfaces.", quickAction: "no" },
   { domain: "Settings", surface: "settings", widget: "no", widgetRationale: "Settings/configuration should not become daily-work Widgets.", quickAction: "no" },
