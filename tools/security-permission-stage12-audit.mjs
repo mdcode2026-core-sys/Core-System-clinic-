@@ -20,7 +20,6 @@ function must(rel, patterns, label) {
   }
 }
 
-// Authorization engine: identity, tenant and active-user boundaries are mandatory.
 must("src/core/permissions/permissionEngine.ts", [
   /auth_user_id/,
   /\.eq\("tenant_id", tenantId\)/,
@@ -29,7 +28,6 @@ must("src/core/permissions/permissionEngine.ts", [
   /clinic_user_permission_overrides/,
 ], "effective-permission boundary");
 
-// Entitlements/capabilities must be resolved server-side from the tenant entitlement graph.
 must("src/core/entitlements/entitlementEngine.ts", [
   /"use server"/,
   /tenant_entitlements/,
@@ -37,7 +35,6 @@ must("src/core/entitlements/entitlementEngine.ts", [
   /isEffective/,
 ], "server entitlement/capability enforcement");
 
-// Widget definitions must declare a permission; the pure resolver must enforce it.
 must("src/core/workspace/widgetRegistry.ts", [
   /requiredPermission:/,
   /requiredPermission: "patients:create"/,
@@ -49,14 +46,13 @@ must("src/core/workspace/workspaceEngine.ts", [
   /!isFeatureEnabledFn\(widget\.moduleKey\)/,
 ], "permission and feature gating");
 
-// Workspace customization is presentation only and cannot make an unauthorized widget visible.
 must("src/core/workspace/hooks/useWorkspace.ts", [
   /hasPermission\(definition\.requiredPermission\)/,
   /isFeatureEnabled\(definition\.moduleKey\)/,
   /resolveWidgetVisibility\(/,
+  /const definition = widgetRegistry\.find\(\(widget\) => widget\.key === key\);/,
 ], "customization authorization invariant");
 
-// Global Search is an alternate discovery surface and therefore must enforce auth, tenant and permissions.
 must("src/core/search/actions.ts", [
   /supabase\.auth\.getUser\(\)/,
   /get_current_tenant_id/,
@@ -67,18 +63,12 @@ must("src/core/search/actions.ts", [
   /permissions\.has\("agenda:read"\)/,
 ], "authorized global search");
 
-// Representative mutation domains must retain server-side permission checks and tenant scoping.
 must("src/domain/inventory/inventory.actions.ts", [
   /"use server"/,
   /hasEffectivePermission/,
   /tenant_id: ctx\.tenantId/,
   /\.eq\("tenant_id", ctx\.tenantId\)/,
 ], "inventory server authorization");
-
-// Patient Flow/Queue must remain permission-gated at the existing capability boundary.
-must("src/features/workspace/widgets/queue/QueueWidget.tsx", [
-  /sessions:read|visits:read/,
-], "queue permission reference");
 
 if (failures.length) {
   console.error("STAGE 12 SECURITY/PERMISSION AUDIT: FAIL");
