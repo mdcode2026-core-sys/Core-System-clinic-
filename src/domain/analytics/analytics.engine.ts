@@ -1,4 +1,4 @@
-import type { KpiResult, DatePreset, AnalyticsSupabaseClient } from "./analytics.types";
+import type { KpiResult, DatePreset, AnalyticsSupabaseClient, AnalyticsCategory } from "./analytics.types";
 import { kpiRegistry } from "./kpi/kpi.registry";
 import { dateEngine } from "./date/date.engine";
 import { calculateKpi } from "./kpi/kpi.calculator";
@@ -45,13 +45,11 @@ export async function getAllKpiData(
   tenantId: string,
   datePreset: DatePreset
 ): Promise<KpiResult[]> {
-  // KPI calculators are independent reads. Run them concurrently instead of
-  // serially so one slow query does not block every widget/card behind it.
   return Promise.all(kpiRegistry.getAll().map((kpi) => getKpiDataSafe(kpi.id, supabase, tenantId, datePreset)));
 }
 
 export async function getKpiDataByCategory(
-  category: "patients" | "appointments" | "queue" | "revenue" | "invoices" | "inventory" | "followup",
+  category: AnalyticsCategory,
   supabase: AnalyticsSupabaseClient,
   tenantId: string,
   datePreset: DatePreset

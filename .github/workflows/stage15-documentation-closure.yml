@@ -29,6 +29,8 @@ jobs:
       - run: npm run ux:mobile-stage11
       - run: npm run ux:security-stage12
       - run: npm run ux:legacy-stage14
+      - run: npm run ajm:audit
+      - run: npm run ajm:migrations
       - run: npm run ux:docs-stage15
       - name: Production build
         env:
