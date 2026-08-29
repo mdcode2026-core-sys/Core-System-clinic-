@@ -1,129 +1,75 @@
 # Documentation Status & Authority
 
-**Status:** ACTIVE / Global UX/IA Stage 10 IMPLEMENTED — VALIDATION PENDING
+**Status:** ACTIVE / Global UX/IA Stage 11 CLOSED — PRODUCTION READY
 **Last reviewed:** 2026-08-29
 
 This file is the repository documentation authority and freshness registry.
 
-## 1. Authority Rule
+## Authority
 
-When documentation and implementation disagree:
+When documentation and implementation disagree, use:
+1. Implemented repository + live Supabase state.
+2. Accepted architectural decisions.
+3. PJ-MASTER-DOCS / approved PJ decisions.
+4. `PROJECT_HANDOFF.md`.
+5. `CHANGELOG.md`.
+6. Historical reports only as evidence.
+7. `GLOBAL_UX_IA_FINAL_AUTHORITY_2026-08-28.md` as current UX/IA authority.
 
-1. **Implemented repository + live Supabase state** = current implementation reality.
-2. **Accepted architectural decisions** = governing intent, unless later superseded.
-3. **PJ-MASTER-DOCS / approved PJ decisions** = governing Patient Journey scope and workflow.
-4. **PROJECT_HANDOFF.md** = current operational summary.
-5. **CHANGELOG.md** = historical change evidence.
-6. Historical reports and old implementation packages are evidence only.
-7. `GLOBAL_UX_IA_FINAL_AUTHORITY_2026-08-28.md` = current UX/IA authority.
+## Canonical documents
 
-## 2. Current Canonical Documents
+- `ENGINEERING_CONSTITUTION.md`
+- `ARCHITECTURE_DECISIONS.md`
+- `MASTER_ROADMAP.md`
+- `PROJECT_HANDOFF.md`
+- `CHANGELOG.md`
+- `DATABASE_SCHEMA.md`
+- `GLOBAL_UX_IA_FINAL_AUTHORITY_2026-08-28.md`
+- `docs/GLOBAL-UX-IA-IMPLEMENTATION-PLAN-2026-08-28-FINAL.md`
+- `docs/STAGE-11-IMPLEMENTATION-RECORD-2026-08-29.md`
+- `docs/STAGE-11-UNRESOLVED-FINDINGS-REGISTER-2026-08-29.md`
+- `docs/STAGE-11-CLOSURE-PRODUCTION-READINESS-2026-08-29.md`
+- `.github/workflows/stage11-validation.yml`
+- `tools/mobile-responsive-stage11-audit.mjs`
+- `docs/AJM-IMPLEMENTATION-STATUS-MATRIX-2026-08-28.md`
+- `PJ_E2E_DEMO_DATASET.md`
+- `ADR-012-PATIENT-PORTAL.md`
 
-- `ENGINEERING_CONSTITUTION.md` — engineering governance.
-- `ARCHITECTURE_DECISIONS.md` — chronological architecture decisions.
-- `MASTER_ROADMAP.md` — current product roadmap.
-- `PROJECT_HANDOFF.md` — current living implementation handoff.
-- `CHANGELOG.md` — historical implementation changes.
-- `DATABASE_SCHEMA.md` — current structural schema reference.
-- `GLOBAL_UX_IA_FINAL_AUTHORITY_2026-08-28.md` — current UX/IA authority.
-- `docs/GLOBAL-UX-IA-IMPLEMENTATION-PLAN-2026-08-28-FINAL.md` — approved UX/IA execution plan.
-- `docs/GLOBAL-UX-IA-STAGE-10-SIDEBAR-FINALIZATION-2026-08-29.md` — Stage 10 implementation record.
-- `docs/STAGE-10-UNRESOLVED-FINDINGS-REGISTER-2026-08-29.md` — Stage 10 finding disposition.
-- `docs/STAGE-10-CLOSURE-PRODUCTION-READINESS-2026-08-29.md` — Stage 10 closure/readiness record.
-- `.github/workflows/stage10-validation.yml` — Stage 10 validation gate.
-- `tools/sidebar-stage10-audit.mjs` — Stage 10 Sidebar audit.
-- `docs/GLOBAL-UX-IA-STAGE-9-EXECUTION-ADDENDUM-2026-08-29.md` — Stage 9 execution reconciliation against the approved plan.
-- `docs/STAGE-9-IMPLEMENTATION-RECORD-2026-08-29.md` — Stage 9 implementation and validation record.
-- `docs/STAGE-9-UNRESOLVED-FINDINGS-REGISTER-2026-08-29.md` — Stage 9 finding disposition.
-- `docs/STAGE-9-CLOSURE-PRODUCTION-READINESS-2026-08-29.md` — final Stage 9 closure/readiness record.
-- `docs/STAGE-8-IMPLEMENTATION-RECORD-2026-08-29.md` — Stage 8 implementation, validation and closure record.
-- `docs/STAGE-8-UNRESOLVED-FINDINGS-REGISTER-2026-08-29.md` — Stage 8 finding disposition.
-- `ADR-012-PATIENT-PORTAL.md` — Patient Portal architecture.
-- `PJ_E2E_DEMO_DATASET.md` — persistent PJ E2E dataset contract.
-- `PJ_STAGE15_CLOSURE.md` — Stage 15 closure evidence.
-- `DOCUMENTATION_STATUS.md` — this registry.
-- `DOCUMENTATION_CONSOLIDATION_PLAN.md` — completed cleanup record.
-
-## 3. Current Global UX/IA State
+## Global UX/IA state
 
 - Stage 0 — Baseline Lock: implemented/documented.
 - Stage 1 — Navigation & IA Reconciliation: implemented/documented.
 - Stage 2 — User Surface Model: implemented/documented.
-- Stage 3 — Workspace Foundation: implemented/documented; canonical Workspace engine/renderer/registry/persistence retained.
-- Stage 4 — Workspace Personalization: implemented/documented; canonical Workspace persistence and personalization retained.
+- Stage 3 — Workspace Foundation: implemented/documented.
+- Stage 4 — Workspace Personalization: implemented/documented.
 - Stage 5 — Widget Library & Classification: implemented / CI validated / documented.
 - Stage 6 — Patient Flow: implemented / CI validated / documented.
 - Stage 7 — Patient Context: **CLOSED / PRODUCTION READY**.
 - Stage 8 — Global Search: **CLOSED / PRODUCTION READY**.
 - Stage 9 — Overview / Dashboard Reconciliation: **CLOSED / PRODUCTION READY**.
-- Stage 10 — Sidebar Finalization: **IMPLEMENTED — VALIDATION PENDING**.
+- Stage 10 — Sidebar Finalization: **CLOSED / PRODUCTION READY**.
+- Stage 11 — Mobile & Language Validation: **CLOSED / PRODUCTION READY**.
 
-Stage 10 is not considered closed until its blocking validation, applicable runtime verification and documentation closure are complete.
+Stage 11 final main SHA: `72342418084722a503b55304ac273e1f19fa9c99`.
 
-## 4. Findings Governance Rule
+## Findings governance
 
-During any stage, every discovered warning, error, security/dependency issue, architectural inconsistency or documentation conflict must be investigated.
+Every warning, defect, security issue or architecture conflict must be investigated. Safe/authorized defects are fixed; cross-workstream items are documented with evidence, owner, severity and disposition. Real defects must not be hidden to make CI green.
 
-The executor must:
+Stage 11 has no blocker. `S11-F-001` records pre-existing repository-wide ESLint diagnostic debt as cross-workstream deferred work; the blocking Stage 11 changed-surface ESLint gate passed.
 
-1. determine whether it is a real defect;
-2. determine its owning workstream/domain;
-3. repair it immediately when safe and authorized;
-4. otherwise document it in a findings register with evidence, impact, owner and recommended disposition;
-5. never suppress a real defect merely to make CI green;
-6. return unresolved findings for explicit disposition when required.
+## PJ / AJM state
 
-Stage 8 has no unresolved blocker. S8-F-001 is explicitly deferred to AJM / Tenant Administration and Medical Master Library as a future cross-workstream refinement. S8-F-002 is resolved.
+PJ status remains governed by the PJ-MASTER-DOCS and current implementation records. Stage 11 did not change PJ workflow ownership.
 
-Stage 9 has no unresolved Stage 9 blocker. S9-F-001 records pre-existing repository-wide ESLint debt as non-blocking cross-workstream work; S9-F-002 records historical runtime signatures not reproduced on the final deployment; S9-F-003 confirms no database change was required.
+AJM status remains governed by `docs/AJM-IMPLEMENTATION-STATUS-MATRIX-2026-08-28.md`. Stage 11 did not change AJM Domain ownership.
 
-Stage 10 findings are tracked in `docs/STAGE-10-UNRESOLVED-FINDINGS-REGISTER-2026-08-29.md`. Only the final validation/runtime gate is currently closure-blocking.
+## Schema freshness
 
-## 5. PJ Current State
+`DATABASE_SCHEMA.md` remains the structural schema reference. Stage 11 introduced no database migration or Supabase schema/RLS/function/Auth change.
 
-- Stages 0–10: closed.
-- Stage 11: closed.
-- Stage 12: phase-closed after manual verification; Patient Portal architecture remains governed by `ADR-012-PATIENT-PORTAL.md`.
-- Stage 13: completed.
-- Stage 14: completed; temporary Stage 14 seed removed.
-- Stage 15: completed for current scope; persistent integrated E2E data retained for future administrative stages.
+## Maintenance rule
 
-Do not infer PJ status from archived Milestone/Session documents.
+Every completed Global UX/IA stage updates its implementation record, closure/readiness record, findings register, changelog and handoff when materially applicable. Architecture and schema documents are updated only when architecture/schema changes.
 
-## 6. AJM Current State
-
-Current AJM status is governed by `docs/AJM-IMPLEMENTATION-STATUS-MATRIX-2026-08-28.md`.
-
-Global UX/IA stages do not reopen or close AJM stages unless the stage explicitly changes an AJM implementation or status. AJM Domain ownership remains unchanged by Stage 10.
-
-## 7. Archived Documentation
-
-Superseded root-level artifacts have been moved to `/archive/`. Archived documents are historical evidence only and must not be used as current implementation instructions.
-
-## 8. E2E Data Contract
-
-`PJ_E2E_DEMO_DATASET.md` is the persistent synthetic dataset contract covering patients, appointments, visits, procedures, multi-stage treatment plans, treatment-plan items, medical files, follow-ups and notifications.
-
-Extend this labelled dataset for future scenarios instead of introducing random disposable fixtures.
-
-## 9. Schema Freshness
-
-`DATABASE_SCHEMA.md` was reconciled against live Supabase on 2026-08-24. It remains a structural reference and must be refreshed after schema-changing work.
-
-Stage 9 and Stage 10 introduced no database schema change.
-
-## 10. Maintenance Rule
-
-Every completed Global UX/IA stage must update, as applicable:
-
-- stage closure record;
-- `CHANGELOG.md`;
-- `PROJECT_HANDOFF.md` when current state changes materially;
-- relevant ADRs when architecture changes;
-- `DATABASE_SCHEMA.md` when schema changes.
-
-Stage 10 implementation, findings and pre-closure evidence are recorded. Final closure will be appended after the validation gate passes.
-
-## 11. Cleanup Result
-
-The repository root is reserved for current/canonical documentation. Historical documentation is retained under `/archive/` and is no longer part of the active documentation surface.
+Historical documentation remains under `/archive/` and is not current implementation authority.
