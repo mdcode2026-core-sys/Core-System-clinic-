@@ -41,19 +41,32 @@ A UI route/component alone is not acceptance. A database object alone is not acc
 ## 6. Stage order
 AJM-0 → AJM-1 → AJM-2 → AJM-3 → AJM-4 → AJM-5 → AJM-6 → AJM-7 → AJM-8.
 
-Stages may proceed sequentially. If a stage is blocked by a genuine external dependency, document the exact blocker and continue to a later stage only when no dependency is violated.
+Stages are executed sequentially. A Vercel Production build-rate limit is a **shared release gate**, not permission to stop non-production execution. While that gate is unavailable, continue all implementation, reconciliation, Supabase, GitHub Actions, static, test, build, and non-production runtime work that can be completed safely.
 
-## 7. Mandatory stage state machine
-UNEXECUTED → PRECHECK → RECONCILED → IMPLEMENTING → LOCAL/CI VALIDATED → DB/AUTH VALIDATED → RUNTIME VALIDATED → PRODUCTION CANDIDATE → VERCEL PRODUCTION DEPLOYED → PRODUCTION VERIFIED → DOCUMENTATION CLOSED → CLOSED.
+## 7. Deferred Production Release Bundle
+When Vercel Production deployment is unavailable because of a verified rate/usage blocker:
+- do not waste Production deployments on partial or low-confidence candidates;
+- continue AJM stages sequentially and keep each successfully implemented/validated stage in `PRODUCTION-CANDIDATE / RELEASE-DEFERRED` state when Production is the only missing gate;
+- include required corrections to historical AJM stages and PJ/UX reconciliation in the same coherent release candidate;
+- maintain one tracked release candidate SHA/state rather than treating every stage as a separate production release;
+- before the first Production deployment after the gate clears, run one final integrated validation of the accumulated candidate;
+- then perform the Production deployment and integrated Production verification once, and use that evidence to close the accumulated stages.
 
-A failed gate returns the stage to the first invalid state.
+This defers the expensive Production gate; it does **not** waive Production acceptance.
 
-## 8. Execution behavior
+Track this policy through GitHub Issue #56. Vercel blocker remains tracked separately in Issue #54, and authenticated Production E2E identity/session remains tracked in Issue #53.
+
+## 8. Mandatory stage state machine
+UNEXECUTED → PRECHECK → RECONCILED → IMPLEMENTING → LOCAL/CI VALIDATED → DB/AUTH VALIDATED → RUNTIME VALIDATED → PRODUCTION CANDIDATE / RELEASE-DEFERRED (when shared Production gate is unavailable) → VERCEL PRODUCTION DEPLOYED → PRODUCTION VERIFIED → DOCUMENTATION CLOSED → CLOSED.
+
+A failed non-production gate returns the stage to the first invalid state. A shared external Production gate may hold multiple validated candidates in RELEASE-DEFERRED without marking them CLOSED.
+
+## 9. Execution behavior
 Do not stop for issues that can be resolved without a user decision. Diagnose → fix → test → re-check → document. Escalate only genuine architectural/product decisions not already governed by existing decisions or this handoff.
 
 Use Inspect → Reuse → Extend → Create only when genuinely required.
 
-## 9. Validation gates
+## 10. Validation gates
 At minimum, where applicable:
 - typecheck/build
 - lint/static checks
@@ -72,21 +85,22 @@ At minimum, where applicable:
 - PJ workflow integrity
 - cross-domain integration
 
-## 10. Vercel economy rule
-Do not use Vercel Production deployments as a substitute for cheap/local/CI validation. Exhaust local/Codespaces/GitHub Actions/Supabase validation first. Use a Production deployment when the candidate is genuinely ready for the final production gate. Economy means avoiding waste, never reducing verification quality.
+## 11. Vercel economy rule
+Do not use Vercel Production deployments as a substitute for cheap/local/CI validation. Exhaust local/Codespaces/GitHub Actions/Supabase validation first. When a verified build-rate/usage limit prevents Production deployment, **do not stop implementation**. Build the release candidate, validate everything else, and defer the shared Production gate.
 
 Preview deployments caused automatically by Git integration are not Production acceptance.
 
-## 11. Closure rule
+## 12. Closure rule
 A stage is `CLOSED` only after successful final Production deployment and Production verification, plus documentation/evidence completion.
 
 If Production closure is genuinely impossible because of an external blocker:
-- mark `PARTIALLY CLOSED / BLOCKED`;
+- mark `PRODUCTION-CANDIDATE / RELEASE-DEFERRED` when all other gates pass and only the shared Production gate is pending;
+- otherwise mark `PARTIALLY CLOSED / BLOCKED`;
 - record exact blocker, completed work, remaining work, last valid SHA, next action, and continuation marker;
 - create/maintain an actionable TODO or issue;
-- proceed only to stages that are not dependent on the blocker.
+- continue to independent stages rather than stopping the entire execution stream.
 
-## 12. Evidence protocol
+## 13. Evidence protocol
 Every stage must leave an auditable record containing:
 - scope and acceptance criteria;
 - pre-stage findings;
@@ -100,17 +114,18 @@ Every stage must leave an auditable record containing:
 - final closure state;
 - unresolved items and continuation instructions.
 
-## 13. GitHub/Supabase discipline
+## 14. GitHub/Supabase discipline
 - Work from current `main` and use focused branches.
 - Inspect branches before porting work; port only required intent.
 - Keep commits coherent and auditable.
 - Never treat a branch as authoritative merely because its name matches a stage.
 - Supabase is part of the implementation, not an afterthought. Verify migrations, live schema, RLS, functions, triggers, data invariants, and tenant isolation.
 
-## 14. New-conversation execution instruction
+## 15. New-conversation execution instruction
 A new execution conversation should begin by reading this file plus the linked governing documents in the repository, then stating the current stage and beginning the mandatory pre-stage review. Do not ask the user to restate project context that is already documented here.
 
-## 15. Canonical references
+## 16. Canonical references
+- `docs/AJM-FULL-EXECUTION-PROMPT-2026-08-29.md`
 - `docs/AJM-UX-UNIFIED-EXECUTION-PLAN-2026-08-29.md`
 - `docs/PJ-AJM-UX-DEEP-RECONCILIATION-2026-08-29.md`
 - `docs/CORE-SYSTEM-TERMINOLOGY-GLOSSARY-2026-08-29.md`
@@ -118,6 +133,9 @@ A new execution conversation should begin by reading this file plus the linked g
 - Current AJM master/blueprint documents under `docs/`
 - Current UX/IA authority and relevant UX documents under `docs/`
 - PJ master documents and relevant journey documents under `docs/`
+- GitHub Issue #54 — Vercel Production build-rate blocker
+- GitHub Issue #53 — authenticated Production E2E identity/session blocker
+- GitHub Issue #56 — deferred Production release bundle
 
-## 16. Non-negotiable principle
-**Do not confuse implementation evidence with acceptance. The objective is a working, coherent clinic workflow whose AJM, UX, PJ, authorization, data ownership, and runtime behavior agree in production.**
+## 17. Non-negotiable principle
+**Do not confuse implementation evidence with acceptance. The objective is a working, coherent clinic workflow whose AJM, UX, PJ, authorization, data ownership, and runtime behavior agree in production. A shared deployment blocker delays the Production gate; it does not stop the engineering work that can safely continue before that gate.**
