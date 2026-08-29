@@ -51,7 +51,9 @@
 
 @layer base {
   * { @apply border-border; }
-  body { @apply bg-background text-foreground; direction: rtl; }
+  html, body { min-width: 0; }
+  body { @apply bg-background text-foreground; direction: rtl; overflow-x: clip; }
+  img, video, canvas { max-width: 100%; }
 }
 
 [dir="rtl"] { direction: rtl; text-align: right; }
