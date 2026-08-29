@@ -65,3 +65,14 @@ drop policy if exists work_history_read on public.operational_work_history;
 create policy work_history_read on public.operational_work_history for select to authenticated using (
  tenant_id=public.get_current_tenant_id() and exists(select 1 from public.operational_work_items w where w.tenant_id=operational_work_history.tenant_id and w.id=operational_work_history.work_item_id and (public.has_tenant_permission(tenant_id,'work:manage') or w.requester_clinic_user_id=(select id from public.clinic_users where auth_user_id=auth.uid() and tenant_id=operational_work_history.tenant_id limit 1) or w.assignee_clinic_user_id=(select id from public.clinic_users where auth_user_id=auth.uid() and tenant_id=operational_work_history.tenant_id limit 1)))
 );
+
+drop policy if exists work_history_insert on public.operational_work_history;
+create policy work_history_insert on public.operational_work_history for insert to authenticated with check (
+ tenant_id=public.get_current_tenant_id() and
+ actor_clinic_user_id=(select id from public.clinic_users where auth_user_id=auth.uid() and tenant_id=operational_work_history.tenant_id and is_active=true and deleted_at is null limit 1) and
+ exists(select 1 from public.operational_work_items w where w.tenant_id=operational_work_history.tenant_id and w.id=operational_work_history.work_item_id and (
+   public.has_tenant_permission(tenant_id,'work:manage') or
+   w.requester_clinic_user_id=actor_clinic_user_id or
+   w.assignee_clinic_user_id=actor_clinic_user_id
+ ))
+);
