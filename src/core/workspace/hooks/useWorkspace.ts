@@ -64,18 +64,18 @@ export function useWorkspace(workspaceKey: WorkspaceSurfaceKey = "global"): UseW
   const hasErrors = useMemo(() => resolved.some((r) => r.layout.state === "error"), [resolved]);
 
   const updateWidgetState = useCallback((key: string, state: WidgetState) => {
+    const definition = widgetRegistry.find((widget) => widget.key === key);
+    if (!definition || !hasPermission(definition.requiredPermission) || !isFeatureEnabled(definition.moduleKey)) return;
     setLayout((prev) => {
       const idx = prev.widgets.findIndex((w) => w.key === key);
       if (idx === -1) {
-        const definition = widgetRegistry.find((widget) => widget.key === key);
-        if (!definition) return prev;
         return { ...prev, widgets: [...prev.widgets, { key, order: prev.widgets.length, size: definition.defaultSize, state }], lastUpdated: new Date().toISOString() };
       }
       const next = [...prev.widgets];
       next[idx] = { ...next[idx], state };
       return { ...prev, widgets: next, lastUpdated: new Date().toISOString() };
     });
-  }, [setLayout]);
+  }, [hasPermission, isFeatureEnabled, setLayout]);
 
   const addWidget = useCallback((key: string) => {
     const definition = widgetRegistry.find((widget) => widget.key === key);

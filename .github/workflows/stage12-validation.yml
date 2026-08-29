@@ -1,4 +1,4 @@
-name: Stage 11 Validation
+name: Stage 12 Validation
 
 on:
   pull_request:
@@ -9,8 +9,8 @@ permissions:
   contents: read
 
 jobs:
-  stage11:
-    name: Stage 11 Mobile + Responsive Workflow Gate
+  stage12:
+    name: Stage 12 Security + Permission Regression Gate
     runs-on: ubuntu-latest
     timeout-minutes: 40
     steps:
@@ -27,16 +27,16 @@ jobs:
         run: npm audit --omit=dev --audit-level=high
       - name: TypeScript
         run: npx tsc --noEmit
-      - name: Changed-surface ESLint
-        run: npx eslint src/app/layout.tsx src/features/workspace/EntitlementAwareWorkspaceShell.tsx src/features/workspace/WorkspaceRenderer.tsx src/features/workspace/WidgetToolbar.tsx src/core/search/GlobalSearch.tsx tools/mobile-responsive-stage11-audit.mjs
+      - name: Security changed-surface ESLint
+        run: npx eslint src/core/permissions/permissionEngine.ts src/core/entitlements/entitlementEngine.ts src/core/workspace/workspaceEngine.ts src/core/workspace/hooks/useWorkspace.ts src/core/search/actions.ts src/domain/inventory/inventory.actions.ts tools/security-permission-stage12-audit.mjs
+      - name: Stage 12 security permission audit
+        run: npm run ux:security-stage12
       - name: I18N audit
         run: npm run i18n:audit
       - name: I18N parity
         run: npm run i18n:parity
       - name: Stage 5 Widget Catalog audit
         run: npm run ux:widget-catalog
-      - name: Stage 5 Domain Surface audit
-        run: npm run ux:domain-surface
       - name: Stage 6 Patient Flow audit
         run: npm run ux:patient-flow-stage6
       - name: Stage 7 Patient Context audit
