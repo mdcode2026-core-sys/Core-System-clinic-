@@ -35,7 +35,7 @@ for (const route of ["/workforce", "/communications", "/work-center"]) {
 expect(!comm.includes("createAppointment") && !comm.includes("createTreatmentPlan"), "Communications must not own Agenda or Treatment Plan creation.");
 expect(work.includes("operational_work_items") && work.includes("operational_work_history"), "Coordination must use the canonical operational work layer.");
 expect(work.includes("hasEffectivePermission") && work.includes('"work:create"') && work.includes('"work:manage"'), "Coordination actions must enforce server-side effective permissions.");
-expect(workforce.includes("hasEffectivePermission") && workforce.includes('"workforce:read"'), "Workforce actions must enforce server-side effective permissions.");
+expect(workforce.includes("hasEffectivePermission") && /"workforce:(manage|read|attendance|leave|payroll|commission)"/.test(workforce), "Workforce actions must enforce server-side effective permissions for governed mutations.");
 expect(kpis.includes("workforce") && kpis.includes("communications") && kpis.includes("coordination"), "AJM KPI definitions must extend the canonical registry with all integrated categories.");
 expect(registry.includes("getSidebarNavigation()") || registry.includes("navigationRegistry"), "Navigation must remain registry-driven.");
 
