@@ -1,5 +1,18 @@
 # CHANGELOG.md
 
+## 2026-08-29 — Global UX/IA Stage 11 — Mobile & Language Validation — CLOSED / PRODUCTION READY
+- Hardened the canonical dashboard shell, Workspace, Widget toolbar and Global Search for narrow/mobile viewports and touch interaction.
+- Added the explicit responsive viewport contract and page-level overflow protection.
+- Preserved the existing render-time Arabic/English i18n architecture and validated parity/RTL-LTR behavior.
+- Added `tools/mobile-responsive-stage11-audit.mjs` and blocking `.github/workflows/stage11-validation.yml`.
+- Stage 11 validation passed production dependency security audit, TypeScript, changed-surface ESLint, I18N audit/parity, Stage 5–10 regression audits, Stage 11 audit and production build.
+- Repaired high-severity production dependency findings by upgrading Next.js and safe transitive dependency overrides; regenerated the lockfile and verified the final production audit.
+- No Supabase migration or authorization/entitlement architecture change was required.
+- Merged PR #39 into `main`; final main SHA at closure: `72342418084722a503b55304ac273e1f19fa9c99`.
+- Repository-wide ESLint diagnostic debt remains explicitly deferred as cross-workstream finding `S11-F-001`; it does not block Stage 11 because the blocking changed-surface ESLint gate passed.
+
+---
+
 Reconstructed baseline as of 2026-07-31 from committed migration files and archived handoff records. Maintained going forward per change — not regenerated from scratch each time.
 
 ---
