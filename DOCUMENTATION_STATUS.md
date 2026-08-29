@@ -1,6 +1,6 @@
 # Documentation Status & Authority
 
-**Status:** ACTIVE / Global UX/IA Stage 9 CLOSED / PRODUCTION READY
+**Status:** ACTIVE / Global UX/IA Stage 10 IMPLEMENTED — VALIDATION PENDING
 **Last reviewed:** 2026-08-29
 
 This file is the repository documentation authority and freshness registry.
@@ -27,6 +27,11 @@ When documentation and implementation disagree:
 - `DATABASE_SCHEMA.md` — current structural schema reference.
 - `GLOBAL_UX_IA_FINAL_AUTHORITY_2026-08-28.md` — current UX/IA authority.
 - `docs/GLOBAL-UX-IA-IMPLEMENTATION-PLAN-2026-08-28-FINAL.md` — approved UX/IA execution plan.
+- `docs/GLOBAL-UX-IA-STAGE-10-SIDEBAR-FINALIZATION-2026-08-29.md` — Stage 10 implementation record.
+- `docs/STAGE-10-UNRESOLVED-FINDINGS-REGISTER-2026-08-29.md` — Stage 10 finding disposition.
+- `docs/STAGE-10-CLOSURE-PRODUCTION-READINESS-2026-08-29.md` — Stage 10 closure/readiness record.
+- `.github/workflows/stage10-validation.yml` — Stage 10 validation gate.
+- `tools/sidebar-stage10-audit.mjs` — Stage 10 Sidebar audit.
 - `docs/GLOBAL-UX-IA-STAGE-9-EXECUTION-ADDENDUM-2026-08-29.md` — Stage 9 execution reconciliation against the approved plan.
 - `docs/STAGE-9-IMPLEMENTATION-RECORD-2026-08-29.md` — Stage 9 implementation and validation record.
 - `docs/STAGE-9-UNRESOLVED-FINDINGS-REGISTER-2026-08-29.md` — Stage 9 finding disposition.
@@ -51,18 +56,9 @@ When documentation and implementation disagree:
 - Stage 7 — Patient Context: **CLOSED / PRODUCTION READY**.
 - Stage 8 — Global Search: **CLOSED / PRODUCTION READY**.
 - Stage 9 — Overview / Dashboard Reconciliation: **CLOSED / PRODUCTION READY**.
+- Stage 10 — Sidebar Finalization: **IMPLEMENTED — VALIDATION PENDING**.
 
-### Stage 9 final validation
-
-Stage 9 implementation passed the dedicated blocking validation workflow on the implementation commit, including lockfile verification, `npm ci`, TypeScript, i18n audit/parity, Stage 5–8 audits, Stage 9 audit, changed-surface ESLint and production build. The final documentation-bearing `main` commit then passed the shared UX 0–8 validation workflow, i18n verification, Vercel Production deployment and runtime verification.
-
-Final production candidate:
-
-- `main` SHA: `8e7972f58e3500427170598d7369dcb2473ddc93`
-- Vercel Production deployment: `dpl_HgEcYYGcEkrtTSFVnw1c8vrKGim9`
-- Deployment state: READY
-- Deployment `githubCommitSha`: `8e7972f58e3500427170598d7369dcb2473ddc93`
-- No Stage 9 database migration was required.
+Stage 10 is not considered closed until its blocking validation, applicable runtime verification and documentation closure are complete.
 
 ## 4. Findings Governance Rule
 
@@ -81,6 +77,8 @@ Stage 8 has no unresolved blocker. S8-F-001 is explicitly deferred to AJM / Tena
 
 Stage 9 has no unresolved Stage 9 blocker. S9-F-001 records pre-existing repository-wide ESLint debt as non-blocking cross-workstream work; S9-F-002 records historical runtime signatures not reproduced on the final deployment; S9-F-003 confirms no database change was required.
 
+Stage 10 findings are tracked in `docs/STAGE-10-UNRESOLVED-FINDINGS-REGISTER-2026-08-29.md`. Only the final validation/runtime gate is currently closure-blocking.
+
 ## 5. PJ Current State
 
 - Stages 0–10: closed.
@@ -96,7 +94,7 @@ Do not infer PJ status from archived Milestone/Session documents.
 
 Current AJM status is governed by `docs/AJM-IMPLEMENTATION-STATUS-MATRIX-2026-08-28.md`.
 
-Global UX/IA stages do not reopen or close AJM stages unless the stage explicitly changes an AJM implementation or status. AJM Domain ownership remains unchanged.
+Global UX/IA stages do not reopen or close AJM stages unless the stage explicitly changes an AJM implementation or status. AJM Domain ownership remains unchanged by Stage 10.
 
 ## 7. Archived Documentation
 
@@ -112,7 +110,7 @@ Extend this labelled dataset for future scenarios instead of introducing random 
 
 `DATABASE_SCHEMA.md` was reconciled against live Supabase on 2026-08-24. It remains a structural reference and must be refreshed after schema-changing work.
 
-Stage 9 introduced no database schema change.
+Stage 9 and Stage 10 introduced no database schema change.
 
 ## 10. Maintenance Rule
 
@@ -124,7 +122,7 @@ Every completed Global UX/IA stage must update, as applicable:
 - relevant ADRs when architecture changes;
 - `DATABASE_SCHEMA.md` when schema changes.
 
-Stage 9 implementation, finding disposition, execution addendum, closure record and final production evidence are recorded.
+Stage 10 implementation, findings and pre-closure evidence are recorded. Final closure will be appended after the validation gate passes.
 
 ## 11. Cleanup Result
 

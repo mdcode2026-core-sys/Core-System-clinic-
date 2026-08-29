@@ -1,10 +1,43 @@
 # PROJECT_HANDOFF.md
 
 **Project:** CORE SYSTEM — ClinicSaaS™  
-**Status:** ACTIVE DEVELOPMENT / Global UX/IA Stage 9 CLOSED / PRODUCTION READY  
+**Status:** ACTIVE DEVELOPMENT / Global UX/IA Stage 10 IMPLEMENTED — VALIDATION PENDING  
 **Last Updated:** 2026-08-29
 
 ## Current Global UX/IA State
+
+### Stage 10 — Sidebar Finalization
+
+**Status: IMPLEMENTED — VALIDATION PENDING.**
+
+Stage 10 finalizes the Sidebar after the Workspace, Widget Library, Patient Flow, Patient Context, Global Search and Overview/Dashboard stages.
+
+Implemented:
+
+- Final canonical Sidebar order and hierarchy.
+- Patient Flow is one grouped system exposing Operations, Clinical and Administrative views.
+- Financial & Resources is one grouped domain hierarchy with its approved children.
+- Operations, Clinical and Queue remain contextual/protected routes rather than top-level Sidebar domains.
+- Dashboard remains a permission-aware management surface and is separated from everyday Workspace.
+- The active Workspace shell no longer exposes the superseded fixed Workspace-surface switcher.
+- Sidebar groups use explicit accessible expand/collapse behavior.
+- Existing permission and entitlement filtering is preserved.
+- No database migration was required.
+- Stage 10 static audit and blocking validation workflow were added.
+
+Validation status at handoff update time:
+
+- Final Stage 10 GitHub validation is still running.
+- Preview/runtime verification is still pending.
+- Stage 10 is not yet CLOSED / PRODUCTION READY.
+
+Canonical records:
+
+- `docs/GLOBAL-UX-IA-STAGE-10-SIDEBAR-FINALIZATION-2026-08-29.md`
+- `docs/STAGE-10-UNRESOLVED-FINDINGS-REGISTER-2026-08-29.md`
+- `docs/STAGE-10-CLOSURE-PRODUCTION-READINESS-2026-08-29.md`
+- `.github/workflows/stage10-validation.yml`
+- `tools/sidebar-stage10-audit.mjs`
 
 ### Stage 9 — Overview / Dashboard Reconciliation
 
@@ -79,17 +112,18 @@ Canonical records:
 
 ### Stage 0–4 continuity
 
-Stages 0–4 remain governed by their existing records and the Global UX/IA Final Authority. Stage 5, Stage 6, Stage 7, Stage 8 and Stage 9 did not reopen or replace settled stages.
+Stages 0–4 remain governed by their existing records and the Global UX/IA Final Authority. Stage 5, Stage 6, Stage 7, Stage 8, Stage 9 and Stage 10 did not reopen or replace settled stages.
 
 ## Findings governance
 
-Every discovered issue must be investigated; safe/authorized defects are fixed immediately, while cross-workstream architectural or ownership-dependent issues are documented and carried to their owning workstream. Stage 9 has no unresolved Stage 9 blocker.
+Every discovered issue must be investigated; safe/authorized defects are fixed immediately, while cross-workstream architectural or ownership-dependent issues are documented and carried to their owning workstream. Stage 9 has no unresolved Stage 9 blocker. Stage 10 remains open only for its validation/runtime gate.
 
-Current Stage 9 findings:
+Current Stage 10 findings:
 
-- S9-F-001: repository-wide ESLint diagnostic debt is deferred cross-workstream engineering cleanup; the Stage 9 changed-surface gate passes.
-- S9-F-002: historical runtime signatures were not reproduced on the final production deployment and are retained as non-current evidence.
-- S9-F-003: no Stage 9 database migration was required.
+- S10-F-001: final Stage 10 CI/runtime verification is still in progress.
+- S10-F-002: `WorkspaceSurfaceNav.tsx` is now unused by the active shell and is intentionally deferred to Stage 14 Legacy Cleanup.
+- S10-F-003: branch preview deployments may queue while Git-integrated candidates are processed.
+- S10-F-004: pre-existing repository-wide ESLint diagnostic debt remains deferred cross-workstream work; Stage 10 changed-surface ESLint is blocking.
 
 ## Purpose
 
@@ -138,6 +172,7 @@ Random disposable demo data should not replace this baseline. Extend the labelle
 - Patient Context is a presentation/orchestration surface and does not own domain data or authorization.
 - Global Search is a Workspace-shell presentation/orchestration surface and does not own Domain data or authorization.
 - Dashboard is a management/monitoring surface and does not replace Workspace or contextual Domain Overview surfaces.
+- Sidebar is the complete authorized entry-point surface; it is not a security boundary or a list of repository routes.
 
 ## Current Schema Reference
 
@@ -155,6 +190,11 @@ Use:
 - `MASTER_ROADMAP.md` — product roadmap.
 - `GLOBAL_UX_IA_FINAL_AUTHORITY_2026-08-28.md` — current UX/IA authority.
 - `docs/GLOBAL-UX-IA-IMPLEMENTATION-PLAN-2026-08-28-FINAL.md` — approved Global UX/IA execution plan.
+- `docs/GLOBAL-UX-IA-STAGE-10-SIDEBAR-FINALIZATION-2026-08-29.md` — Stage 10 implementation record.
+- `docs/STAGE-10-UNRESOLVED-FINDINGS-REGISTER-2026-08-29.md` — Stage 10 finding disposition.
+- `docs/STAGE-10-CLOSURE-PRODUCTION-READINESS-2026-08-29.md` — Stage 10 closure/readiness record.
+- `.github/workflows/stage10-validation.yml` — Stage 10 validation gate.
+- `tools/sidebar-stage10-audit.mjs` — Stage 10 Sidebar audit.
 - `docs/GLOBAL-UX-IA-STAGE-9-EXECUTION-ADDENDUM-2026-08-29.md` — Stage 9 execution addendum.
 - `docs/STAGE-9-IMPLEMENTATION-RECORD-2026-08-29.md` — Stage 9 implementation/validation record.
 - `docs/STAGE-9-UNRESOLVED-FINDINGS-REGISTER-2026-08-29.md` — Stage 9 finding disposition.
@@ -174,7 +214,7 @@ Dated handoffs, progress reports, Kimi packages, old security plans, old roadmap
 
 ## Next Work
 
-Stage 9 is CLOSED / PRODUCTION READY. Future work proceeds from the next approved roadmap/workstream item. S9-F-001 remains a documented future cross-workstream engineering cleanup and does not block Stage 9.
+Stage 10 is the current open Global UX/IA stage. No later Global UX/IA stage should be treated as closed until Stage 10's final validation and documentation closure are complete.
 
 ### Mandatory stage execution rule
 
