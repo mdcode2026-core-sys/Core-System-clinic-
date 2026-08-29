@@ -45,8 +45,9 @@ export function EntitlementAwareWorkspaceShell({ children, user }: WorkspaceShel
   const handleSignOut = async () => { await supabase.auth.signOut(); router.push("/login"); router.refresh(); };
   const closeSidebar = () => setSidebarOpen(false);
   const getLabel = (item: NavItem) => item.label ? item.label[locale] : item.labelKey ? messages.nav[item.labelKey] : item.href;
-  const isPathActive = (item: NavItem): boolean => pathname === item.href || (item.children?.some(isPathActive) ?? false);
-  const groupContainsPath = (item: NavItem): boolean => item.children?.some((child) => pathname === child.href || pathname.startsWith(`${child.href}/`) || groupContainsPath(child)) ?? false;
+  const pathMatches = (href: string) => href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(`${href}/`);
+  const isPathActive = (item: NavItem): boolean => pathMatches(item.href) || (item.children?.some(isPathActive) ?? false);
+  const groupContainsPath = (item: NavItem): boolean => item.children?.some((child) => pathMatches(child.href) || groupContainsPath(child)) ?? false;
 
   const renderItem = (item: NavItem, nested = false): React.ReactNode => {
     const children = item.children ?? [];
@@ -89,7 +90,7 @@ export function EntitlementAwareWorkspaceShell({ children, user }: WorkspaceShel
           href={item.href}
           prefetch
           onClick={closeSidebar}
-          aria-current={pathname === item.href || pathname.startsWith(`${item.href}/`) ? "page" : undefined}
+          aria-current={pathMatches(item.href) ? "page" : undefined}
           className={cn(
             "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
             nested && (isArabic ? "mr-4" : "ml-4"),
