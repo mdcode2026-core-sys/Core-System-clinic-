@@ -14,6 +14,7 @@
     "ux:patient-flow-stage6": "node tools/patient-flow-stage6-audit.mjs",
     "ux:patient-context-stage7": "node tools/patient-context-stage7-audit.mjs",
     "ux:global-search-stage8": "node tools/global-search-stage8-audit.mjs",
+    "ux:mobile-stage11": "node tools/mobile-responsive-stage11-audit.mjs",
     "db:types": "supabase gen types typescript --project-id qaslsjyxjwvdoiczmhgq --schema public > src/infrastructure/supabase/database.types.ts",
     "db:migrate": "supabase migration up",
     "db:reset": "supabase db reset"
