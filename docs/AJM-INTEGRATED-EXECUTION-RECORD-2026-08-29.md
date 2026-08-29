@@ -13,11 +13,11 @@ Execution principle:
 
 ## Integrated candidate
 
-The working release candidate is accumulated on the AJM execution branch/PR #55 and contains the current AJM-3 through AJM-8 implementation slices.
+The working release candidate is accumulated on AJM execution branch/PR #55 and contains the current AJM-3 through AJM-8 implementation slices plus required integrated validation fixes.
 
-Current candidate head SHA: `eaf565d4952d4d429e18db68b5965da9b48cb3af`
+Current candidate head SHA: `7065c52a9d5ba02d6107c85138051baa569b1f81`
 
-Current PR merge-test SHA observed before the latest head update: `4aeff289ab8b93bc66939f665ad7fa257eeddbde`.
+PR #55 remains open and unmerged.
 
 ## Stage records
 
@@ -27,11 +27,11 @@ Status: RELEASE-DEFERRED.
 
 Implemented: staff records, positions, employment history, schedules/capacity inputs, attendance, leave, payroll foundation, benefits, commissions, recruitment foundation, tenant-scoped permissions/RLS, bilingual `/workforce` surface.
 
-Hardening: cross-tenant composite foreign-key integrity was added so tenant context cannot be bypassed by supplying a foreign tenant-owned referenced ID.
+Hardening: cross-tenant composite foreign-key integrity covers tenant-owned references, including workforce employee/position/user/leave/payroll/commission/recruitment relationships and additional tenant-bound audit/user references.
 
-Validation: TypeScript passed after fixing the analytics category typing exposed by the integrated CI. I18N audit/parity and multiple UX gates passed in the latest observed run. Changed-surface validation continues on the latest candidate.
+Validation: TypeScript, I18N, UX domain audits and changed-surface validation have passed in observed CI runs; integrated CI remains in progress on the latest candidate.
 
-Production DB: workforce tables are not yet applied to the live database in this acceptance cycle; therefore production runtime acceptance is deferred to the integrated release gate.
+Production DB: workforce tables are not yet applied to the live database in this acceptance cycle; production runtime acceptance is deferred to the integrated release gate.
 
 ### AJM-4 — Communications
 
@@ -49,13 +49,15 @@ Status: RELEASE-DEFERRED.
 
 Implemented: one general `operational_work_items` model covering task/request/handoff/next-action/escalation semantics, append-only work history, My Work/Work Center, assignment and status transitions.
 
+Hardening: operational work history now has an explicit authenticated insert policy so the server actions' append-only audit writes are actually permitted under RLS.
+
 Boundary: Coordination is not a second Agenda, Clinical workflow, Treatment Plan, Follow-up, Communications, Workforce, or Analytics engine.
 
 ### AJM-6 — Insights
 
 Status: RELEASE-DEFERRED.
 
-Reused the existing KPI registry/engine and extended it with workforce, communications, and coordination categories rather than creating a separate analytics source of truth.
+Reused the existing KPI registry/engine and extended it with workforce, communications and coordination categories rather than creating a separate analytics source of truth.
 
 ### AJM-7 — PJ & Cross-Domain Integration Hardening
 
@@ -69,17 +71,21 @@ Required integrated paths remain part of final runtime verification, including A
 
 Status: PARTIALLY CLOSED / BLOCKED at production gate.
 
-Implemented: RLS mutation-path hardening, assignee authorization for work transitions, sensitive workforce read-policy narrowing, integrated static audit tooling.
+Implemented: RLS mutation-path hardening, assignee authorization for work transitions, sensitive workforce read-policy narrowing, tenant-bound reference hardening, integrated static audit tooling.
 
-The integrated static audit checks required governance files, canonical surfaces and prohibited Communications ownership of Agenda/Treatment Plan creation.
+The integrated static audit checks required governance files, canonical surfaces, server authorization and prohibited Communications ownership of Agenda/Treatment Plan creation.
 
 ## Latest validation findings and fixes
 
-- The first integrated CI pass exposed a TypeScript mismatch: `AnalyticsCategory` had been expanded with AJM categories while `getKpiDataByCategory` still accepted only legacy categories. Fixed by using the canonical `AnalyticsCategory` type in the analytics engine.
-- The next Stage 10 validation exposed a brittle Stage 9 audit assertion that depended on whitespace formatting in `navigationRegistry.ts`. The audit was corrected to validate the semantic dashboard route/permission pair rather than source formatting.
+- TypeScript mismatch in the analytics category expansion was fixed by using the canonical `AnalyticsCategory` type.
+- Stage 10 audit failure was traced to brittle source-format assumptions (`href: ` versus compact `href:` and route parsing). The audit was made formatting-robust without weakening the semantic checks.
+- Integrated static audit was likewise hardened against formatting assumptions and expanded to verify AJM route uniqueness, server permission checks, KPI category consolidation and Communications ownership boundaries.
+- Coordination runtime code was inspected against its RLS. The original migration had no INSERT policy on `operational_work_history` even though server actions append history. An explicit tenant/user/work-scoped insert policy was added before production migration.
+- Additional tenant-integrity constraints were added for workforce audit/user references and communication patient/user references so globally unique UUIDs cannot create cross-tenant relationships.
 - Latest observed I18N Verification completed successfully.
-- Latest observed UX 0–8 validation reached TypeScript, I18N audit/parity, Widget Catalog, Domain Surface, Patient Flow, Patient Context and Global Search successfully before its production-build step completed.
-- Additional workflow runs are still in progress on the latest candidate; no final all-green CI claim is made until every required run has completed.
+- Latest observed Stage 10 validation reached TypeScript, I18N, UX audits, Stage 10 Sidebar and changed-surface ESLint successfully; production build was still running at the last job inspection.
+- Latest Stage 12 validation reached all security/I18N/UX/mobile gates successfully; production build was still running at the last inspection.
+- All required workflow runs for the current candidate have not yet completed, so no all-green CI claim is made.
 
 ## Supabase migration state
 
@@ -93,6 +99,8 @@ The current-cycle AJM-3+ migration files are present in PR #55 in dependency ord
 6. `20260829180000_ajm_7_cross_domain_links.sql`
 7. `20260829190000_ajm_8_security_runtime_hardening.sql`
 
+The sequence is additive and ordered by dependency: Workforce foundation → seed → Workforce tenant integrity → Communications → Coordination → cross-domain links → security hardening.
+
 Live Supabase was explicitly checked: none of the current-cycle `workforce_%`, `communication_%`, or `operational_work_%` tables are currently present, and none of the migration versions above are recorded in `supabase_migrations.schema_migrations`. Therefore these migrations have NOT been applied to production and must not be treated as live implementation.
 
 No partial/unsafe production migration was applied during this acceptance cycle.
@@ -101,7 +109,7 @@ No partial/unsafe production migration was applied during this acceptance cycle.
 
 1. Vercel build-rate limit: Production deployment is deferred; this does not block engineering execution.
 2. Approved authenticated production E2E identity: not invented; authenticated production E2E remains a release-gate dependency.
-3. Live Supabase schema does not yet contain the current-cycle AJM-3+ tables. These additive migrations must be applied as part of the integrated release, followed by production verification.
+3. Live Supabase schema does not yet contain the current-cycle AJM-3+ tables. The complete migration sequence must be applied as one integrated release operation, followed by production verification.
 
 ## No false closure
 
