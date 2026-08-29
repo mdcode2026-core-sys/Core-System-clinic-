@@ -14,6 +14,7 @@ Reconstructed baseline as of 2026-07-31 from committed migration files and archi
 - Validated implementation commit: `65988b160136546d3b7c04cce1606c436c3d0529`.
 - Merged to `main` as `d85358577e84e6c6ed6a32fb13ca41751369d40d`; subsequent documentation commits continue the same validated implementation lineage.
 - Stage 9 findings register records unrelated repository-wide ESLint debt as deferred cross-workstream work and records historical runtime signatures as non-current evidence.
+- Final production deployment retry is intentionally Git-integration-driven; no manual Vercel build or repository token was introduced.
 
 ---
 
