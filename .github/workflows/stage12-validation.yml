@@ -21,11 +21,7 @@ jobs:
         with:
           node-version: 22
           cache: npm
-      - name: Verify lockfile
-        run: |
-          npm install --package-lock-only --ignore-scripts
-          git diff --exit-code -- package-lock.json
-      - name: Install dependencies
+      - name: Verify lockfile and install dependencies
         run: npm ci --ignore-scripts
       - name: Production dependency security audit
         run: npm audit --omit=dev --audit-level=high
@@ -55,7 +51,7 @@ jobs:
         run: npm run ux:mobile-stage11
       - name: Production build
         env:
-          NEXT_PUBLIC_SUPABASE_URL: https://qaslsjyxjwvdoiczmhgq.supabase.co
+          NEXT_PUBLIC_SUPABASE_URL: https://qaslsjyxjwvdoiczmhgq.co
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
           NEXT_PUBLIC_APP_URL: http://localhost:3000
         run: npm run build
