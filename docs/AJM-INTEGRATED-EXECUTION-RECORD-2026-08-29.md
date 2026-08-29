@@ -11,11 +11,13 @@ Execution principle: `Inspect → Reuse → Reconcile → Extend → Create only
 
 ## Integrated release
 
-PR #55 — `feat(AJM): Integrated AJM-3 → AJM-8 Release Candidate` has been merged to `main` after the integrated non-production acceptance gates passed.
+PR #55 — `feat(AJM): Integrated AJM-3 → AJM-8 Release Candidate` was merged to `main` only after the integrated non-production acceptance gates passed.
 
-Merge SHA: `17345fac5bb41a8fa7c48cc0cdfd9c85e0fb690e`
+Integrated merge SHA: `17345fac5bb41a8fa7c48cc0cdfd9c85e0fb690e`
 
-The post-merge documentation reconciliation commit is the current documentation head; it contains documentation only and does not alter application/runtime code.
+Current tested/documented main release SHA: `9d20c6a0f039966f6ea5f13ede1ac3bcc9bf1563`
+
+The current release SHA contains the integrated application plus the final documentation/gate reconciliation commit. No application/runtime code is introduced by the documentation-only reconciliation commit.
 
 ## Integrated stages
 
@@ -33,13 +35,15 @@ AJM-8: RLS/security hardening, authorization enforcement, tenant-bound reference
 
 ## Integrated validation
 
-The final observed candidate validation set passed TypeScript, lint, I18N audit/parity, UX 0-8, Stage 8-15 checks, runtime E2E, legacy cleanup, AJM integrated static audit and AJM migration sequence audit.
+The final observed non-production candidate validation set passed TypeScript, lint, I18N audit/parity, UX 0-8, Stage 8-15 checks, runtime E2E, legacy cleanup, AJM integrated static audit and AJM migration sequence audit.
 
 Defects found during acceptance were diagnosed and corrected, including Analytics typing, brittle sidebar/static assertions, Workforce authorization assertions, work-history RLS, and missing tenant composite keys required by cross-tenant foreign keys.
 
-## Production database
+The latest main status has no application/test failure. The remaining GitHub status failure is the Vercel deployment-rate-limit status only; the Production Candidate Handoff workflow itself completed successfully.
 
-The complete dependency-ordered sequence was applied to the live Supabase project:
+## Production database readiness
+
+The complete dependency-ordered AJM migration sequence was validated as one unit and applied to the live Supabase project:
 
 1. `20260829160000_ajm_3_workforce_foundation.sql`
 2. `20260829160500_ajm_3_seed_workforce_leave_types.sql`
@@ -49,27 +53,48 @@ The complete dependency-ordered sequence was applied to the live Supabase projec
 6. `20260829180000_ajm_7_cross_domain_links.sql`
 7. `20260829190000_ajm_8_security_runtime_hardening.sql`
 
-The initial live rehearsal exposed required composite-key dependencies on existing `clinic_users` and `clinic_patients`; those dependencies were corrected in the candidate before the sequence was successfully applied.
+The initial live rehearsal exposed required composite-key dependencies on existing `clinic_users` and `clinic_patients`; those dependencies were corrected before the sequence was successfully applied.
 
-Migration history was reconciled so the authoritative repository versions are recorded for the applied sequence. Live schema verification confirms all Workforce, Communications and Coordination tables exist with RLS enabled, with tenant-bound integrity constraints present.
+The integrated migration audit enforces presence, ordering, non-destructive DDL, required AJM structures, and absence of unexpected AJM migrations in the integrated timestamp window.
 
-## Production deployment gate
+Live verification confirms the resulting Workforce, Communications and Coordination schema exists with RLS enabled and tenant-bound integrity constraints present.
 
-Vercel has READY preview deployments for the integrated candidate, but no verified Production deployment from the final accepted integrated release is recorded yet.
+## Pre-Vercel release readiness
 
-The Production Candidate Handoff workflow was also corrected to reference the actual `UX Stages 0-8 CI` workflow and to validate main pushes; production deployment remains delegated to the Vercel Git integration.
+The integrated release has completed the engineering/non-production gates required before a Vercel Production deployment.
 
-## Authenticated Production E2E
+Production Candidate state: `INTEGRATED RELEASE-READY / PRODUCTION-DEFERRED`.
 
-No credentials are invented. An approved authenticated Production E2E identity/session is still a required Production Verification Dependency for proving authorization and tenant isolation through real authenticated Production workflows.
+The candidate is not marked CLOSED because Production deployment and Production verification have not yet occurred.
 
-## Current state
+## Production gate dependencies
 
-Integrated AJM release: `PRODUCTION-GATE READY / VERIFICATION DEFERRED`.
+1. Vercel Production deployment is currently blocked by the platform build/deployment rate limit. The GitHub status explicitly reports: `Deployment rate limited — retry in 24 hours.` No additional Production deployment is attempted while this blocker remains.
+2. Authenticated Production E2E requires an approved test identity/session. No credentials are invented. This remains a Production Verification Dependency for proving authenticated authorization and tenant isolation through real Production workflows.
 
-AJM-3 through AJM-8: implementation and non-production acceptance complete; final Production Gate pending.
+The Production Candidate Handoff workflow is configured against the actual `UX Stages 0-8 CI` workflow and main-push validation; it completed successfully for the current main release SHA. Production deployment remains delegated to the Vercel Git integration.
 
-Final Production Closure: `NOT CLOSED`.
+## Final pre-Vercel checklist
+
+- [x] AJM-0→AJM-8 implementation integrated
+- [x] AJM↔UX/PJ reconciliation completed for the integrated candidate
+- [x] terminology governance reconciled
+- [x] authorization/effective permissions checked
+- [x] entitlements/visibility boundaries checked
+- [x] RLS and tenant-bound integrity checked
+- [x] canonical data ownership and duplicate workflow/source-of-truth audit completed
+- [x] Navigation/visibility checked
+- [x] Arabic/English/i18n validation passed
+- [x] responsive/mobile validation passed
+- [x] non-production runtime validation passed
+- [x] integrated migration sequence audited and applied coherently
+- [x] GitHub non-production validation completed
+- [x] rollback/release evidence recorded
+- [x] exact release SHA recorded
+- [ ] Vercel Production deployment
+- [ ] Production runtime verification
+- [ ] Authenticated Production E2E with approved identity
+- [ ] Final Production Closure
 
 ## Required final Production sequence
 
