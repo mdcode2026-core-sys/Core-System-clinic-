@@ -48,7 +48,7 @@ When documentation and implementation disagree, use:
 - Stage 8 — Global Search: **CLOSED / PRODUCTION READY**.
 - Stage 9 — Overview / Dashboard Reconciliation: **CLOSED / PRODUCTION READY**.
 - Stage 10 — Sidebar Finalization: **CLOSED / PRODUCTION READY**.
-- Stage 11 — Mobile & Language Validation: **CLOSED / PRODUCTION READY**.
+- Stage 11 — Mobile & Language Validation: **IMPLEMENTATION CLOSED / PRODUCTION DEPLOYMENT BLOCKED**.
 
 Stage 11 final main SHA: `8ce80503c8e253849bee3d408daa7cba986f38c8`.
 

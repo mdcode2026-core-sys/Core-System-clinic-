@@ -2,7 +2,7 @@
 
 **Stage:** 11
 **Official name:** Mobile & Language Validation
-**Status:** CLOSED / PRODUCTION READY
+**Status:** IMPLEMENTATION COMPLETE / PRODUCTION DEPLOYMENT BLOCKED
 **Final main SHA:** `8ce80503c8e253849bee3d408daa7cba986f38c8`
 **Baseline main SHA:** `3ed073bfca06dce4ef3d2de2afddd78c00ad89cc`
 **Merged PR:** #39
@@ -102,4 +102,14 @@ Production deployment must be the GitHub `main` → Vercel Git Integration path.
 
 ## Closure
 
-Stage 11 is **CLOSED / PRODUCTION READY**. The deferred repository-wide ESLint diagnostic is explicitly recorded and does not reopen Stage 11.
+Stage 11 implementation is complete. Final production readiness is blocked by the Vercel Git deployment build-rate-limit; no manual Vercel build/API workaround was used. The deferred repository-wide ESLint diagnostic is explicitly recorded and does not reopen Stage 11.
+
+
+## External/System Blocker — Vercel build-rate-limit
+
+- GitHub → Vercel Git Integration is configured for `main` (`vercel.json` has `git.deploymentEnabled.main = true`).
+- Final GitHub Stage 11 validation run #15 passed all blocking gates on the final code candidate.
+- GitHub combined status for the final candidate reports Vercel `failure` with target `upgradeToPro=build-rate-limit`.
+- Vercel project linkage and Production Branch configuration were verified; no manual Vercel build/API request was used.
+- Current production deployment remains the prior production SHA `3ed073bfca06dce4ef3d2de2afddd78c00ad89cc`; runtime logs for the current production deployment show no error/fatal entries.
+- This blocker prevents claiming `Production Ready = YES` until Vercel accepts the Git-integrated production deployment for the final `main` SHA.
