@@ -2,7 +2,7 @@
 // Root layout — required by Next.js App Router.
 // Tenant language may provide the initial locale; English is the global platform fallback.
 
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { cookies } from "next/headers";
 import { Toaster } from "sonner";
 import { QueryClientProvider } from "@/shared/components/QueryClientProvider";
@@ -13,6 +13,11 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "ClinicSaaS",
   description: "ClinicSaaS Multi-Tenant Platform",
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
