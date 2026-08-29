@@ -13,7 +13,11 @@ Execution principle:
 
 ## Integrated candidate
 
-The working release candidate is accumulated on the AJM execution branch/PR and contains the current AJM-3 through AJM-8 implementation slices.
+The working release candidate is accumulated on the AJM execution branch/PR #55 and contains the current AJM-3 through AJM-8 implementation slices.
+
+Current candidate head SHA: `eaf565d4952d4d429e18db68b5965da9b48cb3af`
+
+Current PR merge-test SHA observed before the latest head update: `4aeff289ab8b93bc66939f665ad7fa257eeddbde`.
 
 ## Stage records
 
@@ -25,7 +29,7 @@ Implemented: staff records, positions, employment history, schedules/capacity in
 
 Hardening: cross-tenant composite foreign-key integrity was added so tenant context cannot be bypassed by supplying a foreign tenant-owned referenced ID.
 
-Validation: TypeScript and changed-surface lint passed in the observed CI run; the initial I18N audit failure caused by a hardcoded email placeholder was fixed and CI was re-triggered.
+Validation: TypeScript passed after fixing the analytics category typing exposed by the integrated CI. I18N audit/parity and multiple UX gates passed in the latest observed run. Changed-surface validation continues on the latest candidate.
 
 Production DB: workforce tables are not yet applied to the live database in this acceptance cycle; therefore production runtime acceptance is deferred to the integrated release gate.
 
@@ -68,6 +72,30 @@ Status: PARTIALLY CLOSED / BLOCKED at production gate.
 Implemented: RLS mutation-path hardening, assignee authorization for work transitions, sensitive workforce read-policy narrowing, integrated static audit tooling.
 
 The integrated static audit checks required governance files, canonical surfaces and prohibited Communications ownership of Agenda/Treatment Plan creation.
+
+## Latest validation findings and fixes
+
+- The first integrated CI pass exposed a TypeScript mismatch: `AnalyticsCategory` had been expanded with AJM categories while `getKpiDataByCategory` still accepted only legacy categories. Fixed by using the canonical `AnalyticsCategory` type in the analytics engine.
+- The next Stage 10 validation exposed a brittle Stage 9 audit assertion that depended on whitespace formatting in `navigationRegistry.ts`. The audit was corrected to validate the semantic dashboard route/permission pair rather than source formatting.
+- Latest observed I18N Verification completed successfully.
+- Latest observed UX 0–8 validation reached TypeScript, I18N audit/parity, Widget Catalog, Domain Surface, Patient Flow, Patient Context and Global Search successfully before its production-build step completed.
+- Additional workflow runs are still in progress on the latest candidate; no final all-green CI claim is made until every required run has completed.
+
+## Supabase migration state
+
+The current-cycle AJM-3+ migration files are present in PR #55 in dependency order:
+
+1. `20260829160000_ajm_3_workforce_foundation.sql`
+2. `20260829160500_ajm_3_seed_workforce_leave_types.sql`
+3. `20260829161500_ajm_3_workforce_tenant_integrity.sql`
+4. `20260829170000_ajm_4_communications_foundation.sql`
+5. `20260829173000_ajm_5_journey_coordination_foundation.sql`
+6. `20260829180000_ajm_7_cross_domain_links.sql`
+7. `20260829190000_ajm_8_security_runtime_hardening.sql`
+
+Live Supabase was explicitly checked: none of the current-cycle `workforce_%`, `communication_%`, or `operational_work_%` tables are currently present, and none of the migration versions above are recorded in `supabase_migrations.schema_migrations`. Therefore these migrations have NOT been applied to production and must not be treated as live implementation.
+
+No partial/unsafe production migration was applied during this acceptance cycle.
 
 ## Current production-gate dependencies
 
