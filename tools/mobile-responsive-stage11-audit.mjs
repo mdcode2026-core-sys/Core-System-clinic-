@@ -23,6 +23,7 @@ function includes(relativePath, needle, description) {
 
 console.log("Stage 11 — Mobile + Responsive Workflow audit");
 
+// Final production-candidate verification marker; this audit is intentionally behavior-neutral.
 // Device viewport and global overflow safety.
 includes("src/app/layout.tsx", "export const viewport", "declares an explicit responsive viewport");
 includes("src/app/globals.css", "overflow-x: clip", "prevents accidental page-level horizontal overflow");
