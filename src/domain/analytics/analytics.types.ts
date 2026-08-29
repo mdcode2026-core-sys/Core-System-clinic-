@@ -4,21 +4,18 @@ import type { Database } from "@/infrastructure/supabase/database.types";
 export type AnalyticsSupabaseClient = SupabaseClient<Database>;
 
 export interface DateRange {
-  from: string; // ISO date string YYYY-MM-DD
-  to: string; // ISO date string YYYY-MM-DD
+  from: string;
+  to: string;
 }
 
 export type DatePreset = "today" | "this_month";
+export type AnalyticsCategory = "patients" | "appointments" | "queue" | "revenue" | "invoices" | "inventory" | "followup" | "workforce" | "communications" | "coordination";
 
 export interface KpiDefinition {
   id: string;
   nameAr: string;
-  category: "patients" | "appointments" | "queue" | "revenue" | "invoices" | "inventory" | "followup";
-  calculator: (
-    supabase: AnalyticsSupabaseClient,
-    tenantId: string,
-    dateRange: DateRange
-  ) => Promise<number>;
+  category: AnalyticsCategory;
+  calculator: (supabase: AnalyticsSupabaseClient, tenantId: string, dateRange: DateRange) => Promise<number>;
   formatter: (value: number) => string | Promise<string>;
 }
 
@@ -33,5 +30,5 @@ export interface KpiResult {
 export interface KpiRegistry {
   get(id: string): KpiDefinition | undefined;
   getAll(): KpiDefinition[];
-  getByCategory(category: KpiDefinition["category"]): KpiDefinition[];
+  getByCategory(category: AnalyticsCategory): KpiDefinition[];
 }
