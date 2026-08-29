@@ -42,8 +42,8 @@ export function GlobalSearch() {
   const hasSearchQuery = query.trim().length >= 2;
 
   return (
-    <div ref={wrapperRef} className="relative w-full max-w-2xl">
-      <div className={cn("flex items-center gap-2 rounded-xl border bg-gray-50 px-3", open && "border-blue-300 bg-white shadow-sm")}>
+    <div ref={wrapperRef} className="relative w-full max-w-2xl min-w-0">
+      <div className={cn("flex min-w-0 items-center gap-2 rounded-xl border bg-gray-50 px-3", open && "border-blue-300 bg-white shadow-sm")}>
         <Search className="h-4 w-4 shrink-0 text-gray-500" aria-hidden="true" />
         <input
           value={query}
@@ -51,9 +51,9 @@ export function GlobalSearch() {
           onFocus={() => hasSearchQuery && setOpen(true)}
           placeholder={messages.placeholder}
           aria-label={messages.label}
-          className="h-10 min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-gray-400"
+          className="h-11 min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-gray-400"
         />
-        {isPending && <Loader2 className="h-4 w-4 animate-spin text-gray-500" aria-hidden="true" />}
+        {isPending && <Loader2 className="h-4 w-4 shrink-0 animate-spin text-gray-500" aria-hidden="true" />}
       </div>
 
       {open && (
@@ -71,9 +71,9 @@ export function GlobalSearch() {
                   key={`${result.type}-${result.id}`}
                   href={result.href}
                   onClick={() => setOpen(false)}
-                  className="flex items-center gap-3 rounded-lg px-3 py-2.5 hover:bg-gray-50"
+                  className="flex min-w-0 items-center gap-2 rounded-lg px-3 py-2.5 hover:bg-gray-50 sm:gap-3"
                 >
-                  <span className="min-w-24 shrink-0 text-xs font-medium text-gray-500">{typeLabel(result.type)}</span>
+                  <span className="max-w-[5rem] shrink-0 truncate text-xs font-medium text-gray-500 sm:min-w-24">{typeLabel(result.type)}</span>
                   <span className="min-w-0 flex-1">
                     <span className="block truncate text-sm font-medium text-gray-900">{result.title}</span>
                     {result.subtitle && <span className="block truncate text-xs text-gray-500">{result.subtitle}</span>}

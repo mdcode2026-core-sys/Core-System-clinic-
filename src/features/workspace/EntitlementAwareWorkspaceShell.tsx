@@ -63,7 +63,7 @@ export function EntitlementAwareWorkspaceShell({ children, user }: WorkspaceShel
             aria-expanded={open}
             aria-controls={`sidebar-group-${item.href.replace(/[^a-zA-Z0-9_-]/g, "-")}`}
             className={cn(
-              "flex w-full items-center gap-3 rounded-lg px-3 py-2 text-start text-sm font-medium transition-colors",
+              "flex min-h-10 w-full items-center gap-3 rounded-lg px-3 py-2 text-start text-sm font-medium transition-colors",
               nested && (isArabic ? "pr-4" : "pl-4"),
               active ? "bg-blue-50 text-blue-700" : "text-gray-700 hover:bg-gray-100 hover:text-gray-900",
             )}
@@ -89,13 +89,13 @@ export function EntitlementAwareWorkspaceShell({ children, user }: WorkspaceShel
           onClick={closeSidebar}
           aria-current={pathMatches(item.href) ? "page" : undefined}
           className={cn(
-            "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+            "flex min-h-10 items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
             nested && (isArabic ? "mr-4" : "ml-4"),
             active ? "bg-blue-50 text-blue-700" : "text-gray-700 hover:bg-gray-100 hover:text-gray-900",
           )}
         >
           <Icon className="h-4 w-4 shrink-0" />
-          <span className="truncate">{getLabel(item)}</span>
+          <span className="min-w-0 truncate">{getLabel(item)}</span>
         </Link>
         {children.length > 0 && (
           <div className="mt-1 space-y-0.5 border-l border-gray-200 pl-1 rtl:border-l-0 rtl:border-r rtl:pr-1">
@@ -107,13 +107,13 @@ export function EntitlementAwareWorkspaceShell({ children, user }: WorkspaceShel
   };
 
   return (
-    <div className="flex h-screen w-full overflow-hidden bg-gray-50">
+    <div className="flex h-screen w-full min-w-0 overflow-hidden bg-gray-50">
       {sidebarOpen && <div className="fixed inset-0 z-40 bg-black/50 lg:hidden" onClick={closeSidebar} />}
-      <aside className={cn("fixed inset-y-0 z-50 w-64 transform bg-white shadow-lg transition-transform duration-200 ease-in-out", isArabic ? "right-0" : "left-0", sidebarOpen ? "translate-x-0" : isArabic ? "translate-x-full" : "-translate-x-full")}>
-        <div className="flex h-full flex-col">
-          <div className="flex items-center justify-between border-b px-6 py-4">
-            <Link href="/" className="text-xl font-bold text-blue-600" onClick={closeSidebar}>ClinicSaaS™</Link>
-            <button type="button" onClick={closeSidebar} className="rounded-md p-1.5 hover:bg-gray-100" aria-label={messages.shell.closeMenu} title={messages.shell.closeMenu}><X className="h-5 w-5" /></button>
+      <aside className={cn("fixed inset-y-0 z-50 w-64 max-w-[85vw] transform bg-white shadow-lg transition-transform duration-200 ease-in-out", isArabic ? "right-0" : "left-0", sidebarOpen ? "translate-x-0" : isArabic ? "translate-x-full" : "-translate-x-full")}>
+        <div className="flex h-full min-w-0 flex-col">
+          <div className="flex items-center justify-between gap-2 border-b px-4 py-3 sm:px-6 sm:py-4">
+            <Link href="/" className="min-w-0 truncate text-xl font-bold text-blue-600" onClick={closeSidebar}>ClinicSaaS™</Link>
+            <button type="button" onClick={closeSidebar} className="inline-flex min-h-10 min-w-10 shrink-0 items-center justify-center rounded-md p-1.5 hover:bg-gray-100" aria-label={messages.shell.closeMenu} title={messages.shell.closeMenu}><X className="h-5 w-5" /></button>
           </div>
           <nav aria-label={isArabic ? "التنقل الرئيسي" : "Primary navigation"} className="flex-1 space-y-1 overflow-y-auto px-3 py-4">
             {filteredNav.map((item) => renderItem(item))}
@@ -121,14 +121,14 @@ export function EntitlementAwareWorkspaceShell({ children, user }: WorkspaceShel
         </div>
       </aside>
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
-        <header className="flex flex-wrap items-center justify-between gap-3 border-b bg-white px-4 py-3 lg:px-6">
-          <div className="flex min-w-0 items-center gap-3">
-            <button type="button" onClick={() => setSidebarOpen(true)} className="rounded-md p-1.5 hover:bg-gray-100" aria-label={messages.shell.openMenu} title={messages.shell.openMenu}><Menu className="h-5 w-5 text-gray-600" /></button>
-            <h1 className="truncate text-lg font-semibold text-gray-900">{messages.shell.workspace}</h1>
+        <header className="flex flex-wrap items-center justify-between gap-2 border-b bg-white px-3 py-2 sm:gap-3 sm:px-4 sm:py-3 lg:px-6">
+          <div className="flex min-w-0 items-center gap-2 sm:gap-3">
+            <button type="button" onClick={() => setSidebarOpen(true)} className="inline-flex min-h-10 min-w-10 shrink-0 items-center justify-center rounded-md p-1.5 hover:bg-gray-100" aria-label={messages.shell.openMenu} title={messages.shell.openMenu}><Menu className="h-5 w-5 text-gray-600" /></button>
+            <h1 className="truncate text-base font-semibold text-gray-900 sm:text-lg">{messages.shell.workspace}</h1>
           </div>
-          <div className="flex shrink-0 items-center gap-2 sm:gap-4"><LanguageSwitcher /><span className="hidden max-w-[240px] truncate text-sm text-gray-600 sm:inline">{user?.email}</span><button type="button" onClick={handleSignOut} className="flex items-center gap-1.5 rounded-md bg-gray-100 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-200"><LogOut className="h-4 w-4" /><span className="hidden sm:inline">{messages.shell.signOut}</span></button></div>
+          <div className="flex shrink-0 items-center gap-1 sm:gap-4"><LanguageSwitcher /><span className="hidden max-w-[240px] truncate text-sm text-gray-600 sm:inline">{user?.email}</span><button type="button" onClick={handleSignOut} className="inline-flex min-h-10 min-w-10 items-center justify-center gap-1.5 rounded-md bg-gray-100 px-2 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-200 sm:min-w-0 sm:px-3"><LogOut className="h-4 w-4" /><span className="hidden sm:inline">{messages.shell.signOut}</span></button></div>
         </header>
-        <main className="min-w-0 flex-1 overflow-y-auto p-4 lg:p-6">{children}</main>
+        <main className="min-w-0 flex-1 overflow-y-auto p-3 sm:p-4 lg:p-6">{children}</main>
       </div>
     </div>
   );

@@ -70,8 +70,8 @@ export function WorkspaceRenderer({ context, workspaceKey = "global" }: Workspac
       <div className="mb-1 flex items-center justify-between px-1 text-gray-400">
         <GripVertical className="hidden h-4 w-4 cursor-grab sm:block" aria-hidden="true" />
         <div className="flex items-center gap-1 text-[11px] sm:hidden">
-          <button type="button" className="rounded border px-2 py-1 hover:bg-gray-50" onClick={() => moveWithinLayer(layerItems, resolved.definition.key, -1)} aria-label={workspace.moveUp}>↑</button>
-          <button type="button" className="rounded border px-2 py-1 hover:bg-gray-50" onClick={() => moveWithinLayer(layerItems, resolved.definition.key, 1)} aria-label={workspace.moveDown}>↓</button>
+          <button type="button" className="min-h-9 min-w-9 rounded border px-2 py-1 hover:bg-gray-50" onClick={() => moveWithinLayer(layerItems, resolved.definition.key, -1)} aria-label={workspace.moveUp}>↑</button>
+          <button type="button" className="min-h-9 min-w-9 rounded border px-2 py-1 hover:bg-gray-50" onClick={() => moveWithinLayer(layerItems, resolved.definition.key, 1)} aria-label={workspace.moveDown}>↓</button>
         </div>
       </div>
       <WidgetContainer resolved={resolved} context={context} workspaceKey={workspaceKey} onStateChange={updateWidgetState} />
@@ -91,7 +91,7 @@ export function WorkspaceRenderer({ context, workspaceKey = "global" }: Workspac
             <h1 className="mt-1 text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl">{surface?.label[locale] ?? (locale === "ar" ? "مساحة العمل" : "Workspace")}</h1>
             <p className="mt-2 max-w-3xl text-sm leading-6 text-gray-600">{surface?.description[locale] ?? (locale === "ar" ? "مساحة العمل المخصصة لك." : "Your working surface.")}</p>
           </div>
-          <button type="button" onClick={() => setCustomizing((value) => !value)} className="inline-flex items-center justify-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium hover:bg-gray-50" aria-expanded={customizing}>
+          <button type="button" onClick={() => setCustomizing((value) => !value)} className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium hover:bg-gray-50" aria-expanded={customizing}>
             {customizing ? <X className="h-4 w-4" /> : <Settings2 className="h-4 w-4" />}
             {customizing ? workspace.closeCustomizer : workspace.customize}
           </button>
@@ -105,12 +105,12 @@ export function WorkspaceRenderer({ context, workspaceKey = "global" }: Workspac
               <h2 className="text-base font-semibold text-gray-900">{workspace.widgetLibrary}</h2>
               <p className="mt-1 text-sm text-gray-500">{workspace.customizationHint}</p>
             </div>
-            <button type="button" onClick={resetLayout} className="inline-flex items-center justify-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium hover:bg-gray-50"><RotateCcw className="h-4 w-4" />{workspace.restoreDefaults}</button>
+            <button type="button" onClick={resetLayout} className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium hover:bg-gray-50"><RotateCcw className="h-4 w-4" />{workspace.restoreDefaults}</button>
           </div>
           <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
             {availableWidgets.map((widget) => {
               const selected = selectedKeys.has(widget.key);
-              return <div key={widget.key} className="flex items-center justify-between rounded-lg border p-3"><span className="min-w-0 truncate text-sm font-medium text-gray-800">{locale === "ar" ? widget.labelAr : widget.label}</span>{selected ? <button type="button" onClick={() => removeWidget(widget.key)} className="shrink-0 rounded-md border px-2 py-1 text-xs hover:bg-gray-50">{workspace.removeWidget}</button> : <button type="button" onClick={() => addWidget(widget.key)} className="inline-flex shrink-0 items-center gap-1 rounded-md border px-2 py-1 text-xs hover:bg-gray-50"><Plus className="h-3 w-3" />{workspace.addWidget}</button>}</div>;
+              return <div key={widget.key} className="flex items-center justify-between gap-3 rounded-lg border p-3"><span className="min-w-0 truncate text-sm font-medium text-gray-800">{locale === "ar" ? widget.labelAr : widget.label}</span>{selected ? <button type="button" onClick={() => removeWidget(widget.key)} className="min-h-9 shrink-0 rounded-md border px-2 py-1 text-xs hover:bg-gray-50">{workspace.removeWidget}</button> : <button type="button" onClick={() => addWidget(widget.key)} className="inline-flex min-h-9 shrink-0 items-center gap-1 rounded-md border px-2 py-1 text-xs hover:bg-gray-50"><Plus className="h-3 w-3" />{workspace.addWidget}</button>}</div>;
             })}
             {availableWidgets.length === 0 && <p className="text-sm text-gray-500">{workspace.noAvailableWidgets}</p>}
           </div>

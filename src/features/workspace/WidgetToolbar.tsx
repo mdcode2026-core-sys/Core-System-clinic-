@@ -24,45 +24,47 @@ export function WidgetToolbar({ widgetKey, currentState, onStateChange }: Widget
   const handleCollapse = () => onStateChange?.(widgetKey, isCollapsed ? "visible" : "collapsed");
   const handlePin = () => onStateChange?.(widgetKey, isPinned ? "visible" : "pinned");
 
+  const controlClass = "min-h-9 min-w-9 sm:min-h-8 sm:min-w-8 rounded p-1 transition-colors";
+
   return (
     <div className="flex items-center gap-1">
       <button
         type="button"
         onClick={handleCollapse}
         className={cn(
-          "rounded p-1 transition-colors",
+          controlClass,
           isCollapsed ? "bg-blue-50 text-blue-600" : "text-gray-400 hover:bg-gray-100 hover:text-gray-600",
         )}
         title={isCollapsed ? workspace.expand : workspace.collapse}
         aria-label={isCollapsed ? workspace.expand : workspace.collapse}
       >
-        <ChevronDown className={cn("h-4 w-4 transition-transform", isCollapsed && "rotate-180")} />
+        <ChevronDown className={cn("mx-auto h-4 w-4 transition-transform", isCollapsed && "rotate-180")} />
       </button>
 
       <button
         type="button"
         onClick={handlePin}
         className={cn(
-          "rounded p-1 transition-colors",
+          controlClass,
           isPinned ? "bg-blue-50 text-blue-600" : "text-gray-400 hover:bg-gray-100 hover:text-gray-600",
         )}
         title={isPinned ? workspace.unpin : workspace.pin}
         aria-label={isPinned ? workspace.unpin : workspace.pin}
       >
-        {isPinned ? <Pin className="h-4 w-4" /> : <PinOff className="h-4 w-4" />}
+        {isPinned ? <Pin className="mx-auto h-4 w-4" /> : <PinOff className="mx-auto h-4 w-4" />}
       </button>
 
       <button
         type="button"
         onClick={handleHide}
         className={cn(
-          "rounded p-1 transition-colors",
+          controlClass,
           isHidden ? "bg-red-50 text-red-600" : "text-gray-400 hover:bg-gray-100 hover:text-gray-600",
         )}
         title={isHidden ? workspace.show : workspace.hide}
         aria-label={isHidden ? workspace.show : workspace.hide}
       >
-        {isHidden ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+        {isHidden ? <Eye className="mx-auto h-4 w-4" /> : <EyeOff className="mx-auto h-4 w-4" />}
       </button>
     </div>
   );
