@@ -27,6 +27,7 @@ export type Permission =
   | "subscription:read"
   | "notifications:manage"
   | "communications:read" | "communications:send" | "communications:manage" | "communications:request"
+  | "work:read" | "work:create" | "work:manage" | "work:assign"
   | "procedures:read" | "procedures:create" | "procedures:update" | "procedures:delete"
   | "workspace:operation" | "workspace:clinical" | "workspace:administration"
   | "patient_flow:operations" | "patient_flow:clinical" | "patient_flow:administrative"
