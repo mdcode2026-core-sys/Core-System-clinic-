@@ -2,7 +2,7 @@ name: Production Candidate Handoff
 
 on:
   workflow_run:
-    workflows: ["UX Stages 0-7 CI"]
+    workflows: ["UX Stages 0-8 CI"]
     types: [completed]
     branches: [main]
 
@@ -20,36 +20,30 @@ jobs:
       - name: Resolve validated candidate
         id: candidate
         run: echo "sha=${{ github.event.workflow_run.head_sha }}" >> "$GITHUB_OUTPUT"
-
       - name: Checkout validated candidate
         uses: actions/checkout@v4
         with:
           ref: ${{ steps.candidate.outputs.sha }}
-
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
-
       - name: Install dependencies from lockfile
         run: npm ci
-
       - name: Verify production build
         env:
           NEXT_PUBLIC_SUPABASE_URL: https://qaslsjyxjwvdoiczmhgq.supabase.co
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
           NEXT_PUBLIC_APP_URL: https://core-system-clinic.vercel.app
         run: npm run build
-
       - name: Production deployment handoff
         run: |
           echo "Validated production candidate: ${{ steps.candidate.outputs.sha }}"
-          echo "GitHub UX 0-7 validation passed."
+          echo "GitHub UX 0-8 validation passed."
           echo "Production build passed."
           echo "Production deployment is delegated to the existing Vercel Git integration on main."
           echo "No VERCEL_TOKEN secret is required."
-
       - name: Record candidate
         run: |
           echo "Production candidate: ${{ steps.candidate.outputs.sha }}"
