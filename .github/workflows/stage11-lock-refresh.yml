@@ -9,7 +9,7 @@ permissions:
 
 jobs:
   refresh-lock:
-    if: ${{ !startsWith(github.event.head_commit.message, 'chore(stage11): refresh dependency lockfile') }}
+    if: "${{ !startsWith(github.event.head_commit.message, 'chore(stage11): refresh dependency lockfile') }}"
     runs-on: ubuntu-latest
     steps:
       - name: Checkout branch
