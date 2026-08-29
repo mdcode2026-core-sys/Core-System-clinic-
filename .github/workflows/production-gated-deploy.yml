@@ -44,13 +44,21 @@ jobs:
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
           NEXT_PUBLIC_APP_URL: https://core-system-clinic.vercel.app
         run: npm run build
+      - name: Install browser runtime
+        run: npx playwright install --with-deps chromium
+      - name: Authenticated Production E2E
+        env:
+          CORE_SYSTEM_PRODUCTION_URL: https://core-system-clinic.vercel.app
+          CORE_SYSTEM_E2E_EMAIL: ${{ secrets.CORE_SYSTEM_E2E_EMAIL }}
+          CORE_SYSTEM_E2E_PASSWORD: ${{ secrets.CORE_SYSTEM_E2E_PASSWORD }}
+        run: node tools/ajm-production-auth-e2e.mjs
       - name: Production deployment handoff
         run: |
           echo "Validated production candidate: ${{ steps.candidate.outputs.sha }}"
-          echo "Production build passed."
+          echo "Production build and authenticated Production E2E passed."
           echo "Production deployment is delegated to the existing Vercel Git integration on main."
-          echo "No VERCEL_TOKEN secret is required."
       - name: Record candidate
         run: |
           echo "Production candidate: ${{ steps.candidate.outputs.sha }}"
+          echo "Authenticated Production E2E gate passed."
           echo "Vercel production deployment authority: Git integration on main."
