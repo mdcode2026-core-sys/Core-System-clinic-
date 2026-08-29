@@ -3,7 +3,7 @@
 **Stage:** 11
 **Official name:** Mobile & Language Validation
 **Status:** CLOSED / PRODUCTION READY
-**Final main SHA:** `72342418084722a503b55304ac273e1f19fa9c99`
+**Final main SHA:** `8ce80503c8e253849bee3d408daa7cba986f38c8`
 **Baseline main SHA:** `3ed073bfca06dce4ef3d2de2afddd78c00ad89cc`
 **Merged PR:** #39
 
@@ -24,7 +24,7 @@ Deliver a responsive, touch-usable and bilingual-equivalent experience on the ex
 | Gate | Result | Evidence |
 |---|---|---|
 | Official Stage 11 scope | PASS | Global UX/IA execution plan + implementation record |
-| Repository implementation | PASS | Final `main` SHA `72342418084722a503b55304ac273e1f19fa9c99` |
+| Repository implementation | PASS | Final `main` SHA `8ce80503c8e253849bee3d408daa7cba986f38c8` |
 | Architecture reconciliation | PASS | Existing Workspace/Sidebar/Domain/PJ/AJM systems reused |
 | AJM/PJ reconciliation | PASS | No duplicate Queue, Visit, Agenda, Patient Journey or Workspace system created |
 | UX/IA | PASS | Responsive implementation + Stage 11 audit |
@@ -98,7 +98,7 @@ No Stage 11 blocker remains.
 
 ## Deployment
 
-Production deployment must be the GitHub `main` → Vercel Git Integration path. Final production verification is tied to the post-merge deployment whose Git SHA must equal `72342418084722a503b55304ac273e1f19fa9c99`.
+Production deployment must be the GitHub `main` → Vercel Git Integration path. Final production verification is tied to the post-merge deployment whose Git SHA must equal `8ce80503c8e253849bee3d408daa7cba986f38c8`.
 
 ## Closure
 

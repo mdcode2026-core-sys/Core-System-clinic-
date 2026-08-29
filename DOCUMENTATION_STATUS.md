@@ -50,7 +50,7 @@ When documentation and implementation disagree, use:
 - Stage 10 — Sidebar Finalization: **CLOSED / PRODUCTION READY**.
 - Stage 11 — Mobile & Language Validation: **CLOSED / PRODUCTION READY**.
 
-Stage 11 final main SHA: `72342418084722a503b55304ac273e1f19fa9c99`.
+Stage 11 final main SHA: `8ce80503c8e253849bee3d408daa7cba986f38c8`.
 
 ## Findings governance
 
