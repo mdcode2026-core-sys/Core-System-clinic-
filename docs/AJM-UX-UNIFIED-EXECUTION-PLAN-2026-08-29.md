@@ -1,26 +1,31 @@
 # CORE SYSTEM — AJM ↔ UX/IA Unified Execution Plan
 ## Next Execution Path — 2026-08-29
 
-**Baseline:** current `main` plus the reconciliation fixes in `ajm-ux-reconciliation-2026-08-29`
+**Current baseline:** `main` after reconciliation commit `6ed7efa75ce15b6b2db8b32c02a01a29a2b929bc`
 
 ## 1. Execution rule
 
-AJM and UX/IA are now one dependency chain for execution closure:
+AJM and UX/IA are one dependency chain for execution closure:
 
 `AJM capability → UX surface → authorization/entitlement → runtime → evidence → closure`
 
 No AJM stage advances on documentation alone, and no UX surface is accepted merely because a route/component exists.
 
-## 2. Phase A — Reconciliation closure
+## 2. Phase A — Reconciliation closure — COMPLETED
 
-Before resuming new AJM feature work:
+Completed in this pass:
 
-1. Verify the reconciliation branch against current `main`.
-2. Confirm the obsolete fixed Workspace surface navigator is absent from active source.
-3. Run the full relevant GitHub validation gates.
-4. Merge only the verified reconciliation change.
-5. Establish a single current AJM/UX status snapshot on `main`.
-6. Reconcile the AJM-1 contradictory closure records into one explicit status.
+1. Inspected current `main` and the principal UX branches.
+2. Compared historical UX branches against `main` and confirmed they are stale/diverged evidence sources rather than merge targets.
+3. Confirmed the active shell no longer uses `WorkspaceSurfaceNav.tsx`.
+4. Removed the proven-unused obsolete fixed Workspace-context navigator from `main`.
+5. Added the unified AJM ↔ UX executive report.
+6. Added this unified execution plan.
+7. Updated the Stage 10 finding register so the obsolete navigator is explicitly resolved rather than deferred.
+8. Updated the Stage 14 implementation record to reflect the actual cleanup.
+9. Merged the reconciliation change to `main`.
+
+The only remaining deployment check for this documentation/legacy cleanup candidate is the automatically triggered Vercel Production deployment for the new main SHA. No preview environment secret is invented or changed.
 
 ## 3. Phase B — AJM-1 closure
 
@@ -156,11 +161,7 @@ Production readiness requires the final tested candidate SHA to be the deployed 
 ## 10. Immediate next sequence
 
 ```text
-Reconciliation branch validation
-        ↓
-Merge verified reconciliation
-        ↓
-AJM-1 acceptance/status closure
+AJM-1 authenticated acceptance/status closure
         ↓
 AJM-2 authenticated E2E closure
         ↓
