@@ -1,0 +1,27 @@
+name: Stage 15 Documentation Closure
+on:
+  push:
+    branches: [stage15-documentation-closure]
+  pull_request:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  stage15:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx tsc --noEmit
+      - run: npm run lint
+      - run: npm run i18n:audit
+      - run: npm run i18n:parity
+      - run: npm run ux:security-stage12
+      - run: npm run ux:legacy-stage14
+      - run: npm run ux:docs-stage15
+      - run: npm run build
