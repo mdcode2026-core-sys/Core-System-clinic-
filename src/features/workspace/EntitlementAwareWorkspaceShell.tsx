@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { ChevronDown, LogOut, Menu, X } from "lucide-react";
@@ -38,9 +38,6 @@ export function EntitlementAwareWorkspaceShell({ children, user }: WorkspaceShel
   const filteredNav = getSidebarNavigation()
     .map(filterChildren)
     .filter((item) => accessLoading || canSee(item) || (item.children && item.children.length > 0));
-
-  useEffect(() => { setSidebarOpen(false); }, [pathname]);
-  useEffect(() => { setSidebarOpen(false); }, [locale]);
 
   const handleSignOut = async () => { await supabase.auth.signOut(); router.push("/login"); router.refresh(); };
   const closeSidebar = () => setSidebarOpen(false);
