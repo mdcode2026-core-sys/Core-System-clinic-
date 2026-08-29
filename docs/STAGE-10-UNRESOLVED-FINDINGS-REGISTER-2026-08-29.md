@@ -1,17 +1,17 @@
 # Stage 10 — Unresolved Findings Register
 
 **Date:** 2026-08-29  
-**Status:** OPEN DURING VALIDATION
+**Final Status:** CLOSED — NO PRODUCTION BLOCKERS
 
-| ID | Finding | Evidence | Disposition |
+| ID | Finding | Evidence | Final disposition |
 |---|---|---|---|
-| S10-F-001 | Stage 10 final CI/runtime verification is still running at implementation-record time. | `.github/workflows/stage10-validation.yml` run for the final candidate is in progress. | Blocking closure only until the applicable gate completes. |
-| S10-F-002 | `WorkspaceSurfaceNav.tsx` remains in the repository but is no longer imported by the active Workspace shell. | Repository search shows the component is referenced only by itself and historical documentation/current shell before Stage 10. | Deferred to Stage 14 Legacy Cleanup; not deleted during Stage 10. |
-| S10-F-003 | Vercel preview deployments for the branch may queue while multiple Git-integrated candidates are processed. | Current Vercel deployment list shows the branch candidates queued/building. | Infrastructure/deployment timing issue only; no source failure inferred. |
-| S10-F-004 | Repository-wide pre-existing ESLint diagnostic debt exists outside the Stage 10 changed surface. | Stage 9 handoff/finding records and dedicated changed-surface validation model. | Non-blocking cross-workstream debt; Stage 10 changed-surface ESLint remains blocking. |
+| S10-F-001 | Final CI/runtime verification was pending during implementation. | Stage 10 GitHub validation passed every gate; final Production deployment `dpl_9F9iMvDxRRD2V48h5HLzdkyWofLH` reached READY; production `/` returned HTTP 200; production runtime error/fatal logs were empty. | **RESOLVED / CLOSED.** |
+| S10-F-002 | `WorkspaceSurfaceNav.tsx` remains in the repository but is no longer imported by the active shell. | Repository implementation confirms the active shell no longer references the component. | **NON-BLOCKING / DEFERRED to Stage 14 Legacy Cleanup.** |
+| S10-F-003 | Preview environment does not have Supabase URL/key configuration. | Final Preview build succeeded, but direct Preview `/` returned HTTP 500. Vercel runtime logs identified the exact cause: `Your project's URL and Key are required to create a Supabase client!` Production uses the configured environment and returned HTTP 200. | **NON-BLOCKING infrastructure configuration debt. Production readiness unaffected.** |
+| S10-F-004 | Pre-existing repository-wide ESLint diagnostic debt exists outside the Stage 10 changed surface. | Stage 10 changed-surface ESLint passed; the issue is outside Stage 10 ownership/scope. | **NON-BLOCKING / DEFERRED cross-workstream.** |
 
 ## Closure rule
 
-No finding is dismissed because it is outside the immediate visual scope. Each is classified to an owner and either repaired, validated, or explicitly carried forward.
+No production blocker remains. All discovered Stage 10 findings are either resolved or explicitly carried forward to an owning workstream with evidence and disposition.
 
-Stage 10 cannot be marked CLOSED while S10-F-001 remains unresolved.
+**FINAL RESULT: STAGE 10 CLOSED — PRODUCTION READY.**
