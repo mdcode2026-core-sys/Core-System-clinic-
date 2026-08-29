@@ -23,9 +23,11 @@ export async function createWorkItem(input: { kind?: "task" | "request" | "hando
 
 export async function updateWorkItem(input: { id: string; status: "accepted" | "in_progress" | "blocked" | "completed" | "rejected" | "cancelled"; outcome?: string | null }) {
   const ctx = await context();
-  if (!ctx || !(await hasEffectivePermission(ctx.user.id, "work:manage"))) return;
-  const { data: current } = await ctx.supabase.from("operational_work_items").select("status").eq("tenant_id", ctx.tenantId).eq("id", input.id).maybeSingle();
+  if (!ctx) return;
+  const { data: current } = await ctx.supabase.from("operational_work_items").select("status,assignee_clinic_user_id").eq("tenant_id", ctx.tenantId).eq("id", input.id).maybeSingle();
   if (!current) return;
+  const isManager = await hasEffectivePermission(ctx.user.id, "work:manage");
+  if (!isManager && current.assignee_clinic_user_id !== ctx.clinicUser.id) return;
   await ctx.supabase.from("operational_work_items").update({ status: input.status, outcome: input.outcome?.trim() || null, completed_at: input.status === "completed" ? new Date().toISOString() : null, updated_at: new Date().toISOString() }).eq("tenant_id", ctx.tenantId).eq("id", input.id);
   await ctx.supabase.from("operational_work_history").insert({ tenant_id: ctx.tenantId, work_item_id: input.id, actor_clinic_user_id: ctx.clinicUser.id, from_status: current.status, to_status: input.status, note: input.outcome?.trim() || null });
   revalidatePath("/work-center");
