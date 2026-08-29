@@ -10,7 +10,19 @@ export type NavigationLabelKey = keyof typeof messages.en.nav;
 export type NavigationLabel = { ar: string; en: string };
 export type SurfaceTier = "core" | "advanced" | "addon";
 export type NavigationVisibility = "sidebar" | "contextual";
-export interface NavItem { href: string; labelKey: NavigationLabelKey | null; label?: NavigationLabel; icon: LucideIcon; requiredPermission: Permission | null; capabilityKey?: string; children?: NavItem[]; surface?: SurfaceTier; visibility?: NavigationVisibility; }
+export interface NavItem {
+  href: string;
+  labelKey: NavigationLabelKey | null;
+  label?: NavigationLabel;
+  icon: LucideIcon;
+  requiredPermission: Permission | null;
+  capabilityKey?: string;
+  children?: NavItem[];
+  surface?: SurfaceTier;
+  visibility?: NavigationVisibility;
+  /** Parent is a navigation group, not a second destination for the same hierarchy. */
+  navigationOnly?: boolean;
+}
 
 const financialResourcesChildren: NavItem[] = [
   { href: "/financial-resources/overview", label: { ar: "نظرة عامة", en: "Overview" }, labelKey: null, icon: LayoutDashboard, requiredPermission: null, capabilityKey: "financial_resources.overview", surface: "core" },
@@ -33,24 +45,24 @@ const financialResourcesChildren: NavItem[] = [
 
 export const navigationRegistry: NavItem[] = [
   { href: "/", labelKey: null, label: { ar: "مساحة العمل", en: "Workspace" }, icon: LayoutDashboard, requiredPermission: null, surface: "core", visibility: "sidebar" },
-  { href: "/dashboard", labelKey: "dashboard", icon: LayoutDashboard, requiredPermission: "analytics:read", surface: "core", visibility: "sidebar" },
-  // Canonical workspace contexts remain contextual working surfaces.
-  { href: "/operation", labelKey: "operation", icon: BriefcaseBusiness, requiredPermission: "workspace:operation", visibility: "contextual" },
-  { href: "/clinical", labelKey: "clinical", icon: Stethoscope, requiredPermission: "workspace:clinical", visibility: "contextual" },
-  { href: "/treatment-plans", labelKey: "treatmentPlans", icon: ClipboardList, requiredPermission: "treatment_plans:read", visibility: "sidebar" },
   { href: "/patients", labelKey: "patients", icon: Users, requiredPermission: "patients:read", visibility: "sidebar" },
   { href: "/agenda", labelKey: "agenda", icon: CalendarDays, requiredPermission: "agenda:read", visibility: "sidebar" },
-  { href: "/patient-flow", label: { ar: "رحلة المريض", en: "Patient Flow" }, labelKey: null, icon: ListOrdered, requiredPermission: null, capabilityKey: "patient_flow", visibility: "sidebar", children: [
+  { href: "/patient-flow", label: { ar: "رحلة المريض", en: "Patient Flow" }, labelKey: null, icon: ListOrdered, requiredPermission: null, capabilityKey: "patient_flow", navigationOnly: true, visibility: "sidebar", children: [
     { href: "/patient-flow/operations", label: { ar: "التشغيل", en: "Operations" }, labelKey: null, icon: BriefcaseBusiness, requiredPermission: "patient_flow:operations", capabilityKey: "patient_flow.operations", visibility: "sidebar" },
     { href: "/patient-flow/clinical", label: { ar: "المعاينة السريرية", en: "Clinical" }, labelKey: null, icon: Stethoscope, requiredPermission: "patient_flow:clinical", capabilityKey: "patient_flow.clinical", visibility: "sidebar" },
     { href: "/patient-flow/administrative", label: { ar: "الإدارة", en: "Administrative" }, labelKey: null, icon: LayoutDashboard, requiredPermission: "patient_flow:administrative", capabilityKey: "patient_flow.administrative", visibility: "sidebar" },
   ] },
-  { href: "/queue", labelKey: "queue", icon: ListOrdered, requiredPermission: "sessions:read", visibility: "contextual" },
-  { href: "/financial-resources", labelKey: null, label: { ar: "المالية والموارد", en: "Financial & Resources" }, icon: WalletCards, requiredPermission: null, capabilityKey: "financial_resources.access", children: financialResourcesChildren, visibility: "sidebar" },
+  { href: "/treatment-plans", labelKey: "treatmentPlans", icon: ClipboardList, requiredPermission: "treatment_plans:read", visibility: "sidebar" },
+  { href: "/financial-resources", labelKey: null, label: { ar: "المالية والموارد", en: "Financial & Resources" }, icon: WalletCards, requiredPermission: null, capabilityKey: "financial_resources.access", navigationOnly: true, children: financialResourcesChildren, visibility: "sidebar" },
+  { href: "/follow-up", labelKey: "followUp", icon: PhoneCall, requiredPermission: "followup:read", visibility: "sidebar" },
   { href: "/reports", labelKey: "reports", icon: FileBarChart, requiredPermission: "reports:read", visibility: "sidebar" },
   { href: "/analytics", labelKey: "analytics", icon: BarChart3, requiredPermission: "analytics:read", visibility: "sidebar" },
-  { href: "/follow-up", labelKey: "followUp", icon: PhoneCall, requiredPermission: "followup:read", visibility: "sidebar" },
+  { href: "/dashboard", labelKey: "dashboard", icon: LayoutDashboard, requiredPermission: "analytics:read", surface: "core", visibility: "sidebar" },
   { href: "/settings", labelKey: "settings", icon: Settings, requiredPermission: "settings:read", visibility: "sidebar" },
+  // Canonical workspace contexts remain contextual working surfaces.
+  { href: "/operation", labelKey: "operation", icon: BriefcaseBusiness, requiredPermission: "workspace:operation", visibility: "contextual" },
+  { href: "/clinical", labelKey: "clinical", icon: Stethoscope, requiredPermission: "workspace:clinical", visibility: "contextual" },
+  { href: "/queue", labelKey: "queue", icon: ListOrdered, requiredPermission: "sessions:read", visibility: "contextual" },
 ];
 
 function flattenNavigation(items: NavItem[]): NavItem[] {
