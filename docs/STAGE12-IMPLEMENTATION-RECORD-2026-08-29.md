@@ -1,12 +1,10 @@
 # CORE SYSTEM — Stage 12 Implementation Record
 
 Date: 2026-08-29
-Branch: `stage12-security-permission-regression`
-Base: `main`
 
 ## Source of truth
 
-The repository was inspected before implementation. The requested Stage 12 scope is defined by the current execution mandate because no dedicated Stage 12 specification document was present in the repository. The Global UX/IA master documents were read and used as governing architecture/UX references.
+The repository was inspected before implementation. No dedicated Stage 12 specification document existed; the execution mandate and Global UX/IA authority were reconciled with the implemented repository state.
 
 ## Scope
 
@@ -35,22 +33,27 @@ No database migration and no authorization/domain architecture rewrite were intr
 
 Against the configured production Supabase project:
 
-- all public tables inspected have RLS enabled;
+- inspected public tables have RLS enabled;
 - representative tenant-scoped runtime reads were evaluated under the `authenticated` role;
 - a user in one tenant saw only that tenant's patient rows;
 - a cross-tenant patient update returned zero rows and was rolled back;
 - permission evaluation for a doctor returned `users:create = false` and `sessions:read = true`;
-- security-definer authorization helpers use `search_path=public`;
+- inspected security-definer authorization helpers use `search_path=public`;
 - anonymous execution of the inspected authorization helpers is denied.
 
 ## CI evidence
 
-The Stage 12 workflow must finish successfully before closure. The gate includes npm dependency installation/security audit, TypeScript, changed-surface ESLint, Stage 12 security audit, i18n, prior UX audits and production build.
+Stage 12 GitHub Actions Run `33246665276` completed successfully:
 
-## Vercel
+- Stage 12 Security + Permission Regression Gate — PASS
+- TypeScript — PASS
+- ESLint — PASS
+- Security audit — PASS
+- I18N audit — PASS
+- I18N parity — PASS
+- Stage 5–11 regression audits — PASS
+- Production build — PASS
 
-Vercel preview deployments for this branch are subject to the observed build-rate-limit status. No manual deployment was triggered. This is not used as a CI substitute.
+## Production / closure state
 
-## Closure rule
-
-This record is not itself a closure declaration. Stage 12 may be marked CLOSED only after CI PASS, final security evidence, Production Candidate freeze, one merge to `main`, production deployment with matching SHA, and runtime verification.
+Stage 12 implementation and CI are PASS and were merged into `main` through the validated Candidate path. The final production-readiness gate remains the Vercel Production deployment matching the final main SHA and the subsequent runtime verification. This record does not declare Production Ready independently of that evidence.

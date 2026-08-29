@@ -18,6 +18,7 @@
     "ux:security-stage12": "node tools/security-permission-stage12-audit.mjs",
     "ux:runtime-stage13": "node tools/stage13-runtime-e2e-audit.mjs",
     "ux:legacy-stage14": "node tools/stage14-legacy-audit.mjs",
+    "ux:docs-stage15": "node tools/stage15-documentation-audit.mjs",
     "db:types": "supabase gen types typescript --project-id qaslsjyxjwvdoiczmhgq --schema public > src/infrastructure/supabase/database.types.ts",
     "db:migrate": "supabase migration up",
     "db:reset": "supabase db reset"
@@ -44,7 +45,7 @@
     "@radix-ui/react-dialog": "^1.1.1",
     "@radix-ui/react-avatar": "^1.1.1",
     "@radix-ui/react-separator": "^1.1.1",
-    "@radix-ui/react-label": "^2.1.0",
+    "@radix-ui/react-label": "^2.1.1",
     "@radix-ui/react-select": "^2.2.6",
     "autoprefixer": "^10.4.0",
     "tailwindcss-animate": "^1.0.0",

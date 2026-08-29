@@ -1,82 +1,62 @@
 # PROJECT_HANDOFF.md
 
 **Project:** CORE SYSTEM — ClinicSaaS™
-**Status:** ACTIVE DEVELOPMENT / Global UX/IA Stage 11 CLOSED — PRODUCTION READY
+**Status:** ACTIVE / Stages 12–15 validated through documentation candidate; final Production SHA gate PENDING
 **Last Updated:** 2026-08-29
-**Final Stage 11 main SHA:** `4b5b642bd2fa28cfe99d8df6d82f0e532ba0fe17`
 
 ## Current Global UX/IA State
 
-### Stage 11 — Mobile & Language Validation
+Stages 0–11 remain governed by their existing records and the Global UX/IA Final Authority. Stages 12–15 extend the same architecture and do not replace AJM, PJ, Agenda, Patient Flow, authorization, entitlement or Workspace ownership.
 
-**Status: IMPLEMENTATION COMPLETE / PRODUCTION DEPLOYMENT BLOCKED BY VERCEL BUILD-RATE-LIMIT.**
+### Stage 12 — Security / Permission Regression
 
-Completed and validated:
-- Explicit responsive viewport contract.
-- Page-level narrow-screen overflow protection.
-- Mobile sidebar drawer remains canonical and touch-friendly.
-- Workspace responsive columns and mobile reorder controls hardened.
-- Widget toolbar touch targets hardened.
-- Global Search narrow-screen result rows hardened.
-- Existing Arabic/English render-time i18n architecture preserved and parity validated.
-- No Sidebar item, Workspace, Domain, Patient Journey, Queue, Visit lifecycle, Agenda, authorization or entitlement duplicate created.
-- Production dependency security findings were repaired; final production dependency audit passed.
-- No Supabase migration was required.
-- Stage 11 blocking GitHub validation passed TypeScript, changed-surface ESLint, I18N audit/parity, Stage 5–10 regression audits, Stage 11 audit, production dependency security audit and production build.
-- Merged PR #39 into `main`.
+**Implementation/CI: PASS.**
+
+Validated authentication/session boundaries, effective permissions, server-side authorization, capability/entitlement gates, Workspace/Widget security boundaries, tenant isolation, RLS and direct invocation resistance. Stage 12 CI Run `33246665276` passed all blocking checks and was merged into `main`.
 
 Canonical records:
-- `docs/STAGE-11-IMPLEMENTATION-RECORD-2026-08-29.md`
-- `docs/STAGE-11-UNRESOLVED-FINDINGS-REGISTER-2026-08-29.md`
-- `docs/STAGE-11-CLOSURE-PRODUCTION-READINESS-2026-08-29.md`
-- `.github/workflows/stage11-validation.yml`
-- `tools/mobile-responsive-stage11-audit.mjs`
+- `docs/STAGE12-IMPLEMENTATION-RECORD-2026-08-29.md`
+- `docs/STAGE12-CLOSURE-PRODUCTION-READINESS-2026-08-29.md`
+- `.github/workflows/stage12-validation.yml`
+- `tools/security-permission-stage12-audit.mjs`
 
-### Stage 10 — Sidebar Finalization
+### Stage 13 — Runtime / E2E Validation
 
-**Status: CLOSED / PRODUCTION READY.**
+**Implementation/CI/runtime smoke: PASS.**
 
-Canonical records remain:
-- `docs/GLOBAL-UX-IA-STAGE-10-SIDEBAR-FINALIZATION-2026-08-29.md`
-- `docs/STAGE-10-UNRESOLVED-FINDINGS-REGISTER-2026-08-29.md`
-- `docs/STAGE-10-CLOSURE-PRODUCTION-READINESS-2026-08-29.md`
-- `.github/workflows/stage10-validation.yml`
-- `tools/sidebar-stage10-audit.mjs`
+Stage 13 Run `33248640485` passed npm install, TypeScript, ESLint, I18N audit/parity, Stage 12 security regression, Stage 5–11 audits, production build and production runtime smoke for the configured production URL surface. The validated candidate was merged to `main`.
 
-### Stage 9 — Overview / Dashboard Reconciliation
+Canonical records:
+- `docs/STAGE13-IMPLEMENTATION-RECORD-2026-08-29.md`
+- `docs/STAGE13-CLOSURE-PRODUCTION-READINESS-2026-08-29.md`
+- `.github/workflows/stage13-runtime-e2e-validation.yml`
+- `tools/stage13-runtime-e2e-audit.mjs`
 
-**Status: CLOSED / PRODUCTION READY.**
+### Stage 14 — Legacy Cleanup
 
-Dashboard remains the management surface; `/` remains the everyday Workspace; contextual Domain Overview surfaces remain canonical. Existing Analytics registry/engine, permissions and tenant boundaries remain authoritative.
+**Implementation/CI/legacy audit: PASS.**
 
-### Stage 8 — Global Search
+No active source-surface legacy identifier met the evidence threshold for safe deletion. No speculative architectural removal was performed. Stage 14 CI Run `33248738282` passed TypeScript, ESLint, I18N, security, legacy audit, prior regression audits and production build.
 
-**Status: CLOSED / PRODUCTION READY.**
+Canonical records:
+- `docs/STAGE14-IMPLEMENTATION-RECORD-2026-08-29.md`
+- `docs/STAGE14-CLOSURE-PRODUCTION-READINESS-2026-08-29.md`
+- `.github/workflows/stage14-legacy-cleanup.yml`
+- `tools/stage14-legacy-audit.mjs`
 
-Global Search remains a Workspace-shell orchestration surface over canonical Domain data and existing authorization.
+### Stage 15 — Documentation Closure
 
-### Stage 7 — Patient Context
+Documentation is reconciled on the final Stage 15 candidate branch. It must not declare Production Ready until the final `main` SHA is deployed to Vercel Production and runtime-verified.
 
-**Status: CLOSED / PRODUCTION READY.**
-
-### Stage 6 — Patient Flow / Queue
-
-**Status: CLOSED / PRODUCTION READY (STAGE SCOPE).**
-
-### Stage 5 — Widget Library & Classification
-
-**Status: IMPLEMENTED / CI VALIDATED / DOCUMENTED.**
-
-### Stage 0–4 continuity
-
-Stages 0–4 remain governed by their existing records and the Global UX/IA Final Authority. Later stages reused and reconciled those implementations rather than replacing them.
+Canonical records:
+- `docs/STAGE15-DOCUMENTATION-CLOSURE-2026-08-29.md`
+- `docs/STAGES12-15-UNRESOLVED-FINDINGS-REGISTER-2026-08-29.md`
 
 ## Findings governance
 
-Every discovered issue must be investigated. Safe/authorized defects are fixed immediately. Cross-workstream findings are documented with evidence, owner, severity and recommendation. No real defect is suppressed merely to make CI green.
+Every discovered issue is investigated. Safe/authorized defects are fixed. Cross-workstream findings are documented with evidence, owner, severity and recommendation. No real defect is suppressed to make CI green.
 
-Stage 11 finding:
-- `S11-F-001`: repository-wide ESLint diagnostic debt in pre-existing Follow-up, Patient Portal, Reports, Roles, Role Templates, User Settings, Treatment Plans and Operation Workspace files. It is non-blocking for Stage 11 because the Stage 11 changed-surface ESLint gate passes; ownership remains with the affected feature/domain workstreams.
+Current Stages 12–15 register: `docs/STAGES12-15-UNRESOLVED-FINDINGS-REGISTER-2026-08-29.md`.
 
 ## Architecture decisions currently binding
 
@@ -89,27 +69,23 @@ Stage 11 finding:
 - Widget metadata/classification does not grant access.
 - Patient Context and Global Search are presentation/orchestration surfaces.
 - Dashboard is a management/monitoring surface and does not replace Workspace or contextual Domain Overview surfaces.
-- Sidebar is the authorized entry-point surface, not a security boundary.
+- Sidebar is an authorized entry-point surface, not a security boundary.
 - Global UX/IA authority is `GLOBAL_UX_IA_FINAL_AUTHORITY_2026-08-28.md`.
 
 ## PJ / AJM
 
-PJ workflow ownership remains governed by PJ-MASTER-DOCS and current implementation state. Stage 11 introduced no duplicate Patient Journey, Treatment Plan, Medical File, Medical Photo, Follow-up or Patient Portal architecture.
+PJ workflow ownership remains governed by PJ-MASTER-DOCS and current implementation state. Stages 12–15 introduced no duplicate Patient Journey, Treatment Plan, Medical File, Medical Photo, Follow-up or Patient Portal architecture.
 
-AJM status remains governed by `docs/AJM-IMPLEMENTATION-STATUS-MATRIX-2026-08-28.md`. Stage 11 changed no AJM Domain ownership.
+AJM status remains governed by `docs/AJM-IMPLEMENTATION-STATUS-MATRIX-2026-08-28.md`. Stages 12–15 changed no AJM domain ownership.
 
 ## Database / Supabase
 
-The canonical tenant model remains `master_tenants` + `clinic_users`. Stage 11 introduced no database migration, RLS, function, Auth or tenant-boundary change.
-
-## Current documentation set
-
-Use `DOCUMENTATION_STATUS.md` for authority/freshness, `ENGINEERING_CONSTITUTION.md` for engineering governance, `ARCHITECTURE_DECISIONS.md` for architecture, `MASTER_ROADMAP.md` for product roadmap, `GLOBAL_UX_IA_FINAL_AUTHORITY_2026-08-28.md` for UX/IA, and the Stage 11 records above for the latest completed stage.
+The canonical tenant model remains `master_tenants` + `clinic_users`. Stages 12–15 introduced no new tenant model or database architecture.
 
 ## Deployment / verification rule
 
-Production deployment follows GitHub `main` → Vercel Git Integration. Do not use manual Vercel build/API calls to bypass build-rate limits. A stage is not production-ready from documentation alone; verify repository SHA, CI, deployment SHA/status and runtime behavior.
+Production deployment follows GitHub `main` → Vercel Git Integration. Do not use manual Vercel build/API calls to bypass build-rate limits. Production Ready requires repository SHA, CI, Production deployment SHA/status and runtime verification to agree.
 
-## Mandatory execution rule
+## Final handoff rule
 
-Once a stage begins, execute through its complete Definition of Done without intermediate status requests. Stop only for an external/system blocker or an explicit architectural/product decision required by governing documents.
+The Stage 15 candidate is the documentation freeze point. After final CI and diff review, merge once to `main`; then verify Vercel Production against the exact final SHA and complete the final runtime gate. No post-candidate documentation commit is permitted.
