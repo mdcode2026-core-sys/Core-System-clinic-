@@ -30,7 +30,8 @@ export type Permission =
   | "workspace:operation" | "workspace:clinical" | "workspace:administration"
   | "patient_flow:operations" | "patient_flow:clinical" | "patient_flow:administrative"
   | "medical_files:read" | "medical_files:upload" | "medical_files:update"
-  | "medical_files:archive" | "medical_files:reassociate" | "medical_files:manage";
+  | "medical_files:archive" | "medical_files:reassociate" | "medical_files:manage"
+  | "workforce:read" | "workforce:manage" | "workforce:attendance" | "workforce:leave" | "workforce:payroll" | "workforce:commission" | "workforce:recruitment";
 
 export interface PermissionGuardProps {
   permission: Permission;
