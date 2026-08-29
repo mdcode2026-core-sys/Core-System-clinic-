@@ -1,3 +1,5 @@
+"use server";
+
 import { createClient } from "@/infrastructure/supabase/server";
 
 export type AccessDecision = {
