@@ -4,6 +4,26 @@ Reconstructed baseline as of 2026-07-31 from committed migration files and archi
 
 ---
 
+## 2026-08-29 — Global UX/IA Stage 10 — Sidebar Finalization — CLOSED / PRODUCTION READY
+- Finalized the canonical Sidebar hierarchy after Workspace, Widget Library, Patient Flow, Patient Context, Global Search and Dashboard reconciliation.
+- Patient Flow is one grouped system exposing Operations, Clinical and Administrative child views.
+- Financial & Resources is one grouped hierarchy with Overview, Invoices, Payments, Financial Plans, Insurance, Inventory and Purchasing children; nested financial parents are disclosure-only groups.
+- Operations, Clinical and legacy Queue remain contextual/protected routes rather than top-level Sidebar domains.
+- Dashboard remains a permission-aware management surface and is separated from the everyday Workspace.
+- Removed the obsolete fixed `WorkspaceSurfaceNav` from the active Workspace shell without deleting the legacy component; its cleanup remains assigned to the dedicated legacy-cleanup stage.
+- Added accessible Sidebar group disclosure behavior and bilingual primary-navigation semantics.
+- Preserved existing permission + entitlement filtering and canonical recursive route permission resolution.
+- Added `tools/sidebar-stage10-audit.mjs` and blocking `.github/workflows/stage10-validation.yml`.
+- Stage 10 GitHub validation passed lockfile verification, install, TypeScript, i18n audit/parity, Stage 5–9 regression audits, Stage 10 Sidebar audit, changed-surface ESLint and production build.
+- No Stage 10 database migration was required.
+- Merged to `main` as `50fddfacaa7bbf6acc77c26c92edfb4bc020a7bd`.
+- Final Vercel Production deployment: `dpl_9F9iMvDxRRD2V48h5HLzdkyWofLH` — READY, with `githubCommitSha` matching the final `main` SHA.
+- Production `/` returned HTTP 200 and correctly resolved unauthenticated access to `/login`.
+- Final production runtime error/fatal log query returned no logs.
+- Preview deployment verification exposed a pre-existing/configuration-only preview environment gap: the preview deployment had no Supabase URL/key and therefore returned a 500 on `/`. This does not affect the production environment, which was verified successfully; the gap is recorded in the Stage 10 findings register rather than hidden.
+
+---
+
 ## 2026-08-29 — Global UX/IA Stage 9 — Overview / Dashboard Reconciliation
 - Added the canonical management Dashboard at `/dashboard` while retaining `/` as the everyday Workspace and `/financial-resources/overview` as a contextual domain Overview.
 - Reused the existing Analytics KPI registry, Analytics engine, KPI grid, permission engine and tenant resolver; no parallel Dashboard, Workspace, authorization, entitlement, AJM or PJ architecture was created.
