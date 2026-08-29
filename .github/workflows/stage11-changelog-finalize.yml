@@ -1,0 +1,32 @@
+name: Stage 11 Changelog Finalize
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  finalize:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Prepend Stage 11 changelog entry and remove temporary workflow
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('CHANGELOG.md')
+          entry = '''## 2026-08-29 — Global UX/IA Stage 11 — Mobile & Language Validation — CLOSED / PRODUCTION READY\n- Hardened the canonical dashboard shell, Workspace, Widget toolbar and Global Search for narrow/mobile viewports and touch interaction.\n- Added the explicit responsive viewport contract and page-level overflow protection.\n- Preserved the existing render-time Arabic/English i18n architecture and validated parity/RTL-LTR behavior.\n- Added `tools/mobile-responsive-stage11-audit.mjs` and blocking `.github/workflows/stage11-validation.yml`.\n- Stage 11 validation passed production dependency security audit, TypeScript, changed-surface ESLint, I18N audit/parity, Stage 5–10 regression audits, Stage 11 audit and production build.\n- Repaired high-severity production dependency findings by upgrading Next.js and safe transitive dependency overrides; regenerated the lockfile and verified the final production audit.\n- No Supabase migration or authorization/entitlement architecture change was required.\n- Merged PR #39 into `main`; final main SHA at closure: `72342418084722a503b55304ac273e1f19fa9c99`.\n- Repository-wide ESLint diagnostic debt remains explicitly deferred as cross-workstream finding `S11-F-001`; it does not block Stage 11 because the blocking changed-surface ESLint gate passed.\n\n---\n\n'''
+          current = p.read_text()
+          if '## 2026-08-29 — Global UX/IA Stage 11 — Mobile & Language Validation' not in current:
+              p.write_text('# CHANGELOG.md\n\n' + entry + current.split('\n', 2)[2])
+          PY
+          rm .github/workflows/stage11-changelog-finalize.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add CHANGELOG.md .github/workflows/stage11-changelog-finalize.yml
+          git commit -m "docs(stage11): finalize changelog entry"
+          git push origin HEAD:main
