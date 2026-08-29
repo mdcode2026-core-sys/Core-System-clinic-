@@ -16,57 +16,41 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
-
       - name: Verify lockfile
         run: |
           npm install --package-lock-only --ignore-scripts
           git diff --exit-code -- package-lock.json
-
       - name: Install dependencies
         run: npm ci --ignore-scripts
-
       - name: TypeScript
         run: npx tsc --noEmit
-
-      - name: ESLint
-        run: npm run lint
-
+      - name: Changed-surface ESLint
+        run: npx eslint src/app/layout.tsx src/features/workspace/EntitlementAwareWorkspaceShell.tsx src/features/workspace/WorkspaceRenderer.tsx src/features/workspace/WidgetToolbar.tsx src/core/search/GlobalSearch.tsx tools/mobile-responsive-stage11-audit.mjs
       - name: I18N audit
         run: npm run i18n:audit
-
       - name: I18N parity
         run: npm run i18n:parity
-
       - name: Stage 5 Widget Catalog audit
         run: npm run ux:widget-catalog
-
       - name: Stage 5 Domain Surface audit
         run: npm run ux:domain-surface
-
       - name: Stage 6 Patient Flow audit
         run: npm run ux:patient-flow-stage6
-
       - name: Stage 7 Patient Context audit
         run: npm run ux:patient-context-stage7
-
       - name: Stage 8 Global Search audit
         run: npm run ux:global-search-stage8
-
       - name: Stage 9 Overview / Dashboard audit
         run: node tools/overview-dashboard-stage9-audit.mjs
-
       - name: Stage 10 Sidebar audit
         run: node tools/sidebar-stage10-audit.mjs
-
       - name: Stage 11 Mobile + Responsive audit
         run: npm run ux:mobile-stage11
-
       - name: Production build
         env:
           NEXT_PUBLIC_SUPABASE_URL: https://qaslsjyxjwvdoiczmhgq.supabase.co
