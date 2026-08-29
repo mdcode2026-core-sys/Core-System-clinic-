@@ -17,6 +17,8 @@ const analytics = read(required[3]);
 const workspaceHome = read(required[4]);
 const financialOverview = read(required[5]);
 
+const dashboardNavEntry = /href:\s*["']\/dashboard["'][\s\S]*requiredPermission:\s*["']analytics:read["']/.test(navigation);
+
 const checks = [
   ["dashboard route exists", fs.existsSync(required[0])],
   ["dashboard is management surface", dashboard.includes("ManagementDashboardPage") && dashboard.includes("management")],
@@ -24,7 +26,7 @@ const checks = [
   ["dashboard server authorization", dashboard.includes("getEffectivePermissions") && dashboard.includes('permissions.includes("analytics:read")')],
   ["dashboard tenant resolution", dashboard.includes("resolveTenantId(user.id)")],
   ["dashboard bilingual messages", messages.includes("ar:") && messages.includes("en:") && messages.includes("getDashboardMessages")],
-  ["dashboard sidebar entry uses existing permission", navigation.includes('{ href: "/dashboard"') && navigation.includes('requiredPermission: "analytics:read"')],
+  ["dashboard sidebar entry uses existing permission", dashboardNavEntry],
   ["home remains Workspace", workspaceHome.includes("WorkspaceRenderer") && !workspaceHome.includes("ManagementDashboardPage")],
   ["financial overview remains contextual", financialOverview.includes("FinancialResourcesOverviewPage")],
   ["analytics action authenticates caller", analytics.includes('supabase.auth.getUser()') && analytics.includes('user.id !== authUserId')],
