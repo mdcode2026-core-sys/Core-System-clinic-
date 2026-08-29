@@ -5,6 +5,8 @@ on:
     workflows: ["UX Stages 0-8 CI"]
     types: [completed]
     branches: [main]
+  push:
+    branches: [main]
 
 permissions:
   contents: read
@@ -13,13 +15,18 @@ permissions:
 jobs:
   candidate:
     name: Validate production candidate
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    if: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success') }}
     runs-on: ubuntu-latest
     timeout-minutes: 40
     steps:
       - name: Resolve validated candidate
         id: candidate
-        run: echo "sha=${{ github.event.workflow_run.head_sha }}" >> "$GITHUB_OUTPUT"
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_run" ]; then
+            echo "sha=${{ github.event.workflow_run.head_sha }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "sha=${{ github.sha }}" >> "$GITHUB_OUTPUT"
+          fi
       - name: Checkout validated candidate
         uses: actions/checkout@v4
         with:
@@ -40,7 +47,6 @@ jobs:
       - name: Production deployment handoff
         run: |
           echo "Validated production candidate: ${{ steps.candidate.outputs.sha }}"
-          echo "GitHub UX 0-8 validation passed."
           echo "Production build passed."
           echo "Production deployment is delegated to the existing Vercel Git integration on main."
           echo "No VERCEL_TOKEN secret is required."
