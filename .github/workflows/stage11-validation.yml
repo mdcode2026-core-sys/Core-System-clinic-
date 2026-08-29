@@ -1,6 +1,8 @@
 name: Stage 11 Validation
 
 on:
+  push:
+    branches: [main]
   pull_request:
     branches: [main]
   workflow_dispatch:
