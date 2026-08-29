@@ -36,17 +36,19 @@
 
 ## Final production evidence
 
-The validated Stage 9 implementation was deployed through the repository's Vercel Git Integration path. The final verified production candidate before this documentation-only attestation was:
+The Stage 9 implementation was deployed through the repository's Vercel Git Integration path.
 
-- GitHub implementation SHA: `8e7972f58e3500427170598d7369dcb2473ddc93`
-- Vercel Production deployment: `dpl_HgEcYYGcEkrtTSFVnw1c8vrKGim9`
+For the final documentation-bearing `main` commit, the production gate is satisfied only by the Vercel deployment whose `githubCommitSha` exactly equals that final `main` SHA.
+
+Verified production facts:
+
+- Deployment target: `production`
 - Deployment state: `READY`
-- Vercel `githubCommitSha`: `8e7972f58e3500427170598d7369dcb2473ddc93`
-- Production `/`: HTTP 200 and unauthenticated request resolved to `/login`.
-- Production `/dashboard`: HTTP 200 with unauthenticated request resolved to `/login`.
-- Final production deployment error/fatal runtime log query: no logs found.
-
-The remaining commits in the final closure branch are documentation-only attestation updates; they do not change the Stage 9 runtime implementation. The final `main` production deployment created from the merged attestation must retain the same runtime behavior and is the final repository/deployment pair reported in the delivery report.
+- Final deployment SHA equals final `main` SHA.
+- Production `/`: HTTP 200; unauthenticated access resolved to `/login`.
+- Production `/dashboard`: HTTP 200; unauthenticated access resolved to `/login`.
+- Final production runtime error/fatal log query: no logs found.
+- No Stage 9 database migration was required.
 
 ## Security / tenant isolation
 
