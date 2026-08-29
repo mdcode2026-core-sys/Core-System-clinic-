@@ -9,7 +9,7 @@ permissions:
 jobs:
   stage15:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -21,7 +21,14 @@ jobs:
       - run: npm run lint
       - run: npm run i18n:audit
       - run: npm run i18n:parity
+      - run: npm run ux:widget-catalog
+      - run: npm run ux:domain-surface
+      - run: npm run ux:patient-flow-stage6
+      - run: npm run ux:patient-context-stage7
+      - run: npm run ux:global-search-stage8
+      - run: npm run ux:mobile-stage11
       - run: npm run ux:security-stage12
+      - run: npm run ux:runtime-stage13
       - run: npm run ux:legacy-stage14
       - run: npm run ux:docs-stage15
       - run: npm run build
