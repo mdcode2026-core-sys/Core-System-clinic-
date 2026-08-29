@@ -15,6 +15,7 @@
     "ux:patient-context-stage7": "node tools/patient-context-stage7-audit.mjs",
     "ux:global-search-stage8": "node tools/global-search-stage8-audit.mjs",
     "ux:mobile-stage11": "node tools/mobile-responsive-stage11-audit.mjs",
+    "ux:security-stage12": "node tools/security-permission-stage12-audit.mjs",
     "db:types": "supabase gen types typescript --project-id qaslsjyxjwvdoiczmhgq --schema public > src/infrastructure/supabase/database.types.ts",
     "db:migrate": "supabase migration up",
     "db:reset": "supabase db reset"
@@ -31,7 +32,6 @@
     "valibot": "^1.0.0",
     "react-hook-form": "^7.56.3",
     "date-fns": "^4.1.0",
-    "recharts": "^2.15.3",
     "lucide-react": "^0.507.0",
     "clsx": "^2.1.1",
     "tailwind-merge": "^3.2.0",
