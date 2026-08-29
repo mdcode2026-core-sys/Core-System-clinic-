@@ -1,10 +1,25 @@
 name: Stage 15 Lockfile Synchronization
 on:
-  workflow_dispatch:
+  push:
+    branches: [stage15-locksync-temp2]
 permissions:
-  contents: read
+  contents: write
 jobs:
-  disabled:
+  sync-lockfile:
+    if: ${{ !contains(github.event.head_commit.message, '[lockfile-sync]') }}
     runs-on: ubuntu-latest
     steps:
-      - run: echo "Temporary lockfile synchronization completed; workflow disabled."
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm install --package-lock-only --ignore-scripts --no-audit --no-fund
+      - name: Commit synchronized lockfile
+        run: |
+          if git diff --quiet -- package-lock.json; then exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package-lock.json
+          git commit -m "chore(deps): synchronize package lockfile [lockfile-sync]"
+          git push
