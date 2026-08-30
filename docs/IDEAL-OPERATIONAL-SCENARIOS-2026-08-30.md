@@ -1,12 +1,12 @@
 # CORE SYSTEM — Ideal Operational Scenarios Baseline
 
 **Date:** 2026-08-30  
-**Status:** Baseline established  
+**Status:** DOCUMENTATION CLOSED — 42/42 scenarios traced to implementation contracts  
 **Purpose:** Permanent record of the ideal clinic scenarios defined during the operational architecture audit.
 
 ## 1. Scope
 
-This document records the ideal-state operating model for an Enterprise clinic using CORE SYSTEM with full capabilities. It is the baseline for later implementation validation and for the future difficult/exception scenario phase.
+This document records the ideal-state operating model for an Enterprise clinic using CORE SYSTEM with full capabilities. It is the baseline for implementation validation and for the future difficult/exception scenario phase.
 
 ## 2. Clinic model
 
@@ -108,43 +108,15 @@ The following 42 scenarios form the baseline set. They are intentionally ideal/n
 
 ## 6. Cross-domain integrity rule
 
-A scenario is considered architecturally complete only when the complete chain is defined:
+A scenario is documentation-complete only when the complete chain is defined:
 
 `Trigger → Owner → Source of Truth → Authorized Actor → Work → Handoff → Result → Next State`
 
-A UI, database object, stage label, or implementation claim alone is insufficient.
+The completed mapping is maintained in `IDEAL-SCENARIO-TRACEABILITY-MATRIX-2026-08-30.md` and the contract definitions are maintained in `CROSS-DOMAIN-IMPLEMENTATION-CONTRACTS-2026-08-30.md`.
 
 ## 7. Future difficult-scenario register
 
-The next phase must cover, at minimum:
-
-- late arrival;
-- no-show;
-- same-day cancellation;
-- provider absence;
-- specialist absence;
-- room unavailable;
-- device unavailable;
-- overlapping resource requirements;
-- emergency insertion;
-- treatment-plan change;
-- package cancellation/refund;
-- failed payment;
-- overdue installment;
-- insurance rejection;
-- partial insurance coverage;
-- stock shortage;
-- supplier delay;
-- unexpected consumption;
-- staff performing multiple operational functions;
-- permission conflict;
-- temporary delegation;
-- patient transfer between providers;
-- rescheduling caused by workforce changes;
-- conflicting operational requests;
-- communication failure;
-- escalation and unresolved work;
-- audit/reconstruction of a disputed event.
+Difficult scenarios remain intentionally deferred and are preserved in `CORE-SYSTEM-SCENARIO-REGISTER-2026-08-30.md`. They include late arrival, no-show, provider/resource failure, treatment-plan change, package cancellation/refund, failed/overdue payment, insurance rejection/partial coverage, stock shortage, supplier delay, multi-role conflicts, communication failure, escalation, out-of-order events and recovery cases.
 
 These are **deferred by design**, not forgotten.
 
