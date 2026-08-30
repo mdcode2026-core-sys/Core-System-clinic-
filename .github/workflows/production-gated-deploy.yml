@@ -71,11 +71,13 @@ jobs:
           CORE_SYSTEM_PRODUCTION_URL: https://core-system-clinic.vercel.app
           CORE_SYSTEM_E2E_EMAIL: ${{ secrets.CORE_SYSTEM_E2E_EMAIL }}
           CORE_SYSTEM_E2E_PASSWORD: ${{ secrets.CORE_SYSTEM_E2E_PASSWORD }}
-        run: npx playwright test tools/ajm-production-auth-e2e.spec.mjs --reporter=line
+        run: |
+          npx playwright test tools/ajm-production-auth-e2e.spec.mjs --reporter=line
+          node tools/clinic-admin-real-world-e2e.mjs
       - name: Production deployment handoff
         run: |
           echo "Validated production candidate: ${{ steps.candidate.outputs.sha }}"
-          echo "Build, static/AJM/UX audits, and authenticated Production E2E passed."
+          echo "Build, static/AJM/UX audits, authenticated Production E2E, and real-world clinic scenario passed."
           echo "Production deployment is delegated to the existing Vercel Git integration on main."
       - name: Record candidate
         run: |
