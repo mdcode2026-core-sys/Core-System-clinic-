@@ -6,7 +6,7 @@ import type { PatientInsert, PatientUpdate } from "@/domain/patients/patients.ty
 const TENANT_MISSING = "PATIENT_TENANT_MISSING";
 const DATABASE_ERROR = "PATIENT_DATABASE_ERROR";
 type PatientMutationResult = { data?: { id: string }; error?: string };
-// Mutation responses intentionally remain minimal/serializable; interactive refresh is client-owned.
+// Patient mutations return minimal serializable IDs; client invalidation owns interactive refresh.
 function getFormValue(formData: FormData, key: string): string | undefined { const value=formData.get(key); if(typeof value!=="string")return undefined; const trimmed=value.trim(); return trimmed===""?undefined:trimmed; }
 async function getAuthorizedTenantId(supabase: Awaited<ReturnType<typeof createClient>>) { const {data:{user},error:authError}=await supabase.auth.getUser(); if(authError||!user)return null; const {data,error}=await supabase.from("clinic_users").select("tenant_id").eq("auth_user_id",user.id).eq("is_active",true).maybeSingle(); if(error){console.error("[patients] tenant lookup failed",{message:error.message,code:error.code});return null;} return data?.tenant_id??null; }
 function logDatabaseError(operation:string,error:{message:string;code?:string;details?:string;hint?:string}){console.error(`[${operation}] database error`,{message:error.message,code:error.code,details:error.details,hint:error.hint});}
