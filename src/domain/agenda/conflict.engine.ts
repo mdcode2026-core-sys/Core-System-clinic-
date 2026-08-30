@@ -1,17 +1,16 @@
 /** Agenda conflict and time validation engine. Domain layer returns stable codes; UI localizes them. */
 import type { createClient } from "@/infrastructure/supabase/server";
 import type { ConflictCheckInput, ConflictResult, ConflictRuleValue, AgendaEventRow } from "./agenda.types";
-
-const CONFLICT_RULES: ConflictRuleValue[] = ["doctor", "room", "patient"];
 type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>;
+const CONFLICT_RULES: ConflictRuleValue[] = ["doctor", "room", "resource", "patient"];
 
 export async function checkConflicts(supabase: SupabaseServerClient, input: ConflictCheckInput): Promise<ConflictResult> {
-  const { tenantId, doctorId, roomId, patientId, scheduledStart, scheduledEnd, bufferEnd, excludeEventId } = input;
+  const { tenantId, doctorId, roomId, resourceId, patientId, scheduledStart, scheduledEnd, bufferEnd, excludeEventId } = input;
   if (!tenantId || !doctorId || !patientId || !scheduledStart || !scheduledEnd) return { hasConflict: false, rule: null, conflictingEventId: null, message: "" };
   const overlappingEvents = await getOverlappingEvents(supabase, tenantId, scheduledStart, bufferEnd || scheduledEnd, excludeEventId);
   if (!overlappingEvents?.length) return { hasConflict: false, rule: null, conflictingEventId: null, message: "" };
   for (const rule of CONFLICT_RULES) {
-    const conflict = findConflict(overlappingEvents, rule, { doctorId, roomId, patientId });
+    const conflict = findConflict(overlappingEvents, rule, { doctorId, roomId, resourceId: resourceId ?? null, patientId });
     if (conflict) return { hasConflict: true, rule, conflictingEventId: conflict.id, message: getConflictMessage(rule, conflict) };
   }
   return { hasConflict: false, rule: null, conflictingEventId: null, message: "" };
@@ -25,10 +24,11 @@ async function getOverlappingEvents(supabase: SupabaseServerClient, tenantId: st
   return (data ?? []) as AgendaEventRow[];
 }
 
-function findConflict(events: AgendaEventRow[], rule: ConflictRuleValue, ids: { doctorId: string; roomId: string | null; patientId: string }): AgendaEventRow | null {
+function findConflict(events: AgendaEventRow[], rule: ConflictRuleValue, ids: { doctorId: string; roomId: string | null; resourceId: string | null; patientId: string }): AgendaEventRow | null {
   for (const event of events) {
     if (rule === "doctor" && event.doctor_id === ids.doctorId) return event;
     if (rule === "room" && ids.roomId && event.room_id === ids.roomId) return event;
+    if (rule === "resource" && ids.resourceId && event.resource_id === ids.resourceId) return event;
     if (rule === "patient" && event.patient_id === ids.patientId) return event;
   }
   return null;
