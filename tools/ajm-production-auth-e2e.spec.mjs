@@ -20,13 +20,6 @@ const canonicalRoutes = [
 async function login(page, context) {
   let lastFailure = "";
   for (let attempt = 1; attempt <= 2; attempt++) {
-    const failures = [];
-    page.removeAllListeners("requestfailed");
-    page.removeAllListeners("response");
-    page.on("requestfailed", req => {
-      const url = req.url();
-      if (!url.includes("_next/static/") && !url.includes("?_rsc=")) failures.push(`request:${url} :: ${req.failure()?.errorText ?? "failed"}`);
-    });
     const authResponse = page.waitForResponse(
       response => response.url().includes("/auth/v1/token"),
       { timeout: 15000 }
@@ -51,8 +44,8 @@ async function login(page, context) {
     console.log(`AUTH_ATTEMPT=${attempt} AUTH_COOKIE_NAMES=${cookies.map((c) => c.name).join(",")}`);
     console.log(`AUTH_PAGE_URL=${page.url()}`);
     console.log(`AUTH_PAGE_BODY=${body}`);
-    if (!failures.length && !/\/login(?:[/?#]|$)/i.test(page.url())) return;
-    lastFailure = `attempt=${attempt} url=${page.url()} body=${body} failures=${failures.join(" | ")}`;
+    if (!/\/login(?:[/?#]|$)/i.test(page.url())) return;
+    lastFailure = `attempt=${attempt} url=${page.url()} body=${body}`;
     if (attempt === 1) await page.reload({ waitUntil: "networkidle", timeout: 60000 });
   }
   throw new Error(`Production login did not establish an application session. ${lastFailure}`);
