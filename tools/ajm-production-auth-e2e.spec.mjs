@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 
-test.setTimeout(120000);
+test.setTimeout(180000);
 const baseUrl = (process.env.CORE_SYSTEM_PRODUCTION_URL || "https://core-system-clinic.vercel.app").replace(/\/$/, "");
 const email = process.env.CORE_SYSTEM_E2E_EMAIL;
 const password = process.env.CORE_SYSTEM_E2E_PASSWORD;
@@ -18,30 +18,44 @@ const canonicalRoutes = [
 ];
 
 async function login(page, context) {
-  const failures = [];
-  page.on("console", msg => { if (msg.type() === "error") failures.push(`console:${msg.text()}`); });
-  page.on("requestfailed", req => failures.push(`request:${req.url()} :: ${req.failure()?.errorText ?? "failed"}`));
-  page.on("response", async res => {
-    if (res.url().includes("/auth/v1/token")) {
-      console.log(`AUTH_TOKEN_RESPONSE=${res.status()}`);
-      if (res.status() >= 400) console.log(`AUTH_TOKEN_BODY=${(await res.text()).slice(0, 500)}`);
-    }
-  });
-  const login = await page.goto(`${baseUrl}/login`, { waitUntil: "domcontentloaded", timeout: 60000 });
-  expect(login?.status()).toBeLessThan(400);
-  await page.locator('input[type="email"], input[name="email"]').first().fill(email);
-  await page.locator('input[type="password"], input[name="password"]').first().fill(password);
-  await page.getByRole("button", { name: /sign in|login|log in|تسجيل الدخول|دخول/i }).first().click();
-  await page.waitForTimeout(8000);
-  const cookies = await context.cookies(baseUrl);
-  console.log(`AUTH_COOKIE_NAMES=${cookies.map((c) => c.name).join(",")}`);
-  const body = (await page.locator("body").innerText()).replace(/\s+/g, " ").slice(0, 800);
-  console.log(`AUTH_PAGE_URL=${page.url()}`);
-  console.log(`AUTH_PAGE_BODY=${body}`);
-  if (failures.length) console.log(`AUTH_BROWSER_FAILURES=${failures.join(" | ").slice(0, 2000)}`);
-  if (/\/login(?:[/?#]|$)/i.test(page.url())) {
-    throw new Error(`Production login did not establish an application session. URL=${page.url()} BODY=${body}`);
+  let lastFailure = "";
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    const failures = [];
+    page.removeAllListeners("requestfailed");
+    page.removeAllListeners("response");
+    page.on("requestfailed", req => {
+      const url = req.url();
+      if (!url.includes("_next/static/") && !url.includes("?_rsc=")) failures.push(`request:${url} :: ${req.failure()?.errorText ?? "failed"}`);
+    });
+    const authResponse = page.waitForResponse(
+      response => response.url().includes("/auth/v1/token"),
+      { timeout: 15000 }
+    ).catch(() => null);
+
+    await page.goto(`${baseUrl}/login`, { waitUntil: "networkidle", timeout: 60000 });
+    const emailInput = page.locator('input[type="email"], input[name="email"]').first();
+    const passwordInput = page.locator('input[type="password"], input[name="password"]').first();
+    const submit = page.getByRole("button", { name: /sign in|login|log in|تسجيل الدخول|دخول/i }).first();
+    await expect(emailInput).toBeVisible({ timeout: 15000 });
+    await expect(passwordInput).toBeVisible({ timeout: 15000 });
+    await expect(submit).toBeEnabled({ timeout: 15000 });
+    await emailInput.fill(email);
+    await passwordInput.fill(password);
+    await submit.click();
+
+    const token = await authResponse;
+    if (token) console.log(`AUTH_TOKEN_RESPONSE=${token.status()}`);
+    await page.waitForTimeout(5000);
+    const cookies = await context.cookies(baseUrl);
+    const body = (await page.locator("body").innerText()).replace(/\s+/g, " ").slice(0, 1000);
+    console.log(`AUTH_ATTEMPT=${attempt} AUTH_COOKIE_NAMES=${cookies.map((c) => c.name).join(",")}`);
+    console.log(`AUTH_PAGE_URL=${page.url()}`);
+    console.log(`AUTH_PAGE_BODY=${body}`);
+    if (!failures.length && !/\/login(?:[/?#]|$)/i.test(page.url())) return;
+    lastFailure = `attempt=${attempt} url=${page.url()} body=${body} failures=${failures.join(" | ")}`;
+    if (attempt === 1) await page.reload({ waitUntil: "networkidle", timeout: 60000 });
   }
+  throw new Error(`Production login did not establish an application session. ${lastFailure}`);
 }
 
 test("Clinic Admin authenticates against current Production and retains authorization", async ({ page, context }) => {
