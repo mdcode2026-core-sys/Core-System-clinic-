@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/infrastructure/supabase/server";
+import { resolveTenantId } from "@/core/auth/resolveTenantId";
 import type { PatientInsert, PatientUpdate } from "@/domain/patients/patients.types";
 
 const TENANT_MISSING = "PATIENT_TENANT_MISSING";
@@ -14,9 +15,15 @@ function getFormValue(formData: FormData, key: string): string | undefined {
   return trimmed === "" ? undefined : trimmed;
 }
 
+async function getAuthorizedTenantId(supabase: Awaited<ReturnType<typeof createClient>>) {
+  const { data: { user }, error } = await supabase.auth.getUser();
+  if (error || !user) return null;
+  return resolveTenantId(user.id);
+}
+
 export async function createPatient(formData: FormData) {
   const supabase = await createClient();
-  const tenantId = getFormValue(formData, "tenant_id");
+  const tenantId = await getAuthorizedTenantId(supabase);
   if (!tenantId) return { error: TENANT_MISSING };
 
   const patient: PatientInsert = {
@@ -49,9 +56,11 @@ export async function createPatient(formData: FormData) {
 
 export async function createPatientFromObject(patientData: PatientInsert) {
   const supabase = await createClient();
-  if (!patientData.tenant_id) return { error: TENANT_MISSING };
+  const tenantId = await getAuthorizedTenantId(supabase);
+  if (!tenantId) return { error: TENANT_MISSING };
 
-  const { data, error } = await supabase.from("clinic_patients").insert(patientData).select().single();
+  const patient: PatientInsert = { ...patientData, tenant_id: tenantId };
+  const { data, error } = await supabase.from("clinic_patients").insert(patient).select().single();
   if (error) {
     console.error("[createPatientFromObject] error:", error.message);
     return { error: DATABASE_ERROR };
@@ -63,7 +72,7 @@ export async function createPatientFromObject(patientData: PatientInsert) {
 
 export async function updatePatient(formData: FormData) {
   const supabase = await createClient();
-  const tenantId = getFormValue(formData, "tenant_id");
+  const tenantId = await getAuthorizedTenantId(supabase);
   if (!tenantId) return { error: TENANT_MISSING };
 
   const id = getFormValue(formData, "id");
@@ -105,7 +114,7 @@ export async function updatePatient(formData: FormData) {
 
 export async function deletePatient(formData: FormData) {
   const supabase = await createClient();
-  const tenantId = getFormValue(formData, "tenant_id");
+  const tenantId = await getAuthorizedTenantId(supabase);
   if (!tenantId) return { error: TENANT_MISSING };
 
   const id = getFormValue(formData, "id");
