@@ -1,13 +1,13 @@
 # CORE SYSTEM — Scenario Register
 
 **Date:** 2026-08-30  
-**Status:** GOVERNED BASELINE  
+**Status:** GOVERNED BASELINE — 42/42 IDEAL SCENARIOS DOCUMENTATION CLOSED  
 **Purpose:** Permanent register of ideal scenarios and deferred difficult/exception scenarios.  
 **Rule:** Difficult scenarios must not dilute, replace, or silently alter the ideal baseline.
 
 ## 1. Ideal scenario baseline
 
-The current baseline contains 42 normal/ideal clinic-operation scenarios covering the complete Enterprise clinic model.
+The current baseline contains 42 normal/ideal clinic-operation scenarios covering the complete Enterprise clinic model. Their contract traceability is closed in `IDEAL-SCENARIO-TRACEABILITY-MATRIX-2026-08-30.md`.
 
 ### Patient entry
 1. New patient first contact and identification.
@@ -83,9 +83,11 @@ A scenario is documentation-complete only when:
 - historical conflicts are classified;
 - acceptance evidence is defined.
 
+**Current result:** 42/42 scenarios satisfy the documentary contract gate.
+
 ## 4. Future difficult/exception scenario register
 
-The following scenarios are intentionally deferred until the ideal baseline is repaired and accepted:
+The following 60 scenarios are intentionally deferred until the ideal baseline is implemented and validated:
 
 1. Late patient arrival.
 2. No-show.
@@ -150,9 +152,7 @@ The following scenarios are intentionally deferred until the ideal baseline is r
 
 ## 5. Rule for difficult scenarios
 
-When a difficult scenario exposes a problem, the problem must be traced back to the ideal contract that should have governed the normal path.
-
-Do not create a one-off exception architecture merely to make the difficult scenario pass.
+When a difficult scenario exposes a problem, the problem must be traced back to the ideal contract that should have governed the normal path. Do not create a one-off exception architecture merely to make the difficult scenario pass.
 
 ## 6. Change control
 
