@@ -20,6 +20,69 @@ function requirePermission(permissions: string[], key: string) {
   if (!permissions.includes(key)) throw new Error(`Permission denied: ${key} required`);
 }
 
+async function ensureNextAction(supabase: any, tenantId: string, clinicUserId: string, planId: string, patientId: string) {
+  const { data: nextItem } = await supabase
+    .from("clinic_treatment_plan_items")
+    .select("id,title,description,planned_date,sequence_no,status")
+    .eq("tenant_id", tenantId)
+    .eq("treatment_plan_id", planId)
+    .in("status", ["planned", "pending", "scheduled"])
+    .order("sequence_no", { ascending: true })
+    .limit(1)
+    .maybeSingle();
+  if (!nextItem) return null;
+
+  const sourceId = nextItem.id as string;
+  const { data: existing } = await supabase
+    .from("operational_work_items")
+    .select("id,status")
+    .eq("tenant_id", tenantId)
+    .eq("kind", "next_action")
+    .eq("source_type", "treatment_plan_item")
+    .eq("source_id", sourceId)
+    .in("status", ["open", "accepted", "in_progress", "blocked"])
+    .limit(1)
+    .maybeSingle();
+  if (existing) return existing.id;
+
+  const needsBooking = Boolean(nextItem.planned_date);
+  const title = needsBooking ? `Book next treatment stage: ${nextItem.title}` : `Execute next treatment stage: ${nextItem.title}`;
+  const details = [
+    `Treatment plan ${planId}`,
+    `Stage ${nextItem.sequence_no}`,
+    nextItem.description || null,
+    needsBooking ? `Booking required for planned date ${nextItem.planned_date}` : "Booking requirement to be determined by the authorized operational actor",
+  ].filter(Boolean).join(" · ");
+
+  const { data: workItem, error } = await supabase
+    .from("operational_work_items")
+    .insert({
+      tenant_id: tenantId,
+      kind: "next_action",
+      title,
+      details,
+      requester_clinic_user_id: clinicUserId,
+      assignee_clinic_user_id: null,
+      patient_id: patientId,
+      source_type: "treatment_plan_item",
+      source_id: sourceId,
+      priority: "normal",
+      due_at: nextItem.planned_date ? `${nextItem.planned_date}T09:00:00` : null,
+    })
+    .select("id")
+    .single();
+  if (error) throw new Error(`Treatment next-action creation failed: ${error.message}`);
+  await supabase.from("operational_work_history").insert({
+    tenant_id: tenantId,
+    work_item_id: workItem.id,
+    actor_clinic_user_id: clinicUserId,
+    from_status: null,
+    to_status: "open",
+    note: "created_from_treatment_plan_stage",
+  });
+  return workItem.id as string;
+}
+
 async function loadPlan(supabase: any, tenantId: string, planId: string): Promise<TreatmentPlanRecord | null> {
   const { data, error } = await supabase.from("clinic_treatment_plans").select(`id,patient_id,source_visit_id,title,diagnosis_summary,goals,status,start_date,target_end_date,completed_at,created_at,updated_at,clinic_patients(first_name,last_name),clinic_treatment_plan_items(id,treatment_plan_id,procedure_id,title,description,sequence_no,planned_date,quantity,status,completed_at,notes,clinic_procedures(procedure_name)),clinic_treatment_plan_visits(id,treatment_plan_item_id,visit_id,linked_at)`).eq("id", planId).eq("tenant_id", tenantId).single();
   if (error || !data) return null;
@@ -107,7 +170,7 @@ export async function addTreatmentPlanItem(input: AddTreatmentPlanItemInput): Pr
 }
 
 export async function updateTreatmentPlanItem(itemId: string, update: { status?: TreatmentPlanRecord["items"][number]["status"]; plannedDate?: string | null; notes?: string | null; quantity?: number }): Promise<void> {
-  const { supabase, tenantId, permissions } = await getContext();
+  const { supabase, user, tenantId, permissions } = await getContext();
   requirePermission(permissions, "treatment_plans:update");
   const payload: Record<string, unknown> = { updated_at: new Date().toISOString() };
   if (update.status !== undefined) { payload.status = update.status; payload.completed_at = update.status === "completed" ? new Date().toISOString() : null; }
@@ -116,6 +179,24 @@ export async function updateTreatmentPlanItem(itemId: string, update: { status?:
   if (update.quantity !== undefined) { if (!Number.isInteger(update.quantity) || update.quantity < 1) throw new Error("Quantity must be a positive integer"); payload.quantity = update.quantity; }
   const { error } = await supabase.from("clinic_treatment_plan_items").update(payload).eq("id", itemId).eq("tenant_id", tenantId);
   if (error) throw new Error(`Treatment plan activity update failed: ${error.message}`);
+
+  if (update.status === "completed") {
+    const { data: currentItem, error: itemError } = await supabase
+      .from("clinic_treatment_plan_items")
+      .select("treatment_plan_id")
+      .eq("id", itemId)
+      .eq("tenant_id", tenantId)
+      .single();
+    if (itemError || !currentItem) throw new Error("Completed treatment activity could not be reloaded");
+    const { data: plan, error: planError } = await supabase
+      .from("clinic_treatment_plans")
+      .select("id,patient_id")
+      .eq("id", currentItem.treatment_plan_id)
+      .eq("tenant_id", tenantId)
+      .single();
+    if (planError || !plan) throw new Error("Treatment plan could not be reloaded");
+    await ensureNextAction(supabase, tenantId, user.id, plan.id, plan.patient_id);
+  }
   revalidatePath("/(dashboard)/treatment-plans");
 }
 
