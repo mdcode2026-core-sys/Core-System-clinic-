@@ -7,11 +7,11 @@ import type { PatientInsert, PatientUpdate } from "@/domain/patients/patients.ty
 const TENANT_MISSING = "PATIENT_TENANT_MISSING";
 const DATABASE_ERROR = "PATIENT_DATABASE_ERROR";
 
-function getFormValue(formData: FormData, key: string): string | null {
+function getFormValue(formData: FormData, key: string): string | undefined {
   const value = formData.get(key);
-  if (typeof value !== "string") return null;
+  if (typeof value !== "string") return undefined;
   const trimmed = value.trim();
-  return trimmed === "" ? null : trimmed;
+  return trimmed === "" ? undefined : trimmed;
 }
 
 export async function createPatient(formData: FormData) {
@@ -26,7 +26,7 @@ export async function createPatient(formData: FormData) {
     first_name_ar: getFormValue(formData, "first_name_ar"),
     last_name_ar: getFormValue(formData, "last_name_ar"),
     date_of_birth: getFormValue(formData, "date_of_birth"),
-    gender: getFormValue(formData, "gender") as "male" | "female" | "other" | null,
+    gender: getFormValue(formData, "gender") as "male" | "female" | "other" | undefined,
     phone_primary: getFormValue(formData, "phone_primary") ?? "",
     phone_secondary: getFormValue(formData, "phone_secondary"),
     email: getFormValue(formData, "email"),
@@ -70,19 +70,19 @@ export async function updatePatient(formData: FormData) {
   if (!id) return { error: DATABASE_ERROR };
 
   const update: PatientUpdate = {
-    first_name: getFormValue(formData, "first_name") ?? "",
-    last_name: getFormValue(formData, "last_name") ?? "",
+    first_name: getFormValue(formData, "first_name"),
+    last_name: getFormValue(formData, "last_name"),
     first_name_ar: getFormValue(formData, "first_name_ar"),
     last_name_ar: getFormValue(formData, "last_name_ar"),
     date_of_birth: getFormValue(formData, "date_of_birth"),
-    gender: getFormValue(formData, "gender") as "male" | "female" | "other" | null,
-    phone_primary: getFormValue(formData, "phone_primary") ?? "",
+    gender: getFormValue(formData, "gender") as "male" | "female" | "other" | undefined,
+    phone_primary: getFormValue(formData, "phone_primary"),
     phone_secondary: getFormValue(formData, "phone_secondary"),
     email: getFormValue(formData, "email"),
-    preferred_channel: getFormValue(formData, "preferred_channel") as "whatsapp" | "sms" | "email" | "phone" | null,
+    preferred_channel: getFormValue(formData, "preferred_channel") as "whatsapp" | "sms" | "email" | "phone" | undefined,
     first_visit_date: getFormValue(formData, "first_visit_date"),
     referral_source: getFormValue(formData, "referral_source"),
-    patient_status: getFormValue(formData, "patient_status") as "active" | "inactive" | "archived" | "blocked" | null,
+    patient_status: getFormValue(formData, "patient_status") as "active" | "inactive" | "archived" | "blocked" | undefined,
     notes: getFormValue(formData, "notes"),
   };
 
