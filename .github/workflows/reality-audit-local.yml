@@ -87,14 +87,19 @@ jobs:
           done
           curl -fsS http://127.0.0.1:3000/api/build-info
 
-      - name: Local authenticated real-world E2E
+      - name: Local authenticated route E2E
         env:
           CORE_SYSTEM_PRODUCTION_URL: http://127.0.0.1:3000
           CORE_SYSTEM_E2E_EMAIL: ${{ secrets.CORE_SYSTEM_E2E_EMAIL }}
           CORE_SYSTEM_E2E_PASSWORD: ${{ secrets.CORE_SYSTEM_E2E_PASSWORD }}
-        run: |
-          npx playwright test tools/ajm-production-auth-e2e.spec.mjs --reporter=line
-          node tools/clinic-admin-real-world-e2e-v2.mjs
+        run: npx playwright test tools/ajm-production-auth-e2e.spec.mjs --reporter=line
+
+      - name: Local real-world clinic journey E2E
+        env:
+          CORE_SYSTEM_PRODUCTION_URL: http://127.0.0.1:3000
+          CORE_SYSTEM_E2E_EMAIL: ${{ secrets.CORE_SYSTEM_E2E_EMAIL }}
+          CORE_SYSTEM_E2E_PASSWORD: ${{ secrets.CORE_SYSTEM_E2E_PASSWORD }}
+        run: node tools/clinic-admin-real-world-e2e-v2.mjs
 
       - name: Stop local server
         if: always()
