@@ -23,11 +23,20 @@ for(const [name,path] of [["workspace","/"],["patients","/patients"],["agenda","
 await step("patient creation and persistence",async()=>{
   await goto("/patients");
   await button(/new patient|add patient|إضافة مريض|مريض جديد/i);
-  await page.locator("#first_name").fill(stamp);
-  await page.locator("#last_name").fill("Patient");
-  await page.locator("#phone_primary").fill(testPhone);
-  await page.getByRole("button",{name:/save|حفظ/i}).last().click();
-  await page.waitForTimeout(1200);
+  const dialog=page.getByRole("dialog");
+  await dialog.waitFor({state:"visible",timeout:10000});
+  await dialog.locator("#first_name").fill(stamp);
+  await dialog.locator("#last_name").fill("Patient");
+  await dialog.locator("#phone_primary").fill(testPhone);
+  await dialog.getByRole("button",{name:/save|حفظ/i}).click();
+  const error=dialog.locator(".text-destructive").first();
+  const outcome=await Promise.race([
+    dialog.waitFor({state:"hidden",timeout:15000}).then(()=>"closed"),
+    error.waitFor({state:"visible",timeout:15000}).then(()=>"error")
+  ]).catch(()=>"timeout");
+  if(outcome==="error")throw new Error(`Patient save rejected: ${await error.innerText()}`);
+  if(outcome!=="closed")throw new Error("Patient form did not close after save");
+  await page.waitForTimeout(500);
   await page.reload({waitUntil:"networkidle",timeout:60000});
   const patient=page.getByText(`${stamp} Patient`,{exact:true}).first();
   await patient.waitFor({state:"visible",timeout:15000});
