@@ -7,6 +7,9 @@ on:
         description: Exact validated candidate SHA to verify on Production
         required: true
         type: string
+  workflow_run:
+    workflows: ["CORE SYSTEM Reality Audit - Local CI"]
+    types: [completed]
 
 permissions:
   contents: read
@@ -15,14 +18,24 @@ permissions:
 jobs:
   candidate:
     name: Validate production candidate
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
     runs-on: ubuntu-latest
-    timeout-minutes: 90
+    timeout-minutes: 120
     steps:
-      - name: Resolve validated candidate
+      - name: Resolve exact validated candidate
         id: candidate
         env:
-          REQUESTED_SHA: ${{ inputs.candidate_sha }}
-        run: echo "sha=$REQUESTED_SHA" >> "$GITHUB_OUTPUT"
+          MANUAL_SHA: ${{ inputs.candidate_sha }}
+          WORKFLOW_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          set -euo pipefail
+          SHA="$MANUAL_SHA"
+          if [ -z "$SHA" ]; then SHA="$WORKFLOW_SHA"; fi
+          test -n "$SHA"
+          echo "sha=$SHA" >> "$GITHUB_OUTPUT"
+          echo "candidate_sha=$SHA"
 
       - name: Checkout validated candidate
         uses: actions/checkout@v4
@@ -54,6 +67,7 @@ jobs:
           npm run ajm:audit
           npm run ajm:migrations
           npm run i18n:audit
+          npm run i18n:parity
           npm run ux:widget-catalog
           npm run ux:domain-surface
           npm run ux:patient-flow-stage6
@@ -98,7 +112,47 @@ jobs:
           npx playwright test tools/ajm-production-auth-e2e.spec.mjs --reporter=line
           node tools/clinic-admin-real-world-e2e-v2.mjs
 
+      - name: Capture production build identity
+        env:
+          PRODUCTION_URL: https://core-system-clinic.vercel.app
+        run: |
+          set -euo pipefail
+          curl -fsS --max-time 15 "$PRODUCTION_URL/api/build-info" | tee production-build-info.json
+          node -e 'const fs=require("fs"); const x=JSON.parse(fs.readFileSync("production-build-info.json","utf8")); if(x.commitSha!==process.env.EXPECTED_SHA) process.exit(1)' 
+        env:
+          PRODUCTION_URL: https://core-system-clinic.vercel.app
+          EXPECTED_SHA: ${{ steps.candidate.outputs.sha }}
+
+      - name: Write final closure evidence
+        env:
+          EXPECTED_SHA: ${{ steps.candidate.outputs.sha }}
+        run: |
+          set -euo pipefail
+          cat > production-closure-evidence.json <<EOF
+          {
+            "status": "PRODUCTION_VERIFIED",
+            "candidateSha": "${EXPECTED_SHA}",
+            "productionBuildInfo": $(cat production-build-info.json),
+            "workflowRunId": "${{ github.run_id }}",
+            "sourceRealityWorkflowRunId": "${{ github.event.workflow_run.id || '' }}",
+            "productionUrl": "https://core-system-clinic.vercel.app",
+            "verification": {
+              "exactShaMatch": true,
+              "authenticatedE2E": true,
+              "realWorldClinicJourneyE2E": true,
+              "staticAndAJMUXAudits": true
+            }
+          }
+          EOF
+
+      - name: Upload final closure evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: core-system-production-closure-evidence-${{ steps.candidate.outputs.sha }}
+          path: production-closure-evidence.json
+          if-no-files-found: error
+
       - name: Record candidate
         run: |
           echo "Production candidate: ${{ steps.candidate.outputs.sha }}"
-          echo "Exact candidate was observed on Production and the configured Production E2E gates passed."
+          echo "Exact candidate was observed on Production and configured Production E2E gates passed."
