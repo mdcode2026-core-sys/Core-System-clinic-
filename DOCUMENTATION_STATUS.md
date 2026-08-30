@@ -1,6 +1,6 @@
 # Documentation Status & Authority
 
-**Status:** ACTIVE — implementation documentation remediation CLOSED; final Production SHA gate remains PENDING  
+**Status:** ACTIVE — implementation remediation in progress; 42-scenario closure BLOCKED by documented implementation gaps  
 **Last reviewed:** 2026-08-30
 
 This file remains the repository-wide documentation status/freshness authority. `docs/CORE_SYSTEM_INDEX.md` is the canonical navigation index for the current remediation bundle.
@@ -16,6 +16,7 @@ When documentation and implementation disagree, use:
 6. Historical reports only as evidence.
 7. `GLOBAL_UX_IA_FINAL_AUTHORITY_2026-08-28.md` as current UX/IA authority.
 8. For implementation-document remediation requirements, `docs/CROSS-DOMAIN-IMPLEMENTATION-CONTRACTS-2026-08-30.md` and its linked matrices are the current contract authority.
+9. For current 42-scenario reality state, `docs/IDEAL-SCENARIO-REALITY-VALIDATION-2026-08-30.md` and `docs/IDEAL-SCENARIO-IMPLEMENTATION-GAP-MATRIX-2026-08-30.md` are the evidence records.
 
 ## Current remediation bundle
 
@@ -29,34 +30,33 @@ When documentation and implementation disagree, use:
 - `docs/CROSS-DOMAIN-IMPLEMENTATION-CONTRACTS-2026-08-30.md`
 - `docs/IMPLEMENTATION-DOCUMENT-REMEDIATION-MASTER-MATRIX-2026-08-30.md`
 - `docs/FINAL-IMPLEMENTATION-DOCUMENTATION-REMEDIATION-REPORT-2026-08-30.md`
+- `docs/IDEAL-SCENARIO-IMPLEMENTATION-GAP-MATRIX-2026-08-30.md`
+- `docs/IDEAL-SCENARIO-REALITY-VALIDATION-2026-08-30.md`
+- `docs/FINAL-IDEAL-SCENARIO-CLOSURE-REPORT-2026-08-30.md`
 - `docs/CORE-SYSTEM-TERMINOLOGY-GOVERNANCE.md`
 
 ## Documentation remediation state
 
 - R12 — Documentation authority / closure: DOCUMENTATION CLOSED.
-- R01 — Procedure / Service / Package / Treatment Plan: DOCUMENTATION CLOSED.
-- R02 — Treatment Plan → Next Action → Appointment: DOCUMENTATION CLOSED.
-- R03 — Package / Financial Plan / Installments / Sessions: DOCUMENTATION CLOSED.
-- R04 — Workforce → Availability → Agenda: DOCUMENTATION CLOSED.
-- R05 — Staff + Room + Device + Procedure: DOCUMENTATION CLOSED.
-- R06 — Insurance lifecycle: DOCUMENTATION CLOSED.
-- R07 — Procurement lifecycle: DOCUMENTATION CLOSED.
-- R08 — Revenue → Commission → Payroll: DOCUMENTATION CLOSED.
-- R09 — Communication → Request → Work: DOCUMENTATION CLOSED.
-- R10 — Domain Event → Coordination → Authorized Actor → Completion: DOCUMENTATION CLOSED.
-- R11 — Skill / Qualification / Permission: DOCUMENTATION CLOSED.
-- Ideal scenarios: 42/42 documentary traceability closed.
+- R01 — Procedure / Service / Package / Treatment Plan: DOCUMENTATION CLOSED; implementation remediation active.
+- R02 — Treatment Plan → Next Action → Appointment: DOCUMENTATION CLOSED; implementation blocker recorded.
+- R03 — Package / Financial Plan / Installments / Sessions: DOCUMENTATION CLOSED; implementation blocker recorded.
+- R04 — Workforce → Availability → Agenda: DOCUMENTATION CLOSED; implementation repair applied.
+- R05 — Staff + Room + Device + Procedure: DOCUMENTATION CLOSED; skill/qualification foundation and eligibility repair applied.
+- R06 — Insurance lifecycle: DOCUMENTATION CLOSED; reconciliation blocker recorded.
+- R07 — Procurement lifecycle: DOCUMENTATION CLOSED; supplier obligation/payment foundation added; integration blocker remains.
+- R08 — Revenue → Commission → Payroll: DOCUMENTATION CLOSED; collected-payment commission path added; validation pending.
+- R09 — Communication → Request → Work: DOCUMENTATION CLOSED; implementation exists; validation pending.
+- R10 — Domain Event → Coordination → Authorized Actor → Completion: DOCUMENTATION CLOSED; permission repair applied; universal event handoff blocker remains.
+- R11 — Skill / Qualification / Permission: DOCUMENTATION CLOSED; implementation foundation added; seeded/E2E validation pending.
+- Ideal scenarios: 42/42 documentary traceability closed; 0/42 runtime-validated; 17 currently blocked.
 - Difficult scenarios: 60 preserved and deferred.
-
-## Global UX/IA and implementation state
-
-The existing Stage/AJM implementation records remain historical/current implementation evidence according to their own acceptance policies. Their `Implemented`, `Validated`, or `Closed` claims are not altered by this documentation phase and are not used as substitutes for the contract evidence defined here.
 
 ## Current production-readiness gate
 
-`Production SHA = final main SHA` remains mandatory for Production Readiness. Documentation closure, CI, PR merge or Preview READY status cannot produce `Production Ready = YES`.
+`Production SHA = final main SHA` remains mandatory for Production Readiness. Deployment success or a READY deployment does not prove scenario validation.
 
-The 2026-08-30 AJM Final Production Closure remains a Production blocker record and is retained as such.
+The 2026-08-30 AJM Final Production Closure remains a separate production blocker record and is retained as such.
 
 ## Findings governance
 
@@ -64,11 +64,11 @@ Every warning, defect, security issue or architecture conflict must be investiga
 
 ## PJ / AJM state
 
-PJ status remains governed by PJ-MASTER-DOCS and current implementation records. AJM status remains governed by current AJM status/acceptance records. This remediation phase does not claim code/runtime closure.
+PJ status remains governed by PJ-MASTER-DOCS and current implementation records. AJM status remains governed by current AJM status/acceptance records. This phase may implement repairs covered by existing contracts but must not claim scenario/runtime closure without evidence.
 
 ## Schema freshness
 
-`DATABASE_SCHEMA.md` remains the structural schema reference. This documentation phase introduced no database architecture.
+`DATABASE_SCHEMA.md` remains the structural schema reference. The implementation phase added Service/Package/Offer, skill/qualification, operating-expense and supplier-obligation/payment schema extensions; `DATABASE_SCHEMA.md` must be reconciled before final 42-scenario closure.
 
 ## Maintenance rule
 
