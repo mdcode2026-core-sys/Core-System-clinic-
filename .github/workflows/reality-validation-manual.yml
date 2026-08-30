@@ -1,0 +1,28 @@
+name: CORE SYSTEM Reality Validation - Manual
+
+on:
+  workflow_dispatch:
+
+jobs:
+  reality-validation:
+    name: Local/Codespaces Reality Validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Run Reality Validation
+        env:
+          CORE_SYSTEM_PRODUCTION_URL: ${{ secrets.CORE_SYSTEM_PRODUCTION_URL }}
+          CORE_SYSTEM_E2E_EMAIL: ${{ secrets.CORE_SYSTEM_E2E_EMAIL }}
+          CORE_SYSTEM_E2E_PASSWORD: ${{ secrets.CORE_SYSTEM_E2E_PASSWORD }}
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+        run: npm run test:reality
