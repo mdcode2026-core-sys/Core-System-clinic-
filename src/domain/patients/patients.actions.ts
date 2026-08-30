@@ -1,6 +1,5 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { createClient } from "@/infrastructure/supabase/server";
 import type { PatientInsert, PatientUpdate } from "@/domain/patients/patients.types";
 
@@ -62,7 +61,9 @@ export async function createPatient(formData: FormData) {
 
   const { data, error } = await supabase.from("clinic_patients").insert(patient).select().single();
   if (error) { logDatabaseError("createPatient", error); return { error: DATABASE_ERROR }; }
-  revalidatePath("/patients");
+  // Client-side TanStack invalidation is the authoritative refresh path for this interactive mutation.
+  // Avoid a server cache revalidation in the action response: it can hold the Server Action stream open
+  // after a successful DB commit and strand the completed mutation behind an open dialog.
   return { data };
 }
 
@@ -73,7 +74,6 @@ export async function createPatientFromObject(patientData: PatientInsert) {
   const patient: PatientInsert = { ...patientData, tenant_id: tenantId };
   const { data, error } = await supabase.from("clinic_patients").insert(patient).select().single();
   if (error) { logDatabaseError("createPatientFromObject", error); return { error: DATABASE_ERROR }; }
-  revalidatePath("/patients");
   return { data };
 }
 
@@ -94,7 +94,6 @@ export async function updatePatient(formData: FormData) {
   };
   const { data, error } = await supabase.from("clinic_patients").update({ ...update, updated_at: new Date().toISOString() }).eq("id", id).eq("tenant_id", tenantId).select().single();
   if (error) { logDatabaseError("updatePatient", error); return { error: DATABASE_ERROR }; }
-  revalidatePath("/patients");
   return { data };
 }
 
@@ -106,6 +105,5 @@ export async function deletePatient(formData: FormData) {
   if (!id) return { error: DATABASE_ERROR };
   const { data, error } = await supabase.from("clinic_patients").update({ deleted_at: new Date().toISOString(), updated_at: new Date().toISOString() }).eq("id", id).eq("tenant_id", tenantId).select().single();
   if (error) { logDatabaseError("deletePatient", error); return { error: DATABASE_ERROR }; }
-  revalidatePath("/patients");
   return { data };
 }
