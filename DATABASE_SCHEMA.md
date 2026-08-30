@@ -3,10 +3,10 @@
 ## Current Status
 
 **Classification:** Current structural reference
-**Last reconciled:** 2026-08-24
+**Last reconciled:** 2026-08-30
 **Source:** Live Supabase project `qaslsjyxjwvdoiczmhgq`
 
-This document is a structural reference, not a substitute for live verification. It was reconciled against `information_schema.columns` on 2026-08-24 after the Patient Journey stages and Patient Portal schema were implemented.
+This document is a structural reference, not a substitute for live verification. The 2026-08-30 implementation pass added commercial, workforce eligibility and operational-finance foundations; those additions are reflected below.
 
 ## Authority
 
@@ -23,8 +23,6 @@ The active application model is:
 Legacy tables may still physically exist for historical/compatibility reasons and must not be treated as the active application model without an explicit architectural decision.
 
 ## Current Public Schema Catalog
-
-The live public schema includes the following major table groups. The list is intentionally grouped by function so this document remains maintainable while the full column definition remains verifiable from Supabase `information_schema`.
 
 ### Tenant / platform
 
@@ -59,12 +57,39 @@ The live public schema includes the following major table groups. The list is in
 - `master_agenda_events`
 - `clinic_provider_availability`
 - `clinic_rooms`
+- `clinic_resources`
 - `clinic_visit_sessions`
 - `clinic_visit_procedures`
 - `clinic_procedures`
 - `clinic_treatment_plans`
 - `clinic_treatment_plan_items`
 - `clinic_treatment_plan_visits`
+- `clinic_services`
+- `clinic_service_procedures`
+- `clinic_packages`
+- `clinic_package_items`
+- `clinic_offers`
+- `patient_packages`
+- `patient_package_consumptions`
+
+### Workforce / eligibility
+
+- `workforce_employees`
+- `workforce_positions`
+- `workforce_employment_records`
+- `workforce_staff_schedules`
+- `workforce_leave_requests`
+- `workforce_attendance`
+- `workforce_skills`
+- `workforce_employee_skills`
+- `workforce_qualifications`
+- `workforce_employee_qualifications`
+- `clinic_procedure_skill_requirements`
+- `clinic_procedure_qualification_requirements`
+- `workforce_commission_rules`
+- `workforce_commission_entries`
+- `workforce_payroll_periods`
+- `workforce_payroll_entries`
 
 ### Medical files
 
@@ -75,20 +100,37 @@ The live public schema includes the following major table groups. The list is in
 - `medical_file_measurements`
 - `medical_file_ai_results`
 
-### Follow-up / notifications
+### Follow-up / notifications / coordination
 
 - `retention_followups`
 - `followup_automation_rules`
 - `notification_queue`
 - `tenant_notification_channel_prefs`
+- `operational_work_items`
+- `operational_work_history`
+- `communication_conversations`
+- `communication_messages`
+- `communication_requests`
 
-### Billing / inventory / reporting
+### Billing / procurement / inventory / operating finance
 
 - `clinic_invoices`
 - `invoice_items`
 - `invoice_payments`
+- `financial_plans`
+- `financial_installments`
+- `patient_insurance_profiles`
+- `insurance_claims`
+- `suppliers`
+- `purchase_orders`
+- `purchase_order_items`
+- `purchase_receipts`
+- `purchase_receipt_items`
 - `inventory_items`
 - `inventory_ledger`
+- `operating_expenses`
+- `supplier_obligations`
+- `supplier_payments`
 - `analytics_daily_snapshots`
 - `audit_trail`
 
@@ -104,11 +146,17 @@ The live schema confirms the treatment-plan chain:
 
 `clinic_patients` → `clinic_visit_sessions` → `clinic_treatment_plans` → `clinic_treatment_plan_items` / `clinic_treatment_plan_visits` → `clinic_visit_procedures`
 
-Medical-file continuity is represented by `medical_files` and its storage/sync/annotation/measurement/AI companion tables.
+Commercial foundations now preserve separate ownership:
 
-Follow-up continuity is represented by `retention_followups`, `followup_automation_rules` and `notification_queue`.
+`clinic_procedures` → `clinic_services` → `clinic_packages` / `clinic_offers` → `patient_packages` → `financial_plans` / `patient_package_consumptions`
 
-Patient Portal continuity is represented by the invitation, release and message tables listed above.
+Workforce eligibility is separate from authorization:
+
+`workforce_employees` → skills/qualifications → procedure requirements → Agenda eligibility.
+
+Operational finance is separate from patient revenue:
+
+`operating_expenses` and `supplier_obligations` / `supplier_payments` are distinct from `clinic_invoices` / `invoice_payments`.
 
 ## Important Current Columns
 
@@ -118,23 +166,19 @@ Includes `file_number` in the live schema in addition to identity/contact/status
 
 ### `clinic_treatment_plans`
 
-Includes `patient_id`, optional `source_visit_id`, `title`, `diagnosis_summary`, `goals`, `status`, `start_date`, `target_end_date`, `completed_at` and creator/timestamp fields.
+Includes `patient_id`, optional `source_visit_id`, optional `package_id`, `title`, `diagnosis_summary`, `goals`, `status`, `start_date`, `target_end_date`, `completed_at` and creator/timestamp fields.
 
 ### `clinic_treatment_plan_items`
 
 Includes `treatment_plan_id`, optional `procedure_id`, ordered `sequence_no`, `planned_date`, `quantity`, `status`, `completed_at` and notes.
 
-### `clinic_treatment_plan_visits`
+### `financial_plans`
 
-Links treatment plans and visits and may additionally link a treatment-plan item.
+Includes the optional `package_id` link introduced for the commercial-to-financial boundary.
 
-### `medical_files`
+### `clinic_services` / `clinic_packages` / `clinic_offers`
 
-Includes patient/visit linkage, file kind, filename/type/size, storage provider/path/status, availability and metadata, creator and archive fields.
-
-### `patient_portal_invitations`
-
-Includes tenant/patient linkage, channel/destination, token hash, status, fallback channel, expiry and claim/send timestamps.
+These tables are the distinct commercial/service configuration layer introduced for R01/R03. They do not replace the Medical Master Procedure truth.
 
 ## Schema-sensitive Rule
 
