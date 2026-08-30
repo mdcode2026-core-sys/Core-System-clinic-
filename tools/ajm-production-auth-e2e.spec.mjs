@@ -18,17 +18,29 @@ const canonicalRoutes = [
 ];
 
 async function login(page, context) {
+  const failures = [];
+  page.on("console", msg => { if (msg.type() === "error") failures.push(`console:${msg.text()}`); });
+  page.on("requestfailed", req => failures.push(`request:${req.url()} :: ${req.failure()?.errorText ?? "failed"}`));
+  page.on("response", async res => {
+    if (res.url().includes("/auth/v1/token")) {
+      console.log(`AUTH_TOKEN_RESPONSE=${res.status()}`);
+      if (res.status() >= 400) console.log(`AUTH_TOKEN_BODY=${(await res.text()).slice(0, 500)}`);
+    }
+  });
   const login = await page.goto(`${baseUrl}/login`, { waitUntil: "domcontentloaded", timeout: 60000 });
   expect(login?.status()).toBeLessThan(400);
   await page.locator('input[type="email"], input[name="email"]').first().fill(email);
   await page.locator('input[type="password"], input[name="password"]').first().fill(password);
   await page.getByRole("button", { name: /sign in|login|log in|تسجيل الدخول|دخول/i }).first().click();
-  await page.waitForLoadState("domcontentloaded", { timeout: 60000 }).catch(() => {});
+  await page.waitForTimeout(8000);
   const cookies = await context.cookies(baseUrl);
   console.log(`AUTH_COOKIE_NAMES=${cookies.map((c) => c.name).join(",")}`);
+  const body = (await page.locator("body").innerText()).replace(/\s+/g, " ").slice(0, 800);
+  console.log(`AUTH_PAGE_URL=${page.url()}`);
+  console.log(`AUTH_PAGE_BODY=${body}`);
+  if (failures.length) console.log(`AUTH_BROWSER_FAILURES=${failures.join(" | ").slice(0, 2000)}`);
   if (/\/login(?:[/?#]|$)/i.test(page.url())) {
-    const text = (await page.locator("body").innerText()).replace(/\s+/g, " ").slice(0, 800);
-    throw new Error(`Production login did not establish an application session. URL=${page.url()} BODY=${text}`);
+    throw new Error(`Production login did not establish an application session. URL=${page.url()} BODY=${body}`);
   }
 }
 
