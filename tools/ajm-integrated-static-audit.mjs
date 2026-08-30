@@ -15,6 +15,9 @@ const required = [
   "src/domain/workforce/workforce.actions.ts",
   "src/domain/analytics/kpi/kpi.definitions/ajm.kpis.ts",
   "src/core/navigation/navigationRegistry.ts",
+  "src/domain/agenda/agenda.actions.ts",
+  "src/domain/agenda/conflict.engine.ts",
+  "supabase/migrations/20260830032000_ajm_reality_audit_patient_overlap_constraint.sql",
 ];
 const missing = required.filter((p) => !fs.existsSync(path.join(root, p)));
 if (missing.length) { console.error("AJM required surface missing:", missing.join(", ")); process.exit(1); }
@@ -25,6 +28,8 @@ const comm = read("src/domain/communications/communications.actions.ts");
 const work = read("src/domain/journey-coordination/work.actions.ts");
 const workforce = read("src/domain/workforce/workforce.actions.ts");
 const kpis = read("src/domain/analytics/kpi/kpi.definitions/ajm.kpis.ts");
+const agenda = read("src/domain/agenda/agenda.actions.ts");
+const conflict = read("src/domain/agenda/conflict.engine.ts");
 const failures = [];
 const expect = (ok, message) => { if (!ok) failures.push(message); };
 const hasRoute = (route) => new RegExp(`href\\s*:\\s*["']${route.replaceAll('/', '\\/')}["']`).test(registry);
@@ -39,6 +44,13 @@ expect(workforce.includes("hasEffectivePermission") && /"workforce:(manage|read|
 expect(kpis.includes("workforce") && kpis.includes("communications") && kpis.includes("coordination"), "AJM KPI definitions must extend the canonical registry with all integrated categories.");
 expect(registry.includes("getSidebarNavigation()") || registry.includes("navigationRegistry"), "Navigation must remain registry-driven.");
 
+expect(agenda.includes('from "@/infrastructure/supabase/server"'), "Agenda mutations must use the authenticated server Supabase client.");
+expect(agenda.includes("resolveContext()") && agenda.includes('getEffectivePermissions'), "Agenda mutations must resolve tenant/user context server-side.");
+expect(agenda.includes('"agenda:create"') && agenda.includes('"agenda:update"'), "Agenda mutations must enforce server-side permission checks.");
+expect(!agenda.includes('const tenantId=String(formData.get("tenant_id"))'), "Agenda mutations must not trust client-supplied tenant_id.");
+expect(!conflict.includes("@/infrastructure/supabase/client"), "Agenda conflict checks must not use an unauthenticated browser Supabase client on the server path.");
+expect(agenda.includes("resolveBufferEnd") && agenda.includes("buffer_time_minutes"), "Agenda mutations must honor procedure buffer time.");
+
 const routeMatches = [...registry.matchAll(/href\s*:\s*["']([^"']+)["']/g)].map((m) => m[1]);
 const counts = new Map();
 for (const route of routeMatches) counts.set(route, (counts.get(route) ?? 0) + 1);
@@ -52,4 +64,4 @@ if (failures.length) {
   process.exit(1);
 }
 console.log("AJM integrated static audit: PASS");
-console.log("Verified canonical AJM surfaces, domain ownership boundaries, server authorization, KPI consolidation, and navigation uniqueness.");
+console.log("Verified canonical AJM surfaces, domain ownership boundaries, server authorization, agenda security, patient-overlap enforcement, KPI consolidation, and navigation uniqueness.");
