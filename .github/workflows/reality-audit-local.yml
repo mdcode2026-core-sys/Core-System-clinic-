@@ -1,0 +1,103 @@
+name: CORE SYSTEM Reality Audit - Local CI
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  reality-audit:
+    name: Local/Codespaces Reality Validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - name: Checkout exact candidate
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: TypeScript
+        run: npx tsc --noEmit
+
+      - name: Lint
+        run: npm run lint
+
+      - name: I18N
+        run: |
+          npm run i18n:audit
+          npm run i18n:parity
+
+      - name: UX/IA audits
+        run: |
+          npm run ux:widget-catalog
+          npm run ux:domain-surface
+          npm run ux:patient-flow-stage6
+          npm run ux:patient-context-stage7
+          npm run ux:global-search-stage8
+          npm run ux:mobile-stage11
+          npm run ux:security-stage12
+          npm run ux:legacy-stage14
+          npm run ux:docs-stage15
+
+      - name: AJM audits
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://qaslsjyxjwvdoiczmhgq.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+        run: |
+          npm run ajm:audit
+          npm run ajm:migrations
+
+      - name: Production build without Vercel
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://qaslsjyxjwvdoiczmhgq.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          NEXT_PUBLIC_APP_URL: http://127.0.0.1:3000
+        run: npm run build
+
+      - name: Install Playwright
+        run: |
+          npm install --no-save --no-package-lock @playwright/test@1.55.0 playwright@1.55.0
+          npx playwright install --with-deps chromium
+
+      - name: Start local production server
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://qaslsjyxjwvdoiczmhgq.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          NEXT_PUBLIC_APP_URL: http://127.0.0.1:3000
+          PORT: 3000
+        run: |
+          nohup npm start > /tmp/core-system-next.log 2>&1 &
+          echo $! > /tmp/core-system-next.pid
+          for i in $(seq 1 60); do
+            if curl -fsS --max-time 3 http://127.0.0.1:3000/api/build-info; then
+              echo
+              break
+            fi
+            sleep 2
+          done
+          curl -fsS http://127.0.0.1:3000/api/build-info
+
+      - name: Local authenticated real-world E2E
+        env:
+          CORE_SYSTEM_PRODUCTION_URL: http://127.0.0.1:3000
+          CORE_SYSTEM_E2E_EMAIL: ${{ secrets.CORE_SYSTEM_E2E_EMAIL }}
+          CORE_SYSTEM_E2E_PASSWORD: ${{ secrets.CORE_SYSTEM_E2E_PASSWORD }}
+        run: |
+          npx playwright test tools/ajm-production-auth-e2e.spec.mjs --reporter=line
+          node tools/clinic-admin-real-world-e2e-v2.mjs
+
+      - name: Stop local server
+        if: always()
+        run: |
+          if [ -f /tmp/core-system-next.pid ]; then kill "$(cat /tmp/core-system-next.pid)" || true; fi
+          cat /tmp/core-system-next.log || true
