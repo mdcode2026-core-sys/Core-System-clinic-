@@ -13,8 +13,8 @@ const stamp=`E2E-${Date.now()}`;
 const testPhone=`0799${Date.now().toString().slice(-6)}`;
 
 async function step(name,fn){try{await fn();console.log(`PASS|${name}`)}catch(e){failures.push(`${name}: ${e instanceof Error?e.message:String(e)}`);console.error(`FAIL|${name}|${e instanceof Error?e.message:String(e)}`)}}
-async function login(){for(let attempt=1;attempt<=2;attempt++){const authResponse=page.waitForResponse(r=>r.url().includes("/auth/v1/token"),{timeout:15000}).catch(()=>null);await page.goto(`${baseUrl}/login`,{waitUntil:"networkidle",timeout:60000});await page.locator('input[type="email"],input[name="email"]').first().fill(email);await page.locator('input[type="password"],input[name="password"]').first().fill(password);await page.getByRole("button",{name:/sign in|login|log in|تسجيل الدخول|دخول/i}).first().click();await authResponse;await page.waitForTimeout(2500);if(!/\/login(?:[/?#]|$)/i.test(page.url()))return;if(attempt===1)await page.reload({waitUntil:"networkidle",timeout:60000})}throw new Error("E2E login did not establish a session")}
-async function goto(path){const r=await page.goto(`${baseUrl}${path}`,{waitUntil:"domcontentloaded",timeout:60000});if(!r||r.status()>=400)throw new Error(`HTTP ${r?.status()??"unknown"}`);await page.waitForLoadState("networkidle").catch(()=>{});if(/\/login(?:[/?#]|$)/i.test(page.url()))throw new Error(`Redirected to login from ${path}`)}
+async function login(){for(let attempt=1;attempt<=2;attempt++){const authResponse=page.waitForResponse(r=>r.url().includes("/auth/v1/token"),{timeout:15000}).catch(()=>null);await page.goto(`${baseUrl}/login`,{waitUntil:"domcontentloaded",timeout:60000});await page.locator('input[type="email"],input[name="email"]').first().fill(email);await page.locator('input[type="password"],input[name="password"]').first().fill(password);await page.getByRole("button",{name:/sign in|login|log in|تسجيل الدخول|دخول/i}).first().click();await authResponse;await page.waitForTimeout(1500);if(!/\/login(?:[/?#]|$)/i.test(page.url()))return;if(attempt===1)await page.reload({waitUntil:"domcontentloaded",timeout:60000})}throw new Error("E2E login did not establish a session")}
+async function goto(path){const r=await page.goto(`${baseUrl}${path}`,{waitUntil:"domcontentloaded",timeout:60000});if(!r||r.status()>=400)throw new Error(`HTTP ${r?.status()??"unknown"}`);await page.waitForTimeout(250);if(/\/login(?:[/?#]|$)/i.test(page.url()))throw new Error(`Redirected to login from ${path}`)}
 async function button(re){const b=page.getByRole("button",{name:re}).first();await b.waitFor({state:"visible",timeout:10000});await b.click()}
 
 await step("login",login);
@@ -22,7 +22,9 @@ for(const [name,path] of [["workspace","/"],["patients","/patients"],["agenda","
 
 await step("patient creation and persistence",async()=>{
   await goto("/patients");
-  await button(/new patient|add patient|إضافة مريض|مريض جديد/i);
+  const newButton=page.getByRole("button",{name:/new patient|add patient|إضافة مريض|مريض جديد/i}).first();
+  await newButton.waitFor({state:"visible",timeout:10000});
+  await newButton.click();
   const dialog=page.getByRole("dialog");
   await dialog.waitFor({state:"visible",timeout:10000});
   await dialog.locator("#first_name").fill(stamp);
@@ -37,7 +39,7 @@ await step("patient creation and persistence",async()=>{
   if(outcome==="error")throw new Error(`Patient save rejected: ${await error.innerText()}`);
   if(outcome!=="closed")throw new Error("Patient form did not close after save");
   await page.waitForTimeout(500);
-  await page.reload({waitUntil:"networkidle",timeout:60000});
+  await page.reload({waitUntil:"domcontentloaded",timeout:60000});
   const patient=page.getByText(`${stamp} Patient`,{exact:true}).first();
   await patient.waitFor({state:"visible",timeout:15000});
   const phone=page.getByText(testPhone,{exact:true}).first();
