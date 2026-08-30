@@ -62,7 +62,7 @@ export async function getTreatmentPlan(planId: string): Promise<TreatmentPlanRec
 }
 
 export async function createTreatmentPlan(input: CreateTreatmentPlanInput): Promise<string> {
-  const { supabase, user, tenantId, permissions } = await getContext();
+  const { supabase, user, clinicUser, tenantId, permissions } = await getContext();
   requirePermission(permissions, "treatment_plans:create");
   const title = input.title.trim();
   if (!title) throw new Error("Treatment plan title is required");
@@ -72,7 +72,7 @@ export async function createTreatmentPlan(input: CreateTreatmentPlanInput): Prom
     const { data: visit, error: visitError } = await supabase.from("clinic_visit_sessions").select("id,patient_id,tenant_id").eq("id", input.sourceVisitId).eq("tenant_id", tenantId).single();
     if (visitError || !visit || visit.patient_id !== input.patientId) throw new Error("Source visit does not belong to this patient");
   }
-  const { data, error } = await supabase.from("clinic_treatment_plans").insert({ tenant_id: tenantId, patient_id: input.patientId, source_visit_id: input.sourceVisitId ?? null, title, diagnosis_summary: input.diagnosisSummary?.trim() || null, goals: input.goals?.trim() || null, start_date: input.startDate || null, target_end_date: input.targetEndDate || null, created_by: user.id }).select("id").single();
+  const { data, error } = await supabase.from("clinic_treatment_plans").insert({ tenant_id: tenantId, patient_id: input.patientId, source_visit_id: input.sourceVisitId ?? null, title, diagnosis_summary: input.diagnosisSummary?.trim() || null, goals: input.goals?.trim() || null, start_date: input.startDate || null, target_end_date: input.targetEndDate || null, created_by: clinicUser.id }).select("id").single();
   if (error) throw new Error(`Treatment plan creation failed: ${error.message}`);
   revalidatePath("/(dashboard)/treatment-plans");
   return data.id;
@@ -128,7 +128,7 @@ export async function updateTreatmentPlanItem(itemId: string, update: { status?:
 }
 
 export async function linkVisitToTreatmentPlan(planId: string, visitId: string, treatmentPlanItemId?: string | null): Promise<void> {
-  const { supabase, user, tenantId, permissions } = await getContext();
+  const { supabase, clinicUser, tenantId, permissions } = await getContext();
   requirePermission(permissions, "treatment_plans:update");
   const { data: plan, error: planError } = await supabase.from("clinic_treatment_plans").select("id,patient_id").eq("id", planId).eq("tenant_id", tenantId).single();
   const { data: visit, error: visitError } = await supabase.from("clinic_visit_sessions").select("id,patient_id,tenant_id").eq("id", visitId).eq("tenant_id", tenantId).single();
@@ -137,7 +137,7 @@ export async function linkVisitToTreatmentPlan(planId: string, visitId: string, 
     const { data: item, error: itemError } = await supabase.from("clinic_treatment_plan_items").select("id,treatment_plan_id").eq("id", treatmentPlanItemId).eq("treatment_plan_id", planId).eq("tenant_id", tenantId).single();
     if (itemError || !item) throw new Error("Treatment plan activity not found");
   }
-  const { error } = await supabase.from("clinic_treatment_plan_visits").insert({ tenant_id: tenantId, treatment_plan_id: planId, treatment_plan_item_id: treatmentPlanItemId ?? null, visit_id: visitId, linked_by: user.id });
+  const { error } = await supabase.from("clinic_treatment_plan_visits").insert({ tenant_id: tenantId, treatment_plan_id: planId, treatment_plan_item_id: treatmentPlanItemId ?? null, visit_id: visitId, linked_by: clinicUser.id });
   if (error && !String(error.message).toLowerCase().includes("duplicate")) throw new Error(`Visit link failed: ${error.message}`);
   if (treatmentPlanItemId) await updateTreatmentPlanItem(treatmentPlanItemId, { status: "completed" });
   revalidatePath("/(dashboard)/treatment-plans");
