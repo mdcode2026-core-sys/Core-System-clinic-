@@ -21,6 +21,15 @@ async function getAuthorizedTenantId(supabase: Awaited<ReturnType<typeof createC
   return resolveTenantId(user.id);
 }
 
+function logDatabaseError(operation: string, error: { message: string; code?: string; details?: string; hint?: string }) {
+  console.error(`[${operation}] database error`, {
+    message: error.message,
+    code: error.code,
+    details: error.details,
+    hint: error.hint,
+  });
+}
+
 export async function createPatient(formData: FormData) {
   const supabase = await createClient();
   const tenantId = await getAuthorizedTenantId(supabase);
@@ -46,7 +55,7 @@ export async function createPatient(formData: FormData) {
 
   const { data, error } = await supabase.from("clinic_patients").insert(patient).select().single();
   if (error) {
-    console.error("[createPatient] error:", error.message);
+    logDatabaseError("createPatient", error);
     return { error: DATABASE_ERROR };
   }
 
@@ -62,7 +71,7 @@ export async function createPatientFromObject(patientData: PatientInsert) {
   const patient: PatientInsert = { ...patientData, tenant_id: tenantId };
   const { data, error } = await supabase.from("clinic_patients").insert(patient).select().single();
   if (error) {
-    console.error("[createPatientFromObject] error:", error.message);
+    logDatabaseError("createPatientFromObject", error);
     return { error: DATABASE_ERROR };
   }
 
@@ -104,7 +113,7 @@ export async function updatePatient(formData: FormData) {
     .single();
 
   if (error) {
-    console.error("[updatePatient] error:", error.message);
+    logDatabaseError("updatePatient", error);
     return { error: DATABASE_ERROR };
   }
 
@@ -129,7 +138,7 @@ export async function deletePatient(formData: FormData) {
     .single();
 
   if (error) {
-    console.error("[deletePatient] error:", error.message);
+    logDatabaseError("deletePatient", error);
     return { error: DATABASE_ERROR };
   }
 
