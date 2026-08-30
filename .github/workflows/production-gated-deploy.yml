@@ -1,8 +1,12 @@
 name: Production Candidate Handoff
 
 on:
-  push:
-    branches: [main]
+  workflow_dispatch:
+    inputs:
+      candidate_sha:
+        description: Exact validated candidate SHA to verify on Production
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -16,7 +20,9 @@ jobs:
     steps:
       - name: Resolve validated candidate
         id: candidate
-        run: echo "sha=${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
+        env:
+          REQUESTED_SHA: ${{ inputs.candidate_sha }}
+        run: echo "sha=$REQUESTED_SHA" >> "$GITHUB_OUTPUT"
 
       - name: Checkout validated candidate
         uses: actions/checkout@v4
