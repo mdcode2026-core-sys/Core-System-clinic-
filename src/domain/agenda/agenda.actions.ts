@@ -25,6 +25,7 @@ export async function updateAgendaEvent(formData: FormData) {
   const timeValidation = isValidTimeRange(scheduledStart, scheduledEnd); if (!timeValidation.valid) return { error: timeValidation.message };
   const conflictResult = await checkConflicts({ tenantId, doctorId, roomId, patientId, scheduledStart, scheduledEnd, excludeEventId: eventId }); if (conflictResult.hasConflict) return { error: conflictResult.message };
   const updates: AgendaEventUpdate = { patient_id: patientId, doctor_id: doctorId, room_id: roomId, procedure_id: procedureId, scheduled_start: scheduledStart, scheduled_end: scheduledEnd, buffer_end: scheduledEnd, updated_at: new Date().toISOString() };
+  if (formData.get("reschedule") === "true") updates.status = AgendaEventStatus.RESCHEDULED;
   const { data, error } = await supabase.from("master_agenda_events").update(updates).eq("id", eventId).eq("tenant_id", tenantId).select().single(); if (error) { console.error("[updateAgendaEvent] error:", error.message); return { error: DATABASE_ERROR }; }
   revalidatePath("/agenda"); return { data };
 }
