@@ -92,11 +92,12 @@ jobs:
         run: npx playwright test tools/ajm-production-auth-e2e.spec.mjs --reporter=line
 
       - name: Local real-world clinic journey E2E
+        timeout-minutes: 20
         env:
           CORE_SYSTEM_PRODUCTION_URL: http://127.0.0.1:3000
           CORE_SYSTEM_E2E_EMAIL: ${{ secrets.CORE_SYSTEM_E2E_EMAIL }}
           CORE_SYSTEM_E2E_PASSWORD: ${{ secrets.CORE_SYSTEM_E2E_PASSWORD }}
-        run: node tools/clinic-admin-real-world-e2e-v2.mjs
+        run: timeout 18m node tools/clinic-admin-real-world-e2e-v2.mjs
 
       - name: Stop local server
         if: always()
