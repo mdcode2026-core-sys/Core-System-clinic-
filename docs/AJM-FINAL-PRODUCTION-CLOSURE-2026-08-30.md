@@ -1,72 +1,92 @@
 # CORE SYSTEM — AJM Final Production Closure
 
-**Date:** 2026-08-30
-**Authority:** `docs/AJM-FULL-EXECUTION-PROMPT-2026-08-29.md`
-**Repository:** `mdcode2026-core-sys/Core-System-clinic-`
+**Date:** 2026-08-30  
+**Authority:** `docs/AJM-FULL-EXECUTION-PROMPT-2026-08-29.md`  
+**Repository:** `mdcode2026-core-sys/Core-System-clinic-`  
 **Production branch:** `main`
 
 ## Closure decision
 
-**FINAL PRODUCTION CLOSURE: CLOSED**
+**FINAL PRODUCTION CLOSURE: NOT CLOSED — BLOCKER**
 
-AJM-0 → AJM-8 completed the current-cycle acceptance protocol and the Final Production Closure gate is satisfied.
+The repository/CI acceptance surface has progressed, but the current cycle cannot be closed because the exact validated commit has not reached Vercel Production and therefore the mandatory authenticated Production E2E gate has not executed against the exact candidate.
 
-## Final candidate
+## Current validated repository
 
-- Git SHA: `36eb20f90ec1b79c48d19b6f7c8cc90a7985d3c6`
-- Vercel Production deployment: `dpl_3mQtJqGVmia6dLjDb9P4QBobNans`
-- Deployment state: `READY`
+- Git SHA: `c1793c8893887ab59bc8fa1192e5fa5f07ff4f3e`
 - Production branch: `main`
+- Repository-wide validation workflow: completed successfully for the current candidate.
+- Production-candidate workflow: still blocked at **Wait for exact candidate on Production**.
 
-## Acceptance evidence
+## Current Production state
 
-### Repository / engineering
-- Current-cycle AJM acceptance did not rely on historical `CLOSED` labels.
-- AJM static audit: PASS.
-- AJM migration sequence audit: PASS — seven dependency-ordered migrations.
-- I18N catalog parity and localization source audits: PASS.
-- UX/domain audits for Stage 5, Patient Flow Stage 6, Patient Context Stage 7, Global Search Stage 8, Mobile Stage 11, Security/Permissions Stage 12, Legacy Stage 14 and Documentation Stage 15: PASS.
+The current Vercel Production deployment remains an older commit:
+
+- Deployment: `dpl_CNJJAAevSpYYYPfzPcSR7yKnRp5u`
+- Git SHA: `0485a6113a482add054ffc3a473203bf004c233f`
+- State: `READY`
+
+This is not the validated repository candidate and therefore cannot be used as evidence for closure.
+
+## Current Production evidence
+
+The live Production URL responds successfully at the unauthenticated `/login` surface. However, Vercel runtime telemetry for the currently deployed production revision contains recurring authorization failures involving permission RPCs used by the analytics/feature-flag path. The Supabase database currently confirms that the relevant authenticated EXECUTE grants have been restored, so these errors are associated with the older deployed revision/runtime state and must be revalidated after the current candidate is deployed.
+
+## Repository / CI acceptance status
+
+- Production dependency vulnerability diagnostic: PASS.
+- TypeScript: PASS.
+- I18N audit: PASS.
+- I18N parity: PASS.
+- Stage 5 Widget Catalog audit: PASS.
+- Stage 5 Domain Surface audit: PASS.
+- Stage 6 Patient Flow audit: PASS.
+- Stage 7 Patient Context audit: PASS.
+- Stage 8 Global Search audit: PASS.
+- Changed-surface ESLint gate: PASS.
 - Production build: PASS.
-- Lint: PASS with existing warnings only; no lint errors.
+- Repository-wide ESLint diagnostic: PASS.
+- AJM/UX integrity audits in the production-candidate workflow: PASS.
+- AJM integrated static audit was repaired to reference the canonical migration filenames actually present in the repository; this repair is included in the current candidate.
 
-### Authenticated Production
-The final gate used the approved Clinic Admin test identity through GitHub Actions repository secrets and exercised the real Production URL.
+## Supabase verification
 
-Verified:
-- Supabase authentication token response: HTTP 200.
-- Persistent browser auth cookies established.
-- Authenticated application workspace loaded.
-- Canonical AJM and related patient-journey route family remained authenticated and did not redirect to `/login`.
-- Mobile Production shell verified at 390×844.
-- Document direction verified as `rtl` or `ltr`.
-- Final Playwright result: **2 passed / 0 failed**.
+The production database currently reports authenticated EXECUTE permission for the application permission RPCs verified in this cycle, including:
 
-### Production runtime
-- Final Production deployment is `READY`.
-- Final 60-minute Production runtime error/warning query returned **no logs**.
+- `get_current_user_role`
+- `has_effective_permission`
+- `has_tenant_permission`
+
+The live migration history and current schema therefore remain a separate source of truth and must be verified again after the exact candidate reaches Production.
 
 ## AJM closure matrix
 
-| Stage | Final status |
+| Stage | Current status |
 |---|---|
-| AJM-0 | CLOSED |
-| AJM-1 | CLOSED |
-| AJM-2 | CLOSED |
-| AJM-3 | CLOSED |
-| AJM-4 | CLOSED |
-| AJM-5 | CLOSED |
-| AJM-6 | CLOSED |
-| AJM-7 | CLOSED |
-| AJM-8 | CLOSED |
-| Final Production Closure | CLOSED |
+| AJM-0 | NOT CLOSED — final Production evidence pending |
+| AJM-1 | NOT CLOSED — final Production evidence pending |
+| AJM-2 | NOT CLOSED — final Production evidence pending |
+| AJM-3 | NOT CLOSED — final Production evidence pending |
+| AJM-4 | NOT CLOSED — final Production evidence pending |
+| AJM-5 | NOT CLOSED — final Production evidence pending |
+| AJM-6 | NOT CLOSED — final Production evidence pending |
+| AJM-7 | NOT CLOSED — final Production evidence pending |
+| AJM-8 | NOT CLOSED — final Production evidence pending |
+| Final Production Closure | **NOT CLOSED — BLOCKER** |
 
-## Blocker resolution
+## Blocker
 
-- Authenticated Production E2E dependency (GitHub Issue #53): resolved by the approved automated Production browser mechanism and repository secrets.
-- Vercel deployment-rate blocker (GitHub Issue #54): resolved; final Production deployment is `READY`.
+**BLOCKER:** The exact validated repository candidate has not been deployed to Vercel Production. The mandatory Production workflow is therefore waiting at `Wait for exact candidate on Production`, and authenticated Production E2E has not legitimately run against the current candidate.
 
-No unresolved blocker or user decision remains for this closure cycle.
+No historical deployment, older `READY` deployment, or prior closure document is accepted as a substitute for this evidence.
 
-## Final statement
+## Required closure condition
 
-CORE SYSTEM AJM current-cycle execution is formally closed from AJM-0 through AJM-8, including Production verification and Final Production Closure. The closure is based on current repository, CI, Supabase, authenticated Production, Vercel and runtime evidence rather than historical implementation labels.
+Closure can only proceed after:
+
+1. Current candidate `c1793c8893887ab59bc8fa1192e5fa5f07ff4f3e` reaches Vercel Production.
+2. The Production workflow identifies that exact SHA/deployment.
+3. Authenticated Production E2E completes successfully.
+4. Production runtime telemetry is rechecked for the candidate.
+5. Supabase persistence and security checks are revalidated.
+6. Only then may AJM-0 → AJM-8 and Final Production Closure be marked CLOSED.
