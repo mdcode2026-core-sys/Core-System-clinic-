@@ -1,5 +1,4 @@
 "use server";
-
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/infrastructure/supabase/server";
 import { hasEffectivePermission } from "@/core/permissions/permissionEngine";
@@ -33,13 +32,9 @@ export async function createSupplierObligation(input:{supplier_id:string;purchas
 export async function recordSupplierPayment(input:{supplier_obligation_id:string;amount_subunits:number;payment_method?:string|null;reference?:string|null}){
   const ctx=await context();if(!ctx||!(await allowed(ctx.user.id,"purchasing:manage")))return{success:false,error:"Permission denied"}as const;
   if(!Number.isInteger(input.amount_subunits)||input.amount_subunits<=0)return{success:false,error:"Invalid supplier payment"}as const;
-  const {data:obligation}=await ctx.supabase.from("supplier_obligations").select("id,amount_subunits,amount_paid_subunits,status").eq("tenant_id",ctx.tenantId).eq("id",input.supplier_obligation_id).maybeSingle();
-  if(!obligation)return{success:false,error:"Supplier obligation not found"}as const;
-  if(input.amount_subunits>(obligation.amount_subunits-obligation.amount_paid_subunits))return{success:false,error:"Payment exceeds outstanding supplier obligation"}as const;
-  const {data,error}=await ctx.supabase.from("supplier_payments").insert({tenant_id:ctx.tenantId,supplier_obligation_id:input.supplier_obligation_id,amount_subunits:input.amount_subunits,payment_method:input.payment_method||null,reference:input.reference||null,created_by:ctx.clinicUser.id}).select("id").single();
-  if(error||!data)return{success:false,error:error?.message||"Unable to record supplier payment"}as const;
-  const paid=obligation.amount_paid_subunits+input.amount_subunits;const status=paid===obligation.amount_subunits?"paid":"partially_paid";
-  const {error:updateError}=await ctx.supabase.from("supplier_obligations").update({amount_paid_subunits:paid,status,updated_at:new Date().toISOString()}).eq("tenant_id",ctx.tenantId).eq("id",input.supplier_obligation_id);
-  if(updateError)return{success:false,error:updateError.message}as const;
-  revalidatePath("/financial-resources");return{success:true,data}as const;
+  const {data,error}=await ctx.supabase.rpc("record_supplier_payment",{p_tenant_id:ctx.tenantId,p_supplier_obligation_id:input.supplier_obligation_id,p_amount_subunits:input.amount_subunits,p_payment_method:input.payment_method||null,p_reference:input.reference||null,p_created_by:ctx.clinicUser.id});
+  if(error)return{success:false,error:error.message}as const;
+  const result=data&&typeof data==="object"?data as Record<string,unknown>:{};
+  if(result.success!==true)return{success:false,error:typeof result.error==="string"?result.error:"Unable to record supplier payment"}as const;
+  revalidatePath("/financial-resources");return{success:true,data:result}as const;
 }
