@@ -17,7 +17,7 @@ jobs:
     name: Validate production candidate
     if: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success') }}
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 60
     steps:
       - name: Resolve validated candidate
         id: candidate
@@ -44,6 +44,24 @@ jobs:
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
           NEXT_PUBLIC_APP_URL: https://core-system-clinic.vercel.app
         run: npm run build
+      - name: Run lint/static and AJM/UX integrity audits
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://qaslsjyxjwvdoiczmhgq.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+        run: |
+          npm run lint
+          npm run ajm:audit
+          npm run ajm:migrations
+          npm run i18n:audit
+          npm run ux:widget-catalog
+          npm run ux:domain-surface
+          npm run ux:patient-flow-stage6
+          npm run ux:patient-context-stage7
+          npm run ux:global-search-stage8
+          npm run ux:mobile-stage11
+          npm run ux:security-stage12
+          npm run ux:legacy-stage14
+          npm run ux:docs-stage15
       - name: Install Playwright browser
         run: npx -y @playwright/test@1.55.0 install --with-deps chromium
       - name: Install Playwright test package without lockfile mutation
@@ -57,5 +75,9 @@ jobs:
       - name: Production deployment handoff
         run: |
           echo "Validated production candidate: ${{ steps.candidate.outputs.sha }}"
-          echo "Production build and authenticated Production E2E passed."
+          echo "Build, static/AJM/UX audits, and authenticated Production E2E passed."
           echo "Production deployment is delegated to the existing Vercel Git integration on main."
+      - name: Record candidate
+        run: |
+          echo "Production candidate: ${{ steps.candidate.outputs.sha }}"
+          echo "All configured acceptance gates passed."
