@@ -19,7 +19,7 @@ export const widgetRegistry: WidgetDefinition[] = [
     requiredPermission: "patients:create",
     moduleKey: "patients",
     component: QuickRegistrationWidget,
-    defaultWorkspaces: ["global", "operation"],
+    defaultWorkspaces: ["operation"],
   },
   {
     key: "quick-appointment",
@@ -31,7 +31,7 @@ export const widgetRegistry: WidgetDefinition[] = [
     requiredPermission: "agenda:create",
     moduleKey: "agenda",
     component: QuickAppointmentWidget,
-    defaultWorkspaces: ["global", "operation"],
+    defaultWorkspaces: ["operation"],
   },
   {
     key: "queue",
@@ -43,7 +43,7 @@ export const widgetRegistry: WidgetDefinition[] = [
     requiredPermission: "sessions:read",
     moduleKey: "queue",
     component: QueueWidget,
-    defaultWorkspaces: ["global", "operation", "clinical"],
+    defaultWorkspaces: ["operation", "clinical"],
   },
   {
     key: "followup",
@@ -55,7 +55,7 @@ export const widgetRegistry: WidgetDefinition[] = [
     requiredPermission: "followup:read",
     moduleKey: "followup",
     component: FollowupWidget,
-    defaultWorkspaces: ["global", "operation", "clinical"],
+    defaultWorkspaces: ["operation", "clinical"],
   },
   {
     key: "medical-files",
@@ -67,7 +67,7 @@ export const widgetRegistry: WidgetDefinition[] = [
     requiredPermission: "medical_files:read",
     moduleKey: "medical_files",
     component: MedicalFilesWidget,
-    defaultWorkspaces: ["global", "clinical"],
+    defaultWorkspaces: ["clinical"],
     contextual: true,
   },
   {
@@ -80,7 +80,7 @@ export const widgetRegistry: WidgetDefinition[] = [
     requiredPermission: "invoices:read",
     moduleKey: "billing",
     component: BillingSummaryWidget,
-    defaultWorkspaces: ["global", "operation"],
+    defaultWorkspaces: ["operation", "administration"],
   },
   {
     key: "analytics-overview",
@@ -92,7 +92,7 @@ export const widgetRegistry: WidgetDefinition[] = [
     requiredPermission: "analytics:read",
     moduleKey: "analytics",
     component: AnalyticsOverviewWidget,
-    defaultWorkspaces: ["global"],
+    defaultWorkspaces: ["administration"],
   },
 ];
 
