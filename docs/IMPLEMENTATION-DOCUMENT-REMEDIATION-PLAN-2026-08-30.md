@@ -18,7 +18,21 @@ Convert the Ideal Operational Architecture Audit into a deterministic implementa
 6. No domain may create a second engine for another domain's responsibility.
 7. `Implemented`, `Validated`, `Production Verified`, and `Closed` are separate states.
 
-## 3. Remediation workstreams
+## 3. Official execution bundle
+
+The remediation package is now split into persistent, independently callable documents:
+
+1. `docs/IMPLEMENTATION-DOCUMENT-REMEDIATION-RUNBOOK-2026-08-30.md` — step-by-step execution order and gates.
+2. `docs/CROSS-DOMAIN-IMPLEMENTATION-CONTRACTS-2026-08-30.md` — detailed R01–R12 contracts.
+3. `docs/IMPLEMENTATION-DOCUMENT-REMEDIATION-MASTER-MATRIX-2026-08-30.md` — control/traceability matrix.
+4. `docs/IDEAL-OPERATIONAL-ARCHITECTURE-AUDIT-2026-08-30.md` — investigation baseline and decisions.
+5. `docs/IDEAL-OPERATIONAL-SCENARIOS-2026-08-30.md` — 42 ideal scenarios baseline.
+6. `docs/IDEAL-SCENARIO-TRACEABILITY-MATRIX-2026-08-30.md` — scenario-to-contract bridge.
+7. `docs/CORE-SYSTEM-SCENARIO-REGISTER-2026-08-30.md` — ideal baseline plus future difficult/exception register.
+
+These documents form one governed bundle. Do not replace any item with conversational instructions.
+
+## 4. Remediation workstreams
 
 ### R01 — Procedure / Service / Package / Treatment Plan
 **Owner:** Medical Master Library / Patient Journey / Financial as applicable.
@@ -86,7 +100,7 @@ Coordination does not own the originating domain truth.
 Standardize:
 - Role = organizational label.
 - Permission = authorization.
-- Skill = competence/capability.
+- Skill = human competence.
 - Qualification = formal credential.
 
 A skill or qualification must never silently become a permission.
@@ -95,7 +109,7 @@ A skill or qualification must never silently become a permission.
 
 Create one current-status authority and require every closure to reference the exact implementation candidate, deployment/database state, validation evidence, and acceptance decision.
 
-## 4. Required artifacts
+## 5. Required artifacts
 
 For each R01–R12 create/update an implementation contract containing:
 
@@ -117,7 +131,9 @@ For each R01–R12 create/update an implementation contract containing:
 16. Required evidence.
 17. Historical documents reconciled.
 
-## 5. Documentation reconciliation matrix
+Detailed step-by-step procedure is governed by the Runbook document listed in section 3.
+
+## 6. Documentation reconciliation matrix
 
 For every relevant historical/current document record:
 
@@ -126,7 +142,11 @@ For every relevant historical/current document record:
 Actions are limited to:
 `KEEP / UPDATE / RECONCILE / SUPERSEDE / ARCHIVE / INVALIDATE`
 
-## 6. Execution order
+## 7. Execution order
+
+The exact order and gate behavior are governed by `IMPLEMENTATION-DOCUMENT-REMEDIATION-RUNBOOK-2026-08-30.md`.
+
+At program level:
 
 1. R12 — status/closure authority.
 2. R01 — clinical/commercial identity chain.
@@ -140,7 +160,7 @@ Actions are limited to:
 10. R11 — authorization/competence terminology.
 11. Re-run the full ideal-scenario traceability matrix.
 
-## 7. Definition of documentation completion
+## 8. Definition of documentation completion
 
 A remediation item is `DOCUMENTATION COMPLETE` only when:
 
@@ -155,6 +175,14 @@ A remediation item is `DOCUMENTATION COMPLETE` only when:
 
 This status does **not** mean the software is implemented or validated.
 
-## 8. Next stage boundary
+## 9. Handoff boundary
 
-After documentation remediation is approved, the next stage may compare the resulting contracts against actual GitHub implementation, Supabase state, Vercel deployment, and runtime behavior. That is a separate validation stage.
+Only after the documentation bundle reaches `DOCUMENTATION COMPLETE` for all required contracts and the 42 ideal scenarios pass the documentary traceability gate may a later implementation/Reality phase compare the contracts against:
+
+- GitHub implementation;
+- Supabase state;
+- Vercel deployment;
+- runtime behavior;
+- authenticated workflow/E2E evidence.
+
+That later phase must consume the repository documents rather than reconstructing requirements from chat history.
