@@ -46,32 +46,36 @@ The workflow was corrected to:
 
 A non-secret `/api/build-info` endpoint exposes only Vercel's deployment SHA/ref/environment so the gate can verify exact candidate identity without exposing credentials.
 
-### 5. Exact repaired Production deployment now exists
+### 5. Exact repaired Production deployments
 
-Vercel deployed main commit `1d53b98ddd76c2f81c0b87a36c0bc492fca5e6c5` to Production successfully. Deployment:
+Vercel successfully deployed the repaired application to Production. The latest validated deployment at the time of this record is:
 
-`dpl_9P4RmeC2d7SMmmLEcJhZ1khmB26r`
+`dpl_5Fwxe9nBYDmWBwf9BVdacCXA5tUV`
+
+SHA:
+
+`f3a2cb5b76d8c151eb4739961848f4ccbce39de0`
 
 Status: **READY**
 
-The deployment includes `/api/build-info` and the patient/i18n repairs.
+Production `/api/build-info` currently reports this exact SHA.
 
-## Current validation blocker
+## Validation state
 
-The CI gate itself was repaired after that deployment, so the exact candidate SHA must be deployed once more after the corrected workflow commit and then exercised by the new exact-SHA Production gate.
+A production-gate run is executing the real authenticated scenario. Its static/build gates have passed and it is currently executing the Production E2E portion.
+
+A separate historical rerun was also started against the now-repaired Production deployment to obtain direct runtime evidence while the new exact-SHA gate proceeds. That rerun is not treated as the final candidate acceptance gate.
 
 No Production Closure is claimed yet.
 
 ## Required final sequence
 
-1. Trigger a new main deployment containing the corrected Production gate.
-2. Verify the new Vercel deployment is READY and serves its exact commit SHA.
-3. Execute authenticated Production E2E against that exact deployment.
-4. Verify patient persistence and downstream Agenda persistence directly in Supabase.
-5. Execute role-specific scenarios for Clinic Admin, Receptionist, Doctor, Accountant, and Skin Specialist.
-6. Execute the final connected cross-domain clinic journey.
-7. Verify Production runtime errors/logs after the scenario.
-8. Update this record with evidence and evaluate AJM-0 → AJM-8.
-9. Only if every Definition of Done gate passes may the final decision become `PRODUCTION CLOSED`.
+1. Complete the exact-SHA Production gate.
+2. Verify patient persistence and downstream Agenda persistence directly in Supabase.
+3. Execute role-specific scenarios for Clinic Admin, Receptionist, Doctor, Accountant, and Skin Specialist.
+4. Execute the final connected cross-domain clinic journey.
+5. Verify Production runtime errors/logs after the scenario.
+6. Reconcile final AJM-0 → AJM-8 state.
+7. Only if every Definition of Done gate passes may the final decision become `PRODUCTION CLOSED`.
 
 No `CLOSED` or `PRODUCTION CLOSED` claim is made by this document.
