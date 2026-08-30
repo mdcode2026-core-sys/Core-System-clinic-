@@ -27,6 +27,11 @@
 - `docs/IMPLEMENTATION-DOCUMENT-REMEDIATION-MASTER-MATRIX-2026-08-30.md`
 - `docs/FINAL-IMPLEMENTATION-DOCUMENTATION-REMEDIATION-REPORT-2026-08-30.md`
 
+### Reality implementation evidence
+- `docs/IDEAL-SCENARIO-IMPLEMENTATION-GAP-MATRIX-2026-08-30.md`
+- `docs/IDEAL-SCENARIO-REALITY-VALIDATION-2026-08-30.md`
+- `docs/FINAL-IDEAL-SCENARIO-CLOSURE-REPORT-2026-08-30.md`
+
 ### Terminology and historical governance
 - `docs/CORE-SYSTEM-TERMINOLOGY-GOVERNANCE.md`
 - `DOCUMENTATION_STATUS.md`
@@ -47,7 +52,7 @@ Allowed remediation states:
 
 `UNEXECUTED → PRECHECK → RECONCILED → IMPLEMENTING → VALIDATED → PRODUCTION VERIFIED → DOCUMENTATION CLOSED → CLOSED`
 
-For this documentation-only phase, `DOCUMENTATION CLOSED` is the maximum state claimed for completed remediation contracts. `VALIDATED` and `PRODUCTION VERIFIED` are reserved for later implementation/Reality evidence.
+For this implementation phase, `VALIDATED` and `PRODUCTION VERIFIED` require actual runtime evidence; deployment success alone is insufficient.
 
 ## Historical handling
 
