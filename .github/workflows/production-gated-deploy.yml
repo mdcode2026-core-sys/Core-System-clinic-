@@ -115,13 +115,11 @@ jobs:
       - name: Capture production build identity
         env:
           PRODUCTION_URL: https://core-system-clinic.vercel.app
+          EXPECTED_SHA: ${{ steps.candidate.outputs.sha }}
         run: |
           set -euo pipefail
           curl -fsS --max-time 15 "$PRODUCTION_URL/api/build-info" | tee production-build-info.json
-          node -e 'const fs=require("fs"); const x=JSON.parse(fs.readFileSync("production-build-info.json","utf8")); if(x.commitSha!==process.env.EXPECTED_SHA) process.exit(1)' 
-        env:
-          PRODUCTION_URL: https://core-system-clinic.vercel.app
-          EXPECTED_SHA: ${{ steps.candidate.outputs.sha }}
+          node -e 'const fs=require("fs"); const x=JSON.parse(fs.readFileSync("production-build-info.json","utf8")); if(x.commitSha!==process.env.EXPECTED_SHA) process.exit(1)'
 
       - name: Write final closure evidence
         env:
