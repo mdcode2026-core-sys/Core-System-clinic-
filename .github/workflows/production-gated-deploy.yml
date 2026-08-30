@@ -1,10 +1,6 @@
 name: Production Candidate Handoff
 
 on:
-  workflow_run:
-    workflows: ["UX Stages 0-8 CI"]
-    types: [completed]
-    branches: [main]
   push:
     branches: [main]
 
@@ -15,35 +11,34 @@ permissions:
 jobs:
   candidate:
     name: Validate production candidate
-    if: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success') }}
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 90
     steps:
       - name: Resolve validated candidate
         id: candidate
-        run: |
-          if [ "${{ github.event_name }}" = "workflow_run" ]; then
-            echo "sha=${{ github.event.workflow_run.head_sha }}" >> "$GITHUB_OUTPUT"
-          else
-            echo "sha=${{ github.sha }}" >> "$GITHUB_OUTPUT"
-          fi
+        run: echo "sha=${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
+
       - name: Checkout validated candidate
         uses: actions/checkout@v4
         with:
           ref: ${{ steps.candidate.outputs.sha }}
+
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
+
       - name: Install dependencies from lockfile
         run: npm ci
+
       - name: Verify production build
         env:
           NEXT_PUBLIC_SUPABASE_URL: https://qaslsjyxjwvdoiczmhgq.supabase.co
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
           NEXT_PUBLIC_APP_URL: https://core-system-clinic.vercel.app
         run: npm run build
+
       - name: Run lint/static and AJM/UX integrity audits
         env:
           NEXT_PUBLIC_SUPABASE_URL: https://qaslsjyxjwvdoiczmhgq.supabase.co
@@ -62,10 +57,32 @@ jobs:
           npm run ux:security-stage12
           npm run ux:legacy-stage14
           npm run ux:docs-stage15
+
+      - name: Wait for exact candidate on Production
+        env:
+          EXPECTED_SHA: ${{ steps.candidate.outputs.sha }}
+          PRODUCTION_URL: https://core-system-clinic.vercel.app
+        run: |
+          set -euo pipefail
+          for attempt in $(seq 1 36); do
+            body="$(curl -fsS --max-time 15 "$PRODUCTION_URL/api/build-info" || true)"
+            sha="$(printf '%s' "$body" | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{try{console.log(JSON.parse(s).commitSha||"")}catch{console.log("")}})')"
+            echo "attempt=$attempt production_sha=$sha expected_sha=$EXPECTED_SHA"
+            if [ "$sha" = "$EXPECTED_SHA" ]; then
+              echo "Production is serving the exact validated candidate."
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "Production did not expose the exact candidate SHA within the validation window."
+          exit 1
+
       - name: Install Playwright browser
         run: npx -y @playwright/test@1.55.0 install --with-deps chromium
+
       - name: Install Playwright test package without lockfile mutation
         run: npm install --no-save --no-package-lock @playwright/test@1.55.0
+
       - name: Authenticated Production E2E
         env:
           CORE_SYSTEM_PRODUCTION_URL: https://core-system-clinic.vercel.app
@@ -74,12 +91,8 @@ jobs:
         run: |
           npx playwright test tools/ajm-production-auth-e2e.spec.mjs --reporter=line
           node tools/clinic-admin-real-world-e2e-v2.mjs
-      - name: Production deployment handoff
-        run: |
-          echo "Validated production candidate: ${{ steps.candidate.outputs.sha }}"
-          echo "Build, static/AJM/UX audits, authenticated Production E2E, and real-world clinic scenario passed."
-          echo "Production deployment is delegated to the existing Vercel Git integration on main."
+
       - name: Record candidate
         run: |
           echo "Production candidate: ${{ steps.candidate.outputs.sha }}"
-          echo "All configured acceptance gates passed."
+          echo "Exact candidate was observed on Production and the configured Production E2E gates passed."
