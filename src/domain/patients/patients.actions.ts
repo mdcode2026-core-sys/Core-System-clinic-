@@ -16,19 +16,11 @@ function getFormValue(formData: FormData, key: string): string | undefined {
 async function getAuthorizedTenantId(supabase: Awaited<ReturnType<typeof createClient>>) {
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) return null;
-
-  const { data, error } = await supabase
-    .from("clinic_users")
-    .select("tenant_id")
-    .eq("auth_user_id", user.id)
-    .eq("is_active", true)
-    .maybeSingle();
-
+  const { data, error } = await supabase.from("clinic_users").select("tenant_id").eq("auth_user_id", user.id).eq("is_active", true).maybeSingle();
   if (error) {
     console.error("[patients] tenant lookup failed", { message: error.message, code: error.code });
     return null;
   }
-
   return data?.tenant_id ?? null;
 }
 
@@ -36,11 +28,12 @@ function logDatabaseError(operation: string, error: { message: string; code?: st
   console.error(`[${operation}] database error`, { message: error.message, code: error.code, details: error.details, hint: error.hint });
 }
 
+function success(id: string) { return { data: { id } }; }
+
 export async function createPatient(formData: FormData) {
   const supabase = await createClient();
   const tenantId = await getAuthorizedTenantId(supabase);
   if (!tenantId) return { error: TENANT_MISSING };
-
   const patient: PatientInsert = {
     tenant_id: tenantId,
     first_name: getFormValue(formData, "first_name") ?? "",
@@ -58,13 +51,9 @@ export async function createPatient(formData: FormData) {
     patient_status: (getFormValue(formData, "patient_status") ?? "active") as "active" | "inactive" | "archived" | "blocked",
     notes: getFormValue(formData, "notes"),
   };
-
-  const { data, error } = await supabase.from("clinic_patients").insert(patient).select().single();
+  const { data, error } = await supabase.from("clinic_patients").insert(patient).select("id").single();
   if (error) { logDatabaseError("createPatient", error); return { error: DATABASE_ERROR }; }
-  // Client-side TanStack invalidation is the authoritative refresh path for this interactive mutation.
-  // Avoid a server cache revalidation in the action response: it can hold the Server Action stream open
-  // after a successful DB commit and strand the completed mutation behind an open dialog.
-  return { data };
+  return success(data.id);
 }
 
 export async function createPatientFromObject(patientData: PatientInsert) {
@@ -72,9 +61,9 @@ export async function createPatientFromObject(patientData: PatientInsert) {
   const tenantId = await getAuthorizedTenantId(supabase);
   if (!tenantId) return { error: TENANT_MISSING };
   const patient: PatientInsert = { ...patientData, tenant_id: tenantId };
-  const { data, error } = await supabase.from("clinic_patients").insert(patient).select().single();
+  const { data, error } = await supabase.from("clinic_patients").insert(patient).select("id").single();
   if (error) { logDatabaseError("createPatientFromObject", error); return { error: DATABASE_ERROR }; }
-  return { data };
+  return success(data.id);
 }
 
 export async function updatePatient(formData: FormData) {
@@ -92,9 +81,9 @@ export async function updatePatient(formData: FormData) {
     first_visit_date: getFormValue(formData, "first_visit_date"), referral_source: getFormValue(formData, "referral_source"),
     patient_status: getFormValue(formData, "patient_status") as "active" | "inactive" | "archived" | "blocked" | undefined, notes: getFormValue(formData, "notes"),
   };
-  const { data, error } = await supabase.from("clinic_patients").update({ ...update, updated_at: new Date().toISOString() }).eq("id", id).eq("tenant_id", tenantId).select().single();
+  const { data, error } = await supabase.from("clinic_patients").update({ ...update, updated_at: new Date().toISOString() }).eq("id", id).eq("tenant_id", tenantId).select("id").single();
   if (error) { logDatabaseError("updatePatient", error); return { error: DATABASE_ERROR }; }
-  return { data };
+  return success(data.id);
 }
 
 export async function deletePatient(formData: FormData) {
@@ -103,7 +92,7 @@ export async function deletePatient(formData: FormData) {
   if (!tenantId) return { error: TENANT_MISSING };
   const id = getFormValue(formData, "id");
   if (!id) return { error: DATABASE_ERROR };
-  const { data, error } = await supabase.from("clinic_patients").update({ deleted_at: new Date().toISOString(), updated_at: new Date().toISOString() }).eq("id", id).eq("tenant_id", tenantId).select().single();
+  const { data, error } = await supabase.from("clinic_patients").update({ deleted_at: new Date().toISOString(), updated_at: new Date().toISOString() }).eq("id", id).eq("tenant_id", tenantId).select("id").single();
   if (error) { logDatabaseError("deletePatient", error); return { error: DATABASE_ERROR }; }
-  return { data };
+  return success(data.id);
 }
