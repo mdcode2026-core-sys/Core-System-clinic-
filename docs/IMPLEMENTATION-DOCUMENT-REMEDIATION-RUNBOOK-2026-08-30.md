@@ -2,7 +2,8 @@
 
 **Date:** 2026-08-30  
 **Status:** READY FOR EXECUTION  
-**Branch:** `docs/ideal-operational-architecture-audit-2026-08-30`  
+**Repository reference:** `main`  
+**Origin:** `docs/ideal-operational-architecture-audit-2026-08-30` (merged into `main`)  
 **Purpose:** Turn the remediation baseline into an exact, ordered, non-ambiguous execution procedure.
 
 ## 0. Boundary
