@@ -1,0 +1,1 @@
+create unique index if not exists uq_workforce_commission_collected_payment on workforce_commission_entries(tenant_id,employee_id,commission_rule_id,source_payment_id) where source_type='invoice_payment' and source_payment_id is not null and status<>'void';
