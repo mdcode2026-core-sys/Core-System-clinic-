@@ -1,89 +1,75 @@
 # Documentation Status & Authority
 
-**Status:** ACTIVE / Stages 12–15 implementation and validation reconciled; final Production SHA gate PENDING
-**Last reviewed:** 2026-08-29
+**Status:** ACTIVE — implementation documentation remediation CLOSED; final Production SHA gate remains PENDING  
+**Last reviewed:** 2026-08-30
 
-This file is the repository documentation authority and freshness registry.
+This file remains the repository-wide documentation status/freshness authority. `docs/CORE_SYSTEM_INDEX.md` is the canonical navigation index for the current remediation bundle.
 
 ## Authority
 
 When documentation and implementation disagree, use:
-1. Implemented repository + live Supabase state.
-2. Accepted architectural decisions.
+1. Implemented repository + live Supabase state for implementation/runtime facts.
+2. Accepted architectural/product decisions.
 3. PJ-MASTER-DOCS / approved PJ decisions.
 4. `PROJECT_HANDOFF.md`.
 5. `CHANGELOG.md`.
 6. Historical reports only as evidence.
 7. `GLOBAL_UX_IA_FINAL_AUTHORITY_2026-08-28.md` as current UX/IA authority.
+8. For implementation-document remediation requirements, `docs/CROSS-DOMAIN-IMPLEMENTATION-CONTRACTS-2026-08-30.md` and its linked matrices are the current contract authority.
 
-## Canonical documents
+## Current remediation bundle
 
-- `ENGINEERING_CONSTITUTION.md`
-- `ARCHITECTURE_DECISIONS.md`
-- `MASTER_ROADMAP.md`
-- `PROJECT_HANDOFF.md`
-- `CHANGELOG.md`
-- `DATABASE_SCHEMA.md`
-- `GLOBAL_UX_IA_FINAL_AUTHORITY_2026-08-28.md`
-- `docs/GLOBAL-UX-IA-IMPLEMENTATION-PLAN-2026-08-28-FINAL.md`
-- `docs/STAGE12-IMPLEMENTATION-RECORD-2026-08-29.md`
-- `docs/STAGE12-CLOSURE-PRODUCTION-READINESS-2026-08-29.md`
-- `docs/STAGE13-IMPLEMENTATION-RECORD-2026-08-29.md`
-- `docs/STAGE13-CLOSURE-PRODUCTION-READINESS-2026-08-29.md`
-- `docs/STAGE14-IMPLEMENTATION-RECORD-2026-08-29.md`
-- `docs/STAGE14-CLOSURE-PRODUCTION-READINESS-2026-08-29.md`
-- `docs/STAGE15-DOCUMENTATION-CLOSURE-2026-08-29.md`
-- `docs/STAGES12-15-UNRESOLVED-FINDINGS-REGISTER-2026-08-29.md`
-- `docs/STAGE-11-IMPLEMENTATION-RECORD-2026-08-29.md`
-- `docs/STAGE-11-UNRESOLVED-FINDINGS-REGISTER-2026-08-29.md`
-- `docs/STAGE-11-CLOSURE-PRODUCTION-READINESS-2026-08-29.md`
-- `.github/workflows/stage11-validation.yml`
-- `tools/mobile-responsive-stage11-audit.mjs`
-- `docs/AJM-IMPLEMENTATION-STATUS-MATRIX-2026-08-28.md`
-- `PJ_E2E_DEMO_DATASET.md`
-- `ADR-012-PATIENT-PORTAL.md`
+- `docs/CORE_SYSTEM_INDEX.md`
+- `docs/IDEAL-OPERATIONAL-ARCHITECTURE-AUDIT-2026-08-30.md`
+- `docs/IDEAL-OPERATIONAL-SCENARIOS-2026-08-30.md`
+- `docs/IDEAL-SCENARIO-TRACEABILITY-MATRIX-2026-08-30.md`
+- `docs/CORE-SYSTEM-SCENARIO-REGISTER-2026-08-30.md`
+- `docs/IMPLEMENTATION-DOCUMENT-REMEDIATION-PLAN-2026-08-30.md`
+- `docs/IMPLEMENTATION-DOCUMENT-REMEDIATION-RUNBOOK-2026-08-30.md`
+- `docs/CROSS-DOMAIN-IMPLEMENTATION-CONTRACTS-2026-08-30.md`
+- `docs/IMPLEMENTATION-DOCUMENT-REMEDIATION-MASTER-MATRIX-2026-08-30.md`
+- `docs/FINAL-IMPLEMENTATION-DOCUMENTATION-REMEDIATION-REPORT-2026-08-30.md`
+- `docs/CORE-SYSTEM-TERMINOLOGY-GOVERNANCE.md`
 
-## Global UX/IA state
+## Documentation remediation state
 
-- Stage 0 — Baseline Lock: implemented/documented.
-- Stage 1 — Navigation & IA Reconciliation: implemented/documented.
-- Stage 2 — User Surface Model: implemented/documented.
-- Stage 3 — Workspace Foundation: implemented/documented.
-- Stage 4 — Workspace Personalization: implemented/documented.
-- Stage 5 — Widget Library & Classification: implemented / CI validated / documented.
-- Stage 6 — Patient Flow: implemented / CI validated / documented.
-- Stage 7 — Patient Context: CLOSED at scope level; final global production gate remains governed by the current final SHA rule.
-- Stage 8 — Global Search: CLOSED at scope level; final global production gate remains governed by the current final SHA rule.
-- Stage 9 — Overview / Dashboard Reconciliation: CLOSED at scope level; final global production gate remains governed by the current final SHA rule.
-- Stage 10 — Sidebar Finalization: CLOSED at scope level; final global production gate remains governed by the current final SHA rule.
-- Stage 11 — Mobile & Language Validation: implementation/CI CLOSED; production deployment had been blocked by Vercel rate-limit state.
-- Stage 12 — Security / Permission Regression: implementation/CI PASS; final Production SHA gate PENDING.
-- Stage 13 — Runtime / E2E Validation: CI and runtime smoke PASS; final Production SHA gate PENDING.
-- Stage 14 — Legacy Cleanup: CI and legacy audit PASS; no unsafe speculative removals made.
-- Stage 15 — Documentation Closure: reconciliation candidate in progress; final closure follows the final delivery gate.
+- R12 — Documentation authority / closure: DOCUMENTATION CLOSED.
+- R01 — Procedure / Service / Package / Treatment Plan: DOCUMENTATION CLOSED.
+- R02 — Treatment Plan → Next Action → Appointment: DOCUMENTATION CLOSED.
+- R03 — Package / Financial Plan / Installments / Sessions: DOCUMENTATION CLOSED.
+- R04 — Workforce → Availability → Agenda: DOCUMENTATION CLOSED.
+- R05 — Staff + Room + Device + Procedure: DOCUMENTATION CLOSED.
+- R06 — Insurance lifecycle: DOCUMENTATION CLOSED.
+- R07 — Procurement lifecycle: DOCUMENTATION CLOSED.
+- R08 — Revenue → Commission → Payroll: DOCUMENTATION CLOSED.
+- R09 — Communication → Request → Work: DOCUMENTATION CLOSED.
+- R10 — Domain Event → Coordination → Authorized Actor → Completion: DOCUMENTATION CLOSED.
+- R11 — Skill / Qualification / Permission: DOCUMENTATION CLOSED.
+- Ideal scenarios: 42/42 documentary traceability closed.
+- Difficult scenarios: 60 preserved and deferred.
+
+## Global UX/IA and implementation state
+
+The existing Stage/AJM implementation records remain historical/current implementation evidence according to their own acceptance policies. Their `Implemented`, `Validated`, or `Closed` claims are not altered by this documentation phase and are not used as substitutes for the contract evidence defined here.
 
 ## Current production-readiness gate
 
-`Production SHA = final main SHA` is mandatory. Documentation, CI, PR merge or Preview READY status alone cannot produce `Production Ready = YES`.
+`Production SHA = final main SHA` remains mandatory for Production Readiness. Documentation closure, CI, PR merge or Preview READY status cannot produce `Production Ready = YES`.
+
+The 2026-08-30 AJM Final Production Closure remains a Production blocker record and is retained as such.
 
 ## Findings governance
 
 Every warning, defect, security issue or architecture conflict must be investigated. Safe/authorized defects are fixed; cross-workstream items are documented with evidence, owner, severity and disposition. Real defects must not be hidden to make CI green.
 
-Stages 12–15 current register: `docs/STAGES12-15-UNRESOLVED-FINDINGS-REGISTER-2026-08-29.md`.
-
 ## PJ / AJM state
 
-PJ status remains governed by the PJ-MASTER-DOCS and current implementation records. Stages 12–15 did not create duplicate Patient Journey, Treatment Plan, Medical File, Medical Photo, Follow-up or Patient Portal architecture.
-
-AJM status remains governed by `docs/AJM-IMPLEMENTATION-STATUS-MATRIX-2026-08-28.md`. Stages 12–15 did not change AJM domain ownership.
+PJ status remains governed by PJ-MASTER-DOCS and current implementation records. AJM status remains governed by current AJM status/acceptance records. This remediation phase does not claim code/runtime closure.
 
 ## Schema freshness
 
-`DATABASE_SCHEMA.md` remains the structural schema reference. Stages 12–15 introduced no new database architecture or tenant model.
+`DATABASE_SCHEMA.md` remains the structural schema reference. This documentation phase introduced no database architecture.
 
 ## Maintenance rule
 
-Every completed Global UX/IA stage updates its implementation record, closure/readiness record, findings register, changelog and handoff when materially applicable. Architecture and schema documents are updated only when architecture/schema changes.
-
-Historical documentation remains under `/archive/` and is not current implementation authority.
+Every new remediation document is linked from `docs/CORE_SYSTEM_INDEX.md`. Historical documentation remains preserved and does not regain authority without an explicit current decision/evidence chain.
