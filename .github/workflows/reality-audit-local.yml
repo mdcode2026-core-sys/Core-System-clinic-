@@ -104,3 +104,5 @@ jobs:
         run: |
           if [ -f /tmp/core-system-next.pid ]; then kill "$(cat /tmp/core-system-next.pid)" || true; fi
           cat /tmp/core-system-next.log || true
+
+# Re-run the canonical validation on the current main candidate.
