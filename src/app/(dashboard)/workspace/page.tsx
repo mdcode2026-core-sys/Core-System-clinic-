@@ -1,0 +1,14 @@
+import { redirect } from "next/navigation";
+import { createClient } from "@/infrastructure/supabase/server";
+import { getAssignedWorkspace, workspaceRoute } from "@/core/workspace/currentWorkspace";
+
+export default async function WorkspacePage() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+
+  const assignedWorkspace = await getAssignedWorkspace(user.id);
+  if (!assignedWorkspace) redirect("/settings");
+
+  redirect(workspaceRoute(assignedWorkspace));
+}
