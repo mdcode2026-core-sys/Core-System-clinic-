@@ -45,6 +45,6 @@ export const navigationRegistry:NavItem[]=[
  {href:"/queue",labelKey:"queue",icon:ListOrdered,requiredPermission:"sessions:read",visibility:"contextual"},
 ];
 
-function flattenNavigation(items:NavItem[]):NavItem[]{return items.flatMap(item=>[item,...(item.children?flattenNavigation(item.children):[]]);}
+function flattenNavigation(items:NavItem[]):NavItem[]{return items.flatMap(item=>[item,...(item.children?flattenNavigation(item.children):[])]);}
 export function getRequiredPermission(pathname:string):Permission|null|undefined{const normalized=pathname.split("?")[0];const exact=flattenNavigation(navigationRegistry).find(item=>item.href.split("?")[0]===normalized);if(exact)return exact.requiredPermission;const parent=navigationRegistry.find(item=>item.href!=="/"&&normalized.startsWith(item.href+"/"));return parent?.requiredPermission;}
 export function getSidebarNavigation():NavItem[]{return navigationRegistry.filter(item=>item.visibility!=="contextual");}
