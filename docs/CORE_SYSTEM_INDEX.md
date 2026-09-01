@@ -1,6 +1,6 @@
 # CORE SYSTEM — Governed Documentation Index
 
-**Date:** 2026-08-30  
+**Date:** 2026-09-01  
 **Status:** CURRENT — documentation navigation authority  
 **Scope:** Documentation navigation and authority routing. This index does not override domain decisions.
 
@@ -11,6 +11,21 @@
 3. This file is the canonical navigation index for the remediation/documentation bundle.
 4. Historical documents remain retained evidence and never regain authority merely because they are newer in filename or marked CLOSED.
 5. A closure is authoritative only when its exact evidence chain is recorded under the current closure policy.
+
+## 2026-09-01 Workspace / Patient Flow decision package
+
+### Architectural authority
+- `docs/ARCHITECTURE-DECISIONS-WORKSPACE-PATIENT-FLOW-2026-09-01.md` — APPROVED / BINDING for its defined scope.
+
+### Engineering authority
+- `docs/ENGINEERING-SPEC-WORKSPACE-PATIENT-FLOW-2026-09-01.md` — complete pre-code engineering contract for the approved decisions.
+- `docs/WORKSPACE-PATIENT-FLOW-COMPLETE-DECISION-COVERAGE-MATRIX-2026-09-01.md` — completeness/traceability gate covering every approved decision and every affected visible/background concern.
+
+### Execution authority
+- `docs/WORKSPACE-PATIENT-FLOW-COMPLETE-EXECUTION-PLAN-2026-09-01.md` — full implementation sequence, dependencies, validation and closure gates.
+- `docs/WORKSPACE-PATIENT-FLOW-PRE-CODE-EXECUTION-CONTRACT-2026-09-01.md` — pre-code gate and observed repository implementation constraints.
+
+**Scope lock:** These documents implement only the 2026-09-01 Workspace/Patient Flow decision set. They do not cancel unrelated architecture. Conflicting older rules are superseded only where the conflict concerns an approved 2026-09-01 decision.
 
 ## Current remediation bundle
 
