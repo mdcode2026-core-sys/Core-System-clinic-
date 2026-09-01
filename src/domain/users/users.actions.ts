@@ -14,15 +14,13 @@ function appUrl() {
   return url.replace(/\/$/, "");
 }
 
-function generateEmployeeCode() {
-  return `EMP-${crypto.randomUUID().replaceAll("-", "").slice(0, 15).toUpperCase()}`;
-}
+function generateEmployeeCode() { return `EMP-${crypto.randomUUID().replaceAll("-", "").slice(0, 15).toUpperCase()}`; }
 
 async function resolveCaller() {
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) throw "UNAUTHORIZED";
-  const { data: clinicUser, error } = await supabase.from("clinic_users").select("id,tenant_id,role,role_id").eq("auth_user_id", user.id).eq("is_active", true).maybeSingle();
+  const { data: clinicUser, error } = await supabase.from("clinic_users").select("id,tenant_id,role,role_id,account_status").eq("auth_user_id", user.id).eq("account_status", "active").maybeSingle();
   if (error || !clinicUser?.tenant_id) throw "TENANT_RESOLUTION_FAILED";
   return { user, tenantId: clinicUser.tenant_id, callerClinicUserId: clinicUser.id, callerRole: clinicUser.role };
 }
@@ -41,7 +39,7 @@ async function resolveRole(supabase: any, roleId: string, tenantId: string) {
 }
 
 async function loadTarget(supabase: any, userId: string, tenantId: string) {
-  const { data, error } = await supabase.from("clinic_users").select("id,tenant_id,auth_user_id,full_name,email,is_active,role").eq("id", userId).eq("tenant_id", tenantId).maybeSingle();
+  const { data, error } = await supabase.from("clinic_users").select("id,tenant_id,auth_user_id,full_name,email,pending_email,is_active,account_status,role").eq("id", userId).eq("tenant_id", tenantId).maybeSingle();
   if (error || !data) throw "USER_NOT_FOUND";
   return data;
 }
@@ -60,22 +58,21 @@ async function assertEmailAvailable(supabase: any, tenantId: string, email: stri
 
 async function inviteAuthAccount(target: { id: string; email: string; full_name: string | null }, tenantId: string): Promise<UserActionResult> {
   const admin = createAdminClient();
-  const { data, error } = await admin.auth.admin.inviteUserByEmail(target.email, {
-    redirectTo: `${appUrl()}/activate`,
-    data: { full_name: target.full_name, tenant_id: tenantId, clinic_user_id: target.id },
-  });
+  const { data, error } = await admin.auth.admin.inviteUserByEmail(target.email, { redirectTo: `${appUrl()}/activate`, data: { full_name: target.full_name, tenant_id: tenantId, clinic_user_id: target.id } });
   if (!data?.user) return { success: false, error: error?.message || "AUTH_INVITATION_FAILED" };
   return { success: true, error: null, userId: data.user.id, emailSent: true };
 }
 
+async function resendInvitationEmail(email: string): Promise<UserActionResult> {
+  const supabase = await createClient();
+  const { error } = await supabase.auth.resend({ type: "signup", email, options: { emailRedirectTo: `${appUrl()}/activate` } });
+  if (error) return { success: false, error: "AUTH_INVITATION_RESEND_FAILED" };
+  return { success: true, error: null, emailSent: true };
+}
+
 async function insertClinicUser(supabase: any, payload: Record<string, unknown>) {
   for (let attempt = 0; attempt < 5; attempt += 1) {
-    const { data, error } = await supabase.from("clinic_users").insert({
-      ...payload,
-      id: crypto.randomUUID(),
-      employee_code: generateEmployeeCode(),
-      pin_code: "",
-    }).select("id,full_name,email").single();
+    const { data, error } = await supabase.from("clinic_users").insert({ ...payload, id: crypto.randomUUID(), employee_code: generateEmployeeCode(), pin_code: "" }).select("id,full_name,email").single();
     if (!error && data) return { data, error: null };
     if (error?.code !== "23505") return { data: null, error };
     const message = String(error?.message || "");
@@ -116,17 +113,7 @@ export async function createClinicUser(input: CreateUserInput): Promise<UserActi
     await assertEmailAvailable(supabase, tenantId, input.email.trim().toLowerCase());
     const role = await resolveRole(supabase, input.role_id, tenantId);
     const workspace = input.workspace || role.workspace || "operation";
-    const { data: inserted, error } = await insertClinicUser(supabase, {
-      tenant_id: tenantId,
-      auth_user_id: null,
-      role: role.role_key,
-      role_id: role.id,
-      role_template_id: role.is_system_role ? role.id : null,
-      full_name: input.full_name.trim(),
-      email: input.email.trim().toLowerCase(),
-      phone: input.phone?.trim() || null,
-      is_active: input.is_active,
-    });
+    const { data: inserted, error } = await insertClinicUser(supabase, { tenant_id: tenantId, auth_user_id: null, role: role.role_key, role_id: role.id, role_template_id: role.is_system_role ? role.id : null, full_name: input.full_name.trim(), email: input.email.trim().toLowerCase(), phone: input.phone?.trim() || null, is_active: false, account_status: "pending", pending_email: null });
     if (error || !inserted) return { success: false, error: error?.code === "USER_EMAIL_EXISTS" ? "USER_EMAIL_OR_USER_EXISTS" : error?.code === "USER_EMPLOYEE_CODE_EXISTS" ? "USER_EMPLOYEE_CODE_EXISTS" : "USER_CREATE_FAILED" };
     const { error: workspaceError } = await supabase.from("clinic_user_workspaces").insert({ tenant_id: tenantId, user_id: inserted.id, workspace, is_default: true });
     if (workspaceError) { await supabase.from("clinic_users").delete().eq("id", inserted.id).eq("tenant_id", tenantId); return { success: false, error: "USER_WORKSPACE_SETUP_FAILED" }; }
@@ -140,25 +127,33 @@ export async function createClinicUser(input: CreateUserInput): Promise<UserActi
   } catch (err) { return { success: false, error: typeof err === "string" ? err : err instanceof Error ? err.message : "UNKNOWN" }; }
 }
 
-export async function activateClinicUserAccount(userId: string): Promise<UserActionResult> {
+export async function resendClinicUserInvitation(userId: string): Promise<UserActionResult> {
   try {
     const supabase = await createClient();
     const { user, tenantId } = await resolveCaller();
     await requirePermission(user.id, tenantId, "users:update");
     const target = await loadTarget(supabase, userId, tenantId);
     await assertTargetMutable(target, user.id);
-    if (!target.auth_user_id) {
-      if (!target.email) return { success: false, error: "USER_EMAIL_REQUIRED" };
-      const authResult = await inviteAuthAccount({ id: target.id, email: target.email, full_name: target.full_name }, tenantId);
-      if (!authResult.success || !authResult.userId) return authResult;
-      const { error: linkError } = await supabase.from("clinic_users").update({ auth_user_id: authResult.userId }).eq("id", target.id).eq("tenant_id", tenantId).is("auth_user_id", null);
-      if (linkError) { try { await createAdminClient().auth.admin.deleteUser(authResult.userId); } catch {} return { success: false, error: "AUTH_LINK_FAILED" }; }
-    }
-    const { error: authError } = await createAdminClient().auth.admin.updateUserById(target.auth_user_id || "", { ban_duration: "0s" });
-    if (authError) return { success: false, error: "AUTH_REACTIVATION_FAILED" };
-    const { error: dbError } = await supabase.from("clinic_users").update({ is_active: true }).eq("id", target.id).eq("tenant_id", tenantId);
-    if (dbError) return { success: false, error: "USER_STATUS_UPDATE_FAILED" };
-    revalidatePath("/settings"); return { success: true, error: null, userId: target.id, emailSent: !target.auth_user_id };
+    if (target.account_status !== "pending" || !target.auth_user_id) return { success: false, error: "USER_NOT_PENDING" };
+    const result = await resendInvitationEmail(target.email);
+    if (result.success) revalidatePath("/settings");
+    return result;
+  } catch (err) { return { success: false, error: typeof err === "string" ? err : err instanceof Error ? err.message : "UNKNOWN" }; }
+}
+
+export async function completeClinicUserActivation(): Promise<UserActionResult> {
+  try {
+    const supabase = await createClient();
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) return { success: false, error: "UNAUTHORIZED" };
+    const admin = createAdminClient();
+    const { data: target, error: targetError } = await admin.from("clinic_users").select("id,tenant_id,account_status,is_active").eq("auth_user_id", user.id).maybeSingle();
+    if (targetError || !target) return { success: false, error: "USER_NOT_FOUND" };
+    if (target.account_status === "active") return { success: true, error: null, userId: target.id };
+    if (target.account_status !== "pending") return { success: false, error: "USER_NOT_PENDING" };
+    const { error } = await admin.from("clinic_users").update({ account_status: "active", is_active: true, last_login_at: new Date().toISOString() }).eq("id", target.id).eq("auth_user_id", user.id);
+    if (error) return { success: false, error: "USER_ACTIVATION_FAILED" };
+    return { success: true, error: null, userId: target.id };
   } catch (err) { return { success: false, error: typeof err === "string" ? err : err instanceof Error ? err.message : "UNKNOWN" }; }
 }
 
@@ -171,28 +166,14 @@ export async function updateClinicUser(input: UpdateUserInput): Promise<UserActi
     await assertTargetMutable(target, user.id);
     const updatePayload: Record<string, unknown> = {};
     if (input.full_name !== undefined) updatePayload.full_name = input.full_name.trim();
-    if (input.email !== undefined) { const normalizedEmail = input.email.trim().toLowerCase(); await assertEmailAvailable(supabase, tenantId, normalizedEmail, input.id); updatePayload.email = normalizedEmail; }
     if (input.phone !== undefined) updatePayload.phone = input.phone.trim() || null;
     if (input.role_id !== undefined) { const role = await resolveRole(supabase, input.role_id, tenantId); updatePayload.role_id = role.id; updatePayload.role = role.role_key; updatePayload.role_template_id = role.is_system_role ? role.id : null; }
-    if (Object.keys(updatePayload).length === 0 && input.is_active === undefined && !input.workspace && input.directPermissionIds === undefined && input.revokedPermissionIds === undefined) return { success: false, error: "NO_FIELDS_TO_UPDATE" };
-    const admin = createAdminClient();
-    if (input.email !== undefined && target.auth_user_id) {
-      const { error: authError } = await admin.auth.admin.updateUserById(target.auth_user_id, { email: input.email.trim().toLowerCase(), email_confirm: true });
-      if (authError) return { success: false, error: "AUTH_EMAIL_UPDATE_FAILED" };
-    }
-    if (input.is_active !== undefined) {
-      if (!target.auth_user_id) {
-        if (input.is_active) {
-          if (!target.email && !input.email) return { success: false, error: "USER_EMAIL_REQUIRED" };
-          const authResult = await inviteAuthAccount({ id: target.id, email: input.email?.trim().toLowerCase() || target.email, full_name: input.full_name?.trim() || target.full_name }, tenantId);
-          if (!authResult.success || !authResult.userId) return authResult;
-          updatePayload.auth_user_id = authResult.userId;
-        }
-      } else {
-        const { error: authError } = await admin.auth.admin.updateUserById(target.auth_user_id, { ban_duration: input.is_active ? "0s" : "876000h" });
-        if (authError) return { success: false, error: "AUTH_STATUS_UPDATE_FAILED" };
+    if (input.email !== undefined) {
+      const normalizedEmail = input.email.trim().toLowerCase();
+      if (normalizedEmail !== (target.email ?? "").toLowerCase()) {
+        await assertEmailAvailable(supabase, tenantId, normalizedEmail, input.id);
+        updatePayload.pending_email = normalizedEmail;
       }
-      updatePayload.is_active = input.is_active;
     }
     if (Object.keys(updatePayload).length) {
       const { error } = await supabase.from("clinic_users").update(updatePayload).eq("id", input.id).eq("tenant_id", tenantId);
@@ -211,6 +192,31 @@ export async function updateClinicUser(input: UpdateUserInput): Promise<UserActi
   } catch (err) { return { success: false, error: typeof err === "string" ? err : err instanceof Error ? err.message : "UNKNOWN" }; }
 }
 
+export async function requestOwnEmailChange(newEmail: string): Promise<UserActionResult> {
+  try {
+    const supabase = await createClient();
+    const { user, tenantId } = await resolveCaller();
+    const normalized = newEmail.trim().toLowerCase();
+    if (!normalized || normalized === (user.email ?? "").toLowerCase()) return { success: false, error: "EMAIL_CHANGE_NOT_NEW" };
+    const { data: clinicUser } = await supabase.from("clinic_users").select("id").eq("auth_user_id", user.id).eq("tenant_id", tenantId).single();
+    await assertEmailAvailable(supabase, tenantId, normalized, clinicUser?.id);
+    const { error } = await supabase.from("clinic_users").update({ pending_email: normalized }).eq("auth_user_id", user.id).eq("tenant_id", tenantId);
+    if (error) return { success: false, error: "EMAIL_CHANGE_REQUEST_FAILED" };
+    return { success: true, error: null };
+  } catch (err) { return { success: false, error: typeof err === "string" ? err : err instanceof Error ? err.message : "UNKNOWN" }; }
+}
+
+export async function resendOwnEmailChange(): Promise<UserActionResult> {
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { success: false, error: "UNAUTHORIZED" };
+    const { error } = await supabase.auth.resend({ type: "email_change", email: user.email ?? "" });
+    if (error) return { success: false, error: "EMAIL_CHANGE_RESEND_FAILED" };
+    return { success: true, error: null, emailSent: true };
+  } catch (err) { return { success: false, error: typeof err === "string" ? err : err instanceof Error ? err.message : "UNKNOWN" }; }
+}
+
 export async function toggleClinicUserActive(userId: string, isActive: boolean): Promise<UserActionResult> {
   try {
     const supabase = await createClient();
@@ -218,10 +224,11 @@ export async function toggleClinicUserActive(userId: string, isActive: boolean):
     await requirePermission(user.id, tenantId, "users:update");
     const target = await loadTarget(supabase, userId, tenantId);
     await assertTargetMutable(target, user.id);
+    if (target.account_status === "pending") return { success: false, error: "USER_PENDING_CANNOT_TOGGLE" };
     if (!target.auth_user_id) return { success: false, error: "USER_AUTH_ACCOUNT_NOT_READY" };
     const { error: authError } = await createAdminClient().auth.admin.updateUserById(target.auth_user_id, { ban_duration: isActive ? "0s" : "876000h" });
     if (authError) return { success: false, error: "AUTH_STATUS_UPDATE_FAILED" };
-    const { error } = await supabase.from("clinic_users").update({ is_active: isActive }).eq("id", userId).eq("tenant_id", tenantId);
+    const { error } = await supabase.from("clinic_users").update({ is_active: isActive, account_status: isActive ? "active" : "inactive" }).eq("id", userId).eq("tenant_id", tenantId);
     if (error) return { success: false, error: "USER_STATUS_UPDATE_FAILED" };
     revalidatePath("/settings"); return { success: true, error: null, userId };
   } catch (err) { return { success: false, error: typeof err === "string" ? err : err instanceof Error ? err.message : "UNKNOWN" }; }
