@@ -123,10 +123,24 @@ These do not belong in My Workspace.
 
 - Home is the landing page after login.
 - Home is **not** the user's Workspace.
-- Home provides general information useful at the start of the user's work, such as daily appointment counts, reminders, notifications, internal communications, Patient Portal information, Work Center information, and similar general daily context as ultimately approved during detailed design.
+- Home provides general information useful at the start of the user's work, such as daily appointment counts, reminders, notifications, internal communications, Patient Portal information, Work Center information, and similar general daily context.
 - The current contents of Home must not be treated as proof that every current widget belongs there.
 - Operational actions such as Quick Registration and Quick Appointment must not be placed in Home merely because they are useful actions; their proper placement must follow the approved Workspace/Widget model.
-- The exact final Home contents are a later design decision within this architectural boundary.
+
+### 10.1 Architectural boundary vs engineering detail
+
+The architecture decision is complete for the **nature, purpose, separation, and minimum information categories of Home**. There is no unresolved architectural decision about whether Home exists, whether it is separate from Workspace, or what general daily information it is intended to provide.
+
+The architecture intentionally does **not** prescribe a frozen visual inventory of every future Home card/widget. That is not an architectural decision. The engineering/product-design work may determine the concrete composition needed to realize the approved Home purpose, but it may not:
+
+- remove the approved minimum information categories;
+- turn Home into Workspace;
+- make Home own Patient Flow transitions;
+- move required work into Home merely because it is convenient;
+- introduce a new authorization model;
+- use an implementation choice to create a new architectural decision.
+
+Any additional Home element that is not required by this architecture is optional implementation/product detail and must remain consistent with the approved boundaries. No new architectural choice is implied by adding or omitting such an optional element.
 
 ## 11. Global Search
 
@@ -134,7 +148,29 @@ These do not belong in My Workspace.
 - It is presented as a **search bar in the page header**.
 - Search results are constrained by the user's authorization.
 - Global Search may locate authorized records and navigate to their permitted context.
-- Its detailed engineering behavior must be specified before implementation; it must not be invented ad hoc during coding.
+
+### 11.1 Architectural boundary vs engineering detail
+
+The architecture decision for Global Search is **complete** for its existence, placement, system-wide nature, authorization boundary, and permitted purpose. There is no deferred architectural decision about whether Search belongs to Home, Workspace, or the header: it belongs to the authenticated global header.
+
+The following are engineering decisions, not architectural decisions, and must therefore be resolved in the engineering specification before coding:
+
+- searchable record adapters;
+- query contract;
+- indexing/query mechanism;
+- ranking;
+- matching behavior;
+- debounce and request behavior;
+- result grouping/type labels;
+- context preservation;
+- navigation targets;
+- loading/empty/no-result/error states;
+- Arabic/English matching behavior supported by the actual search mechanism;
+- mobile/header behavior;
+- performance and caching;
+- privacy/no-leak enforcement at the query/data layer.
+
+Engineering may choose these mechanisms only to implement the approved architecture. Engineering may not use them to redefine Search, create a second search concept, or weaken authorization.
 
 ## 12. Architectural Simplicity Principle
 
@@ -146,9 +182,16 @@ These do not belong in My Workspace.
 ## 13. Implementation Governance
 
 - These decisions are the current approved architectural baseline for this subject.
-- Conflicting older architecture, UX/IA, implementation, or execution documents are superseded and must not be used as authority for implementation.
-- No engineering specification or execution plan is implied by this document alone.
-- Before implementation, the approved architecture must be translated into an explicit engineering specification and then into an implementation plan, both of which require approval before execution.
+- Conflicting older architecture, UX/IA, implementation, or execution documents are superseded and must not be used as authority for implementation **only to the extent that they conflict with an approved decision in this document**.
+- Non-conflicting portions of older documents remain usable evidence and must not be discarded merely because another portion was superseded.
+- No engineering specification or execution plan may invent, silently extend, or postpone an architectural decision contained here.
+- Engineering specifications must classify every item as one of:
+  1. **Approved architectural requirement** — mandatory implementation consequence;
+  2. **Engineering decision** — implementation mechanism chosen to realize an approved requirement without changing its meaning;
+  3. **Unrelated existing architecture** — preserved unless a proven dependency requires a documented change;
+  4. **True unresolved architectural choice** — must be returned to the system owner for explicit approval and must not be silently decided by engineering.
+- A document may never label an architectural requirement as "later" merely because its engineering detail is not yet specified.
+- Conversely, engineering must not promote an implementation preference into a new architectural requirement without explicit approval.
 - No database, code, runtime, or production change is authorized merely by recording these decisions.
 
 **End of Approved Architecture Decisions.**
