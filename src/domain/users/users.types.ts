@@ -24,7 +24,12 @@ export interface ClinicUserWithRole extends ClinicUser {
   role_workspace: string | null;
 }
 
-export interface CreateUserInput {
+export interface UserAccessConfiguration {
+  directPermissionIds?: string[];
+  revokedPermissionIds?: string[];
+}
+
+export interface CreateUserInput extends UserAccessConfiguration {
   full_name: string;
   email: string;
   phone?: string;
@@ -32,7 +37,7 @@ export interface CreateUserInput {
   workspace?: UserWorkspace;
 }
 
-export interface UpdateUserInput {
+export interface UpdateUserInput extends UserAccessConfiguration {
   id: string;
   full_name?: string;
   email?: string;
