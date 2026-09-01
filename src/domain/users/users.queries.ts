@@ -9,17 +9,20 @@ const supabase = createClient();
 const userSelect = `
   id, auth_user_id, tenant_id, role, role_id, role_template_id,
   full_name, phone, email, is_active, created_at, updated_at,
-  roles:role_id (id, role_key, role_name, role_name_ar, is_system_role, workspace)
+  roles:role_id (id, role_key, role_name, role_name_ar, is_system_role, workspace),
+  clinic_user_workspaces!user_id (workspace, is_default)
 `;
 
 function mapUser(row: any): ClinicUserWithRole {
   const role = Array.isArray(row.roles) ? row.roles[0] : row.roles;
+  const memberships = Array.isArray(row.clinic_user_workspaces) ? row.clinic_user_workspaces : [];
+  const defaultMembership = memberships.find((membership: any) => membership.is_default) ?? memberships[0];
   return {
     ...row,
     role_name: role?.role_name ?? null,
     role_name_ar: role?.role_name_ar ?? null,
     is_system_role: role?.is_system_role ?? false,
-    role_workspace: role?.workspace ?? null,
+    role_workspace: defaultMembership?.workspace ?? role?.workspace ?? null,
   } as ClinicUserWithRole;
 }
 
