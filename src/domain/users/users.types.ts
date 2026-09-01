@@ -44,6 +44,7 @@ export interface UpdateUserInput extends UserAccessConfiguration {
   phone?: string;
   role_id?: string;
   workspace?: UserWorkspace;
+  is_active?: boolean;
 }
 
 export interface UserActionResult {
