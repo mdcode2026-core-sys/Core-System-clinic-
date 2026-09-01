@@ -14,6 +14,15 @@ function appUrl() {
   return url.replace(/\/$/, "");
 }
 
+function generateEmployeeCode() {
+  return `EMP-${Date.now()}-${Math.floor(Math.random() * 1000).toString().padStart(3, "0")}`;
+}
+
+function generateLegacyPinCode() {
+  // clinic_users still requires this legacy field; it is NOT an authentication password.
+  return Math.floor(Math.random() * 10000).toString().padStart(4, "0");
+}
+
 async function resolveCaller() {
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -60,17 +69,50 @@ export async function createClinicUser(input: CreateUserInput): Promise<UserActi
     await requirePermission(user.id, tenantId, "users:create");
     const role = await resolveRole(supabase, input.role_id, tenantId);
     const workspace = input.workspace || role.workspace || "operation";
-    const { data: inserted, error } = await supabase.from("clinic_users").insert({ tenant_id: tenantId, auth_user_id: null, role: role.role_key, role_id: role.id, role_template_id: role.is_system_role ? role.id : null, full_name: input.full_name.trim(), email: input.email.trim().toLowerCase(), phone: input.phone?.trim() || null, is_active: true }).select("id,full_name,email").single();
+
+    // employee_code and pin_code remain required by the existing clinic_users schema.
+    // They are generated internally. pin_code is legacy data and is never used as an Auth password.
+    const employeeCode = generateEmployeeCode();
+    const pinCode = generateLegacyPinCode();
+    const { data: inserted, error } = await supabase.from("clinic_users").insert({
+      tenant_id: tenantId,
+      auth_user_id: null,
+      role: role.role_key,
+      role_id: role.id,
+      role_template_id: role.is_system_role ? role.id : null,
+      full_name: input.full_name.trim(),
+      email: input.email.trim().toLowerCase(),
+      phone: input.phone?.trim() || null,
+      employee_code: employeeCode,
+      pin_code: pinCode,
+      is_active: true,
+    }).select("id,full_name,email").single();
     if (error || !inserted) return { success: false, error: error?.code === "23505" ? "USER_EMAIL_OR_USER_EXISTS" : "USER_CREATE_FAILED" };
+
     const { error: workspaceError } = await supabase.from("clinic_user_workspaces").insert({ tenant_id: tenantId, user_id: inserted.id, workspace, is_default: true });
-    if (workspaceError) { await supabase.from("clinic_users").delete().eq("id", inserted.id).eq("tenant_id", tenantId); return { success: false, error: "USER_WORKSPACE_SETUP_FAILED" }; }
+    if (workspaceError) {
+      await supabase.from("clinic_users").delete().eq("id", inserted.id).eq("tenant_id", tenantId);
+      return { success: false, error: "USER_WORKSPACE_SETUP_FAILED" };
+    }
+
     const authResult = await provisionAuthAccount(inserted, tenantId);
-    if (!authResult.success || !authResult.userId) { await supabase.from("clinic_users").delete().eq("id", inserted.id).eq("tenant_id", tenantId); return { success: false, error: authResult.error || "AUTH_INVITATION_FAILED" }; }
+    if (!authResult.success || !authResult.userId) {
+      await supabase.from("clinic_users").delete().eq("id", inserted.id).eq("tenant_id", tenantId);
+      return { success: false, error: authResult.error || "AUTH_INVITATION_FAILED" };
+    }
+
     const { error: linkError } = await supabase.from("clinic_users").update({ auth_user_id: authResult.userId }).eq("id", inserted.id).eq("tenant_id", tenantId).is("auth_user_id", null);
-    if (linkError) { try { await createAdminClient().auth.admin.deleteUser(authResult.userId); } catch { /* best-effort rollback */ } await supabase.from("clinic_users").delete().eq("id", inserted.id).eq("tenant_id", tenantId); return { success: false, error: "AUTH_LINK_FAILED" }; }
+    if (linkError) {
+      try { await createAdminClient().auth.admin.deleteUser(authResult.userId); } catch { /* best-effort rollback */ }
+      await supabase.from("clinic_users").delete().eq("id", inserted.id).eq("tenant_id", tenantId);
+      return { success: false, error: "AUTH_LINK_FAILED" };
+    }
+
     revalidatePath("/settings");
     return { success: true, error: null, userId: inserted.id, activationLink: authResult.activationLink, emailSent: authResult.emailSent };
-  } catch (err) { return { success: false, error: typeof err === "string" ? err : err instanceof Error ? err.message : "UNKNOWN" }; }
+  } catch (err) {
+    return { success: false, error: typeof err === "string" ? err : err instanceof Error ? err.message : "UNKNOWN" };
+  }
 }
 
 export async function activateClinicUserAccount(userId: string): Promise<UserActionResult> {
@@ -90,7 +132,10 @@ export async function activateClinicUserAccount(userId: string): Promise<UserAct
     const authResult = await provisionAuthAccount({ id: target.id, email: target.email, full_name: target.full_name }, tenantId);
     if (!authResult.success || !authResult.userId) return { success: false, error: authResult.error || "AUTH_INVITATION_FAILED" };
     const { error: linkError } = await supabase.from("clinic_users").update({ auth_user_id: authResult.userId, is_active: true }).eq("id", target.id).eq("tenant_id", tenantId).is("auth_user_id", null);
-    if (linkError) { try { await createAdminClient().auth.admin.deleteUser(authResult.userId); } catch { /* best-effort rollback */ } return { success: false, error: "AUTH_LINK_FAILED" }; }
+    if (linkError) {
+      try { await createAdminClient().auth.admin.deleteUser(authResult.userId); } catch { /* best-effort rollback */ }
+      return { success: false, error: "AUTH_LINK_FAILED" };
+    }
     revalidatePath("/settings"); return { success: true, error: null, userId: target.id, activationLink: authResult.activationLink, emailSent: authResult.emailSent };
   } catch (err) { return { success: false, error: typeof err === "string" ? err : err instanceof Error ? err.message : "UNKNOWN" }; }
 }
