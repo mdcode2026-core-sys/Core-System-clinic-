@@ -33,7 +33,6 @@ export interface CreateUserInput extends UserAccessConfiguration {
   full_name: string;
   email: string;
   phone?: string;
-  password: string;
   role_id: string;
   workspace?: UserWorkspace;
   is_active: boolean;
@@ -44,7 +43,6 @@ export interface UpdateUserInput extends UserAccessConfiguration {
   full_name?: string;
   email?: string;
   phone?: string;
-  password?: string;
   role_id?: string;
   workspace?: UserWorkspace;
   is_active?: boolean;
