@@ -106,10 +106,18 @@ export async function updateClinicUser(input: UpdateUserInput): Promise<UserActi
     if (input.email !== undefined) updatePayload.email = input.email.trim().toLowerCase();
     if (input.phone !== undefined) updatePayload.phone = input.phone.trim() || null;
     if (input.role_id !== undefined) { const role = await resolveRole(supabase, input.role_id, tenantId); updatePayload.role_id = role.id; updatePayload.role = role.role_key; updatePayload.role_template_id = role.is_system_role ? role.id : null; }
-    if (!Object.keys(updatePayload).length) return { success: false, error: "NO_FIELDS_TO_UPDATE" };
+    if (!Object.keys(updatePayload).length && !input.workspace) return { success: false, error: "NO_FIELDS_TO_UPDATE" };
     if (input.email !== undefined && target.auth_user_id) { const { error: authError } = await createAdminClient().auth.admin.updateUserById(target.auth_user_id, { email: input.email.trim().toLowerCase() }); if (authError) return { success: false, error: "AUTH_EMAIL_UPDATE_FAILED" }; }
-    const { error } = await supabase.from("clinic_users").update(updatePayload).eq("id", input.id).eq("tenant_id", tenantId);
-    if (error) return { success: false, error: "USER_UPDATE_FAILED" };
+    if (Object.keys(updatePayload).length) {
+      const { error } = await supabase.from("clinic_users").update(updatePayload).eq("id", input.id).eq("tenant_id", tenantId);
+      if (error) return { success: false, error: "USER_UPDATE_FAILED" };
+    }
+    if (input.workspace) {
+      const { error: ensureWorkspaceError } = await supabase.from("clinic_user_workspaces").upsert({ tenant_id: tenantId, user_id: input.id, workspace: input.workspace, is_default: true }, { onConflict: "tenant_id,user_id,workspace" });
+      if (ensureWorkspaceError) return { success: false, error: "USER_WORKSPACE_UPDATE_FAILED" };
+      const { error: defaultError } = await supabase.from("clinic_user_workspaces").update({ is_default: false }).eq("tenant_id", tenantId).eq("user_id", input.id).neq("workspace", input.workspace);
+      if (defaultError) return { success: false, error: "USER_WORKSPACE_UPDATE_FAILED" };
+    }
     revalidatePath("/settings"); return { success: true, error: null };
   } catch (err) { return { success: false, error: typeof err === "string" ? err : err instanceof Error ? err.message : "UNKNOWN" }; }
 }
