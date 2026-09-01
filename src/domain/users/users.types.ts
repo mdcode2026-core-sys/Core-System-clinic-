@@ -1,4 +1,5 @@
 import type { UserRole } from "@/core/permissions/types";
+import type { BusinessWorkspaceKey } from "@/core/workspace/currentWorkspace";
 
 export interface ClinicUser {
   id: string;
@@ -20,6 +21,7 @@ export interface ClinicUserWithRole extends ClinicUser {
   role_name_ar: string | null;
   is_system_role: boolean;
   role_workspace: string | null;
+  assigned_workspace?: BusinessWorkspaceKey | null;
 }
 
 export interface CreateUserInput {
@@ -27,6 +29,7 @@ export interface CreateUserInput {
   email: string;
   phone?: string;
   role_id: string;
+  workspace: BusinessWorkspaceKey;
 }
 
 export interface UpdateUserInput {
@@ -35,6 +38,7 @@ export interface UpdateUserInput {
   email?: string;
   phone?: string;
   role_id?: string;
+  workspace?: BusinessWorkspaceKey;
 }
 
 export interface UserActionResult {
