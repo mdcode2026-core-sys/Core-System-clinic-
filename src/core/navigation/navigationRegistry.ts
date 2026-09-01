@@ -23,7 +23,9 @@ const financialResourcesChildren:NavItem[]=[
 ];
 
 export const navigationRegistry:NavItem[]=[
- {href:"/",labelKey:null,label:{ar:"مساحة العمل",en:"Workspace"},icon:LayoutDashboard,requiredPermission:null,surface:"core",visibility:"sidebar"},
+ {href:"/",labelKey:null,label:{ar:"الرئيسية",en:"Home"},icon:LayoutDashboard,requiredPermission:null,surface:"core",visibility:"sidebar"},
+ {href:"/workspace",labelKey:null,label:{ar:"مساحة العمل",en:"Workspace"},icon:BriefcaseBusiness,requiredPermission:null,surface:"core",visibility:"sidebar"},
+ {href:"/my-workspace",labelKey:null,label:{ar:"مساحة عملي",en:"My Workspace"},icon:ClipboardList,requiredPermission:null,surface:"core",visibility:"sidebar"},
  {href:"/patients",labelKey:"patients",icon:Users,requiredPermission:"patients:read",visibility:"sidebar"},
  {href:"/agenda",labelKey:"agenda",icon:CalendarDays,requiredPermission:"agenda:read",visibility:"sidebar"},
  // Patient Flow is a contextual workflow surface, not a primary Sidebar domain.
@@ -43,6 +45,6 @@ export const navigationRegistry:NavItem[]=[
  {href:"/queue",labelKey:"queue",icon:ListOrdered,requiredPermission:"sessions:read",visibility:"contextual"},
 ];
 
-function flattenNavigation(items:NavItem[]):NavItem[]{return items.flatMap(item=>[item,...(item.children?flattenNavigation(item.children):[])]);}
+function flattenNavigation(items:NavItem[]):NavItem[]{return items.flatMap(item=>[item,...(item.children?flattenNavigation(item.children):[]]);}
 export function getRequiredPermission(pathname:string):Permission|null|undefined{const normalized=pathname.split("?")[0];const exact=flattenNavigation(navigationRegistry).find(item=>item.href.split("?")[0]===normalized);if(exact)return exact.requiredPermission;const parent=navigationRegistry.find(item=>item.href!=="/"&&normalized.startsWith(item.href+"/"));return parent?.requiredPermission;}
 export function getSidebarNavigation():NavItem[]{return navigationRegistry.filter(item=>item.visibility!=="contextual");}
