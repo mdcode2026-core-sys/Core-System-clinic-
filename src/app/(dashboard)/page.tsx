@@ -14,7 +14,6 @@ export default async function HomePage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
-
   const tenantId = await resolveTenantId(user.id);
   if (!tenantId) redirect("/login");
 
@@ -42,35 +41,15 @@ export default async function HomePage() {
   ].filter((card) => card.show);
 
   const contextLinks = [
-    { icon: Bell, title: ar ? "التنبيهات والتذكيرات" : "Notifications & reminders", description: ar ? "راجع ما يحتاج انتباهك اليوم." : "Review items that need your attention today.", href: "/notifications", show: true },
+    { icon: Bell, title: ar ? "التنبيهات والتذكيرات" : "Notifications & reminders", description: ar ? "معلومات عامة عن ما يحتاج انتباهك اليوم." : "General context about items that need attention today.", href: null, show: true },
     { icon: MessageCircle, title: ar ? "الاتصالات الداخلية" : "Internal communications", description: ar ? "الوصول إلى الرسائل والاتصالات المصرح بها." : "Access authorized clinic communications.", href: "/communications", show: permissions.includes("communications:read") },
     { icon: BriefcaseBusiness, title: ar ? "مركز العمل" : "Work Center", description: ar ? "اطلع على الأعمال والطلبات المسندة إليك." : "Review assigned work and requests.", href: "/work-center", show: permissions.includes("work:read") },
-    { icon: UsersRound, title: ar ? "معلومات بوابة المريض" : "Patient Portal information", description: ar ? "الوصول إلى معلومات البوابة المتاحة لك." : "Access available Patient Portal information.", href: "/patient-portal", show: true },
+    { icon: UsersRound, title: ar ? "معلومات بوابة المريض" : "Patient Portal information", description: ar ? "الوصول إلى معلومات بوابة المريض المتاحة للنظام." : "Access available Patient Portal information.", href: "/portal", show: true },
   ].filter((item) => item.show);
 
-  return (
-    <div className="mx-auto w-full max-w-[1600px] space-y-6" dir={ar ? "rtl" : "ltr"}>
-      <header className="rounded-2xl border bg-white p-5 shadow-sm sm:p-6">
-        <p className="text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">{ar ? "نظرة عامة" : "Overview"}</p>
-        <h1 className="mt-1 text-2xl font-bold tracking-tight sm:text-3xl">{ar ? "الرئيسية" : "Home"}</h1>
-        <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">{ar ? "معلومات عامة تساعدك على فهم يوم العمل في العيادة. انتقل إلى مساحة العمل لتنفيذ العمل المطلوب." : "General information to help you understand the clinic day. Go to Workspace to perform the work that is assigned to you."}</p>
-      </header>
-
-      {cards.length > 0 && (
-        <section aria-labelledby="home-daily-context">
-          <h2 id="home-daily-context" className="mb-3 text-lg font-semibold">{ar ? "اليوم" : "Today"}</h2>
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            {cards.map((card) => { const Icon = card.icon; return <Link key={card.label} href={card.href} className="rounded-2xl border bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"><div className="flex items-center justify-between gap-3"><span className="rounded-xl bg-muted p-2"><Icon className="h-5 w-5" /></span><span className="text-3xl font-bold">{card.value}</span></div><p className="mt-4 text-sm font-medium text-gray-700">{card.label}</p></Link>; })}
-          </div>
-        </section>
-      )}
-
-      <section aria-labelledby="home-context">
-        <h2 id="home-context" className="mb-3 text-lg font-semibold">{ar ? "معلومات العمل" : "Work context"}</h2>
-        <div className="grid gap-4 md:grid-cols-2">
-          {contextLinks.map((item) => { const Icon = item.icon; return <Link key={item.href} href={item.href} className="rounded-2xl border bg-white p-5 shadow-sm transition hover:shadow-md"><div className="flex gap-3"><span className="rounded-xl bg-muted p-2"><Icon className="h-5 w-5" /></span><div><h3 className="font-semibold">{item.title}</h3><p className="mt-1 text-sm leading-6 text-muted-foreground">{item.description}</p></div></div></Link>; })}
-        </div>
-      </section>
-    </div>
-  );
+  return <div className="mx-auto w-full max-w-[1600px] space-y-6" dir={ar ? "rtl" : "ltr"}>
+    <header className="rounded-2xl border bg-white p-5 shadow-sm sm:p-6"><p className="text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">{ar ? "نظرة عامة" : "Overview"}</p><h1 className="mt-1 text-2xl font-bold tracking-tight sm:text-3xl">{ar ? "الرئيسية" : "Home"}</h1><p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">{ar ? "معلومات عامة تساعدك على فهم يوم العمل في العيادة. انتقل إلى مساحة العمل لتنفيذ العمل المطلوب." : "General information to help you understand the clinic day. Go to Workspace to perform the work that is assigned to you."}</p></header>
+    {cards.length > 0 && <section aria-labelledby="home-daily-context"><h2 id="home-daily-context" className="mb-3 text-lg font-semibold">{ar ? "اليوم" : "Today"}</h2><div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">{cards.map((card) => { const Icon = card.icon; return <Link key={card.label} href={card.href} className="rounded-2xl border bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"><div className="flex items-center justify-between gap-3"><span className="rounded-xl bg-muted p-2"><Icon className="h-5 w-5" /></span><span className="text-3xl font-bold">{card.value}</span></div><p className="mt-4 text-sm font-medium text-gray-700">{card.label}</p></Link>; })}</div></section>}
+    <section aria-labelledby="home-context"><h2 id="home-context" className="mb-3 text-lg font-semibold">{ar ? "معلومات العمل" : "Work context"}</h2><div className="grid gap-4 md:grid-cols-2">{contextLinks.map((item) => { const Icon = item.icon; const content = <div className="flex gap-3"><span className="rounded-xl bg-muted p-2"><Icon className="h-5 w-5" /></span><div><h3 className="font-semibold">{item.title}</h3><p className="mt-1 text-sm leading-6 text-muted-foreground">{item.description}</p></div></div>; return item.href ? <Link key={item.title} href={item.href} className="rounded-2xl border bg-white p-5 shadow-sm transition hover:shadow-md">{content}</Link> : <div key={item.title} className="rounded-2xl border bg-white p-5 shadow-sm">{content}</div>; })}</div></section>
+  </div>;
 }
