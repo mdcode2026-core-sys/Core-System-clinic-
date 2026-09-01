@@ -8,7 +8,7 @@ const supabase = createClient();
 
 const userSelect = `
   id, auth_user_id, tenant_id, role, role_id, role_template_id,
-  full_name, phone, email, is_active, created_at, updated_at,
+  full_name, phone, email, pending_email, account_status, is_active, created_at, updated_at,
   roles:role_id (id, role_key, role_name, role_name_ar, is_system_role, workspace),
   clinic_user_workspaces!user_id (workspace, is_default)
 `;
