@@ -1,12 +1,12 @@
 # CORE SYSTEM — Team & Access Final Execution & Closure
 
-**Date:** 2026-09-01  
+**Date:** 2026-09-02 correction  
 **Scope:** Team & Access user administration only  
-**Final commit:** `22cb9ad0645d5883d6adb9bf30a6ee0d9c959be7`
+**Correction commits:** `684814f30d46da9942999105c4de11e0f07a5a6e`, `0edfc7b628cdc260e56398ba036dd3bf1d525e1e`
 
 ## Executive Result
 
-The approved Team & Access simplification was implemented without intentional changes to unrelated modules/domains.
+The approved Team & Access simplification remains the final architecture. A material omission in the previous closure was identified and corrected: the User Form had lost the agreed `Active / Not active` account-status control and incorrectly presented Supabase Auth self-service activation as the only password path. That was not accepted architecture and is now removed from the primary creation flow.
 
 Final UX model:
 
@@ -18,12 +18,47 @@ Team & Access
 └── Advanced
 ```
 
-The superseded duplicate Users Manager was removed. The canonical users barrel now exposes the unified manager and user form.
+The superseded duplicate Users Manager remains removed. The canonical users surface is the unified manager and unified user form.
 
-## Phase 1 → Phase 14 Execution
+## Correct User Creation Contract
+
+User creation now requires, in the same User Form:
+
+- Basic information
+- Role
+- Workspace
+- Direct permissions
+- Exceptions / overrides
+- **Account status: Active / Not active**
+- **Password**
+
+The Clinic Admin sets the initial password during configuration. The password is passed directly to Supabase Auth and is **never stored in the CORE SYSTEM database**.
+
+The primary creation flow no longer depends on an email invitation or activation link. Supabase Auth creates the credentialed account with email confirmation already satisfied. Therefore a newly created **Active** account can sign in immediately with its configured password, while a **Not active** account is blocked at both the CORE SYSTEM account layer and the Supabase Auth ban layer.
+
+This removes the previous failure mode where `USER_CREATE_FAILED` could be caused by an unavailable/broken activation-email path.
+
+## User Edit Contract
+
+The same User Form is used for editing.
+
+- Active / Not active can be changed there.
+- Password can be replaced there; leaving it blank preserves the current password.
+- Email, role, workspace, direct permissions, and overrides remain in the same configuration flow.
+- Password is never persisted to `clinic_users` or any CORE SYSTEM table.
+
+## Password / PIN Decision
+
+`password` is the authoritative authentication credential through Supabase Auth.
+
+The existing `pin_code` database column was **not deleted, renamed, or structurally modified**. Functional PIN behavior remains retired. New records continue to receive only the inert compatibility value required by the existing schema; PIN is not displayed, generated as a login credential, validated, or used for authentication.
+
+The activation-link path is no longer a prerequisite for initial account activation. Existing activation/reset infrastructure is not used to block creation.
+
+## Phase 1 → Phase 14 Correction Status
 
 ### Phase 1 — Final UX contract
-Completed. Users are the primary operational administration point. Advanced is the deep administration branch.
+Completed and corrected. The User Form explicitly includes account status and password.
 
 ### Phase 2 — Unified User Form
 Completed. Create and Edit use the same form.
@@ -32,107 +67,59 @@ Completed. Create and Edit use the same form.
 Completed. Role selection and workspace assignment are part of the same user configuration flow while remaining separate domain concepts.
 
 ### Phase 4 — Permissions
-Completed. Direct permissions are configured in the same form using the existing permission catalog and persistence model.
+Completed. Direct permissions use the existing permission catalog and persistence model.
 
 ### Phase 5 — Exceptions / Overrides
-Completed. Explicit revokes are configured in the same form and persisted through the existing override model.
+Completed. Explicit revokes use the existing override model.
 
-### Phase 6 — Account + Invitation
-Completed. Login creation remains on the existing Supabase Auth lifecycle. Password is the authentication model. No PIN UI or functional PIN authentication remains in the new workflow.
+### Phase 6 — Account + authentication
+**Corrected and completed.** Password is configured in the User Form. Active status is configured in the User Form. Supabase Auth is used for authentication, but email invitation/activation is not a prerequisite for account creation.
 
 ### Phase 7 — User settings boundary
-Completed. Personal settings remain personal and are not converted into authorization settings. Advanced exposes the correct boundary rather than duplicating personal preferences.
+Completed. Personal settings remain personal and are not converted into authorization settings.
 
 ### Phase 8 — Advanced consolidation
-Completed. Access administration, role templates, user-setting boundary, login lifecycle, and workspace-membership guidance are grouped under Advanced without duplicate CRUD engines.
+Completed. Advanced remains the deep Team & Access administration branch without becoming a prerequisite for normal user setup.
 
 ### Phase 9 — Users / Roles / navigation simplification
-Completed. The old duplicate Users Manager was removed; the canonical barrel now points to UnifiedUsersManager.
+Completed. The old duplicate Users Manager remains removed.
 
 ### Phase 10 — Database integrity + authorization reconciliation
-Completed.
-- Tenant-level case-insensitive active-email uniqueness index added.
-- Employee-code generation hardened with UUID entropy and retry.
-- `has_effective_permission()` reconciled to Role + Direct + Override semantics.
-- `has_tenant_permission()` reconciled to the same semantics.
-- Clinic Admin is explicitly recognized as tenant-level authority in these DB helpers.
+Completed. No new database change was required for the password correction. Existing email uniqueness and authorization reconciliation remain intact.
 
 ### Phase 11 — RLS / security validation
-Completed for the Team & Access changes. Existing RLS structures were reused; no second security engine was introduced.
+Completed for the Team & Access changes. Password is never written to the application database.
 
 ### Phase 12 — Runtime / production validation
-Completed to the extent available through the connected production tooling. Production build reached READY on the final commit. `/login` returned HTTP 200. Vercel runtime error scan reported no runtime errors in the selected window.
-
-An authenticated browser session for the specified Clinic Admin account was not available to the connected tools, so a live click-by-click authenticated UI acceptance of the new Team & Access screens could not be independently executed. This is an evidence boundary, not an implementation deferral.
+Production build validation is required after this correction before a new closure claim is made. The previous closure statement that depended on the activation flow is superseded by this correction.
 
 ### Phase 13 — Regression boundary
-Completed by repository diff inspection: changes from the pre-task baseline were confined to Team & Access user-management code, related Supabase migrations, and Team & Access documentation. No Patient Flow or unrelated domain source files were changed.
+The correction is confined to Team & Access user types, user actions, user form, and Team & Access documentation. No unrelated module/domain was intentionally changed.
 
 ### Phase 14 — Documentation + closure
-Completed. Architecture decisions, AJM-1 refinement, and final execution evidence are documented in the repository.
+This correction is documented here and must be followed by final production build verification.
 
 ## Clinic Admin Protection
 
-The current Clinic Admin account was verified in live DB as:
-- role: `clinic_admin`
-- active: `true`
-- Auth-linked
-- tenant subscription plan: `enterprise`
+The current Clinic Admin account remains protected and is not changed by this correction. The Clinic Admin account remains the tenant-level authority and enterprise account as previously established.
 
-The account is protected from mutation through the user-management action layer and hidden from edit/deactivate/invitation actions in the canonical Users UI.
+## Final Architecture
 
-## Existing Accounts
+```text
+Users
+  ↓
+One complete User Configuration Form
+  ↓
+Basic + Role + Workspace + Permissions + Exceptions
+  + Active status + Password
+  ↓
+Save
+  ↓
+Supabase Auth credential + CORE SYSTEM user configuration
+```
 
-There are 9 non-deleted clinic-user records.
+`Roles` remains the independent role-definition surface.
 
-- The current Clinic Admin remains active and unchanged.
-- The other 8 records were identified as test/demo/audit accounts and were preserved rather than deleted; they were set inactive to retain their generated operational/test history.
-- No account was deleted during this cleanup.
+`Advanced` remains the consolidated deep Team & Access administration surface.
 
-## PIN / Password
-
-The existing `pin_code` database column was not deleted or structurally modified.
-
-Functional PIN behavior was retired from the new user-management path. The existing schema still requires a non-null legacy value, so new records use an inert compatibility value only. PIN is not displayed, generated as an authentication credential, validated, or used for login.
-
-Authentication is password-based through Supabase Auth, with the user setting their own password through the activation flow.
-
-## Live DB Evidence
-
-Current live checks:
-- active clinic users: 9
-- duplicate active tenant emails: 0
-- duplicate employee codes: 0
-- clinic user workspace memberships: 9
-- active direct permission rows: 77
-- active explicit overrides: 0
-- permission catalog entries: 83
-- Clinic Admin role contains all 83 catalog permissions
-- Clinic Admin DB permission helpers return `true` when evaluated with the authenticated subject context
-
-## Production Build Evidence
-
-Final production deployment:
-- Commit: `22cb9ad0645d5883d6adb9bf30a6ee0d9c959be7`
-- Deployment: READY
-- Framework: Next.js
-- Build completed successfully.
-- i18n parity passed for 26 catalog files.
-- TypeScript phase completed.
-- Static page generation completed for 47 pages.
-- Only pre-existing webpack circular-chunk warnings were reported; no build errors occurred.
-- Vercel runtime error scan: no runtime errors in the selected post-deployment window.
-
-## Final Scope Statement
-
-No unrelated module/domain was intentionally changed as part of this task. Directly related authorization/data-integrity defects discovered during implementation were fixed immediately because leaving them would have made Team & Access incorrect.
-
-The resulting architecture is:
-
-`Users → one complete User Configuration Form → Save`
-
-with:
-
-`Roles` as the independent role-definition surface and `Advanced` as the consolidated deep Team & Access administration surface.
-
-**Engineering closure: achieved.**
+**Important:** This corrected document supersedes the previous password/activation wording in the earlier closure document. No email activation link is required to make a newly created Active account usable.
