@@ -3,12 +3,12 @@
 
 **Scope:** approved `ARCHITECTURE-DECISIONS-WORKSPACE-PATIENT-FLOW-2026-09-01.md` decisions and their required integrated implementation.
 **Branch:** `main`
-**Final candidate:** `35b92b3ac4981f52c38ad9d1144e423a1d8fdbd6`
+**Final candidate:** `2364113e7225867c22e472fce19b2d1590ba58ba`
 **Database changes:** none in this execution.
 
 ## 1. Execution result
 
-The implementation work already present on `main` was re-checked against the pre-code baseline, impact map, dependency order, repository implementation, historical implementation evidence, live Supabase state, and the latest Vercel production candidate.
+The implementation work on `main` was re-checked against the pre-code baseline, impact map, dependency order, repository implementation, historical implementation evidence, live Supabase state, and the latest Vercel production candidate.
 
 The resulting implementation covers the approved Workspace/Patient Flow surface model without introducing a second authorization engine, second Queue engine, second Patient Flow state machine, or duplicate Domain ownership.
 
@@ -38,7 +38,7 @@ Clinical and Operational surfaces are distinct work surfaces backed by the exist
 
 Clinical Workspace contains patient/visit context, medical files, procedures, clinical notes, and clinical completion/handoff behavior. Clinical Drag & Drop handoff is present in the implementation.
 
-Operational Workspace contains Queue lanes for waiting, clinical work, pending close and completed work. Operational Drag & Drop is persisted through the existing `moveFromOperation` action and canonical transition authority.
+Operational Workspace contains Queue lanes for waiting, clinical work, pending close and completed work. Operational Drag & Drop is persisted through the existing transition authority.
 
 The implementation does not replace the underlying domains with Workspace-local state.
 
@@ -95,15 +95,15 @@ Latest `main` candidate is deployed to Vercel Production and is `READY`.
 
 The production build completed successfully, including TypeScript and static generation. The deployment currently exposes the expected Workspace, My Workspace, Clinical, Operation, Patient Flow and Domain routes.
 
-Vercel runtime error aggregation for the last 24 hours reports **no runtime errors**.
+Vercel runtime error aggregation reports no runtime errors in the checked production window.
 
 Authenticated browser click-through could not be independently completed through the available Vercel URL interface because the deployment is protected by Vercel SSO. Therefore this record does not falsely claim a full authenticated browser E2E certificate.
 
 ## 12. W10 — Production Closure
 
-The implementation is production-deployed and has no new architectural decision blocker.
+The approved Workspace/Patient Flow implementation work is closed from the engineering side. No new architectural decision blocker was created.
 
-However, the following pre-existing diagnostics remain explicitly recorded rather than hidden:
+The following diagnostics remain explicitly recorded rather than hidden:
 
 ### D1 — Pre-existing Next/Vercel chunk warnings
 
@@ -137,9 +137,11 @@ No approved 2026-09-01 Workspace/Patient Flow decision was intentionally deferre
 
 Engineering choices were limited to implementation mechanisms required to realize the approved behavior.
 
-## 14. Final next step
+## 14. User acceptance handoff
 
-The next step is **real-user acceptance verification**, not another architectural redesign:
+Engineering closure is complete. The remaining activity is the owner's real-world acceptance check, not another autonomous architecture or implementation cycle.
+
+The acceptance sequence is:
 
 1. Sign in as the ordinary Clinical user.
 2. Verify Home first.
