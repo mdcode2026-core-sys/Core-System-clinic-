@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { ChevronDown, LogOut, Menu, X } from "lucide-react";
+import { ChevronDown, LogOut, Menu, X, BriefcaseBusiness, Stethoscope, Settings2 } from "lucide-react";
 import { getSidebarNavigation, type NavItem } from "@/core/navigation/navigationRegistry";
 import { usePermissions } from "@/core/permissions/usePermissions";
 import { useEntitlements } from "@/core/entitlements/useEntitlements";
@@ -11,10 +11,21 @@ import { createClient } from "@/infrastructure/supabase/client";
 import { cn } from "@/shared/utils/cn";
 import { useI18n } from "@/core/i18n/I18nProvider";
 import { LanguageSwitcher } from "@/core/i18n/LanguageSwitcher";
+import type { BusinessWorkspaceKey } from "@/core/workspace/currentWorkspace";
 
-interface WorkspaceShellProps { children: React.ReactNode; user: { email?: string } | null; }
+interface WorkspaceShellProps {
+  children: React.ReactNode;
+  user: { email?: string } | null;
+  assignedWorkspace: BusinessWorkspaceKey | null;
+}
 
-export function EntitlementAwareWorkspaceShell({ children, user }: WorkspaceShellProps) {
+const workspaceLabels: Record<BusinessWorkspaceKey, { ar: string; en: string }> = {
+  clinical: { ar: "المساحة الطبية", en: "Clinical" },
+  operation: { ar: "المساحة التشغيلية", en: "Operational" },
+  administration: { ar: "مساحة الإدارة", en: "Administration" },
+};
+
+export function EntitlementAwareWorkspaceShell({ children, user, assignedWorkspace }: WorkspaceShellProps) {
   const pathname = usePathname();
   const router = useRouter();
   const { hasPermission, isLoading: permissionsLoading } = usePermissions();
@@ -30,16 +41,21 @@ export function EntitlementAwareWorkspaceShell({ children, user }: WorkspaceShel
     (item.requiredPermission === null || hasPermission(item.requiredPermission)) &&
     (!item.capabilityKey || hasCapability(item.capabilityKey));
 
-  const filterChildren = (item: NavItem): NavItem => ({
-    ...item,
-    children: item.children?.filter(canSee).map(filterChildren),
-  });
+  const filterItem = (item: NavItem): NavItem | null => {
+    const children = item.children?.map(filterItem).filter((child): child is NavItem => child !== null) ?? [];
+    if (item.navigationOnly) return children.length > 0 || accessLoading ? { ...item, children } : null;
+    return canSee(item) ? { ...item, children } : null;
+  };
 
   const filteredNav = getSidebarNavigation()
-    .map(filterChildren)
-    .filter((item) => accessLoading || canSee(item) || (item.children && item.children.length > 0));
+    .map(filterItem)
+    .filter((item): item is NavItem => item !== null);
 
-  const handleSignOut = async () => { await supabase.auth.signOut(); router.push("/login"); router.refresh(); };
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    router.push("/login");
+    router.refresh();
+  };
   const closeSidebar = () => setSidebarOpen(false);
   const getLabel = (item: NavItem) => item.label ? item.label[locale] : item.labelKey ? messages.nav[item.labelKey] : item.href;
   const pathMatches = (href: string) => href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(`${href}/`);
@@ -57,54 +73,29 @@ export function EntitlementAwareWorkspaceShell({ children, user }: WorkspaceShel
       const toggle = () => setOpenGroups((value) => ({ ...value, [item.href]: !open }));
       return (
         <div key={item.href}>
-          <button
-            type="button"
-            onClick={toggle}
-            aria-expanded={open}
-            aria-controls={`sidebar-group-${item.href.replace(/[^a-zA-Z0-9_-]/g, "-")}`}
-            className={cn(
-              "flex min-h-10 w-full items-center gap-3 rounded-lg px-3 py-2 text-start text-sm font-medium transition-colors",
-              nested && (isArabic ? "pr-4" : "pl-4"),
-              active ? "bg-blue-50 text-blue-700" : "text-gray-700 hover:bg-gray-100 hover:text-gray-900",
-            )}
-          >
+          <button type="button" onClick={toggle} aria-expanded={open} aria-controls={`sidebar-group-${item.href.replace(/[^a-zA-Z0-9_-]/g, "-")}`} className={cn("flex min-h-10 w-full items-center gap-3 rounded-lg px-3 py-2 text-start text-sm font-medium transition-colors", nested && (isArabic ? "pr-4" : "pl-4"), active ? "bg-blue-50 text-blue-700" : "text-gray-700 hover:bg-gray-100 hover:text-gray-900")}>
             <Icon className="h-4 w-4 shrink-0" />
             <span className="min-w-0 flex-1 truncate">{getLabel(item)}</span>
             <ChevronDown className={cn("h-4 w-4 shrink-0 transition-transform", open && "rotate-180")} aria-hidden="true" />
           </button>
-          {open && (
-            <div id={`sidebar-group-${item.href.replace(/[^a-zA-Z0-9_-]/g, "-")}`} className="mt-1 space-y-0.5 border-l border-gray-200 pl-1 rtl:border-l-0 rtl:border-r rtl:pr-1">
-              {children.map((child) => renderItem(child, true))}
-            </div>
-          )}
+          {open && <div id={`sidebar-group-${item.href.replace(/[^a-zA-Z0-9_-]/g, "-")}`} className="mt-1 space-y-0.5 border-l border-gray-200 pl-1 rtl:border-l-0 rtl:border-r rtl:pr-1">{children.map((child) => renderItem(child, true))}</div>}
         </div>
       );
     }
 
     return (
       <div key={item.href}>
-        <Link
-          href={item.href}
-          prefetch
-          onClick={closeSidebar}
-          aria-current={pathMatches(item.href) ? "page" : undefined}
-          className={cn(
-            "flex min-h-10 items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
-            nested && (isArabic ? "mr-4" : "ml-4"),
-            active ? "bg-blue-50 text-blue-700" : "text-gray-700 hover:bg-gray-100 hover:text-gray-900",
-          )}
-        >
+        <Link href={item.href} prefetch onClick={closeSidebar} aria-current={pathMatches(item.href) ? "page" : undefined} className={cn("flex min-h-10 items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors", nested && (isArabic ? "mr-4" : "ml-4"), active ? "bg-blue-50 text-blue-700" : "text-gray-700 hover:bg-gray-100 hover:text-gray-900")}>
           <Icon className="h-4 w-4 shrink-0" />
           <span className="min-w-0 truncate">{getLabel(item)}</span>
         </Link>
-        {children.length > 0 && (
-          <div className="mt-1 space-y-0.5 border-l border-gray-200 pl-1 rtl:border-l-0 rtl:border-r rtl:pr-1">
-            {children.map((child) => renderItem(child, true))}
-          </div>
-        )}
+        {children.length > 0 && <div className="mt-1 space-y-0.5 border-l border-gray-200 pl-1 rtl:border-l-0 rtl:border-r rtl:pr-1">{children.map((child) => renderItem(child, true))}</div>}
       </div>
     );
   };
+
+  const workspaceLabel = assignedWorkspace ? workspaceLabels[assignedWorkspace][locale] : (isArabic ? "مساحة العمل" : "Workspace");
+  const workspaceHref = assignedWorkspace ? `/${assignedWorkspace}` : "/settings";
 
   return (
     <div className="flex h-screen w-full min-w-0 overflow-hidden bg-gray-50">
@@ -115,8 +106,17 @@ export function EntitlementAwareWorkspaceShell({ children, user }: WorkspaceShel
             <Link href="/" className="min-w-0 truncate text-xl font-bold text-blue-600" onClick={closeSidebar}>ClinicSaaS™</Link>
             <button type="button" onClick={closeSidebar} className="inline-flex min-h-10 min-w-10 shrink-0 items-center justify-center rounded-md p-1.5 hover:bg-gray-100" aria-label={messages.shell.closeMenu} title={messages.shell.closeMenu}><X className="h-5 w-5" /></button>
           </div>
-          <nav aria-label={isArabic ? "التنقل الرئيسي" : "Primary navigation"} className="flex-1 space-y-1 overflow-y-auto px-3 py-4">
+          <nav aria-label={isArabic ? "التنقل الرئيسي" : "Primary navigation"} className="flex-1 space-y-2 overflow-y-auto px-3 py-4">
+            <div className="rounded-lg border bg-gray-50/70 p-1">
+              <div className="px-3 py-2 text-[11px] font-semibold uppercase tracking-wide text-gray-500">{messages.shell.workspace}</div>
+              <Link href={workspaceHref} prefetch onClick={closeSidebar} aria-current={pathname === workspaceHref || pathname.startsWith(`${workspaceHref}/`) ? "page" : undefined} className={cn("flex min-h-10 items-center gap-3 rounded-lg px-3 py-2 text-sm font-semibold transition-colors", pathname === workspaceHref ? "bg-white text-blue-700 shadow-sm" : "text-gray-700 hover:bg-white") }>
+                {assignedWorkspace === "clinical" ? <Stethoscope className="h-4 w-4" /> : assignedWorkspace === "operation" ? <BriefcaseBusiness className="h-4 w-4" /> : <Settings2 className="h-4 w-4" />}
+                <span className="min-w-0 truncate">{isArabic ? "مساحة عملي" : "My Workspace"}</span>
+                <span className="ms-auto truncate text-[10px] font-normal text-gray-400">{workspaceLabel}</span>
+              </Link>
+            </div>
             {filteredNav.map((item) => renderItem(item))}
+            <div className="pt-2"><Link href="/settings" onClick={closeSidebar} className={cn("flex min-h-10 items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium", pathMatches("/settings") ? "bg-blue-50 text-blue-700" : "text-gray-700 hover:bg-gray-100")}><Settings2 className="h-4 w-4" /><span>{isArabic ? "إعداداتي" : "My Settings"}</span></Link></div>
           </nav>
         </div>
       </aside>
@@ -124,7 +124,7 @@ export function EntitlementAwareWorkspaceShell({ children, user }: WorkspaceShel
         <header className="flex flex-wrap items-center justify-between gap-2 border-b bg-white px-3 py-2 sm:gap-3 sm:px-4 sm:py-3 lg:px-6">
           <div className="flex min-w-0 items-center gap-2 sm:gap-3">
             <button type="button" onClick={() => setSidebarOpen(true)} className="inline-flex min-h-10 min-w-10 shrink-0 items-center justify-center rounded-md p-1.5 hover:bg-gray-100" aria-label={messages.shell.openMenu} title={messages.shell.openMenu}><Menu className="h-5 w-5 text-gray-600" /></button>
-            <h1 className="truncate text-base font-semibold text-gray-900 sm:text-lg">{messages.shell.workspace}</h1>
+            <h1 className="truncate text-base font-semibold text-gray-900 sm:text-lg">{isArabic ? "الرئيسية" : "Home"}</h1>
           </div>
           <div className="flex shrink-0 items-center gap-1 sm:gap-4"><LanguageSwitcher /><span className="hidden max-w-[240px] truncate text-sm text-gray-600 sm:inline">{user?.email}</span><button type="button" onClick={handleSignOut} className="inline-flex min-h-10 min-w-10 items-center justify-center gap-1.5 rounded-md bg-gray-100 px-2 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-200 sm:min-w-0 sm:px-3"><LogOut className="h-4 w-4" /><span className="hidden sm:inline">{messages.shell.signOut}</span></button></div>
         </header>
