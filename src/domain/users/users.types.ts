@@ -38,6 +38,7 @@ export interface UpdateUserInput {
   email?: string;
   phone?: string;
   role_id?: string;
+  workspace?: UserWorkspace;
 }
 
 export interface UserActionResult {
