@@ -1,4 +1,4 @@
-// src/features/settings/users/index.ts
-// M2.3 — User Management UI barrel export
-
-export { UsersManager } from "./UsersManager";
+// Team & Access — canonical Users surface
+// Create and Edit are intentionally handled by the same User Configuration Form.
+export { UnifiedUsersManager as UsersManager } from "./UnifiedUsersManager";
+export { UserConfigurationForm } from "./UserConfigurationForm";
