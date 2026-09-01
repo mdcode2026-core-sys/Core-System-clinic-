@@ -141,16 +141,12 @@ For a Pending Invitation user:
 ```text
 Users → Pending User → Resend Invitation
         ↓
-Fresh invitation
-        ↓
-Fresh secure token/link
+Fresh invitation/confirmation link
         ↓
 Production `/activate`
 ```
 
-A consumed or expired invitation is not reused.
-
-The UI must make Pending state visible and must expose the resend operation without creating a duplicate user.
+The current implementation uses Supabase Auth's resend mechanism for the still-unconfirmed invited identity; it does not create a second CORE user or Auth identity. The acceptance requirement is the resulting fresh, usable activation path, not a duplicate identity.
 
 ## 8. Activation Page Contract
 
@@ -164,7 +160,7 @@ The activation/recovery experience must provide:
 - success state
 - navigation to Login after successful setup
 
-Activation establishes the initial password for a Pending user.
+Activation establishes the initial password for a Pending user and explicitly transitions the CORE user to `Active`.
 
 ## 9. Login Contract
 
@@ -242,6 +238,8 @@ The following IDs remain unchanged:
 - CORE User ID
 - Auth User ID
 
+For an administrator-initiated staff change, CORE stores `pending_email`; the employee completes the Auth verification from their authenticated account. This prevents an administrator from directly changing another employee's Auth email without the required verification.
+
 ## 13. Email Change Contract — Clinic Admin
 
 Clinic Admin email change is initiated from the clinic/account settings surface, not ordinary staff User Management.
@@ -255,7 +253,7 @@ Active
   ↓
 Deactivate
   ↓
-CORE `is_active = false`
+CORE `account_status = inactive` and `is_active = false`
 +
 Auth access blocked
   ↓
@@ -271,7 +269,7 @@ Inactive
   ↓
 Reactivate
   ↓
-CORE `is_active = true`
+CORE `account_status = active` and `is_active = true`
 +
 Auth access unblocked
   ↓
@@ -308,6 +306,26 @@ Creation/edit implementation must satisfy:
 
 The known Production schema constraint that `clinic_users.id` is NOT NULL without a DB default must be respected explicitly by the application or a deliberate migration.
 
+### Canonical lifecycle storage
+
+Production now stores the canonical lifecycle in `clinic_users.account_status` with exactly:
+
+```text
+pending | active | inactive
+```
+
+`clinic_users.is_active` remains a synchronized compatibility/authorization field:
+
+```text
+pending  → is_active = false
+active   → is_active = true
+inactive → is_active = false
+```
+
+`clinic_users.auth_user_id` means an Auth identity exists; it does **not** by itself mean the account is Active.
+
+`clinic_users.pending_email` stores a requested but not-yet-verified email address. The canonical `email` remains unchanged until Auth verification succeeds. The existing Auth identity and CORE User ID are preserved.
+
 ## 18. Failure/Compensation Contract
 
 A Create/Edit operation is successful only when all required layers are consistent.
@@ -320,28 +338,32 @@ Examples of invalid final states:
 
 Required behavior is clear error + compensation/rollback where possible + no false success.
 
-## 19. Mandatory Acceptance Matrix
+## 19. Grouped Engineering Acceptance Matrix
 
-| # | Scenario | Required result |
+The following 18 rows are **engineering verification groups**, not a second canonical scenario count:
+
+| # | Engineering group | Canonical scenarios covered |
 |---|---|---|
-| 1 | Create employee | CORE user + Auth identity + configuration + Pending state |
-| 2 | Invitation | Email sent with production-safe link |
-| 3 | Activation | Employee reaches `/activate` and sets password |
-| 4 | First login | Same `/login`; correct tenant/context |
-| 5 | Profile edit | DB changes directly; no activation |
-| 6 | Role/workspace/access edit | Changes persist; no password flow |
-| 7 | Resend | Fresh invitation for Pending user |
-| 8 | Deactivate | CORE + Auth blocked |
-| 9 | Reactivate | CORE + Auth unblocked; existing password retained |
-| 10 | Forgot password | Recovery email + new password |
-| 11 | Staff email change | New email verified; old login email retired |
-| 12 | Clinic Admin email change | Same verified change; clinic identity preserved |
-| 13 | Clinic Admin protection | Role/authority/deactivation/delete attempts blocked |
-| 14 | Show/Hide password | Works on Login and Activation/Recovery |
-| 15 | Duplicate email | Safely rejected |
-| 16 | Employee-code collision | Safely resolved/retried |
-| 17 | Create failure | No inconsistent orphan state; no false success |
-| 18 | Production redirect | No localhost in production |
+| 1 | Create employee | 1, 2, 26, 27, 28 |
+| 2 | Invitation | 2, 3, 25 |
+| 3 | Activation | 3, 4, 5, 24 |
+| 4 | First login/context | 6, 7 |
+| 5 | Profile edit | 8 |
+| 6 | Role/workspace/access edit | 9 |
+| 7 | Resend | 10 |
+| 8 | Deactivate | 11, 12 |
+| 9 | Reactivate | 13, 14 |
+| 10 | Forgot password | 15, 16, 24 |
+| 11 | Staff email change | 17, 18, 19 |
+| 12 | Clinic Admin email change | 20, 21 |
+| 13 | Clinic Admin protection | 22 |
+| 14 | Password visibility | 23, 24 |
+| 15 | Duplicate email | 26 |
+| 16 | Employee-code collision | 27 |
+| 17 | Failure/compensation | 28 |
+| 18 | Production redirects | 25 |
+
+The **28 scenarios in the architecture decision document are the sole canonical acceptance set**.
 
 ## 20. Execution Order
 
@@ -370,7 +392,7 @@ Implementation must follow this order:
 - Do not create a separate employee login system.
 - Do not create a new tenant when changing an email.
 - Do not create a new CORE User ID when changing an email.
-- Do not create a new Auth identity for ordinary email changes unless the Auth provider contract explicitly requires identity replacement; the preferred contract is to retain the same identity.
+- Do not create a new Auth identity for ordinary email changes.
 - Do not trigger activation for ordinary profile edits.
 - Do not treat Reactivate as Resend Invitation.
 - Do not treat Forgot Password as Reactivate.
