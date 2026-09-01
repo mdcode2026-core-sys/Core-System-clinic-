@@ -89,7 +89,7 @@ Separate operations:
 - Pending → Activation → Active
 - Active → Deactivate → Inactive
 - Inactive (previously activated) → Reactivate → Active
-- Active/Pending → Forgot Password only when an existing Auth identity and recovery flow apply
+- Forgot Password is a recovery flow and is not Activation or Reactivation
 - Email Change → New Email Verification → New canonical login email
 
 ## 6. User Creation
@@ -135,7 +135,7 @@ Production /activate
  ↓
 Employee sets password
  ↓
-Active
+CORE account_status = active
  ↓
 /login
 ```
@@ -146,7 +146,7 @@ Production links must never point to localhost.
 
 Pending users require a visible `Resend Invitation` action.
 
-Resend generates a fresh invitation and does not depend on an old consumed/expired token.
+The current implementation uses Supabase Auth's resend mechanism for the existing unconfirmed invited identity; it does not create a duplicate CORE user or Auth identity. Runtime acceptance still requires a fresh usable activation path to `/activate`.
 
 Resend Invitation is not Reactivate.
 
@@ -207,7 +207,7 @@ After successful verification:
 - CORE User ID remains unchanged
 - Auth User ID remains unchanged
 
-Clinic Admin email change is initiated from clinic/account settings, not ordinary staff User Management.
+For staff, User Management records `pending_email`; the employee completes Auth verification from their authenticated account. Clinic Admin initiates its own email change from the account settings surface.
 
 ## 13. Deactivation and Reactivation
 
@@ -247,50 +247,45 @@ Required invariants:
 - `clinic_users.id` is stable CORE User ID.
 - `clinic_users.tenant_id` points to the tenant.
 - `clinic_users.auth_user_id` points to the Auth identity when provisioned.
+- `clinic_users.account_status` is the canonical lifecycle state: `pending | active | inactive`.
+- `clinic_users.is_active` is synchronized with lifecycle state for compatibility/authorization.
+- `clinic_users.pending_email` holds an unverified requested email until Auth verification succeeds.
 - tenant-scoped email uniqueness is enforced according to the approved active/deletion model.
 - employee codes are unique and within the database column limit.
 - Create/Edit cannot leave an inconsistent required identity state.
 
-## 17. Mandatory Scenarios
+## 17. Canonical 28 Acceptance Scenarios
 
-The following are contractual scenarios, not optional examples:
+These are the **sole canonical acceptance scenarios**. Any grouped engineering matrix is only a mapping to these 28 and must not be treated as a second acceptance list.
 
-1. Create employee.
-2. Create generates a unique CORE User ID.
-3. Create associates the correct Tenant ID.
-4. Auth identity is created/linked.
-5. Workspace membership is persisted.
-6. Role/direct permissions/overrides are persisted.
-7. User enters Pending Invitation.
-8. Invitation email is received.
-9. Invitation resolves to Production `/activate`.
-10. Employee sees password setup.
-11. Employee can Show/Hide password.
-12. Employee completes activation and becomes Active.
-13. Employee logs in through the same `/login` as Clinic Admin.
-14. Correct tenant/workspace/role/effective access is established.
-15. Name/phone/profile edit occurs directly without activation.
-16. Role/workspace/access edit occurs without password handling.
-17. Pending user can Resend Invitation.
-18. Resent invitation is fresh and usable.
-19. Active user can be Deactivated.
-20. Inactive user cannot authenticate.
-21. Previously activated Inactive user can Reactivate.
-22. Reactivated user retains its existing password.
-23. Forgot Password sends secure recovery email.
-24. Recovery establishes a new password.
-25. Staff email change requires verification of the new address.
-26. Old staff email ceases to be the login email after successful verification.
-27. Staff email change preserves Tenant/User/Auth IDs.
-28. Clinic Admin email change occurs from clinic/account settings.
-29. Clinic Admin email change preserves Tenant/User/Auth IDs.
-30. Clinic Admin role/authority/deactivation/delete attempts are blocked in User Management.
-31. Login Show/Hide password works.
-32. Activation/Recovery Show/Hide password works.
-33. Production links never use localhost.
-34. Duplicate tenant-scoped active email is rejected safely.
-35. Employee-code collision is safely resolved.
-36. Create/Edit failures do not leave false-success or orphaned required state.
+1. Clinic Admin creates a new employee.
+2. New employee receives invitation.
+3. Employee follows invitation to production `/activate`.
+4. Employee sets initial password.
+5. Employee becomes Active.
+6. Employee logs in through the same `/login` used by Clinic Admin.
+7. Employee receives the correct tenant, workspace, role, and effective permissions.
+8. Clinic Admin edits employee name/phone/profile data without reactivation.
+9. Clinic Admin edits role/workspace/access without password handling.
+10. Pending employee can use `Resend Invitation` to receive a fresh invitation.
+11. Previously activated Active employee can be Deactivated.
+12. Deactivated employee cannot authenticate.
+13. Previously activated Inactive employee can be Reactivated without a new password/invitation.
+14. Reactivated employee can log in using the existing password.
+15. Employee can use Forgot Password and receive a secure recovery email.
+16. Employee can set a new password through recovery.
+17. Staff email change requires verification of the new email.
+18. Old staff email ceases to be the login email only after successful new-email verification.
+19. Staff email change preserves tenant ID, CORE User ID, and Auth User ID.
+20. Clinic Admin can change its own email through clinic/account settings using the same verification principle.
+21. Clinic Admin email change preserves Clinic/Tenant ID, CORE User ID, and Auth User ID.
+22. Clinic Admin cannot be role-reduced, deactivated, deleted, or authority-reduced through User Management.
+23. Show/Hide password works on Login.
+24. Show/Hide password works on Activation/Recovery.
+25. Production invitation/recovery links never point to localhost.
+26. Duplicate tenant-active email is rejected safely.
+27. Employee-code collision is retried/resolved without violating uniqueness.
+28. Failed Create/Edit does not leave an inconsistent user/Auth state.
 
 ## 18. Execution Order
 
@@ -331,7 +326,7 @@ The engineering sequence is mandatory:
 
 This document is the final architecture/engineering/execution baseline. It is **not itself evidence that every runtime scenario has already passed**.
 
-Runtime closure requires explicit evidence for the mandatory scenarios and for:
+Runtime closure requires explicit evidence for the 28 canonical scenarios and for:
 
 **Architecture → UX → Code → Database → Auth → Permissions → Integration → Runtime → Security → Regression → Documentation**.
 
