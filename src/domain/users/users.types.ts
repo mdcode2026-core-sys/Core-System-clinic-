@@ -1,6 +1,7 @@
 import type { UserRole } from "@/core/permissions/types";
 
 export type UserWorkspace = "administration" | "operation" | "clinical";
+export type UserAccountStatus = "pending" | "active" | "inactive";
 
 export interface ClinicUser {
   id: string;
@@ -12,6 +13,8 @@ export interface ClinicUser {
   full_name: string | null;
   phone: string | null;
   email: string | null;
+  pending_email: string | null;
+  account_status: UserAccountStatus;
   is_active: boolean;
   created_at: string | null;
   updated_at: string | null;
@@ -35,7 +38,6 @@ export interface CreateUserInput extends UserAccessConfiguration {
   phone?: string;
   role_id: string;
   workspace?: UserWorkspace;
-  is_active: boolean;
 }
 
 export interface UpdateUserInput extends UserAccessConfiguration {
@@ -45,7 +47,6 @@ export interface UpdateUserInput extends UserAccessConfiguration {
   phone?: string;
   role_id?: string;
   workspace?: UserWorkspace;
-  is_active?: boolean;
 }
 
 export interface UserActionResult {
