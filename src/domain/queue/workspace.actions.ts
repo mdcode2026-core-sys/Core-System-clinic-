@@ -7,8 +7,6 @@ import { getEffectivePermissions, isClinicAdminUser } from "@/core/permissions/p
 import { queueEngine } from "./queue.engine";
 import type { EnrichedSession, SessionStatus } from "./queue.types";
 
-type PatientFlowContext = "operations" | "clinical" | "administrative";
-
 async function getContext() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -23,8 +21,6 @@ async function getContext() {
 function requirePermission(permissions: string[], permission: string) {
   if (!permissions.includes(permission)) throw new Error(`Permission denied: ${permission} required`);
 }
-
-function patientFlowPermission(context: PatientFlowContext) { return `patient_flow:${context}`; }
 
 export async function registerPatientArrival(data: { sessionId?: string; patient_id: string; doctor_id?: string; room_id?: string; agenda_event_id?: string }): Promise<EnrichedSession> {
   const { supabase, user, tenantId, permissions } = await getContext();
@@ -67,14 +63,14 @@ export async function moveFromOperation(sessionId: string, target: SessionStatus
   return transitionSession(sessionId, target);
 }
 
-export async function moveFromPatientFlow(sessionId: string, target: SessionStatus, context: PatientFlowContext): Promise<EnrichedSession> {
+/** Background Patient Flow console is reserved for Clinic Admin; ordinary users work through their assigned Workspace. */
+export async function moveFromPatientFlow(sessionId: string, target: SessionStatus): Promise<EnrichedSession> {
   if (!["waiting", "in_consultation", "pending_close", "completed", "cancelled", "no_show"].includes(target)) throw new Error("Invalid workflow target");
-  const { supabase, user, tenantId, permissions } = await getContext();
-  requirePermission(permissions, patientFlowPermission(context));
+  const { supabase, user, tenantId, permissions, clinicAdmin } = await getContext();
+  if (!clinicAdmin) throw new Error("Clinic Admin required for the background Patient Flow console");
   requirePermission(permissions, "sessions:update");
   const { data: current, error: readError } = await supabase.from("clinic_visit_sessions").select("session_status, doctor_id, lock_holder_id").eq("id", sessionId).eq("tenant_id", tenantId).single();
   if (readError || !current) throw new Error("Session not found");
-  if (context === "clinical" && target === "pending_close" && current.lock_holder_id !== user.id && !permissions.includes("patient_flow:administrative")) throw new Error("This clinical session is not locked by the current user");
   const validation = queueEngine.validateTransition(current.session_status as SessionStatus, target);
   if (!validation.valid) throw new Error(validation.reason);
   if (target === "in_consultation" && !current.doctor_id) throw new Error("A provider must be assigned before clinical handoff");
