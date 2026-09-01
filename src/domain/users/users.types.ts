@@ -1,5 +1,7 @@
 import type { UserRole } from "@/core/permissions/types";
 
+export type UserWorkspace = "administration" | "operation" | "clinical";
+
 export interface ClinicUser {
   id: string;
   auth_user_id: string | null;
@@ -27,6 +29,7 @@ export interface CreateUserInput {
   email: string;
   phone?: string;
   role_id: string;
+  workspace?: UserWorkspace;
 }
 
 export interface UpdateUserInput {
@@ -41,4 +44,6 @@ export interface UserActionResult {
   success: boolean;
   error: string | null;
   userId?: string;
+  activationLink?: string;
+  emailSent?: boolean;
 }
