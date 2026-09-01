@@ -1,11 +1,16 @@
 "use server";
 
 import { createClient } from "@/infrastructure/supabase/server";
+import { isClinicAdminUser } from "@/core/permissions/permissionEngine";
 
-export type UserSettingsInput = { locale?: string | null; timezone?: string | null; date_format?: string | null; time_format?: string | null; default_workspace?: "administration" | "operation" | "clinical" | null; sidebar_collapsed?: boolean; preferences?: Record<string, unknown> };
+export type UserSettingsInput = { locale?: string | null; timezone?: string | null; date_format?: string | null; time_format?: string | null; default_workspace?: never; sidebar_collapsed?: boolean; preferences?: Record<string, unknown> };
 
 async function caller() {
-  const supabase = await createClient(); const { data:{user} }=await supabase.auth.getUser(); if(!user)throw new Error("UNAUTHORIZED"); const {data:cu}=await supabase.from("clinic_users").select("id,tenant_id").eq("auth_user_id",user.id).maybeSingle(); if(!cu)throw new Error("TENANT_RESOLUTION_FAILED"); return {supabase,userId:cu.id,tenantId:cu.tenant_id};
+  const supabase = await createClient(); const { data:{user} }=await supabase.auth.getUser(); if(!user)throw new Error("UNAUTHORIZED"); const {data:cu}=await supabase.from("clinic_users").select("id,tenant_id").eq("auth_user_id",user.id).maybeSingle(); if(!cu)throw new Error("TENANT_RESOLUTION_FAILED"); return {supabase,userId:cu.id,tenantId:cu.tenant_id,authUserId:user.id};
+}
+
+export async function isCurrentUserClinicAdmin() {
+  try { const { authUserId, tenantId } = await caller(); return await isClinicAdminUser(authUserId, tenantId); } catch { return false; }
 }
 
 export async function saveUserSettings(input: UserSettingsInput) {
