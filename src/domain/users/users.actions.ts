@@ -20,11 +20,16 @@ async function requirePermission(userId: string, tenantId: string, permission: s
 }
 
 async function resolveRole(supabase: any, roleId: string, tenantId: string) {
-  const { data, error } = await supabase.from("roles").select("id,role_key,tenant_id,is_system_role").eq("id", roleId).maybeSingle();
+  const { data, error } = await supabase.from("roles").select("id,role_key,tenant_id,is_system_role,workspace").eq("id", roleId).maybeSingle();
   if (error || !data) throw "ROLE_NOT_FOUND";
   if (!data.is_system_role && data.tenant_id !== tenantId) throw "ROLE_WRONG_TENANT";
   if (data.role_key === "super_admin") throw "ROLE_NOT_ASSIGNABLE";
   return data;
+}
+
+async function saveWorkspaceAssignment(supabase: any, tenantId: string, userId: string, workspace: CreateUserInput["workspace"]) {
+  const { error } = await supabase.from("clinic_user_workspaces").upsert({ tenant_id: tenantId, user_id: userId, workspace, is_default: true }, { onConflict: "tenant_id,user_id,workspace" });
+  if (error) throw "WORKSPACE_ASSIGNMENT_FAILED";
 }
 
 export async function createClinicUser(input: CreateUserInput): Promise<UserActionResult> {
@@ -34,18 +39,9 @@ export async function createClinicUser(input: CreateUserInput): Promise<UserActi
     await requirePermission(user.id, tenantId, "users:create");
     const role = await resolveRole(supabase, input.role_id, tenantId);
 
-    const { data: inserted, error } = await supabase.from("clinic_users").insert({
-      tenant_id: tenantId,
-      auth_user_id: null,
-      role: role.role_key,
-      role_id: role.id,
-      role_template_id: role.is_system_role ? role.id : null,
-      full_name: input.full_name.trim(),
-      email: input.email.trim(),
-      phone: input.phone?.trim() || null,
-      is_active: true,
-    }).select("id").single();
+    const { data: inserted, error } = await supabase.from("clinic_users").insert({ tenant_id: tenantId, auth_user_id: null, role: role.role_key, role_id: role.id, role_template_id: role.is_system_role ? role.id : null, full_name: input.full_name.trim(), email: input.email.trim(), phone: input.phone?.trim() || null, is_active: true }).select("id").single();
     if (error) return { success: false, error: "USER_CREATE_FAILED" };
+    await saveWorkspaceAssignment(supabase, tenantId, inserted.id, input.workspace);
     revalidatePath("/settings");
     return { success: true, error: null, userId: inserted.id };
   } catch (err) {
@@ -71,10 +67,16 @@ export async function updateClinicUser(input: UpdateUserInput): Promise<UserActi
       updatePayload.role = role.role_key;
       updatePayload.role_template_id = role.is_system_role ? role.id : null;
     }
-    if (!Object.keys(updatePayload).length) return { success: false, error: "NO_FIELDS_TO_UPDATE" };
+    if (!Object.keys(updatePayload).length && input.workspace === undefined) return { success: false, error: "NO_FIELDS_TO_UPDATE" };
 
-    const { error } = await supabase.from("clinic_users").update(updatePayload).eq("id", input.id).eq("tenant_id", tenantId);
-    if (error) return { success: false, error: "USER_UPDATE_FAILED" };
+    if (Object.keys(updatePayload).length) {
+      const { error } = await supabase.from("clinic_users").update(updatePayload).eq("id", input.id).eq("tenant_id", tenantId);
+      if (error) return { success: false, error: "USER_UPDATE_FAILED" };
+    }
+    if (input.workspace !== undefined) {
+      await supabase.from("clinic_user_workspaces").update({ is_default: false }).eq("tenant_id", tenantId).eq("user_id", input.id).eq("is_default", true);
+      await saveWorkspaceAssignment(supabase, tenantId, input.id, input.workspace);
+    }
     revalidatePath("/settings");
     return { success: true, error: null };
   } catch (err) {
