@@ -54,15 +54,24 @@ async function assertEmailAvailable(supabase: any, tenantId: string, email: stri
   if ((data ?? []).length) throw "USER_EMAIL_OR_USER_EXISTS";
 }
 
-async function provisionAuthAccount(target: { id: string; email: string; full_name: string | null }, tenantId: string): Promise<UserActionResult> {
+async function provisionAuthAccount(target: { id: string; email: string; full_name: string | null }, tenantId: string, password: string, isActive: boolean): Promise<UserActionResult> {
   const admin = createAdminClient();
-  const redirectTo = `${appUrl()}/activate`;
   const metadata = { full_name: target.full_name, tenant_id: tenantId, clinic_user_id: target.id };
-  const { data: invited, error: inviteError } = await admin.auth.admin.inviteUserByEmail(target.email, { data: metadata, redirectTo });
-  if (invited?.user) return { success: true, error: null, userId: invited.user.id, emailSent: true };
-  const { data: generated, error: generateError } = await admin.auth.admin.generateLink({ type: "invite", email: target.email, options: { data: metadata, redirectTo } });
-  if (generated?.user && generated.properties?.action_link) return { success: true, error: null, userId: generated.user.id, activationLink: generated.properties.action_link, emailSent: false };
-  return { success: false, error: generateError?.message || inviteError?.message || "AUTH_INVITATION_FAILED" };
+  const { data: created, error } = await admin.auth.admin.createUser({
+    email: target.email,
+    password,
+    email_confirm: true,
+    user_metadata: metadata,
+  });
+  if (!created?.user) return { success: false, error: error?.message || "AUTH_ACCOUNT_CREATE_FAILED" };
+  if (!isActive) {
+    const { error: banError } = await admin.auth.admin.updateUserById(created.user.id, { ban_duration: "876000h" });
+    if (banError) {
+      try { await admin.auth.admin.deleteUser(created.user.id); } catch {}
+      return { success: false, error: "AUTH_STATUS_UPDATE_FAILED" };
+    }
+  }
+  return { success: true, error: null, userId: created.user.id, emailSent: false };
 }
 
 async function insertClinicUser(supabase: any, payload: Record<string, unknown>) {
@@ -106,19 +115,20 @@ export async function createClinicUser(input: CreateUserInput): Promise<UserActi
     const { user, tenantId } = await resolveCaller();
     await requirePermission(user.id, tenantId, "users:create");
     await assertEmailAvailable(supabase, tenantId, input.email.trim().toLowerCase());
+    if (!input.password || input.password.length < 8) return { success: false, error: "PASSWORD_REQUIRED_MIN_8" };
     const role = await resolveRole(supabase, input.role_id, tenantId);
     const workspace = input.workspace || role.workspace || "operation";
-    const { data: inserted, error } = await insertClinicUser(supabase, { tenant_id: tenantId, auth_user_id: null, role: role.role_key, role_id: role.id, role_template_id: role.is_system_role ? role.id : null, full_name: input.full_name.trim(), email: input.email.trim().toLowerCase(), phone: input.phone?.trim() || null, is_active: true });
+    const { data: inserted, error } = await insertClinicUser(supabase, { tenant_id: tenantId, auth_user_id: null, role: role.role_key, role_id: role.id, role_template_id: role.is_system_role ? role.id : null, full_name: input.full_name.trim(), email: input.email.trim().toLowerCase(), phone: input.phone?.trim() || null, is_active: input.is_active });
     if (error || !inserted) return { success: false, error: error?.code === "USER_EMAIL_EXISTS" ? "USER_EMAIL_OR_USER_EXISTS" : error?.code === "USER_EMPLOYEE_CODE_EXISTS" ? "USER_EMPLOYEE_CODE_EXISTS" : "USER_CREATE_FAILED" };
     const { error: workspaceError } = await supabase.from("clinic_user_workspaces").insert({ tenant_id: tenantId, user_id: inserted.id, workspace, is_default: true });
     if (workspaceError) { await supabase.from("clinic_users").delete().eq("id", inserted.id).eq("tenant_id", tenantId); return { success: false, error: "USER_WORKSPACE_SETUP_FAILED" }; }
-    const authResult = await provisionAuthAccount(inserted, tenantId);
-    if (!authResult.success || !authResult.userId) { await supabase.from("clinic_users").delete().eq("id", inserted.id).eq("tenant_id", tenantId); return { success: false, error: authResult.error || "AUTH_INVITATION_FAILED" }; }
+    const authResult = await provisionAuthAccount(inserted, tenantId, input.password, input.is_active);
+    if (!authResult.success || !authResult.userId) { await supabase.from("clinic_users").delete().eq("id", inserted.id).eq("tenant_id", tenantId); return { success: false, error: authResult.error || "AUTH_ACCOUNT_CREATE_FAILED" }; }
     const { error: linkError } = await supabase.from("clinic_users").update({ auth_user_id: authResult.userId }).eq("id", inserted.id).eq("tenant_id", tenantId).is("auth_user_id", null);
     if (linkError) { try { await createAdminClient().auth.admin.deleteUser(authResult.userId); } catch {} await supabase.from("clinic_users").delete().eq("id", inserted.id).eq("tenant_id", tenantId); return { success: false, error: "AUTH_LINK_FAILED" }; }
     try { await applyAccessConfiguration(supabase, inserted.id, tenantId, user.id, input.directPermissionIds, input.revokedPermissionIds); } catch (error) { try { await createAdminClient().auth.admin.deleteUser(authResult.userId); } catch {} await supabase.from("clinic_users").delete().eq("id", inserted.id).eq("tenant_id", tenantId); return { success: false, error: typeof error === "string" ? error : "USER_ACCESS_SETUP_FAILED" }; }
     revalidatePath("/settings");
-    return { success: true, error: null, userId: inserted.id, activationLink: authResult.activationLink, emailSent: authResult.emailSent };
+    return { success: true, error: null, userId: inserted.id, emailSent: false };
   } catch (err) { return { success: false, error: typeof err === "string" ? err : err instanceof Error ? err.message : "UNKNOWN" }; }
 }
 
@@ -129,19 +139,12 @@ export async function activateClinicUserAccount(userId: string): Promise<UserAct
     await requirePermission(user.id, tenantId, "users:update");
     const target = await loadTarget(supabase, userId, tenantId);
     if (target.auth_user_id === user.id) return { success: false, error: "CLINIC_ADMIN_ACCOUNT_PROTECTED" };
-    if (!target.email) return { success: false, error: "USER_EMAIL_REQUIRED" };
-    if (target.auth_user_id) {
-      const { error } = await createAdminClient().auth.admin.updateUserById(target.auth_user_id, { ban_duration: "0s" });
-      if (error) return { success: false, error: "AUTH_REACTIVATION_FAILED" };
-      const { error: dbError } = await supabase.from("clinic_users").update({ is_active: true }).eq("id", target.id).eq("tenant_id", tenantId);
-      if (dbError) return { success: false, error: "USER_STATUS_UPDATE_FAILED" };
-      revalidatePath("/settings"); return { success: true, error: null, userId: target.id, emailSent: false };
-    }
-    const authResult = await provisionAuthAccount({ id: target.id, email: target.email, full_name: target.full_name }, tenantId);
-    if (!authResult.success || !authResult.userId) return { success: false, error: authResult.error || "AUTH_INVITATION_FAILED" };
-    const { error: linkError } = await supabase.from("clinic_users").update({ auth_user_id: authResult.userId, is_active: true }).eq("id", target.id).eq("tenant_id", tenantId).is("auth_user_id", null);
-    if (linkError) { try { await createAdminClient().auth.admin.deleteUser(authResult.userId); } catch {} return { success: false, error: "AUTH_LINK_FAILED" }; }
-    revalidatePath("/settings"); return { success: true, error: null, userId: target.id, activationLink: authResult.activationLink, emailSent: authResult.emailSent };
+    if (!target.auth_user_id) return { success: false, error: "PASSWORD_REQUIRED_FOR_ACTIVATION" };
+    const { error } = await createAdminClient().auth.admin.updateUserById(target.auth_user_id, { ban_duration: "0s" });
+    if (error) return { success: false, error: "AUTH_REACTIVATION_FAILED" };
+    const { error: dbError } = await supabase.from("clinic_users").update({ is_active: true }).eq("id", target.id).eq("tenant_id", tenantId);
+    if (dbError) return { success: false, error: "USER_STATUS_UPDATE_FAILED" };
+    revalidatePath("/settings"); return { success: true, error: null, userId: target.id, emailSent: false };
   } catch (err) { return { success: false, error: typeof err === "string" ? err : err instanceof Error ? err.message : "UNKNOWN" }; }
 }
 
@@ -157,8 +160,27 @@ export async function updateClinicUser(input: UpdateUserInput): Promise<UserActi
     if (input.email !== undefined) { const normalizedEmail = input.email.trim().toLowerCase(); await assertEmailAvailable(supabase, tenantId, normalizedEmail, input.id); updatePayload.email = normalizedEmail; }
     if (input.phone !== undefined) updatePayload.phone = input.phone.trim() || null;
     if (input.role_id !== undefined) { const role = await resolveRole(supabase, input.role_id, tenantId); updatePayload.role_id = role.id; updatePayload.role = role.role_key; updatePayload.role_template_id = role.is_system_role ? role.id : null; }
-    if (!Object.keys(updatePayload).length && !input.workspace && input.directPermissionIds === undefined && input.revokedPermissionIds === undefined) return { success: false, error: "NO_FIELDS_TO_UPDATE" };
-    if (input.email !== undefined && target.auth_user_id) { const { error: authError } = await createAdminClient().auth.admin.updateUserById(target.auth_user_id, { email: input.email.trim().toLowerCase() }); if (authError) return { success: false, error: "AUTH_EMAIL_UPDATE_FAILED" }; }
+    if (input.is_active !== undefined) updatePayload.is_active = input.is_active;
+    if (!Object.keys(updatePayload).length && input.password === undefined && !input.workspace && input.directPermissionIds === undefined && input.revokedPermissionIds === undefined) return { success: false, error: "NO_FIELDS_TO_UPDATE" };
+    const admin = createAdminClient();
+    if (input.email !== undefined && target.auth_user_id) { const { error: authError } = await admin.auth.admin.updateUserById(target.auth_user_id, { email: input.email.trim().toLowerCase(), email_confirm: true }); if (authError) return { success: false, error: "AUTH_EMAIL_UPDATE_FAILED" }; }
+    if (input.password !== undefined && input.password !== "") {
+      if (input.password.length < 8) return { success: false, error: "PASSWORD_MIN_8" };
+      if (!target.auth_user_id) {
+        if (!target.email) return { success: false, error: "USER_EMAIL_REQUIRED" };
+        const authResult = await provisionAuthAccount({ id: target.id, email: input.email?.trim().toLowerCase() || target.email, full_name: input.full_name?.trim() || target.full_name }, tenantId, input.password, input.is_active ?? target.is_active);
+        if (!authResult.success || !authResult.userId) return { success: false, error: authResult.error || "AUTH_ACCOUNT_CREATE_FAILED" };
+        updatePayload.auth_user_id = authResult.userId;
+      } else {
+        const { error: authError } = await admin.auth.admin.updateUserById(target.auth_user_id, { password: input.password });
+        if (authError) return { success: false, error: "AUTH_PASSWORD_UPDATE_FAILED" };
+      }
+    } else if (input.is_active !== undefined && target.auth_user_id) {
+      const { error: authError } = await admin.auth.admin.updateUserById(target.auth_user_id, { ban_duration: input.is_active ? "0s" : "876000h" });
+      if (authError) return { success: false, error: "AUTH_STATUS_UPDATE_FAILED" };
+    } else if (input.is_active !== undefined && !target.auth_user_id && input.is_active) {
+      return { success: false, error: "PASSWORD_REQUIRED_FOR_ACTIVATION" };
+    }
     if (Object.keys(updatePayload).length) { const { error } = await supabase.from("clinic_users").update(updatePayload).eq("id", input.id).eq("tenant_id", tenantId); if (error) return { success: false, error: error.code === "23505" ? "USER_EMAIL_OR_USER_EXISTS" : "USER_UPDATE_FAILED" }; }
     if (input.workspace) { const { error: ensureWorkspaceError } = await supabase.from("clinic_user_workspaces").upsert({ tenant_id: tenantId, user_id: input.id, workspace: input.workspace, is_default: true }, { onConflict: "tenant_id,user_id,workspace" }); if (ensureWorkspaceError) return { success: false, error: "USER_WORKSPACE_UPDATE_FAILED" }; const { error: defaultError } = await supabase.from("clinic_user_workspaces").update({ is_default: false }).eq("tenant_id", tenantId).eq("user_id", input.id).neq("workspace", input.workspace); if (defaultError) return { success: false, error: "USER_WORKSPACE_UPDATE_FAILED" }; }
     if (input.directPermissionIds !== undefined || input.revokedPermissionIds !== undefined) { try { await applyAccessConfiguration(supabase, input.id, tenantId, user.id, input.directPermissionIds, input.revokedPermissionIds); } catch (error) { return { success: false, error: typeof error === "string" ? error : "USER_ACCESS_UPDATE_FAILED" }; } }
@@ -173,7 +195,9 @@ export async function toggleClinicUserActive(userId: string, isActive: boolean):
     await requirePermission(user.id, tenantId, "users:delete");
     const target = await loadTarget(supabase, userId, tenantId);
     if (target.auth_user_id === user.id) return { success: false, error: "CLINIC_ADMIN_ACCOUNT_PROTECTED" };
-    if (target.auth_user_id) { const { error: authError } = await createAdminClient().auth.admin.updateUserById(target.auth_user_id, { ban_duration: isActive ? "0s" : "876000h" }); if (authError) return { success: false, error: "AUTH_STATUS_UPDATE_FAILED" }; }
+    if (!target.auth_user_id) return { success: false, error: "PASSWORD_REQUIRED_FOR_ACTIVATION" };
+    const { error: authError } = await createAdminClient().auth.admin.updateUserById(target.auth_user_id, { ban_duration: isActive ? "0s" : "876000h" });
+    if (authError) return { success: false, error: "AUTH_STATUS_UPDATE_FAILED" };
     const { error } = await supabase.from("clinic_users").update({ is_active: isActive }).eq("id", userId).eq("tenant_id", tenantId);
     if (error) return { success: false, error: "USER_STATUS_UPDATE_FAILED" };
     revalidatePath("/settings"); return { success: true, error: null };
