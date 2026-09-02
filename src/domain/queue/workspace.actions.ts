@@ -30,7 +30,6 @@ function patientFlowPermission(context: PatientFlowContext) {
 
 export async function registerPatientArrival(data: { sessionId?: string; patient_id: string; doctor_id?: string; room_id?: string; agenda_event_id?: string }): Promise<EnrichedSession> {
   const { supabase, user, tenantId, permissions } = await getContext();
-  requirePermission(permissions, "workspace:operation");
   requirePermission(permissions, "sessions:update");
   if (data.sessionId) {
     const { data: session, error } = await supabase.from("clinic_visit_sessions").update({ arrived_at: new Date().toISOString(), session_status: "waiting", initialized_by_receptionist: user.id, updated_at: new Date().toISOString() }).eq("id", data.sessionId).eq("tenant_id", tenantId).select().single();
@@ -51,7 +50,6 @@ export async function transitionToClinical(sessionId: string): Promise<EnrichedS
 
 export async function transitionToPendingReception(sessionId: string): Promise<EnrichedSession> {
   const { supabase, user, tenantId, permissions } = await getContext();
-  requirePermission(permissions, "workspace:clinical");
   requirePermission(permissions, "sessions:update");
   const { data: current, error: readError } = await supabase.from("clinic_visit_sessions").select("session_status, doctor_id, lock_holder_id").eq("id", sessionId).eq("tenant_id", tenantId).single();
   if (readError || !current) throw new Error("Session not found");
@@ -121,7 +119,6 @@ export async function moveFromPatientFlow(sessionId: string, target: SessionStat
 
 async function transitionSession(sessionId: string, target: SessionStatus, workspace: WorkspaceContext) {
   const { supabase, user, tenantId, permissions } = await getContext();
-  requirePermission(permissions, `workspace:${workspace}`);
   requirePermission(permissions, "sessions:update");
   const { data: current, error: readError } = await supabase.from("clinic_visit_sessions").select("session_status, doctor_id, lock_holder_id").eq("id", sessionId).eq("tenant_id", tenantId).single();
   if (readError || !current) throw new Error("Session not found");
