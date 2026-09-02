@@ -6,9 +6,16 @@ import { getEffectivePermissions } from "@/core/permissions/permissionEngine";
 function appUrl() {
   const configured = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_APP_URL;
   const vercel = process.env.VERCEL_PROJECT_PRODUCTION_URL || process.env.VERCEL_URL;
-  const url = configured || (vercel ? `https://${vercel}` : "");
-  if (!url) throw new Error("APPLICATION_URL_NOT_CONFIGURED");
-  return url.replace(/\/$/, "");
+
+  // Never generate authentication links to a local development origin in production.
+  // A stale NEXT_PUBLIC_* value must not override Vercel's real production URL.
+  const configuredUrl = configured?.trim().replace(/\/$/, "");
+  const isLocalhost = !!configuredUrl && /^(https?:\/\/)?(localhost|127\.0\.0\.1)(:\d+)?$/i.test(configuredUrl);
+
+  if (configuredUrl && !isLocalhost) return configuredUrl;
+  if (vercel) return `https://${vercel.replace(/^https?:\/\//, "").replace(/\/$/, "")}`;
+
+  throw new Error("APPLICATION_URL_NOT_CONFIGURED");
 }
 
 export async function sendUserActivationEmail(userId: string): Promise<{ success: boolean; error: string | null }> {
