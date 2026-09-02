@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { ChevronDown, LogOut, Menu, X } from "lucide-react";
 import { getSidebarNavigation, type NavItem } from "@/core/navigation/navigationRegistry";
+import type { BusinessWorkspaceKey } from "@/core/workspace/currentWorkspace";
 import { usePermissions } from "@/core/permissions/usePermissions";
 import { useEntitlements } from "@/core/entitlements/useEntitlements";
 import { createClient } from "@/infrastructure/supabase/client";
@@ -13,9 +14,15 @@ import { useI18n } from "@/core/i18n/I18nProvider";
 import { LanguageSwitcher } from "@/core/i18n/LanguageSwitcher";
 import { GlobalSearch } from "@/core/search/GlobalSearch";
 
-interface WorkspaceShellProps { children: React.ReactNode; user: { email?: string; user_metadata?: { full_name?: string; name?: string } } | null; }
+interface WorkspaceShellProps { children: React.ReactNode; user: { email?: string; user_metadata?: { full_name?: string; name?: string } } | null; assignedWorkspace: BusinessWorkspaceKey | null; }
 
-export function EntitlementAwareWorkspaceShell({ children, user }: WorkspaceShellProps) {
+const WORKSPACE_LABELS: Record<BusinessWorkspaceKey, { ar: string; en: string }> = {
+  administration: { ar: "مساحة الإدارة", en: "Administration Workspace" },
+  operation: { ar: "مساحة التشغيل", en: "Operational Workspace" },
+  clinical: { ar: "المساحة الطبية", en: "Clinical Workspace" },
+};
+
+export function EntitlementAwareWorkspaceShell({ children, user, assignedWorkspace }: WorkspaceShellProps) {
   const pathname = usePathname();
   const router = useRouter();
   const { hasPermission, isLoading: permissionsLoading } = usePermissions();
@@ -33,7 +40,12 @@ export function EntitlementAwareWorkspaceShell({ children, user }: WorkspaceShel
     (!item.capabilityKey || hasCapability(item.capabilityKey));
 
   const filterChildren = (item: NavItem): NavItem => ({ ...item, children: item.children?.filter(canSee).map(filterChildren) });
-  const filteredNav = getSidebarNavigation().map(filterChildren).filter((item) => accessLoading || canSee(item) || (item.children && item.children.length > 0));
+  const filteredNav = getSidebarNavigation()
+    .map(filterChildren)
+    .map((item) => item.href === "/workspace" && assignedWorkspace
+      ? { ...item, href: `/${assignedWorkspace}`, label: WORKSPACE_LABELS[assignedWorkspace], labelKey: null }
+      : item)
+    .filter((item) => accessLoading || canSee(item) || (item.children && item.children.length > 0));
 
   const handleSignOut = async () => { await supabase.auth.signOut(); router.push("/login"); router.refresh(); };
   const closeSidebar = () => setSidebarOpen(false);
