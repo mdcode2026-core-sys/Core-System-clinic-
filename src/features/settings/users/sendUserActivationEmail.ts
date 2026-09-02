@@ -2,21 +2,7 @@
 
 import { createClient } from "@/infrastructure/supabase/server";
 import { getEffectivePermissions } from "@/core/permissions/permissionEngine";
-
-function appUrl() {
-  const configured = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_APP_URL;
-  const vercel = process.env.VERCEL_PROJECT_PRODUCTION_URL || process.env.VERCEL_URL;
-
-  // Never generate authentication links to a local development origin in production.
-  // A stale NEXT_PUBLIC_* value must not override Vercel's real production URL.
-  const configuredUrl = configured?.trim().replace(/\/$/, "");
-  const isLocalhost = !!configuredUrl && /^(https?:\/\/)?(localhost|127\.0\.0\.1)(:\d+)?$/i.test(configuredUrl);
-
-  if (configuredUrl && !isLocalhost) return configuredUrl;
-  if (vercel) return `https://${vercel.replace(/^https?:\/\//, "").replace(/\/$/, "")}`;
-
-  throw new Error("APPLICATION_URL_NOT_CONFIGURED");
-}
+import { getAppUrl } from "@/core/auth/appUrl";
 
 export async function sendUserActivationEmail(userId: string): Promise<{ success: boolean; error: string | null }> {
   try {
@@ -43,22 +29,28 @@ export async function sendUserActivationEmail(userId: string): Promise<{ success
       .maybeSingle();
     if (targetError || !target) return { success: false, error: "USER_NOT_FOUND" };
     if (target.role === "clinic_admin" || target.auth_user_id === caller.id) return { success: false, error: "CLINIC_ADMIN_ACCOUNT_PROTECTED" };
-    if (!target.auth_user_id || !target.email) return { success: false, error: "USER_AUTH_ACCOUNT_MISSING" };
+    if (!target.email) return { success: false, error: "USER_EMAIL_MISSING" };
 
-    // Pending users receive the real invitation. Existing users (including an account
-    // whose original activation was missed) receive a password-setup recovery email.
+    const appUrl = getAppUrl();
+
+    // Pending accounts use the original invitation flow. Existing accounts use
+    // password recovery so an employee who missed the original invitation can
+    // establish a password without changing the clinic user identity.
     if (target.account_status === "pending") {
+      if (!target.auth_user_id) return { success: false, error: "USER_AUTH_ACCOUNT_MISSING" };
       const { error } = await supabase.auth.resend({
         type: "signup",
         email: target.email,
-        options: { emailRedirectTo: `${appUrl()}/activate` },
+        options: { emailRedirectTo: `${appUrl}/activate` },
       });
       if (error) return { success: false, error: "AUTH_INVITATION_RESEND_FAILED" };
-    } else {
+    } else if (target.account_status === "active") {
       const { error } = await supabase.auth.resetPasswordForEmail(target.email, {
-        redirectTo: `${appUrl()}/reset-password`,
+        redirectTo: `${appUrl}/reset-password`,
       });
       if (error) return { success: false, error: "AUTH_PASSWORD_SETUP_EMAIL_FAILED" };
+    } else {
+      return { success: false, error: "USER_NOT_ELIGIBLE_FOR_ACTIVATION_EMAIL" };
     }
 
     return { success: true, error: null };
