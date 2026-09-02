@@ -22,6 +22,20 @@ export default function ResetPasswordPage() {
     let active = true;
 
     const initialiseRecovery = async () => {
+      const query = new URLSearchParams(window.location.search);
+      const code = query.get("code");
+      if (code) {
+        const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
+        if (exchangeError) {
+          if (active) {
+            setError("This password setup link is invalid or expired. Please ask the clinic administrator to send a new email.");
+            setReady(true);
+          }
+          return;
+        }
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+
       const hash = window.location.hash;
       const params = new URLSearchParams(hash.startsWith("#") ? hash.slice(1) : hash);
       const accessToken = params.get("access_token");
@@ -36,7 +50,7 @@ export default function ResetPasswordPage() {
           }
           return;
         }
-        window.history.replaceState({}, document.title, `${window.location.pathname}${window.location.search}`);
+        window.history.replaceState({}, document.title, window.location.pathname);
       }
 
       const { data, error: authError } = await supabase.auth.getUser();
