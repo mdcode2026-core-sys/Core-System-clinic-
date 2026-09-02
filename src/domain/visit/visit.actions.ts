@@ -23,7 +23,6 @@ function requirePermission(permissions: string[], key: string) {
 
 export async function getClinicalVisit(sessionId: string): Promise<ClinicalVisitRecord | null> {
   const { supabase, tenantId, permissions } = await getContext();
-  requirePermission(permissions, "workspace:clinical");
   requirePermission(permissions, "visits:read");
   const { data, error } = await supabase.from("clinic_visit_sessions").select(`id,tenant_id,patient_id,doctor_id,room_id,agenda_event_id,session_status,session_started_at,session_ended_at,visit_closed_at,examination,findings,decision,clinic_patients(first_name,last_name,phone_primary,file_number),clinic_users!clinic_visit_sessions_doctor_id_fkey(full_name),clinic_rooms(room_name),clinic_visit_procedures(id,procedure_id,quantity,notes,performed_at,clinic_procedures(procedure_name))`).eq("id", sessionId).eq("tenant_id", tenantId).single();
   if (error || !data) return null;
@@ -33,7 +32,6 @@ export async function getClinicalVisit(sessionId: string): Promise<ClinicalVisit
 
 export async function getClinicalProcedures() {
   const { supabase, tenantId, permissions } = await getContext();
-  requirePermission(permissions, "workspace:clinical");
   requirePermission(permissions, "visits:read");
   const { data, error } = await supabase.from("clinic_procedures").select("id,procedure_name,procedure_name_ar").eq("tenant_id", tenantId).eq("is_active", true).order("display_order", { ascending: true, nullsFirst: false }).order("procedure_name");
   if (error) throw new Error("PROCEDURE_FETCH_FAILED");
@@ -42,7 +40,6 @@ export async function getClinicalProcedures() {
 
 export async function saveClinicalVisit(sessionId: string, input: ClinicalVisitData): Promise<void> {
   const { supabase, tenantId, permissions } = await getContext();
-  requirePermission(permissions, "workspace:clinical");
   requirePermission(permissions, "visits:update");
   const examination = input.examination.trim(); const findings = input.findings.trim(); const decision = input.decision.trim();
   if (!examination && !findings && !decision) throw new Error("EMPTY_DOCUMENTATION");
@@ -53,7 +50,7 @@ export async function saveClinicalVisit(sessionId: string, input: ClinicalVisitD
 
 export async function addVisitProcedure(sessionId: string, procedureId: string, quantity = 1, notes?: string): Promise<void> {
   const { supabase, user, tenantId, permissions } = await getContext();
-  requirePermission(permissions, "workspace:clinical"); requirePermission(permissions, "visits:update");
+  requirePermission(permissions, "visits:update");
   if (!Number.isInteger(quantity) || quantity < 1) throw new Error("INVALID_QUANTITY");
   const { data: session, error: sessionError } = await supabase.from("clinic_visit_sessions").select("id,session_status").eq("id", sessionId).eq("tenant_id", tenantId).single();
   if (sessionError || !session || session.session_status !== "in_consultation") throw new Error("VISIT_NOT_ACTIVE");
@@ -64,7 +61,7 @@ export async function addVisitProcedure(sessionId: string, procedureId: string, 
 
 export async function removeVisitProcedure(procedureRowId: string): Promise<void> {
   const { supabase, tenantId, permissions } = await getContext();
-  requirePermission(permissions, "workspace:clinical"); requirePermission(permissions, "visits:update");
+  requirePermission(permissions, "visits:update");
   const { error } = await supabase.from("clinic_visit_procedures").delete().eq("id", procedureRowId).eq("tenant_id", tenantId);
   if (error) throw new Error("PROCEDURE_REMOVE_FAILED");
   revalidatePath("/(dashboard)/clinical");
