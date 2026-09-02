@@ -16,15 +16,27 @@ function isBusinessWorkspace(value: string | null | undefined): value is Busines
 export async function getAssignedWorkspace(userId: string): Promise<BusinessWorkspaceKey | null> {
   const supabase = await createClient();
 
-  const { data: membership } = await supabase
+  const { data: defaultMembership } = await supabase
     .from("clinic_user_workspaces")
     .select("workspace")
     .eq("user_id", userId)
     .eq("is_default", true)
     .is("deleted_at", null)
+    .limit(1)
     .maybeSingle();
 
-  return isBusinessWorkspace(membership?.workspace) ? membership.workspace : null;
+  if (isBusinessWorkspace(defaultMembership?.workspace)) return defaultMembership.workspace;
+
+  // Preserve compatibility with existing assignments that predate the default flag.
+  const { data: anyMembership } = await supabase
+    .from("clinic_user_workspaces")
+    .select("workspace")
+    .eq("user_id", userId)
+    .is("deleted_at", null)
+    .limit(1)
+    .maybeSingle();
+
+  return isBusinessWorkspace(anyMembership?.workspace) ? anyMembership.workspace : null;
 }
 
 export function workspaceRoute(workspace: BusinessWorkspaceKey): string {
