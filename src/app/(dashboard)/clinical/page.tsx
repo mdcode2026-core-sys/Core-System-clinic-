@@ -1,7 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/infrastructure/supabase/server";
 import { getAssignedWorkspace, workspaceRoute } from "@/core/workspace/currentWorkspace";
-import { hasEffectivePermission } from "@/core/permissions/permissionEngine";
 import { getQueue } from "@/domain/queue/queue.queries";
 import { ClinicalWorkspace } from "@/features/workspaces/ClinicalWorkspace";
 
@@ -12,8 +11,6 @@ export default async function ClinicalWorkspacePage() {
 
   const assignedWorkspace = await getAssignedWorkspace(user.id);
   if (assignedWorkspace !== "clinical") redirect(assignedWorkspace ? workspaceRoute(assignedWorkspace) : "/");
-
-  if (!(await hasEffectivePermission("workspace:clinical", user.id))) redirect("/");
 
   const queue = await getQueue();
   return (
