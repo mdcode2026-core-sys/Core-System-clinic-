@@ -83,7 +83,7 @@ export async function getActiveDoctors(): Promise<{ id: string; full_name: strin
   const providers = [] as { id: string; full_name: string; specialization: string | null }[];
   for (const user of data ?? []) {
     const permissions = await getEffectivePermissions(user.id, tenantId);
-    if (permissions.includes("workspace:clinical")) providers.push(user);
+    if (permissions.includes("visits:read")) providers.push(user);
   }
   return providers;
 }
