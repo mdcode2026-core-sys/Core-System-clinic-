@@ -8,7 +8,7 @@ export default async function WorkspacePage() {
   if (!user) redirect("/login");
 
   const assignedWorkspace = await getAssignedWorkspace(user.id);
-  if (!assignedWorkspace) redirect("/settings");
+  if (assignedWorkspace) redirect(workspaceRoute(assignedWorkspace));
 
-  redirect(workspaceRoute(assignedWorkspace));
+  redirect("/");
 }
