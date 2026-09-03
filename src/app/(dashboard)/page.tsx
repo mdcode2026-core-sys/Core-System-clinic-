@@ -1,5 +1,6 @@
 // src/app/(dashboard)/page.tsx
 // Home is the ordinary clinic user's landing page. Workspace is a separate work surface.
+// Stage 9 invariant: Home remains the general overview surface; Workspace remains the execution surface.
 
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";

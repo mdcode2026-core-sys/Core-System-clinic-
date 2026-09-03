@@ -14,7 +14,7 @@ const dashboard = read(required[0]);
 const messages = read(required[1]);
 const navigation = read(required[2]);
 const analytics = read(required[3]);
-const workspaceHome = read(required[4]);
+const home = read(required[4]);
 const financialOverview = read(required[5]);
 
 const dashboardNavEntry = /href:\s*["']\/dashboard["'][\s\S]*requiredPermission:\s*["']analytics:read["']/.test(navigation);
@@ -27,7 +27,7 @@ const checks = [
   ["dashboard tenant resolution", dashboard.includes("resolveTenantId(user.id)")],
   ["dashboard bilingual messages", messages.includes("ar:") && messages.includes("en:") && messages.includes("getDashboardMessages")],
   ["dashboard sidebar entry uses existing permission", dashboardNavEntry],
-  ["home remains Workspace", workspaceHome.includes("WorkspaceRenderer") && !workspaceHome.includes("ManagementDashboardPage")],
+  ["home remains general overview surface", !home.includes("WorkspaceRenderer") && !home.includes("ManagementDashboardPage")],
   ["financial overview remains contextual", financialOverview.includes("FinancialResourcesOverviewPage")],
   ["analytics action authenticates caller", analytics.includes('supabase.auth.getUser()') && analytics.includes('user.id !== authUserId')],
   ["analytics action enforces permission", analytics.includes("getEffectivePermissions") && analytics.includes('analytics:read')],

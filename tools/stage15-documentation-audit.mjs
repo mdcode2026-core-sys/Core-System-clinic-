@@ -1,14 +1,14 @@
 import { readFileSync, existsSync } from "node:fs";
 
+// The dated Global UX/IA execution artifacts below were superseded/neutralized before this
+// remediation. Stage 15 must validate the current documentation authority, not require retired
+// execution-plan files to be resurrected.
 const required = [
   "DOCUMENTATION_STATUS.md",
   "PROJECT_HANDOFF.md",
   "MASTER_ROADMAP.md",
   "ARCHITECTURE_DECISIONS.md",
   "ENGINEERING_CONSTITUTION.md",
-  "GLOBAL_UX_IA_FINAL_AUTHORITY_2026-08-28.md",
-  "CORE-SYSTEM-GLOBAL-UX-IA-MASTER-EXECUTION.md",
-  "docs/GLOBAL-UX-IA-IMPLEMENTATION-PLAN-2026-08-28-FINAL.md",
   "docs/STAGE12-IMPLEMENTATION-RECORD-2026-08-29.md",
   "docs/STAGE12-CLOSURE-PRODUCTION-READINESS-2026-08-29.md",
   "docs/STAGE13-IMPLEMENTATION-RECORD-2026-08-29.md",
