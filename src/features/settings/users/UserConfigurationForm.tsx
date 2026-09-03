@@ -45,11 +45,14 @@ export function UserConfigurationForm({ user, roles, onClose, onSaved, onError }
   const isProtected = Boolean(user?.role === "clinic_admin");
 
   useEffect(() => {
-    setFullName(user?.full_name ?? "");
-    setEmail(user?.email ?? "");
-    setPhone(user?.phone ?? "");
-    setRoleId(user?.role_id ?? "");
-    setWorkspace((user?.role_workspace as UserWorkspace) || "operation");
+    const timer = window.setTimeout(() => {
+      setFullName(user?.full_name ?? "");
+      setEmail(user?.email ?? "");
+      setPhone(user?.phone ?? "");
+      setRoleId(user?.role_id ?? "");
+      setWorkspace((user?.role_workspace as UserWorkspace) || "operation");
+    }, 0);
+    return () => window.clearTimeout(timer);
   }, [user]);
 
   useEffect(() => {
@@ -57,7 +60,8 @@ export function UserConfigurationForm({ user, roles, onClose, onSaved, onError }
     const next: Record<string, AccessState> = {};
     for (const row of direct as any[]) if (row.granted) next[row.permission_id] = "granted";
     for (const row of overrides as any[]) if (!row.granted && !next[row.permission_id]) next[row.permission_id] = "revoked";
-    setAccess(next);
+    const timer = window.setTimeout(() => setAccess(next), 0);
+    return () => window.clearTimeout(timer);
   }, [user, direct, overrides, directLoading, overridesLoading]);
 
   const selectedRole = useMemo(() => roles.find(role => role.id === roleId), [roles, roleId]);
