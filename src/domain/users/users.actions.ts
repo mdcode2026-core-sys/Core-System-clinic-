@@ -63,12 +63,13 @@ async function createDirectAuthAccount(email: string, password: string, target: 
 }
 async function setDirectAuthPassword(authUserId: string, password: string) {
   if (password.length < 6) throw "PASSWORD_REQUIRED";
+  if (!authUserId) throw "USER_AUTH_ACCOUNT_NOT_READY";
   const { error } = await createAdminClient().auth.admin.updateUserById(authUserId, { password, email_confirm: true });
   if (error) throw error.message || "AUTH_PASSWORD_UPDATE_FAILED";
 }
 async function insertClinicUser(supabase: any, payload: Record<string, unknown>) {
   for (let attempt = 0; attempt < 5; attempt += 1) {
-    const { data, error } = await supabase.from("clinic_users").insert({ ...payload, id: crypto.randomUUID(), employee_code: generateEmployeeCode(), pin_code: "" }).select("id,full_name,email").single();
+    const { data, error } = await supabase.from("clinic_users").insert({ ...payload, id: (payload.id as string | undefined) ?? crypto.randomUUID(), employee_code: generateEmployeeCode(), pin_code: "" }).select("id,full_name,email").single();
     if (!error && data) return { data, error: null };
     if (error?.code !== "23505") return { data: null, error };
     const message = String(error?.message || "");
@@ -107,7 +108,7 @@ export async function createClinicUser(input: CreateUserInput): Promise<UserActi
       const status = input.accountStatus === "inactive" ? "inactive" : "active";
       const { data: inserted, error } = await insertClinicUser(supabase, { id: provisionalId, tenant_id: tenantId, auth_user_id: authUser.id, role: role.role_key, role_id: role.id, role_template_id: role.is_system_role ? role.id : null, full_name: input.full_name.trim(), email: normalizedEmail, phone: input.phone?.trim() || null, is_active: status === "active", account_status: status, pending_email: null });
       if (error || !inserted) { try { await createAdminClient().auth.admin.deleteUser(authUser.id); } catch {} return { success: false, error: error?.code === "USER_EMAIL_EXISTS" ? "USER_EMAIL_OR_USER_EXISTS" : "USER_CREATE_FAILED" }; }
-      try { await supabase.from("clinic_user_workspaces").insert({ tenant_id: tenantId, user_id: inserted.id, workspace, is_default: true }); await applyAccessConfiguration(supabase, inserted.id, tenantId, user.id, input.directPermissionIds, input.revokedPermissionIds); if (status === "inactive") await createAdminClient().auth.admin.updateUserById(authUser.id, { ban_duration: "876000h" }); } catch (e) { try { await createAdminClient().auth.admin.deleteUser(authUser.id); } catch {} await supabase.from("clinic_users").delete().eq("id", inserted.id).eq("tenant_id", tenantId); return { success: false, error: typeof e === "string" ? e : "USER_SETUP_FAILED" }; }
+      try { const { error: workspaceError } = await supabase.from("clinic_user_workspaces").insert({ tenant_id: tenantId, user_id: inserted.id, workspace, is_default: true }); if (workspaceError) throw "USER_WORKSPACE_SETUP_FAILED"; await applyAccessConfiguration(supabase, inserted.id, tenantId, user.id, input.directPermissionIds, input.revokedPermissionIds); if (status === "inactive") { const { error: banError } = await createAdminClient().auth.admin.updateUserById(authUser.id, { ban_duration: "876000h" }); if (banError) throw "AUTH_STATUS_UPDATE_FAILED"; } } catch (e) { try { await createAdminClient().auth.admin.deleteUser(authUser.id); } catch {} await supabase.from("clinic_users").delete().eq("id", inserted.id).eq("tenant_id", tenantId); return { success: false, error: typeof e === "string" ? e : "USER_SETUP_FAILED" }; }
       revalidatePath("/settings"); return { success: true, error: null, userId: inserted.id, emailSent: false };
     }
     const { data: inserted, error } = await insertClinicUser(supabase, { tenant_id: tenantId, auth_user_id: null, role: role.role_key, role_id: role.id, role_template_id: role.is_system_role ? role.id : null, full_name: input.full_name.trim(), email: normalizedEmail, phone: input.phone?.trim() || null, is_active: false, account_status: "pending", pending_email: null });
@@ -138,7 +139,7 @@ export async function updateClinicUser(input: UpdateUserInput): Promise<UserActi
     if (input.email !== undefined) { const normalizedEmail = input.email.trim().toLowerCase(); if (normalizedEmail !== (target.email ?? "").toLowerCase()) { await assertEmailAvailable(supabase, tenantId, normalizedEmail, input.id); updatePayload.pending_email = normalizedEmail; } }
     if (input.directActivation) { updatePayload.account_status = input.accountStatus === "inactive" ? "inactive" : "active"; updatePayload.is_active = input.accountStatus !== "inactive"; }
     if (Object.keys(updatePayload).length) { const { error } = await supabase.from("clinic_users").update(updatePayload).eq("id", input.id).eq("tenant_id", tenantId); if (error) return { success: false, error: error.code === "23505" ? "USER_EMAIL_OR_USER_EXISTS" : "USER_UPDATE_FAILED" }; }
-    if (input.directActivation && target.auth_user_id) await createAdminClient().auth.admin.updateUserById(target.auth_user_id, { ban_duration: input.accountStatus === "inactive" ? "876000h" : "0s" });
+    if (input.directActivation && target.auth_user_id) { const { error } = await createAdminClient().auth.admin.updateUserById(target.auth_user_id, { ban_duration: input.accountStatus === "inactive" ? "876000h" : "0s" }); if (error) return { success: false, error: "AUTH_STATUS_UPDATE_FAILED" }; }
     if (input.workspace) await updateWorkspaceAssignment(supabase, tenantId, input.id, input.workspace);
     if (input.directPermissionIds !== undefined || input.revokedPermissionIds !== undefined) await applyAccessConfiguration(supabase, input.id, tenantId, user.id, input.directPermissionIds, input.revokedPermissionIds);
     revalidatePath("/settings"); return { success: true, error: null, userId: input.id, emailSent: false };
