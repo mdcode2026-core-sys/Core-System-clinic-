@@ -7,11 +7,9 @@
 - Recovery branch: `remediation-0903`
 - Production Supabase migration ledger was read directly before remediation.
 - Repository migration tree was read directly from `supabase/migrations/`.
-- Production ledger also contains several historical migrations whose exact timestamped filenames are not present in the repository; in multiple cases the repository contains a semantically related migration under a different local timestamp/name. Those are still recorded as ledger gaps because the contract requires exact ledger-to-repository traceability.
+- Production ledger also contains historical migrations whose exact timestamped filenames are not present in the repository; several have semantically related repository migrations under different local timestamps/names. These remain recorded as exact ledger gaps.
 
 ## Live migration versions without an exact repository filename at baseline
-
-The following production ledger versions were not represented by an exact `supabase/migrations/<version>_*.sql` filename at baseline:
 
 ```text
 20260809150855
@@ -139,14 +137,14 @@ The following production ledger versions were not represented by an exact `supab
 20260901234352
 ```
 
-## Important interpretation
+## Interpretation
 
-This document is a reconciliation record, not a request to replay or recreate historical migrations. The remediation contract is additive/non-breaking and uses new migrations for the changes executed on 2026-09-03. Historical ledger gaps are not silently rewritten or substituted.
+This is a reconciliation record, not a request to replay historical migrations. Historical gaps are not silently rewritten or substituted. The approved remediation is represented by new additive migrations below.
 
-## New migrations added by this remediation
+## Remediation migrations applied to Production and recorded in the branch
 
 - `20260903080530_approved_non_breaking_rbac_patient_flow_remediation_20260903.sql`
 - `20260903081055_patient_flow_reception_close_permission_20260903.sql`
 - `20260903081638_canonicalize_has_effective_permission_role_id_20260903.sql`
-
-These three versions were applied directly to Production through the Supabase migration mechanism and were added to the remediation branch with matching filenames.
+- `20260903081911_fix_validate_resource_rpc_public_execute_20260903.sql`
+- `20260903081943_restore_sensitive_rpc_bodies_with_contract_guards_20260903.sql`
