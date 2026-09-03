@@ -32,7 +32,13 @@ export interface UserAccessConfiguration {
   revokedPermissionIds?: string[];
 }
 
-export interface CreateUserInput extends UserAccessConfiguration {
+export interface UserActivationConfiguration {
+  directActivation?: boolean;
+  password?: string;
+  accountStatus?: UserAccountStatus;
+}
+
+export interface CreateUserInput extends UserAccessConfiguration, UserActivationConfiguration {
   full_name: string;
   email: string;
   phone?: string;
@@ -40,7 +46,7 @@ export interface CreateUserInput extends UserAccessConfiguration {
   workspace?: UserWorkspace;
 }
 
-export interface UpdateUserInput extends UserAccessConfiguration {
+export interface UpdateUserInput extends UserAccessConfiguration, UserActivationConfiguration {
   id: string;
   full_name?: string;
   email?: string;
