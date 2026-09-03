@@ -1,7 +1,7 @@
 // src/domain/queue/queue.engine.ts
 // Queue Engine: ordering, priority, flow and duration-aware ETA.
 
-import { QueueSession, EnrichedSession, SessionStatus, VisitPriority, QueueLane } from "./queue.types";
+import { EnrichedSession, SessionStatus, VisitPriority, QueueLane } from "./queue.types";
 
 export interface EngineResult { success: boolean; sessions: EnrichedSession[]; errors: string[]; }
 export interface QueueRule { name: string; apply: (sessions: EnrichedSession[]) => EnrichedSession[]; }
@@ -20,7 +20,14 @@ export class QueueEngine {
     return { success: errors.length === 0, sessions: processed, errors };
   }
   validateTransition(currentStatus: SessionStatus, newStatus: SessionStatus): { valid: boolean; reason?: string } {
-    const allowedTransitions: Record<SessionStatus, SessionStatus[]> = { waiting: ["in_consultation", "no_show", "cancelled"], in_consultation: ["pending_close", "cancelled"], pending_close: ["completed", "cancelled"], completed: [], cancelled: [], no_show: [] };
+    const allowedTransitions: Record<SessionStatus, SessionStatus[]> = {
+      waiting: ["in_consultation", "no_show", "cancelled"],
+      in_consultation: ["pending_close", "cancelled"],
+      pending_close: ["completed", "cancelled"],
+      completed: [],
+      cancelled: [],
+      no_show: [],
+    };
     const allowed = allowedTransitions[currentStatus] || [];
     return allowed.includes(newStatus) ? { valid: true } : { valid: false, reason: `Cannot transition from ${currentStatus} to ${newStatus}. Allowed: ${allowed.join(", ") || "none"}` };
   }
