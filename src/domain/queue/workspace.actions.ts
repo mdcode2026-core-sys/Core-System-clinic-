@@ -28,17 +28,49 @@ function patientFlowPermission(context: PatientFlowContext) {
   return `patient_flow:${context}`;
 }
 
+/**
+ * D6: when an agenda event is supplied, patient/doctor/room identity is authoritative
+ * from master_agenda_events. The separate Walk-in path remains unchanged.
+ */
 export async function registerPatientArrival(data: { sessionId?: string; patient_id: string; doctor_id?: string; room_id?: string; agenda_event_id?: string }): Promise<EnrichedSession> {
   const { supabase, user, tenantId, permissions } = await getContext();
   requirePermission(permissions, "sessions:update");
+
+  let patientId = data.patient_id;
+  let doctorId = data.doctor_id ?? null;
+  let roomId = data.room_id ?? null;
+  let agendaEventId = data.agenda_event_id ?? null;
+
+  if (data.agenda_event_id) {
+    const { data: agenda, error: agendaError } = await supabase
+      .from("master_agenda_events")
+      .select("id,tenant_id,patient_id,doctor_id,room_id,status")
+      .eq("id", data.agenda_event_id)
+      .eq("tenant_id", tenantId)
+      .single();
+    if (agendaError || !agenda) throw new Error("Agenda event not found");
+    if (!agenda.patient_id) throw new Error("Agenda event has no patient");
+    patientId = agenda.patient_id;
+    doctorId = agenda.doctor_id;
+    roomId = agenda.room_id;
+    agendaEventId = agenda.id;
+  }
+
   if (data.sessionId) {
-    const { data: session, error } = await supabase.from("clinic_visit_sessions").update({ arrived_at: new Date().toISOString(), session_status: "waiting", initialized_by_receptionist: user.id, updated_at: new Date().toISOString() }).eq("id", data.sessionId).eq("tenant_id", tenantId).select().single();
+    const { data: session, error } = await supabase
+      .from("clinic_visit_sessions")
+      .update({ patient_id: patientId, doctor_id: doctorId, room_id: roomId, agenda_event_id: agendaEventId, arrived_at: new Date().toISOString(), session_status: "waiting", initialized_by_receptionist: user.id, updated_at: new Date().toISOString() })
+      .eq("id", data.sessionId)
+      .eq("tenant_id", tenantId)
+      .select()
+      .single();
     if (error) throw new Error(`Arrival failed: ${error.message}`);
     revalidateWorkspacePaths();
     return session as EnrichedSession;
   }
+
   requirePermission(permissions, "sessions:create");
-  const { data: session, error } = await supabase.from("clinic_visit_sessions").insert({ tenant_id: tenantId, patient_id: data.patient_id, doctor_id: data.doctor_id ?? null, room_id: data.room_id ?? null, agenda_event_id: data.agenda_event_id ?? null, arrived_at: new Date().toISOString(), initialized_by_receptionist: user.id, session_status: "waiting", created_at: new Date().toISOString(), updated_at: new Date().toISOString() }).select().single();
+  const { data: session, error } = await supabase.from("clinic_visit_sessions").insert({ tenant_id: tenantId, patient_id: patientId, doctor_id: doctorId, room_id: roomId, agenda_event_id: agendaEventId, arrived_at: new Date().toISOString(), initialized_by_receptionist: user.id, session_status: "waiting", created_at: new Date().toISOString(), updated_at: new Date().toISOString() }).select().single();
   if (error) throw new Error(`Arrival failed: ${error.message}`);
   revalidateWorkspacePaths();
   return session as EnrichedSession;
@@ -53,10 +85,10 @@ export async function transitionToPendingReception(sessionId: string): Promise<E
   requirePermission(permissions, "sessions:update");
   const { data: current, error: readError } = await supabase.from("clinic_visit_sessions").select("session_status, doctor_id, lock_holder_id").eq("id", sessionId).eq("tenant_id", tenantId).single();
   if (readError || !current) throw new Error("Session not found");
-  if (current.lock_holder_id !== user.id && !permissions.includes("workspace:administration")) throw new Error("This clinical session is not locked by the current user");
+  if (current.lock_holder_id !== user.id && !permissions.includes(patientFlowPermission("administrative"))) throw new Error("This clinical session is not locked by the current user");
   const validation = queueEngine.validateTransition(current.session_status as SessionStatus, "pending_close");
   if (!validation.valid) throw new Error(validation.reason);
-  const { data: session, error } = await supabase.from("clinic_visit_sessions").update({ session_status: "pending_close", session_ended_at: new Date().toISOString(), lock_holder_id: null, lock_timestamp: null, updated_at: new Date().toISOString() }).eq("id", sessionId).eq("tenant_id", tenantId).select().single();
+  const { data: session, error } = await supabase.from("clinic_visit_sessions").update({ session_status: "pending_close", session_ended_at: new Date().toISOString(), lock_holder_id: null, lock_timestamp: null, updated_at: new Date().toISOString() }).eq("id", sessionId).eq("tenant_id", tenantId).eq("session_status", current.session_status).select().single();
   if (error) throw new Error(`Clinical handoff failed: ${error.message}`);
   revalidateWorkspacePaths();
   return session as EnrichedSession;
@@ -76,44 +108,21 @@ export async function moveFromPatientFlow(sessionId: string, target: SessionStat
   const { supabase, user, tenantId, permissions } = await getContext();
   requirePermission(permissions, patientFlowPermission(context));
   requirePermission(permissions, "sessions:update");
-
   const { data: current, error: readError } = await supabase.from("clinic_visit_sessions").select("session_status, doctor_id, lock_holder_id").eq("id", sessionId).eq("tenant_id", tenantId).single();
   if (readError || !current) throw new Error("Session not found");
-
-  if (context === "clinical" && target === "pending_close" && current.lock_holder_id !== user.id && !permissions.includes("patient_flow:administrative")) {
-    throw new Error("This clinical session is not locked by the current user");
-  }
-
+  if (context === "clinical" && target === "pending_close" && current.lock_holder_id !== user.id && !permissions.includes(patientFlowPermission("administrative"))) throw new Error("This clinical session is not locked by the current user");
   const validation = queueEngine.validateTransition(current.session_status as SessionStatus, target);
   if (!validation.valid) throw new Error(validation.reason);
   if (target === "in_consultation" && !current.doctor_id) throw new Error("A provider must be assigned before clinical handoff");
-
   const now = new Date().toISOString();
   const update: Record<string, unknown> = { session_status: target, updated_at: now };
-  if (target === "in_consultation") {
-    update.lock_holder_id = user.id;
-    update.lock_timestamp = now;
-    update.session_started_at = now;
-  }
-  if (target === "pending_close") {
-    update.session_ended_at = now;
-    update.lock_holder_id = null;
-    update.lock_timestamp = null;
-  }
-  if (target === "completed") {
-    update.lock_holder_id = null;
-    update.lock_timestamp = null;
-    update.visit_closed_at = now;
-  }
-  if (target === "cancelled" || target === "no_show") {
-    update.lock_holder_id = null;
-    update.lock_timestamp = null;
-  }
-
-  const { data: session, error } = await supabase.from("clinic_visit_sessions").update(update).eq("id", sessionId).eq("tenant_id", tenantId).select().single();
+  if (target === "in_consultation") { update.lock_holder_id = user.id; update.lock_timestamp = now; update.session_started_at = now; }
+  if (target === "pending_close") { update.session_ended_at = now; update.lock_holder_id = null; update.lock_timestamp = null; }
+  if (target === "completed") { update.lock_holder_id = null; update.lock_timestamp = null; update.visit_closed_at = now; }
+  if (target === "cancelled" || target === "no_show") { update.lock_holder_id = null; update.lock_timestamp = null; }
+  const { data: session, error } = await supabase.from("clinic_visit_sessions").update(update).eq("id", sessionId).eq("tenant_id", tenantId).eq("session_status", current.session_status).select().single();
   if (error) throw new Error(`Patient Flow transition failed: ${error.message}`);
-  revalidateWorkspacePaths();
-  revalidatePath("/(dashboard)/patient-flow");
+  revalidateWorkspacePaths(); revalidatePath("/(dashboard)/patient-flow");
   return session as EnrichedSession;
 }
 
@@ -122,33 +131,20 @@ async function transitionSession(sessionId: string, target: SessionStatus, works
   requirePermission(permissions, "sessions:update");
   const { data: current, error: readError } = await supabase.from("clinic_visit_sessions").select("session_status, doctor_id, lock_holder_id").eq("id", sessionId).eq("tenant_id", tenantId).single();
   if (readError || !current) throw new Error("Session not found");
-
   if (workspace === "clinical") {
     if (target === "in_consultation" && current.lock_holder_id && current.lock_holder_id !== user.id) throw new Error("This clinical session is already locked by another user");
-    if (target === "pending_close" && current.lock_holder_id !== user.id && !permissions.includes("workspace:administration")) throw new Error("This clinical session is not locked by the current user");
+    if (target === "pending_close" && current.lock_holder_id !== user.id && !permissions.includes(patientFlowPermission("administrative"))) throw new Error("This clinical session is not locked by the current user");
   }
-
   const validation = queueEngine.validateTransition(current.session_status as SessionStatus, target);
   if (!validation.valid) throw new Error(validation.reason);
   if (target === "in_consultation" && !current.doctor_id) throw new Error("A provider must be assigned before clinical handoff");
-
   const now = new Date().toISOString();
   const update: Record<string, unknown> = { session_status: target, updated_at: now };
-  if (target === "in_consultation") {
-    update.lock_holder_id = user.id;
-    update.lock_timestamp = now;
-    update.session_started_at = now;
-  }
-  if (target === "completed") {
-    update.lock_holder_id = null;
-    update.lock_timestamp = null;
-    update.visit_closed_at = now;
-  }
-  if (target === "cancelled" || target === "no_show") {
-    update.lock_holder_id = null;
-    update.lock_timestamp = null;
-  }
-  const { data: session, error } = await supabase.from("clinic_visit_sessions").update(update).eq("id", sessionId).eq("tenant_id", tenantId).select().single();
+  if (target === "in_consultation") { update.lock_holder_id = user.id; update.lock_timestamp = now; update.session_started_at = now; }
+  if (target === "pending_close") { update.session_ended_at = now; update.lock_holder_id = null; update.lock_timestamp = null; }
+  if (target === "completed") { update.lock_holder_id = null; update.lock_timestamp = null; update.visit_closed_at = now; }
+  if (target === "cancelled" || target === "no_show") { update.lock_holder_id = null; update.lock_timestamp = null; }
+  const { data: session, error } = await supabase.from("clinic_visit_sessions").update(update).eq("id", sessionId).eq("tenant_id", tenantId).eq("session_status", current.session_status).select().single();
   if (error) throw new Error(`Workflow transition failed: ${error.message}`);
   revalidateWorkspacePaths();
   return session as EnrichedSession;
@@ -159,3 +155,8 @@ function revalidateWorkspacePaths() {
   revalidatePath("/(dashboard)/clinical");
   revalidatePath("/(dashboard)/queue");
 }
+
+// D1 — Agenda ↔ Visit integration contract:
+// arrived ↔ waiting; in_session ↔ in_consultation; completed ↔ completed;
+// cancelled ↔ cancelled; no_show ↔ no_show. pending_close is intentionally Visit-only
+// and has no Agenda equivalent. Agenda and Visit retain separate ownership boundaries.
