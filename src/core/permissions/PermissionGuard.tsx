@@ -1,7 +1,6 @@
 "use client";
 
-import { useAuth } from "@/core/auth/AuthContext";
-import { hasPermission } from "./permissionMatrix";
+import { usePermissions } from "./usePermissions";
 import type { Permission } from "./types";
 
 export function PermissionGuard({
@@ -13,11 +12,9 @@ export function PermissionGuard({
   children: React.ReactNode;
   fallback?: React.ReactNode;
 }) {
-  const { role } = useAuth();
+  const { hasPermission, isLoading } = usePermissions();
 
-  if (!role || !hasPermission(role as any, permission)) {
-    return fallback;
-  }
-
+  // Presentation guard only. Security authorization remains server/RLS/RPC enforced.
+  if (isLoading || !hasPermission(permission)) return fallback;
   return children;
 }
