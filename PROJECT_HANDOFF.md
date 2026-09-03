@@ -2,7 +2,7 @@
 
 **Project:** CORE SYSTEM — ClinicSaaS™
 **Status:** ACTIVE / Stages 12–15 validated through documentation candidate; final Production SHA gate PENDING
-**Last Updated:** 2026-08-29
+**Last Updated:** 2026-09-03
 
 ## Current Global UX/IA State
 
@@ -81,6 +81,20 @@ AJM status remains governed by `docs/AJM-IMPLEMENTATION-STATUS-MATRIX-2026-08-28
 ## Database / Supabase
 
 The canonical tenant model remains `master_tenants` + `clinic_users`. Stages 12–15 introduced no new tenant model or database architecture.
+
+## Agenda ↔ Visit Integration Contract (D1)
+
+Agenda and Visit remain separate bounded contexts with an explicit state compatibility map:
+
+| Agenda | Visit | Rule |
+|---|---|---|
+| `arrived` | `waiting` | Arrival establishes the waiting Visit state. |
+| `in_session` | `in_consultation` | Clinical handoff maps the active appointment to the clinical Visit. |
+| `completed` | `completed` | Both contexts are closed only after their owning workflow completes. |
+| `cancelled` | `cancelled` | Cancellation is mirrored as a terminal Visit state. |
+| `no_show` | `no_show` | No-show is mirrored as a terminal Visit state. |
+
+`pending_close` is intentionally a **Visit-only** state. Agenda has no equivalent state because clinical completion and reception closure are separate ownership steps.
 
 ## Deployment / verification rule
 
