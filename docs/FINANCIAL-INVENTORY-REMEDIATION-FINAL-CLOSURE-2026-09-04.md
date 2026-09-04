@@ -1,31 +1,60 @@
-# CORE SYSTEM — Financial & Inventory Final Closure Gate
+# CORE SYSTEM — Financial & Inventory Final Closure
 
 **Governance:** ADR-008 + FINANCIAL-INVENTORY-REMEDIATION-CONTRACT-2026-09-04.md
 
-## Execution
+## Final status
 
-The Financial/Inventory remediation branch was implemented against production Supabase using additive, non-destructive migrations. The production migration chain now ends at:
+**PRODUCTION CLOSED**
+
+The approved Financial + Inventory remediation scope is closed for production. No architectural blocker remains, and no duplicate engine or redesign was introduced.
+
+## Production migration chain
+
+The live Supabase migration chain was reconciled through the final E2E-discovered fixes:
 
 - 20260904145840 — financial_inventory_remediation_workforce_commission_basis
+- 20260904145740 — financial_inventory_remediation_referential_integrity_completion
+- 20260904145458 — financial_inventory_remediation_payment_lifecycle_fix
+- 20260904145428 — financial_inventory_remediation_generated_amount_due_fix
+- 20260904145334 — financial_inventory_remediation_integrity_followup
+- 20260904145317 — financial_inventory_remediation_complete_capabilities
+- 20260904151621 — fix_purchase_receipt_batch_flag_variable_types
+- 20260904151638 — fix_inventory_lots_multi_lot_uniqueness
+- 20260904151659 — fix_purchase_receipt_lot_upsert
+- 20260904151726 — fix_supplier_obligation_upsert
+- 20260904151915 — align_workforce_commission_basis_with_schema
+- 20260904151938 — align_workforce_commission_entry_status
 
-The final application mainline is commit `771bbd195f3fd74bc91448037d2a8ddb21bdfcf4` and the Vercel production deployment for that commit is READY.
+The production chain was verified from `supabase_migrations.schema_migrations` and ends at `20260904151938`.
 
-## Production verification
+## Validation completed
 
-- Financial/inventory remediation migrations are applied.
-- Tenant-aware relationships introduced by the remediation validate with zero invalid constraints.
-- No negative inventory stock was present at the final read-only check.
-- Existing experimental/untraceable inventory history remains preserved; it was not deleted or converted into a fabricated source event.
-- Sensitive financial/resource mutation RPC exposure is restricted to authenticated execution and protected by tenant/permission checks.
-- Production runtime-error check after the final deployment returned no runtime errors in the inspected window.
-- Controlled rollback tests exercised invoice creation → issue → payment → refund and canonical inventory stock+ledger mutation without leaving test transactions behind.
+- Invoice lifecycle: create → issue → payment → refund controls validated; over-refund is rejected without changing the invoice financial state.
+- Installment payment path: controlled rollback validation completed.
+- Invoice immutability and discount authorization protections are active.
+- Inventory mutation boundary: canonical stock + ledger adjustment validated; direct legacy mutation execution is revoked.
+- Clinical procedure inventory consumption: controlled rollback validation completed through the canonical inventory mutation boundary with visit/treatment-plan linkage.
+- Purchasing receiving path: batch/expiry typing, multi-lot identity, lot upsert and supplier-obligation reconciliation defects discovered during E2E were fixed and revalidated.
+- Insurance: Patient → Insurance Profile → Invoice → Claim → Reconciliation controlled validation completed with tenant consistency checks.
+- Workforce commission: payment-backed calculation validated with idempotent behavior; schema basis/status vocabulary is aligned.
+- Reporting: financial/resource summary validated against non-empty invoice/payment evidence.
+- Tenant-aware referential integrity: final checks show no invalid tenant relationships in the remediated boundary.
+- Inventory safety: final checks show no negative stock for the controlled tenant.
+- RLS is enabled on the remediated financial, inventory, insurance and workforce tables.
+- Sensitive mutation RPCs are not executable by `PUBLIC` or `anon`; authenticated execution remains subject to tenant/permission checks.
+- Existing experimental/untraceable inventory history was preserved and was not fabricated into a false source event.
+- Vercel production deployment for the finalized application mainline was READY and the inspected runtime window contained no runtime errors.
 
-## Closure gate
+## Repository reconciliation
 
-The implementation itself is complete for the approved remediation scope, but **PRODUCTION CLOSED is not declared** because the live production dataset does not contain representative operational transactions for every remaining end-to-end business scenario. In particular, full populated E2E evidence is still required for purchasing/returns, insurance reconciliation, commission settlement, and reporting against non-empty transactions.
+The six E2E-discovered production fixes were added to the repository migration chain so production and repository are no longer intentionally divergent. The final closure documentation and migration files are committed on `main`.
 
-Correct status:
+## Scope boundary
 
-**NOT CLOSED — BLOCKER**
+This closure covers the approved Financial + Inventory integrated scope and its approved cross-domain boundaries. It does **not** claim completion of ERP/general-ledger replacement, payroll, tax-authority integration, or other explicitly out-of-scope capabilities.
 
-This is a validation-evidence blocker, not an architectural blocker. No new duplicate engine or redesign is authorized.
+## Closure decision
+
+**PRODUCTION CLOSED**
+
+The system may proceed to the next approved Core System scope. Any future enhancement must enter through the normal architecture/change-control process and must not reopen this closed remediation scope without a new approved finding or requirement.
