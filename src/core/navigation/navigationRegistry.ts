@@ -1,34 +1,31 @@
 // src/core/navigation/navigationRegistry.ts
 // Single source of truth for sidebar navigation, contextual routes, permissions, and product-surface hierarchy.
-
 import type { Permission } from "@/core/permissions/types";
 import { messages } from "@/core/i18n/messages";
-import { LayoutDashboard, Users, CalendarDays, ListOrdered, FileText, FileBarChart, BarChart3, PhoneCall, Settings, BriefcaseBusiness, Stethoscope, ClipboardList, CreditCard, WalletCards, ShieldCheck, Boxes, Truck, ShoppingCart, ClipboardCheck, MessageCircle, ListChecks } from "lucide-react";
+import { LayoutDashboard, Users, CalendarDays, ListOrdered, FileText, FileBarChart, BarChart3, PhoneCall, Settings, BriefcaseBusiness, Stethoscope, ClipboardList, WalletCards, MessageCircle, ListChecks, Coins, Boxes, ShoppingCart, ShieldCheck, SlidersHorizontal } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-
 export type NavigationLabelKey = keyof typeof messages.en.nav;
-export type NavigationLabel = { ar: string; en: string };
-export type SurfaceTier = "core" | "advanced" | "addon";
-export type NavigationVisibility = "sidebar" | "contextual";
+export type NavigationLabel = { ar:string; en:string };
+export type SurfaceTier = "core"|"advanced"|"addon";
+export type NavigationVisibility = "sidebar"|"contextual";
 export interface NavItem { href:string; labelKey:NavigationLabelKey|null; label?:NavigationLabel; icon:LucideIcon; requiredPermission:Permission|null; capabilityKey?:string; children?:NavItem[]; surface?:SurfaceTier; visibility?:NavigationVisibility; navigationOnly?:boolean; }
-
 const financialResourcesChildren:NavItem[]=[
- {href:"/financial-resources/overview",label:{ar:"نظرة عامة",en:"Overview"},labelKey:null,icon:LayoutDashboard,requiredPermission:null,capabilityKey:"financial_resources.overview",surface:"core"},
- {href:"/invoices",label:{ar:"الفواتير",en:"Invoices"},labelKey:null,icon:FileText,requiredPermission:"invoices:read",capabilityKey:"financial_resources.invoices",surface:"core"},
- {href:"/financial-resources/payments",label:{ar:"المدفوعات",en:"Payments"},labelKey:null,icon:CreditCard,requiredPermission:"invoices:read",capabilityKey:"financial_resources.payments",surface:"core"},
- {href:"/financial-resources/financial-plans",label:{ar:"الخطط المالية",en:"Financial Plans"},labelKey:null,icon:WalletCards,requiredPermission:"invoices:read",capabilityKey:"financial_resources.financial_plans",navigationOnly:true,surface:"core",children:[{href:"/financial-resources/financial-plans/installments",label:{ar:"الأقساط",en:"Installments"},labelKey:null,icon:ClipboardList,requiredPermission:"invoices:read",capabilityKey:"financial_resources.installments",surface:"core"}]},
- {href:"/financial-resources/insurance",label:{ar:"التأمين",en:"Insurance"},labelKey:null,icon:ShieldCheck,requiredPermission:"insurance:read",capabilityKey:"financial_resources.insurance",navigationOnly:true,children:[{href:"/financial-resources/insurance/claims",label:{ar:"المطالبات",en:"Claims"},labelKey:null,icon:ClipboardCheck,requiredPermission:"insurance:read",capabilityKey:"financial_resources.insurance.claims",surface:"core"}]},
- {href:"/inventory",label:{ar:"المخزون",en:"Inventory"},labelKey:null,icon:Boxes,requiredPermission:"inventory:read",capabilityKey:"financial_resources.inventory",navigationOnly:true,children:[{href:"/financial-resources/inventory/consumption",label:{ar:"الاستهلاك",en:"Consumption"},labelKey:null,icon:ClipboardCheck,requiredPermission:"inventory:read",capabilityKey:"financial_resources.consumption",surface:"core"}]},
- {href:"/financial-resources/purchasing",label:{ar:"المشتريات",en:"Purchasing"},labelKey:null,icon:ShoppingCart,requiredPermission:"purchasing:read",capabilityKey:"financial_resources.purchasing",navigationOnly:true,children:[{href:"/financial-resources/purchasing/suppliers",label:{ar:"الموردون",en:"Suppliers"},labelKey:null,icon:Truck,requiredPermission:"purchasing:read",capabilityKey:"financial_resources.suppliers",surface:"core"},{href:"/financial-resources/purchasing/receiving",label:{ar:"الاستلام",en:"Receiving"},labelKey:null,icon:ClipboardCheck,requiredPermission:"purchasing:read",capabilityKey:"financial_resources.receiving",surface:"core"}]},
+ {href:"/financial-resources",label:{ar:"مركز المالية والموارد",en:"Financial & Resources Center"},labelKey:null,icon:LayoutDashboard,requiredPermission:null,capabilityKey:"financial_resources.overview",surface:"core"},
+ {href:"/invoices",label:{ar:"الفواتير والمبيعات",en:"Invoices & Sales"},labelKey:null,icon:FileText,requiredPermission:"invoices:read",capabilityKey:"financial_resources.invoices",surface:"core"},
+ {href:"/financial-resources/payments",label:{ar:"المقبوضات والتحصيل",en:"Receipts & Collections"},labelKey:null,icon:Coins,requiredPermission:"invoices:read",capabilityKey:"financial_resources.payments",surface:"core"},
+ {href:"/financial-resources/financial-plans",label:{ar:"الخطط المالية والأقساط",en:"Financial Plans & Installments"},labelKey:null,icon:WalletCards,requiredPermission:"invoices:read",capabilityKey:"financial_resources.financial_plans",surface:"core"},
+ {href:"/financial-resources/insurance",label:{ar:"التأمين والمطالبات",en:"Insurance & Claims"},labelKey:null,icon:ShieldCheck,requiredPermission:"insurance:read",capabilityKey:"financial_resources.insurance",surface:"core"},
+ {href:"/inventory",label:{ar:"الأصناف والمخزون",en:"Items & Inventory"},labelKey:null,icon:Boxes,requiredPermission:"inventory:read",capabilityKey:"financial_resources.inventory",surface:"core"},
+ {href:"/financial-resources/purchasing",label:{ar:"المشتريات والموردون",en:"Purchasing & Suppliers"},labelKey:null,icon:ShoppingCart,requiredPermission:"purchasing:read",capabilityKey:"financial_resources.purchasing",surface:"core"},
+ {href:"/financial-resources?section=expenses",label:{ar:"المصروفات التشغيلية",en:"Operating Expenses"},labelKey:null,icon:BriefcaseBusiness,requiredPermission:"expenses:manage",capabilityKey:"financial_resources.expenses",surface:"core"},
+ {href:"/settings/financial-resources",label:{ar:"إعدادات المالية والموارد",en:"Financial & Resources Settings"},labelKey:null,icon:SlidersHorizontal,requiredPermission:"settings:read",capabilityKey:"financial_resources.settings",surface:"advanced"},
 ];
-
 export const navigationRegistry:NavItem[]=[
  {href:"/",labelKey:null,label:{ar:"الرئيسية",en:"Home"},icon:LayoutDashboard,requiredPermission:null,surface:"core",visibility:"sidebar"},
  {href:"/workspace",labelKey:null,label:{ar:"مساحة العمل",en:"Workspace"},icon:BriefcaseBusiness,requiredPermission:null,surface:"core",visibility:"sidebar"},
  {href:"/my-workspace",labelKey:null,label:{ar:"مساحة عملي",en:"My Workspace"},icon:ClipboardList,requiredPermission:null,surface:"core",visibility:"sidebar"},
  {href:"/patients",labelKey:"patients",icon:Users,requiredPermission:"patients:read",visibility:"sidebar"},
  {href:"/agenda",labelKey:"agenda",icon:CalendarDays,requiredPermission:"agenda:read",visibility:"sidebar"},
- // Patient Flow is a contextual workflow surface, not a primary Sidebar domain.
  {href:"/patient-flow",label:{ar:"رحلة المريض",en:"Patient Flow"},labelKey:null,icon:ListOrdered,requiredPermission:null,capabilityKey:"patient_flow",navigationOnly:true,visibility:"contextual",children:[{href:"/patient-flow/operations",label:{ar:"التشغيل",en:"Operations"},labelKey:null,icon:BriefcaseBusiness,requiredPermission:"patient_flow:operations",capabilityKey:"patient_flow.operations",visibility:"contextual"},{href:"/patient-flow/clinical",label:{ar:"المعاينة السريرية",en:"Clinical"},labelKey:null,icon:Stethoscope,requiredPermission:"patient_flow:clinical",capabilityKey:"patient_flow.clinical",visibility:"contextual"},{href:"/patient-flow/administrative",label:{ar:"الإدارة",en:"Administrative"},labelKey:null,icon:LayoutDashboard,requiredPermission:"patient_flow:administrative",capabilityKey:"patient_flow.administrative",visibility:"contextual"}]},
  {href:"/treatment-plans",labelKey:"treatmentPlans",icon:ClipboardList,requiredPermission:"treatment_plans:read",visibility:"sidebar"},
  {href:"/workforce",label:{ar:"القوى العاملة والعمليات",en:"Workforce & Operations"},labelKey:null,icon:BriefcaseBusiness,requiredPermission:"workforce:read",capabilityKey:"workforce.access",surface:"core",visibility:"sidebar"},
@@ -44,7 +41,6 @@ export const navigationRegistry:NavItem[]=[
  {href:"/clinical",labelKey:"clinical",icon:Stethoscope,requiredPermission:"workspace:clinical",visibility:"contextual"},
  {href:"/queue",labelKey:"queue",icon:ListOrdered,requiredPermission:"sessions:read",visibility:"contextual"},
 ];
-
 function flattenNavigation(items:NavItem[]):NavItem[]{return items.flatMap(item=>[item,...(item.children?flattenNavigation(item.children):[])]);}
 export function getRequiredPermission(pathname:string):Permission|null|undefined{const normalized=pathname.split("?")[0];const exact=flattenNavigation(navigationRegistry).find(item=>item.href.split("?")[0]===normalized);if(exact)return exact.requiredPermission;const parent=navigationRegistry.find(item=>item.href!=="/"&&normalized.startsWith(item.href+"/"));return parent?.requiredPermission;}
 export function getSidebarNavigation():NavItem[]{return navigationRegistry.filter(item=>item.visibility!=="contextual");}
