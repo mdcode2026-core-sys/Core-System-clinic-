@@ -15,6 +15,7 @@ export type Permission =
   | "inventory:read" | "inventory:create" | "inventory:update" | "inventory:adjust"
   | "purchasing:read" | "purchasing:manage" | "purchasing:return"
   | "insurance:read" | "insurance:manage"
+  | "expenses:manage"
   | "analytics:read"
   | "users:read" | "users:create" | "users:update" | "users:delete"
   | "settings:read" | "settings:update"
