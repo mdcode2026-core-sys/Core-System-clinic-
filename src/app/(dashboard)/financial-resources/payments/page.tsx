@@ -1,2 +1,5 @@
-import { FinancialResourceListPage } from "@/features/financial-resources/financial-resource-list-page";
-export default function FinancialResourcesPaymentsPage() { return <FinancialResourceListPage resource="payments" />; }
+import { redirect } from "next/navigation";
+
+export default function FinancialResourcesPaymentsPage() {
+  redirect("/financial-resources");
+}
