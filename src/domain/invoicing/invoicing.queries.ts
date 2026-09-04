@@ -18,7 +18,7 @@ async function getAuthContext() {
 export async function listInvoices(filters: InvoiceListFilters = {}): Promise<ActionResult<InvoiceListItem[]>> {
   const ctx = await getAuthContext(); if ("error" in ctx) return { success: false, error: ctx.error ?? "Unauthorized" };
   if (!(await hasEffectivePermission("invoices:read", ctx.user.id))) return { success: false, error: "Permission denied" };
-  let query = ctx.supabase.from("clinic_invoices").select(`id, invoice_number, invoice_date, invoice_status, total_subunits, amount_paid_subunits, amount_due_subunits, patient:patient_id(id, first_name, last_name), items:invoice_items(count)`).eq("tenant_id", ctx.tenantId);
+  let query = ctx.supabase.from("clinic_invoices").select(`id, invoice_number, invoice_date, invoice_status, total_subunits, amount_paid_subunits, amount_due_subunits, patient:patient_id(id, first_name, last_name), items:invoice_items!invoice_items_invoice_id_fkey(count)`).eq("tenant_id", ctx.tenantId);
   if (filters.patient_id) query = query.eq("patient_id", filters.patient_id);
   if (filters.status) query = query.eq("invoice_status", filters.status);
   if (filters.date_from) query = query.gte("invoice_date", filters.date_from);
@@ -32,7 +32,7 @@ export async function listInvoices(filters: InvoiceListFilters = {}): Promise<Ac
 export async function getInvoiceById(invoiceId: string): Promise<ActionResult<InvoiceWithItems>> {
   const ctx = await getAuthContext(); if ("error" in ctx) return { success: false, error: ctx.error ?? "Unauthorized" };
   if (!(await hasEffectivePermission("invoices:read", ctx.user.id))) return { success: false, error: "Permission denied" };
-  const { data, error } = await ctx.supabase.from("clinic_invoices").select(`*, patient:patient_id(id, first_name, last_name, phone_primary), session:session_id(id, session_status, session_started_at), items:invoice_items(*, procedure:procedure_id(procedure_name)), payments:invoice_payments(*)`).eq("id", invoiceId).eq("tenant_id", ctx.tenantId).maybeSingle();
+  const { data, error } = await ctx.supabase.from("clinic_invoices").select(`*, patient:patient_id(id, first_name, last_name, phone_primary), session:session_id(id, session_status, session_started_at), items:invoice_items!invoice_items_invoice_id_fkey(*, procedure:procedure_id!invoice_items_procedure_id_fkey(procedure_name)), payments:invoice_payments(*)`).eq("id", invoiceId).eq("tenant_id", ctx.tenantId).maybeSingle();
   if (error || !data) return { success: false, error: error?.message ?? "Invoice not found" };
   const items = ((data.items ?? []) as InvoiceItemRow[]).map((item) => ({ ...item, description: item.item_description, description_ar: item.item_description_ar }));
   return { success: true, data: { ...data, items, payments: data.payments ?? [] } as unknown as InvoiceWithItems };
@@ -55,7 +55,7 @@ export async function getClinicProcedures(): Promise<ActionResult<ProcedureOptio
 }
 
 export async function getPatientsList(): Promise<ActionResult<PatientOption[]>> {
-  const ctx = await getAuthContext(); if ("error" in ctx) return { success: false, error: ctx.error ?? "Unauthorized" };
+  const ctx = await getAuthContext(); if ("error" in ctx) return { success: false, error: ctx.error ?? "Unauthorized" } as ActionResult<PatientOption[]>;
   if (!(await hasEffectivePermission("invoices:create", ctx.user.id))) return { success: false, error: "Permission denied" };
   const { data, error } = await ctx.supabase.from("clinic_patients").select("id, first_name, last_name, phone_primary").eq("tenant_id", ctx.tenantId).is("deleted_at", null).order("first_name");
   if (error) return { success: false, error: error.message };
