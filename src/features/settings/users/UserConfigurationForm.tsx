@@ -17,7 +17,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Separator } from "@/shared/components/ui/separator";
 import { Badge } from "@/shared/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
-import { Check, KeyRound, Loader2, Minus, Plus, Save, ShieldCheck, X } from "lucide-react";
+import { Check, KeyRound, Loader2, Mail, Minus, Plus, Save, ShieldCheck, X } from "lucide-react";
 
 const workspaces: Array<{ value: UserWorkspace; en: string; ar: string }> = [
   { value: "operation", en: "Operational", ar: "تشغيلي" },
@@ -25,6 +25,7 @@ const workspaces: Array<{ value: UserWorkspace; en: string; ar: string }> = [
   { value: "administration", en: "Administration", ar: "إداري" },
 ];
 type AccessState = "default" | "granted" | "revoked";
+type ActivationMode = "email" | "direct";
 type Props = { user?: ClinicUserWithRole | null; roles: Role[]; onClose: () => void; onSaved: (result: { activationLink?: string; emailSent?: boolean }) => void; onError: (message: string | null) => void };
 
 export function UserConfigurationForm({ user, roles, onClose, onSaved, onError }: Props) {
@@ -40,6 +41,8 @@ export function UserConfigurationForm({ user, roles, onClose, onSaved, onError }
   const [roleId, setRoleId] = useState(user?.role_id ?? "");
   const [workspace, setWorkspace] = useState<UserWorkspace>((user?.role_workspace as UserWorkspace) || "operation");
   const [access, setAccess] = useState<Record<string, AccessState>>({});
+  const [activationMode, setActivationMode] = useState<ActivationMode>("email");
+  const [password, setPassword] = useState("");
   const [saving, setSaving] = useState(false);
   const [sendingActivation, setSendingActivation] = useState(false);
   const isProtected = Boolean(user?.role === "clinic_admin");
@@ -51,6 +54,8 @@ export function UserConfigurationForm({ user, roles, onClose, onSaved, onError }
       setPhone(user?.phone ?? "");
       setRoleId(user?.role_id ?? "");
       setWorkspace((user?.role_workspace as UserWorkspace) || "operation");
+      setActivationMode("email");
+      setPassword("");
     }, 0);
     return () => window.clearTimeout(timer);
   }, [user]);
@@ -87,24 +92,39 @@ export function UserConfigurationForm({ user, roles, onClose, onSaved, onError }
     event.preventDefault();
     onError(null);
     if (!roleId || !workspace || !fullName.trim() || !email.trim()) return;
+    if (activationMode === "direct" && !password.trim()) {
+      onError("PASSWORD_REQUIRED");
+      return;
+    }
     setSaving(true);
     const directPermissionIds = Object.entries(access).filter(([, state]) => state === "granted").map(([id]) => id);
     const revokedPermissionIds = Object.entries(access).filter(([, state]) => state === "revoked").map(([id]) => id);
+    const activation = activationMode === "direct" ? { directActivation: true as const, password } : {};
     const result = user
-      ? await updateClinicUser({ id: user.id, full_name: fullName, email, phone, role_id: roleId, workspace, directPermissionIds, revokedPermissionIds })
-      : await createClinicUser({ full_name: fullName, email, phone, role_id: roleId, workspace, directPermissionIds, revokedPermissionIds });
+      ? await updateClinicUser({ id: user.id, full_name: fullName, email, phone, role_id: roleId, workspace, directPermissionIds, revokedPermissionIds, ...activation })
+      : await createClinicUser({ full_name: fullName, email, phone, role_id: roleId, workspace, directPermissionIds, revokedPermissionIds, ...activation });
     setSaving(false);
     if (!result.success) { onError(result.error); return; }
+    setPassword("");
     onSaved({ activationLink: result.activationLink, emailSent: result.emailSent });
   }
 
-  return <form onSubmit={save} className="space-y-6" dir={ar ? "rtl" : "ltr"}>
-    <div className="flex items-start justify-between gap-4">
-      <div><h2 className="text-xl font-semibold">{user ? (ar ? "تعديل المستخدم" : "Edit user") : (ar ? "إعداد مستخدم جديد" : "Configure new user")}</h2><p className="mt-1 text-sm text-muted-foreground">{ar ? "إعداد الهوية والدور ومساحة العمل والصلاحيات. التفعيل يتم حصراً عبر دعوة البريد، ويضع الموظف كلمة المرور بنفسه في /activate." : "Configure identity, role, workspace and access. Activation is invitation-only; the employee sets their own password at /activate."}</p></div>
-      <Button type="button" variant="ghost" size="sm" onClick={onClose}><X className="me-1 h-4 w-4" />{ar ? "إلغاء" : "Cancel"}</Button>
+  const activationSection = <Card><CardHeader><CardTitle className="flex items-center gap-2 text-base"><KeyRound className="h-4 w-4" />{ar ? "4. إعداد التفعيل" : "4. Activation configuration"}</CardTitle></CardHeader><CardContent className="space-y-5">
+    <p className="text-sm text-muted-foreground">{ar ? "حدد طريقة إنشاء/تفعيل حساب الدخول بعد اكتمال جميع إعدادات المستخدم. هذا القسم هو آخر إعداد قبل الحفظ." : "Choose the account activation method after all user configuration is complete. This is the final configuration section before Save."}</p>
+    <div className="grid gap-3 md:grid-cols-2">
+      <button type="button" disabled={isProtected} onClick={() => { setActivationMode("email"); setPassword(""); }} className={`rounded-lg border p-4 text-start transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${activationMode === "email" ? "border-primary bg-primary/5" : "hover:bg-muted/50"}`}>
+        <div className="flex items-center gap-3"><Mail className="h-5 w-5 shrink-0" /><div><p className="font-semibold">{ar ? "التفعيل عبر البريد" : "Email activation"}</p><p className="mt-1 text-xs leading-5 text-muted-foreground">{ar ? "إرسال دعوة التفعيل، ويحدد الموظف كلمة المرور بنفسه." : "Send the activation invitation; the employee chooses their password."}</p></div></div>
+      </button>
+      <button type="button" disabled={isProtected} onClick={() => setActivationMode("direct")} className={`rounded-lg border p-4 text-start transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${activationMode === "direct" ? "border-primary bg-primary/5" : "hover:bg-muted/50"}`}>
+        <div className="flex items-center gap-3"><KeyRound className="h-5 w-5 shrink-0" /><div><p className="font-semibold">{ar ? "التفعيل المباشر" : "Direct activation"}</p><p className="mt-1 text-xs leading-5 text-muted-foreground">{ar ? "ينشئ المسؤول حساب الدخول مباشرة ويحدد كلمة المرور." : "Create the login account directly and set its password."}</p></div></div>
+      </button>
     </div>
+    {activationMode === "direct" && <div className="space-y-2 rounded-lg border p-4"><Label htmlFor="user-direct-password">{ar ? "كلمة مرور الحساب" : "Account password"}</Label><Input id="user-direct-password" type="password" value={password} onChange={e => setPassword(e.target.value)} minLength={6} autoComplete="new-password" required /><p className="text-xs text-muted-foreground">{ar ? "تُرسل كلمة المرور مباشرة إلى نظام المصادقة ولا تُحفظ في بيانات المستخدم أو السجلات." : "The password is sent directly to the authentication system and is not stored in user data or logs."}</p></div>}
+    {user && !isProtected && (user.account_status === "pending" || user.account_status === "active") && <div className="rounded-lg border bg-muted/30 p-4"><div className="mb-2 flex items-center gap-2"><Mail className="h-4 w-4" /><p className="text-sm font-medium">{ar ? "إجراء بريد التفعيل الحالي" : "Existing email activation action"}</p></div><p className="mb-3 text-sm text-muted-foreground">{user.account_status === "pending" ? (ar ? "يمكنك إعادة إرسال دعوة التفعيل دون تغيير بقية إعدادات المستخدم." : "You can resend the activation invitation without changing the rest of the user configuration.") : (ar ? "يمكن إرسال مسار إعداد كلمة المرور للبريد للحساب النشط دون تغيير حالة الحساب." : "You can send the password setup email flow without changing the account state.")}</p><Button type="button" variant="outline" disabled={sendingActivation} onClick={() => void sendActivation()}>{sendingActivation ? <Loader2 className="me-2 h-4 w-4 animate-spin" /> : <Mail className="me-2 h-4 w-4" />}{sendingActivation ? (ar ? "جاري الإرسال..." : "Sending...") : (user.account_status === "pending" ? (ar ? "إعادة إرسال دعوة التفعيل" : "Resend activation invitation") : (ar ? "إرسال بريد إعداد كلمة المرور" : "Send password setup email"))}</Button></div>}
+  </CardContent></Card>;
 
-    {user && !isProtected && (user.account_status === "pending" || user.account_status === "active") && <Card><CardHeader><CardTitle className="flex items-center gap-2 text-base"><KeyRound className="h-4 w-4" />{ar ? "التفعيل عبر البريد" : "Email activation"}</CardTitle></CardHeader><CardContent><p className="mb-3 text-sm text-muted-foreground">{user.account_status === "pending" ? (ar ? "إعادة إرسال دعوة التفعيل ليختار الموظف كلمة المرور بنفسه." : "Resend the activation invitation so the employee can choose a password.") : (ar ? "إرسال رسالة إعداد كلمة المرور للموظف عبر المسار المعتمد." : "Send the employee the approved password setup email flow.")}</p><Button type="button" variant="outline" disabled={sendingActivation} onClick={() => void sendActivation()}>{sendingActivation ? <Loader2 className="me-2 h-4 w-4 animate-spin" /> : <KeyRound className="me-2 h-4 w-4" />}{sendingActivation ? (ar ? "جاري الإرسال..." : "Sending...") : (user.account_status === "pending" ? (ar ? "إعادة إرسال دعوة التفعيل" : "Resend activation invitation") : (ar ? "إرسال بريد إعداد كلمة المرور" : "Send password setup email"))}</Button></CardContent></Card>}
+  return <form onSubmit={save} className="space-y-6" dir={ar ? "rtl" : "ltr"}>
+    <div className="flex items-start justify-between gap-4"><div><h2 className="text-xl font-semibold">{user ? (ar ? "تعديل المستخدم" : "Edit user") : (ar ? "إعداد مستخدم جديد" : "Configure new user")}</h2><p className="mt-1 text-sm text-muted-foreground">{ar ? "إعداد الهوية والدور ومساحة العمل والصلاحيات، ثم تحديد طريقة التفعيل في نهاية النموذج." : "Configure identity, role, workspace and access, then choose the activation method at the end of the form."}</p></div><Button type="button" variant="ghost" size="sm" onClick={onClose}><X className="me-1 h-4 w-4" />{ar ? "إلغاء" : "Cancel"}</Button></div>
 
     <Card><CardHeader><CardTitle className="text-base">{ar ? "1. البيانات الأساسية" : "1. Basic information"}</CardTitle></CardHeader><CardContent className="grid gap-4 md:grid-cols-2"><div className="space-y-2"><Label htmlFor="user-full-name">{ar ? "الاسم الكامل" : "Full name"}</Label><Input id="user-full-name" value={fullName} onChange={e => setFullName(e.target.value)} required disabled={isProtected} /></div><div className="space-y-2"><Label htmlFor="user-email">{ar ? "البريد الإلكتروني" : "Email"}</Label><Input id="user-email" type="email" value={email} onChange={e => setEmail(e.target.value)} required disabled={isProtected} />{user?.pending_email && <p className="text-xs text-amber-700">{ar ? `البريد الجديد بانتظار تحقق الموظف: ${user.pending_email}` : `Pending verification: ${user.pending_email}`}</p>}</div><div className="space-y-2"><Label htmlFor="user-phone">{ar ? "رقم الهاتف" : "Phone"}</Label><Input id="user-phone" value={phone} onChange={e => setPhone(e.target.value)} disabled={isProtected} /></div></CardContent></Card>
 
@@ -114,6 +134,8 @@ export function UserConfigurationForm({ user, roles, onClose, onSaved, onError }
 
     {user?.account_status && <div className="rounded-lg border bg-muted/30 p-4 text-sm"><span className="font-medium">{ar ? "حالة دورة الحساب: " : "Account lifecycle: "}</span>{user.account_status === "pending" ? (ar ? "بانتظار التفعيل" : "Pending invitation") : user.account_status === "active" ? (ar ? "نشط" : "Active") : (ar ? "غير نشط" : "Inactive")}</div>}
     {isProtected && <div className="rounded-lg border border-primary/30 bg-primary/5 p-4 text-sm">{ar ? "حساب Clinic Admin محمي ولا يمكن تعديل دوره أو صلاحياته أو حالته من إدارة المستخدمين." : "The Clinic Admin account is protected. Its role, permissions and account state cannot be modified from user management."}</div>}
+
+    {activationSection}
     <Separator /><div className="flex items-center justify-end gap-3"><Button type="button" variant="outline" onClick={onClose}>{ar ? "إلغاء" : "Cancel"}</Button><Button type="submit" disabled={saving || !roleId || !workspace || !fullName.trim() || !email.trim() || isProtected}>{saving ? <Loader2 className="me-2 h-4 w-4 animate-spin" /> : <Save className="me-2 h-4 w-4" />}{saving ? (ar ? "جاري الحفظ..." : "Saving...") : (ar ? "حفظ إعدادات المستخدم" : "Save user configuration")}</Button></div>
   </form>;
 }
