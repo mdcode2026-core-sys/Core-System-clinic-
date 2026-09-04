@@ -1,5 +1,7 @@
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-
-export default function FinancialResourcesFinancialPlansPage() {
-  redirect("/financial-resources?section=plans");
-}
+import { createClient } from "@/infrastructure/supabase/server";
+import { resolveTenantId } from "@/core/auth/resolveTenantId";
+import { getEffectivePermissions } from "@/core/permissions/permissionEngine";
+import { FinancialPlansOperations } from "@/features/financial-resources/financial-plans-operations";
+export default async function FinancialResourcesFinancialPlansPage(){const db=await createClient();const{data:{user},error}=await db.auth.getUser();if(error||!user)redirect("/login");const tenantId=await resolveTenantId(user.id);if(!tenantId)redirect("/login");const permissions=await getEffectivePermissions(user.id,tenantId);if(!permissions.includes("invoices:read"))redirect("/");const locale=cookies?((await cookies()).get("core-system-locale")?.value==="en"?"en":"ar"):"ar";const[tenant,patients,plans]=await Promise.all([db.from("master_tenants").select("currency").eq("id",tenantId).maybeSingle(),db.from("clinic_patients").select("id,first_name,last_name").eq("tenant_id",tenantId).is("deleted_at",null).order("first_name").limit(1000),db.from("financial_plans").select("id,patient_id,total_amount_subunits,insurance_covered_subunits,patient_responsibility_subunits,status").eq("tenant_id",tenantId).is("deleted_at",null).order("created_at",{ascending:false}).limit(500)]);return <div className="p-4 sm:p-6 lg:p-8"><FinancialPlansOperations locale={locale} currency={tenant.data?.currency??"JOD"} patients={patients.data??[]} plans={plans.data??[]}/></div>}
