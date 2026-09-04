@@ -1,0 +1,2 @@
+-- Historical production fix: lot receipt handling uses explicit SELECT ... FOR UPDATE followed by INSERT/UPDATE.
+-- The canonical receive_purchase_order implementation in the preceding reconciliation migration contains the corrected upsert path; this migration preserves the production migration sequence.
