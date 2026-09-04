@@ -1,0 +1,1 @@
+This directory is being migrated from generic CRUD resource forms to business-workflow UI. Canonical domain entities remain unchanged unless a genuine missing business fact requires an additive schema change.
