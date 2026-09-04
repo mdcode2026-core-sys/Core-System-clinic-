@@ -1,0 +1,3 @@
+alter table public.supplier_obligations add column if not exists supplier_bill_id uuid;
+alter table public.supplier_obligations add constraint supplier_obligations_bill_fk foreign key (supplier_bill_id) references public.supplier_bills(id) on delete set null;
+create unique index if not exists uq_supplier_obligations_tenant_bill on public.supplier_obligations(tenant_id,supplier_bill_id) where supplier_bill_id is not null;
