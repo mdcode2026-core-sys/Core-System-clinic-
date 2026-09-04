@@ -1,0 +1,2 @@
+-- Historical production fix: supplier obligations are reconciled by tenant + purchase order using explicit lookup/update/insert.
+-- The canonical receive_purchase_order implementation contains the corrected obligation path; this migration preserves the production migration sequence.
