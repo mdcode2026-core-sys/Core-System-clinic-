@@ -1,0 +1,2 @@
+-- Reconciled production migration marker. Final cumulative implementation is recorded in 20260904145458_financial_inventory_remediation_payment_lifecycle_fix.sql.
+-- This file intentionally remains non-destructive and documents the production migration version that was applied.
