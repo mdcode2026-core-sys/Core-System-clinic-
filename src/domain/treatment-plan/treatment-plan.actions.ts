@@ -78,6 +78,17 @@ export async function createTreatmentPlan(input: CreateTreatmentPlanInput): Prom
   return data.id;
 }
 
+async function validateTreatmentPlanActivation(supabase: any, tenantId: string, planId: string) {
+  const { data: items, error: itemsError } = await supabase.from("clinic_treatment_plan_items").select("id,procedure_id,title,clinic_procedures(id,tenant_id,is_active,procedure_name)").eq("tenant_id", tenantId).eq("treatment_plan_id", planId).is("deleted_at", null).order("sequence_no", { ascending: true });
+  if (itemsError) throw new Error(`Treatment plan validation failed: ${itemsError.message}`);
+  for (const item of items ?? []) {
+    const procedure = Array.isArray(item.clinic_procedures) ? item.clinic_procedures[0] : item.clinic_procedures;
+    if (!item.procedure_id || !procedure) throw new Error(`Treatment plan cannot be activated: item ${item.id} has an invalid or missing procedure`);
+    if (procedure.tenant_id !== tenantId) throw new Error(`Treatment plan cannot be activated: item ${item.id} references a procedure from another tenant`);
+    if (!procedure.is_active) throw new Error(`Treatment plan cannot be activated: item ${item.id} references inactive procedure ${procedure.procedure_name || item.procedure_id}`);
+  }
+}
+
 export async function updateTreatmentPlan(planId: string, input: Partial<CreateTreatmentPlanInput> & { status?: TreatmentPlanRecord["status"] }): Promise<void> {
   const { supabase, tenantId, permissions } = await getContext();
   requirePermission(permissions, "treatment_plans:update");
@@ -87,7 +98,11 @@ export async function updateTreatmentPlan(planId: string, input: Partial<CreateT
   if (input.goals !== undefined) update.goals = input.goals.trim() || null;
   if (input.startDate !== undefined) update.start_date = input.startDate || null;
   if (input.targetEndDate !== undefined) update.target_end_date = input.targetEndDate || null;
-  if (input.status !== undefined) { update.status = input.status; update.completed_at = input.status === "completed" ? new Date().toISOString() : null; }
+  if (input.status !== undefined) {
+    if (input.status === "active") await validateTreatmentPlanActivation(supabase, tenantId, planId);
+    update.status = input.status;
+    update.completed_at = input.status === "completed" ? new Date().toISOString() : null;
+  }
   const { error } = await supabase.from("clinic_treatment_plans").update(update).eq("id", planId).eq("tenant_id", tenantId);
   if (error) throw new Error(`Treatment plan update failed: ${error.message}`);
   revalidatePath("/(dashboard)/treatment-plans");
