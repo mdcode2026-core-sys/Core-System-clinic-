@@ -4,57 +4,57 @@
 
 ## Final status
 
-**PRODUCTION CLOSED**
+**NOT CLOSED — BLOCKER**
 
-The approved Financial + Inventory remediation scope is closed for production. No architectural blocker remains, and no duplicate engine or redesign was introduced.
+The backend/security remediation remains production-valid, but the overall Financial + Inventory scope is reopened for user-facing workflow remediation. Runtime inspection exposed a material UX/operational gap: several existing routes still present internal identifiers or generic CRUD forms instead of complete clinic workflows.
 
-## Production migration chain
+## Confirmed user-facing blockers
 
-The live Supabase migration chain was reconciled through the final E2E-discovered fixes:
+1. Invoice list had an ambiguous PostgREST relationship between `clinic_invoices` and `invoice_items`, producing an embedding error in production.
+2. Payments exposed invoice identifiers instead of business-searchable invoice/patient selection and did not clearly distinguish patient receipts from outgoing disbursements.
+3. Financial plans/installments did not provide sufficient guided workflow for creating a patient plan and understanding the difference between a scheduled installment and an actual payment.
+4. Insurance lacked clinic insurance-provider/contract configuration and a clear patient coverage → claim workflow.
+5. Inventory lacked an adequate item-master/stock-adjustment UI despite the backend foundation supporting these concepts.
+6. Purchasing lacked a clear supplier-bill workflow connected to supplier obligations.
+7. Reports did not sufficiently explain what each number represents or provide an understandable operational interpretation.
 
-- 20260904145840 — financial_inventory_remediation_workforce_commission_basis
-- 20260904145740 — financial_inventory_remediation_referential_integrity_completion
-- 20260904145458 — financial_inventory_remediation_payment_lifecycle_fix
-- 20260904145428 — financial_inventory_remediation_generated_amount_due_fix
-- 20260904145334 — financial_inventory_remediation_integrity_followup
-- 20260904145317 — financial_inventory_remediation_complete_capabilities
-- 20260904151621 — fix_purchase_receipt_batch_flag_variable_types
-- 20260904151638 — fix_inventory_lots_multi_lot_uniqueness
-- 20260904151659 — fix_purchase_receipt_lot_upsert
-- 20260904151726 — fix_supplier_obligation_upsert
-- 20260904151915 — align_workforce_commission_basis_with_schema
-- 20260904151938 — align_workforce_commission_entry_status
+## Remediation executed in this continuation
 
-The production chain was verified from `supabase_migrations.schema_migrations` and ends at `20260904151938`.
+- Invoice embedding was changed to explicit foreign-key relationship selection in `invoicing.queries.ts`.
+- Added tenant-scoped `insurance_providers` and `insurance_contracts` business entities.
+- Linked patient insurance coverage to the clinic contract model.
+- Added tenant-scoped `supplier_bills` and linked them to canonical supplier obligations.
+- Extended inventory item master with SKU, category, description and manufacturer while preserving the canonical `inventory_items` entity.
+- Added `expenses:manage` to the existing permission model for Clinic Admin and Accounting.
+- Added authenticated server actions for inventory item maintenance, stock adjustment, insurance provider/contract maintenance, supplier bills and operating expenses.
+- Replaced the generic financial-resources landing surface with a business-oriented workflow center exposing invoices, receipts, financial plans, insurance, inventory, purchasing and expenses with human-readable labels and selection controls.
+- Added patient financial-plan, insurance-coverage and claim preparation UI.
+- Added an explainable financial/resource summary surface using the canonical reporting RPC.
 
-## Validation completed
+## Verification
 
-- Invoice lifecycle: create → issue → payment → refund controls validated; over-refund is rejected without changing the invoice financial state.
-- Installment payment path: controlled rollback validation completed.
-- Invoice immutability and discount authorization protections are active.
-- Inventory mutation boundary: canonical stock + ledger adjustment validated; direct legacy mutation execution is revoked.
-- Clinical procedure inventory consumption: controlled rollback validation completed through the canonical inventory mutation boundary with visit/treatment-plan linkage.
-- Purchasing receiving path: batch/expiry typing, multi-lot identity, lot upsert and supplier-obligation reconciliation defects discovered during E2E were fixed and revalidated.
-- Insurance: Patient → Insurance Profile → Invoice → Claim → Reconciliation controlled validation completed with tenant consistency checks.
-- Workforce commission: payment-backed calculation validated with idempotent behavior; schema basis/status vocabulary is aligned.
-- Reporting: financial/resource summary validated against non-empty invoice/payment evidence.
-- Tenant-aware referential integrity: final checks show no invalid tenant relationships in the remediated boundary.
-- Inventory safety: final checks show no negative stock for the controlled tenant.
-- RLS is enabled on the remediated financial, inventory, insurance and workforce tables.
-- Sensitive mutation RPCs are not executable by `PUBLIC` or `anon`; authenticated execution remains subject to tenant/permission checks.
-- Existing experimental/untraceable inventory history was preserved and was not fabricated into a false source event.
-- Vercel production deployment for the finalized application mainline was READY and the inspected runtime window contained no runtime errors.
+- Production Supabase accepted the new additive migrations.
+- Repository migration files were added for each production DDL change.
+- The latest Vercel production deployment for commit `0a371cb1f4d4b76197d12a4b3b8104a0cd7dd422` reached **READY**.
+- The latest production build passed TypeScript, static generation and deployment.
+- The inspected runtime error window for that deployment contained no error/fatal logs.
 
-## Repository reconciliation
+## Remaining closure gate
 
-The six E2E-discovered production fixes were added to the repository migration chain so production and repository are no longer intentionally divergent. The final closure documentation and migration files are committed on `main`.
+The scope must not return to **PRODUCTION CLOSED** until the user can execute the complete business workflows from the UI without UUIDs/internal identifiers:
 
-## Scope boundary
+`Patient → Visit/Procedure → Invoice → Receipt → Outstanding/Refund`
 
-This closure covers the approved Financial + Inventory integrated scope and its approved cross-domain boundaries. It does **not** claim completion of ERP/general-ledger replacement, payroll, tax-authority integration, or other explicitly out-of-scope capabilities.
+`Financial Plan → Installments → Receipt → Outstanding`
 
-## Closure decision
+`Insurance Provider/Contract → Patient Coverage → Invoice Split → Claim → Reconciliation`
 
-**PRODUCTION CLOSED**
+`Item Master → Purchase Order → Supplier Bill → Receiving → Inventory/Lot/Expiry → Payable → Supplier Payment`
 
-The system may proceed to the next approved Core System scope. Any future enhancement must enter through the normal architecture/change-control process and must not reopen this closed remediation scope without a new approved finding or requirement.
+`Adjustment/Return/Expiry/Damage → Inventory Ledger → Stock/Valuation`
+
+`Procedure → Material Consumption → Procedure Cost → Reporting`
+
+and can understand every important report figure and trace it back to its canonical business records.
+
+**Closure decision:** **NOT CLOSED — BLOCKER** until the complete UI workflow acceptance gate is satisfied.
