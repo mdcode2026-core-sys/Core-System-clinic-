@@ -17,7 +17,7 @@ interface FollowupShellProps {
 }
 
 export function FollowupShell({ initialList, initialScheduled, patients, initialError, canCreate, canUpdate }: FollowupShellProps) {
-  const { locale, admin: a } = useI18n();
+  const { locale, admin: a, followup: t } = useI18n();
   const [activeTab, setActiveTab] = useState<"work" | "list" | "scheduled">("work");
   const [listData, setListData] = useState(initialList);
   const [scheduledData, setScheduledData] = useState(initialScheduled);
@@ -33,31 +33,18 @@ export function FollowupShell({ initialList, initialScheduled, patients, initial
   });
   const upcoming = active.filter((f) => new Date(f.scheduled_for).getTime() > now && !dueToday.includes(f));
 
-  const copy = locale === "ar"
-    ? {
-        create: "إنشاء متابعة",
-        createHint: "أنشئ متابعة يدوية فقط عندما لا تكون المتابعة ناتجة عن مسار آلي أو سريري.",
-        closeCreate: "إخفاء نموذج الإنشاء",
-        workIntro: "ابدأ من العمل المستحق الآن. التفاصيل والإنشاء متاحة عند الحاجة.",
-        overdue: "متأخر",
-        today: "اليوم",
-        upcoming: "قادم",
-        work: "عمل اليوم",
-        all: "كل المتابعات",
-        scheduled: "المجدول",
-      }
-    : {
-        create: "Create follow-up",
-        createHint: "Create a manual follow-up only when it is not already produced by an automated or clinical workflow.",
-        closeCreate: "Hide creation form",
-        workIntro: "Start with work that needs attention now. Details and creation stay available when needed.",
-        overdue: "Overdue",
-        today: "Today",
-        upcoming: "Upcoming",
-        work: "Today’s work",
-        all: "All follow-ups",
-        scheduled: "Scheduled",
-      };
+  const copy = {
+    create: t.create.title,
+    createHint: t.create.description,
+    closeCreate: t.cancel,
+    workIntro: t.pageDescription,
+    overdue: t.overdue,
+    today: t.today,
+    upcoming: t.upcoming,
+    work: a.followup.todayWork,
+    all: a.followup.all,
+    scheduled: a.followup.scheduled,
+  };
 
   const handleStatusUpdate = (updatedId: string, newStatus: string) => {
     const updater = (prev: FollowupRecord[]) => prev.map((f) => f.id === updatedId ? { ...f, status: newStatus as FollowupRecord["status"] } : f);
@@ -81,12 +68,7 @@ export function FollowupShell({ initialList, initialScheduled, patients, initial
             <p className="mt-1 text-sm text-muted-foreground">{copy.workIntro}</p>
           </div>
           {canCreate && (
-            <button
-              type="button"
-              onClick={() => setShowCreate((value) => !value)}
-              aria-expanded={showCreate}
-              className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground"
-            >
+            <button type="button" onClick={() => setShowCreate((value) => !value)} aria-expanded={showCreate} className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground">
               {showCreate ? copy.closeCreate : copy.create}
             </button>
           )}
