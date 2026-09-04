@@ -116,3 +116,9 @@ CORE SYSTEM combines:
 - Business Intelligence
 - Analytics
 - Subscription Management
+
+---
+
+# ADR INDEX
+
+- `ADR-013-OPERATIONAL-CAPABILITY-MODEL.md` — Operational Capability Model (Role / Permission / Capability / Skill / Qualification / Specialty Separation)
