@@ -11,13 +11,13 @@ export type NavigationVisibility = "sidebar"|"contextual";
 export interface NavItem { href:string; labelKey:NavigationLabelKey|null; label?:NavigationLabel; icon:LucideIcon; requiredPermission:Permission|null; capabilityKey?:string; children?:NavItem[]; surface?:SurfaceTier; visibility?:NavigationVisibility; navigationOnly?:boolean; }
 const financialResourcesChildren:NavItem[]=[
  {href:"/financial-resources",label:{ar:"مركز المالية والموارد",en:"Financial & Resources Center"},labelKey:null,icon:LayoutDashboard,requiredPermission:null,capabilityKey:"financial_resources.overview",surface:"core"},
- {href:"/invoices",label:{ar:"الفواتير والمبيعات",en:"Invoices & Sales"},labelKey:null,icon:FileText,requiredPermission:"invoices:read",capabilityKey:"financial_resources.invoices",surface:"core"},
- {href:"/financial-resources/payments",label:{ar:"المقبوضات والتحصيل",en:"Receipts & Collections"},labelKey:null,icon:Coins,requiredPermission:"invoices:read",capabilityKey:"financial_resources.payments",surface:"core"},
+ {href:"/invoices",label:{ar:"الفواتير",en:"Invoices"},labelKey:null,icon:FileText,requiredPermission:"invoices:read",capabilityKey:"financial_resources.invoices",surface:"core"},
+ {href:"/financial-resources/payments",label:{ar:"قبض / دفع",en:"Payments"},labelKey:null,icon:Coins,requiredPermission:"invoices:read",capabilityKey:"financial_resources.payments",surface:"core"},
  {href:"/financial-resources/financial-plans",label:{ar:"الخطط المالية والأقساط",en:"Financial Plans & Installments"},labelKey:null,icon:WalletCards,requiredPermission:"invoices:read",capabilityKey:"financial_resources.financial_plans",surface:"core"},
  {href:"/financial-resources/insurance",label:{ar:"التأمين والمطالبات",en:"Insurance & Claims"},labelKey:null,icon:ShieldCheck,requiredPermission:"insurance:read",capabilityKey:"financial_resources.insurance",surface:"core"},
  {href:"/inventory",label:{ar:"الأصناف والمخزون",en:"Items & Inventory"},labelKey:null,icon:Boxes,requiredPermission:"inventory:read",capabilityKey:"financial_resources.inventory",surface:"core"},
  {href:"/financial-resources/purchasing",label:{ar:"المشتريات والموردون",en:"Purchasing & Suppliers"},labelKey:null,icon:ShoppingCart,requiredPermission:"purchasing:read",capabilityKey:"financial_resources.purchasing",surface:"core"},
- {href:"/financial-resources?section=expenses",label:{ar:"المصروفات التشغيلية",en:"Operating Expenses"},labelKey:null,icon:BriefcaseBusiness,requiredPermission:"expenses:manage",capabilityKey:"financial_resources.expenses",surface:"core"},
+ {href:"/financial-resources?section=expenses",label:{ar:"المصروفات",en:"Expenses"},labelKey:null,icon:BriefcaseBusiness,requiredPermission:"expenses:manage",capabilityKey:"financial_resources.expenses",surface:"core"},
  {href:"/settings/financial-resources",label:{ar:"إعدادات المالية والموارد",en:"Financial & Resources Settings"},labelKey:null,icon:SlidersHorizontal,requiredPermission:"settings:read",capabilityKey:"financial_resources.settings",surface:"advanced"},
 ];
 export const navigationRegistry:NavItem[]=[
