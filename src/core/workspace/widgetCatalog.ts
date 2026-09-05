@@ -25,7 +25,8 @@ export type WidgetContext =
   | "agenda"
   | "financial"
   | "followup"
-  | "analytics";
+  | "analytics"
+  | "administration";
 
 export interface WidgetCatalogClassification {
   surfaceKind: WidgetSurfaceKind;
@@ -65,13 +66,13 @@ export const WIDGET_CATALOG_CLASSIFICATION: Record<string, WidgetCatalogClassifi
   queue: {
     surfaceKind: "contextual",
     domainOwner: "Patient Flow",
-    purpose: "Provide a fast view into the existing patient-flow queue.",
-    purposeAr: "توفير وصول سريع إلى قائمة دور نظام رحلة المريض الحالية.",
-    contexts: ["global", "operation", "clinical", "patient", "visit"],
+    purpose: "Provide a fast view into the existing patient-flow queue and surface flow work requiring attention.",
+    purposeAr: "توفير وصول سريع إلى قائمة دور رحلة المريض الحالية وإظهار حالات مسار المريض التي تحتاج إلى متابعة.",
+    contexts: ["global", "operation", "clinical", "patient", "visit", "administration"],
     naturalSize: { width: "half", height: "standard" },
     sidebarCapability: false,
-    quickAction: false,
-    rationale: "Contextual surface of the existing Patient Flow/Queue capability; it must never replace or recreate Patient Flow.",
+    quickAction: true,
+    rationale: "Patient Flow remains contextual. The existing Queue capability is reused as its Widget surface; authorized administrative users may use its Quick Action to reach flow items requiring intervention. It must never replace or recreate Patient Flow.",
   },
   followup: {
     surfaceKind: "operational",
@@ -111,7 +112,7 @@ export const WIDGET_CATALOG_CLASSIFICATION: Record<string, WidgetCatalogClassifi
     domainOwner: "Analytics",
     purpose: "Provide management-oriented analytics context without replacing the Analytics domain.",
     purposeAr: "توفير سياق تحليلي إداري دون استبدال نطاق التحليلات الكامل.",
-    contexts: ["global", "analytics"],
+    contexts: ["global", "analytics", "administration"],
     naturalSize: { width: "half", height: "tall" },
     sidebarCapability: true,
     quickAction: false,
