@@ -131,7 +131,14 @@ async function transitionSession(sessionId: string, target: SessionStatus, works
   revalidateWorkspacePaths(); return session as EnrichedSession;
 }
 
-function revalidateWorkspacePaths() { revalidatePath("/(dashboard)/operation"); revalidatePath("/(dashboard)/clinical"); revalidatePath("/(dashboard)/queue"); }
+function revalidateWorkspacePaths() {
+  revalidatePath("/(dashboard)/operation");
+  revalidatePath("/(dashboard)/clinical");
+  revalidatePath("/(dashboard)/administration");
+  revalidatePath("/(dashboard)/queue");
+  revalidatePath("/(dashboard)/patient-flow");
+  revalidatePath("/(dashboard)/patient-flow/administrative");
+}
 
 // D1 — Agenda ↔ Visit integration contract:
 // arrived ↔ waiting; in_session ↔ in_consultation; completed ↔ completed;
