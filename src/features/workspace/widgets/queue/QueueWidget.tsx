@@ -25,7 +25,7 @@ export function QueueWidget(_props: WidgetComponentProps) {
       <div className="min-w-0 overflow-hidden rounded-lg bg-orange-50 p-3 text-center"><p className="break-words text-2xl font-bold text-orange-700">{stats.total_no_show_today ?? 0}</p><p className="break-words text-xs text-orange-600">{t.noShow}</p></div>
     </div>
     {stats.avg_wait_time_minutes !== undefined && <div className="flex min-w-0 items-center justify-between gap-2 rounded-lg bg-gray-50 px-3 py-2"><span className="text-xs text-gray-600">{t.averageWait}</span><span className="shrink-0 text-sm font-semibold text-gray-800">{stats.avg_wait_time_minutes} {locale === "ar" ? "دقيقة" : "minutes"}</span></div>}
-    <Link href="/queue" className="inline-flex items-center gap-2 text-sm font-medium underline-offset-4 hover:underline">
+    <Link href="/patient-flow" className="inline-flex items-center gap-2 text-sm font-medium underline-offset-4 hover:underline">
       {locale === "ar" ? "فتح رحلة المريض" : "Open Patient Flow"}
       <ArrowRight className="h-4 w-4" />
     </Link>
