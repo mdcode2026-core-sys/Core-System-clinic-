@@ -21,21 +21,26 @@ export function InventoryList({ tenantId }: InventoryListProps) {
   const [search, setSearch] = useState("");
   const [editingItem, setEditingItem] = useState<InventoryItem | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [deletingItem, setDeletingItem] = useState<InventoryItem | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   const filtered = items?.filter((item) => item.name.toLowerCase().includes(search.toLowerCase()) || (item.name_ar && item.name_ar.includes(search)));
   const isLowStock = (item: InventoryItem) => item.current_stock <= item.reorder_threshold && item.reorder_threshold > 0;
 
-  const handleDelete = async (item: InventoryItem) => {
-    if (!window.confirm(messages.inventory.confirmDelete)) return;
-    const fd = new FormData(); fd.append("tenant_id", tenantId); fd.append("id", item.id);
+  const handleDelete = async () => {
+    if (!deletingItem) return;
+    setActionError(null);
+    const fd = new FormData(); fd.append("tenant_id", tenantId); fd.append("id", deletingItem.id);
     const result = await softDeleteInventoryItem(fd);
-    if (result.error) window.alert(messages.common.unexpectedError);
+    setDeletingItem(null);
+    if (result.error) setActionError(messages.common.unexpectedError);
   };
 
   if (isLoading) return <div className="p-8 text-center text-muted-foreground">{messages.common.loading}</div>;
 
   return (
     <div className="space-y-4" dir="auto">
+      {actionError && <div role="alert" className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">{actionError}</div>}
       <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
         <div className="relative w-full sm:w-96"><Search className="absolute end-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" /><Input placeholder={messages.inventory.search} value={search} onChange={(e) => setSearch(e.target.value)} className="pe-10 h-12 text-base" /></div>
         {!permsLoading && hasPermission("inventory:create") && <Button onClick={() => { setEditingItem(null); setIsFormOpen(true); }}><Plus className="me-2 h-4 w-4" />{messages.inventory.add}</Button>}
@@ -52,11 +57,13 @@ export function InventoryList({ tenantId }: InventoryListProps) {
             </div></div>
             <div className="flex items-center gap-2">
               {!permsLoading && hasPermission("inventory:update") && <Button size="sm" variant="outline" onClick={() => { setEditingItem(item); setIsFormOpen(true); }} aria-label={messages.common.edit}><Pencil className="h-4 w-4" /></Button>}
-              {!permsLoading && hasPermission("inventory:update") && <Button size="sm" variant="destructive" onClick={() => handleDelete(item)} aria-label={messages.common.delete}><Trash2 className="h-4 w-4" /></Button>}
+              {!permsLoading && hasPermission("inventory:update") && <Button size="sm" variant="destructive" onClick={() => setDeletingItem(item)} aria-label={messages.common.delete}><Trash2 className="h-4 w-4" /></Button>}
             </div>
           </div>)}
         </div>}
       </div>
+
+      {deletingItem && <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" role="dialog" aria-modal="true" aria-labelledby="inventory-delete-title"><div className="w-full max-w-md rounded-xl border bg-background p-6 shadow-xl" dir="auto"><h2 id="inventory-delete-title" className="text-lg font-semibold">{messages.inventory.confirmDelete}</h2><p className="mt-2 text-sm text-muted-foreground">{deletingItem.name}</p><div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end"><Button variant="outline" onClick={() => setDeletingItem(null)}>{messages.common.cancel}</Button><Button variant="destructive" onClick={() => void handleDelete()}>{messages.common.delete}</Button></div></div></div>}
       <InventoryForm open={isFormOpen} onClose={() => { setIsFormOpen(false); setEditingItem(null); }} tenantId={tenantId} initialData={editingItem} />
     </div>
   );
