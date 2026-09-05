@@ -17,8 +17,8 @@ export const DOMAIN_SURFACE_CATALOG: readonly DomainSurfaceDecision[] = [
   { domain: "Reports", surface: "sidebar", widget: "no", widgetRationale: "Reporting is a management/reporting surface; it should not be reduced to a generic Workspace Widget.", quickAction: "no" },
   { domain: "Analytics", surface: "sidebar", widget: "yes", widgetRationale: "Analytics Overview can provide concise management context while full analytics remains authoritative.", quickAction: "no" },
   { domain: "Follow-up", surface: "sidebar", widget: "yes", widgetRationale: "Follow-up is actionable operational work and benefits from an attention/worklist Widget.", quickAction: "no" },
-  { domain: "Patient Flow", surface: "sidebar", widget: "yes", widgetRationale: "Patient Flow is a first-class authorized Sidebar system; Queue remains its underlying operational mechanism and is not replaced by a Widget.", quickAction: "no" },
-  { domain: "Operations", surface: "contextual", widget: "no", widgetRationale: "Operations is a contextual route in the current IA; Patient Flow owns the relevant movement system and is reconciled separately.", quickAction: "no" },
+  { domain: "Patient Flow", surface: "contextual", widget: "no", widgetRationale: "Patient Flow is a contextual orchestration layer that coordinates patient movement across operational and clinical stages; it is not a standalone Sidebar module or Widget.", quickAction: "no" },
+  { domain: "Operations", surface: "contextual", widget: "no", widgetRationale: "Operations is a contextual route in the current IA; Patient Flow coordinates movement across relevant operational and clinical stages.", quickAction: "no" },
   { domain: "Clinical", surface: "contextual", widget: "no", widgetRationale: "Clinical is a contextual route; clinical workflow remains in its authoritative domain surfaces.", quickAction: "no" },
   { domain: "Settings", surface: "settings", widget: "no", widgetRationale: "Settings/configuration should not become daily-work Widgets.", quickAction: "no" },
 ] as const;
