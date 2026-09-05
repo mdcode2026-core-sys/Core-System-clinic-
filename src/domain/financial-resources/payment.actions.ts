@@ -1,0 +1,6 @@
+"use server";
+import { createClient } from "@/infrastructure/supabase/server";
+import { resolveTenantId } from "@/core/auth/resolveTenantId";
+import { hasEffectivePermission } from "@/core/permissions/permissionEngine";
+type Result={success:true}|{success:false;error:string};
+export async function recordDisbursement(input:{category:string;description?:string;amount_subunits:number;expense_date:string}):Promise<Result>{const db=await createClient();const{data:{user}}=await db.auth.getUser();if(!user)return{success:false,error:"Unauthorized"};const tenantId=await resolveTenantId(user.id);if(!tenantId||!(await hasEffectivePermission("expenses:manage",user.id)))return{success:false,error:"Permission denied"};if(!input.category.trim()||!Number.isInteger(input.amount_subunits)||input.amount_subunits<=0||!input.expense_date)return{success:false,error:"Invalid disbursement"};const{error}=await db.from("operating_expenses").insert({tenant_id:tenantId,category:input.category.trim(),description:input.description?.trim()||null,amount_subunits:input.amount_subunits,amount_paid_subunits:input.amount_subunits,expense_date:input.expense_date,payment_status:"paid",currency:"JOD",created_by:user.id});return error?{success:false,error:error.message}:{success:true};}
