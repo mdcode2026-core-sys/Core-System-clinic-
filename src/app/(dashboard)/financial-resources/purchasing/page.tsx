@@ -1,5 +1,8 @@
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-
-export default function FinancialResourcesPurchasingPage() {
-  redirect("/financial-resources?section=purchasing");
-}
+import { createClient } from "@/infrastructure/supabase/server";
+import { resolveTenantId } from "@/core/auth/resolveTenantId";
+import { getEffectivePermissions } from "@/core/permissions/permissionEngine";
+import { PurchasingOperations } from "@/features/financial-resources/purchasing-operations";
+import type { Locale } from "@/core/i18n/messages";
+export default async function PurchasingPage(){const db=await createClient();const{data:{user}}=await db.auth.getUser();if(!user)redirect("/login");const tenantId=await resolveTenantId(user.id);if(!tenantId)redirect("/login");const permissions=await getEffectivePermissions(user.id,tenantId);if(!permissions.includes("purchasing:read"))redirect("/");const locale:Locale=(await cookies()).get("core-system-locale")?.value==="ar"?"ar":"en";const[suppliers,items,orders,orderItems]=await Promise.all([db.from("suppliers").select("id,name").eq("tenant_id",tenantId).is("deleted_at",null).order("name").limit(500),db.from("inventory_items").select("id,name,unit").eq("tenant_id",tenantId).eq("is_active",true).is("deleted_at",null).order("name").limit(1000),db.from("purchase_orders").select("id,order_number,supplier_id,status").eq("tenant_id",tenantId).is("deleted_at",null).order("created_at",{ascending:false}).limit(500),db.from("purchase_order_items").select("id,purchase_order_id,inventory_item_id,quantity_ordered,quantity_received,unit_cost_subunits").eq("tenant_id",tenantId).limit(2000)]);return <div className="p-4 sm:p-6 lg:p-8"><PurchasingOperations locale={locale} suppliers={suppliers.data??[]} items={items.data??[]} orders={orders.data??[]} orderItems={orderItems.data??[]} canManage={permissions.includes("purchasing:manage")}/></div>}
