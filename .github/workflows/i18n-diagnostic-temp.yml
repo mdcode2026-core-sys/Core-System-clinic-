@@ -18,6 +18,15 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci --ignore-scripts --no-audit --no-fund --prefer-offline
+      - name: Repair invalid payroll JSX escaping
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('src/app/(dashboard)/workforce/payroll/page.tsx')
+          s=p.read_text()
+          s=s.replace('\\{ar?', '{ar?').replace('\\}', '}')
+          p.write_text(s)
+          PY
       - name: Close remaining payroll literals
         run: |
           python3 - <<'PY'
