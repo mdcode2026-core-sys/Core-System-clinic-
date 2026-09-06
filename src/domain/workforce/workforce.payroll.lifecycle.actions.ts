@@ -16,7 +16,7 @@ async function context() {
 export async function approvePayrollEntry(payrollEntryId: string) {
   const ctx = await context();
   if (!ctx) return { success: false, error: "Unauthorized" } as const;
-  if (!(await hasEffectivePermission(ctx.user.id, "workforce:payroll"))) return { success: false, error: "Permission denied" } as const;
+  if (!(await hasEffectivePermission("workforce:payroll", ctx.user.id))) return { success: false, error: "Permission denied" } as const;
   const { data, error } = await ctx.supabase.rpc("approve_workforce_payroll_entry", { p_tenant_id: ctx.tenantId, p_payroll_entry_id: payrollEntryId, p_approved_by: ctx.clinicUser.id });
   if (error || !data) return { success: false, error: error?.message || "Unable to approve payroll entry" } as const;
   if (data.success === false) return data as { success: false; error: string };
@@ -27,7 +27,7 @@ export async function approvePayrollEntry(payrollEntryId: string) {
 export async function payPayrollEntry(payrollEntryId: string) {
   const ctx = await context();
   if (!ctx) return { success: false, error: "Unauthorized" } as const;
-  if (!(await hasEffectivePermission(ctx.user.id, "workforce:payroll"))) return { success: false, error: "Permission denied" } as const;
+  if (!(await hasEffectivePermission("workforce:payroll", ctx.user.id))) return { success: false, error: "Permission denied" } as const;
   const { data, error } = await ctx.supabase.rpc("pay_workforce_payroll_entry", { p_tenant_id: ctx.tenantId, p_payroll_entry_id: payrollEntryId, p_paid_by: ctx.clinicUser.id });
   if (error || !data) return { success: false, error: error?.message || "Unable to pay payroll entry" } as const;
   if (data.success === false) return data as { success: false; error: string };
