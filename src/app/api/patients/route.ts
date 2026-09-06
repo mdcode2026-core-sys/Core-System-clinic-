@@ -21,7 +21,7 @@ function normalizedPayload(input: PatientPayload) {
     first_name_ar: clean(input.first_name_ar),
     last_name_ar: clean(input.last_name_ar),
     date_of_birth: clean(input.date_of_birth),
-    gender: input.gender,
+    gender: clean(input.gender),
     phone_primary: clean(input.phone_primary) ?? "",
     phone_secondary: clean(input.phone_secondary),
     email: clean(input.email),
