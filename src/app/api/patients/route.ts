@@ -15,13 +15,14 @@ function clean(value: unknown): string | undefined {
 }
 
 function normalizedPayload(input: PatientPayload) {
+  const gender = clean(input.gender);
   return {
     first_name: clean(input.first_name) ?? "",
     last_name: clean(input.last_name) ?? "",
     first_name_ar: clean(input.first_name_ar),
     last_name_ar: clean(input.last_name_ar),
     date_of_birth: clean(input.date_of_birth),
-    gender: clean(input.gender),
+    ...(gender ? { gender } : {}),
     phone_primary: clean(input.phone_primary) ?? "",
     phone_secondary: clean(input.phone_secondary),
     email: clean(input.email),
