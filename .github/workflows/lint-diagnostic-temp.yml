@@ -18,25 +18,28 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci --ignore-scripts --no-audit --no-fund --prefer-offline
-      - name: Move remaining render-created helper components to module scope
+      - name: Apply remaining lint repairs
         run: |
           node <<'NODE'
           const fs=require('fs');
-          const files=['src/features/financial-resources/financial-resources-operations-center.tsx','src/features/financial-resources/financial-resources-workspace.tsx','src/features/financial-resources/financial-resources-settings.tsx','src/features/financial-resources/payment-center.tsx','src/features/financial-resources/financial-plans-operations.tsx','src/features/financial-resources/financial-plans-insurance-center.tsx'];
-          function extract(s,start){let i=start,par=0,br=0,sq=0,quote=null,template=false,esc=false;for(;i<s.length;i++){const c=s[i];if(quote){if(esc){esc=false;continue}if(c==='\\'){esc=true;continue}if(c===quote)quote=null;continue}if(template){if(esc){esc=false;continue}if(c==='\\'){esc=true;continue}if(c==='`')template=false;continue}if(c==='"'||c==="'"){quote=c;continue}if(c==='`'){template=true;continue}if(c==='(')par++;else if(c===')')par--;else if(c==='{')br++;else if(c==='}')br--;else if(c==='[')sq++;else if(c===']')sq--;if(c===';'&&par===0&&br===0&&sq===0)return i+1}return -1}
-          for(const file of files){let s=fs.readFileSync(file,'utf8');const exportAt=s.search(/export\s+(?:default\s+)?(?:async\s+)?function\s/);if(exportAt<0)throw new Error(`No export in ${file}`);const bodyAt=s.indexOf('{',exportAt);let moved=[];const re=/\bconst\s+([A-Z][A-Za-z0-9_]*)\s*=\s*\(/g;re.lastIndex=bodyAt+1;let m;while((m=re.exec(s))){const start=m.index,end=extract(s,start);if(end<0)continue;moved.push(s.slice(start,end));s=s.slice(0,start)+s.slice(end);re.lastIndex=start}if(!moved.length)continue;const insertAt=s.search(/export\s+(?:default\s+)?(?:async\s+)?function\s/);s=s.slice(0,insertAt)+moved.join('\n')+'\n'+s.slice(insertAt);fs.writeFileSync(file,s)}
+          function patch(file, replacements){let s=fs.readFileSync(file,'utf8');for(const [from,to] of replacements){if(!s.includes(from))throw new Error(`Pattern not found in ${file}: ${from.slice(0,120)}`);s=s.replace(from,to)}fs.writeFileSync(file,s)}
+          patch('src/app/(dashboard)/workforce/payroll/page.tsx',[["/* eslint-disable @typescript-eslint/no-explicit-any */\n",""]]);
+          patch('src/core/entitlements/useEntitlements.ts',[["import { useMemo } from \"react\";","import { useCallback, useMemo } from \"react\";"],["const hasCapability = (key: string) => clinicAdmin || capabilities.includes(key);","const hasCapability = useCallback((key: string) => clinicAdmin || capabilities.includes(key), [clinicAdmin, capabilities]);"],["[capabilities, clinicAdmin, isLoading, error]","[capabilities, hasCapability, isLoading, error]"]]);
+          patch('src/features/medical-files/ui/MedicalFilesPanel.tsx',[["import { useEffect, useMemo, useRef, useState, useTransition } from \"react\";","import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from \"react\";"],["import { ExternalLink, FileText, Image as ImageIcon, RefreshCw, RotateCcw, RotateCw, Upload, X, ZoomIn, ZoomOut, UserRound } from \"lucide-react\";","import { ExternalLink, FileText, Image as ImageIcon, RefreshCw, RotateCcw, RotateCw, Upload, X, ZoomIn, ZoomOut, UserRound } from \"lucide-react\";\nimport Image from \"next/image\";"],["const load = () => startTransition(async () => {","const load = useCallback(() => startTransition(async () => {"] ,[" });\n  useEffect(() => { load(); }, [patientId, visitId]);"," });\n  }, [patientId, visitId, t.loadFailed]);\n  useEffect(() => { load(); }, [load]);"],["<div className=\"flex max-h-[65vh] min-h-[220px] w-full items-center justify-center overflow-auto rounded bg-black p-1 sm:min-h-[320px] sm:p-2\"><img src={previewUrl} alt={selected.original_filename} draggable={false} className=\"block h-auto max-h-[60vh] w-auto max-w-full object-contain transition-transform duration-150\" style={{ transform: `scale(${imageScale}) rotate(${imageRotation}deg)`, transformOrigin: \"center center\" }} /></div>","<div className=\"relative flex h-[65vh] min-h-[220px] w-full items-center justify-center overflow-auto rounded bg-black p-1 sm:min-h-[320px] sm:p-2\"><Image src={previewUrl} alt={selected.original_filename} fill unoptimized sizes=\"100vw\" draggable={false} className=\"object-contain transition-transform duration-150\" style={{ transform: `scale(${imageScale}) rotate(${imageRotation}deg)`, transformOrigin: \"center center\" }} /></div>"]]);
           NODE
-      - name: Validate financial resources lint surface
+      - name: Validate full repository lint and TypeScript
         run: |
           npx tsc --noEmit > /tmp/tsc.log 2>&1 || true
-          npx eslint src/features/financial-resources/financial-resources-operations-center.tsx src/features/financial-resources/financial-resources-workspace.tsx src/features/financial-resources/financial-resources-settings.tsx src/features/financial-resources/payment-center.tsx src/features/financial-resources/financial-plans-operations.tsx src/features/financial-resources/financial-plans-insurance-center.tsx --format json > /tmp/lint.json || true
+          npx eslint . --format json > /tmp/lint.json || true
           node <<'NODE'
-          const fs=require('fs');const data=JSON.parse(fs.readFileSync('/tmp/lint.json','utf8'));let e=0,w=0,rows=[];for(const f of data)for(const m of f.messages){m.severity===2?e++:w++;rows.push(`${f.filePath.replace(process.cwd()+'/','')}:${m.line}:${m.column} [${m.severity===2?'error':'warning'}] ${m.ruleId||'parse-error'} ${String(m.message).replace(/\s+/g,' ').slice(0,180)}`)}fs.writeFileSync('TEMP_LINT_AFTER_REFACTOR.txt',`Errors: ${e}\nWarnings: ${w}\nFindings: ${rows.length}\n\n${rows.join('\n')}\n`);fs.writeFileSync('TEMP_TSC_AFTER_REFACTOR.txt',fs.readFileSync('/tmp/tsc.log','utf8'));
+          const fs=require('fs');const data=JSON.parse(fs.readFileSync('/tmp/lint.json','utf8'));let e=0,w=0,rows=[];for(const f of data)for(const m of f.messages){m.severity===2?e++:w++;rows.push(`${f.filePath.replace(process.cwd()+'/','')}:${m.line}:${m.column} [${m.severity===2?'error':'warning'}] ${m.ruleId||'parse-error'} ${String(m.message).replace(/\s+/g,' ').slice(0,180)}`)}fs.writeFileSync('TEMP_LINT_FINAL_DIAGNOSTIC.txt',`Errors: ${e}\nWarnings: ${w}\nFindings: ${rows.length}\n\n${rows.join('\n')}\n`);fs.writeFileSync('TEMP_TSC_FINAL_DIAGNOSTIC.txt',fs.readFileSync('/tmp/tsc.log','utf8'));
+          if(e||w)process.exitCode=1;
           NODE
-      - name: Commit staged refactor and diagnostics
+      - name: Commit repairs and diagnostics
+        if: always()
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add src/features/financial-resources TEMP_LINT_AFTER_REFACTOR.txt TEMP_TSC_AFTER_REFACTOR.txt
-          git commit -m 'fix(financial-resources): move remaining helper components to module scope' || true
+          git add eslint.config.mjs src/app/'(dashboard)'/workforce/payroll/page.tsx src/core/entitlements/useEntitlements.ts src/features/medical-files/ui/MedicalFilesPanel.tsx TEMP_LINT_FINAL_DIAGNOSTIC.txt TEMP_TSC_FINAL_DIAGNOSTIC.txt
+          git commit -m 'fix(lint): close remaining repository diagnostics' || true
           git push
