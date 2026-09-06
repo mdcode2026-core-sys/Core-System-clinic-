@@ -6,22 +6,9 @@ import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
 import { Textarea } from "@/shared/components/ui/textarea";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from "@/shared/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/shared/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/shared/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/components/ui/select";
 import { Save, Loader2 } from "lucide-react";
-import { createPatient, updatePatient } from "@/domain/patients/patients.actions";
 import { useInvalidatePatients } from "@/domain/patients/patients.queries";
 import type { Patient } from "@/domain/patients/patients.types";
 import { useI18n } from "@/core/i18n/I18nProvider";
@@ -31,6 +18,11 @@ interface PatientFormProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess?: () => void;
+}
+
+interface PatientApiResult {
+  data?: { id: string };
+  error?: string;
 }
 
 export function PatientForm({ patient, isOpen, onClose, onSuccess }: PatientFormProps) {
@@ -67,7 +59,11 @@ export function PatientForm({ patient, isOpen, onClose, onSuccess }: PatientForm
   };
 
   const localizeServerError = (code: string) =>
-    ({ PATIENT_TENANT_MISSING: t.clinicNotFound, PATIENT_DATABASE_ERROR: t.unexpected }[code] || t.unexpected);
+    ({
+      PATIENT_TENANT_MISSING: t.clinicNotFound,
+      PATIENT_DATABASE_ERROR: t.unexpected,
+      PATIENT_INVALID_REQUEST: t.unexpected,
+    }[code] || t.unexpected);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -78,18 +74,24 @@ export function PatientForm({ patient, isOpen, onClose, onSuccess }: PatientForm
       return;
     }
 
-    const form = new FormData();
-    Object.entries({
-      ...formData,
-      tenant_id: tenantId,
-      ...(patient ? { id: patient.id } : {}),
-    }).forEach(([key, value]) => form.append(key, value));
-
     setIsSubmitting(true);
     try {
-      const result = patient ? await updatePatient(form) : await createPatient(form);
-      if (result.error) {
-        setServerError(localizeServerError(result.error));
+      const response = await fetch("/api/patients", {
+        method: patient ? "PATCH" : "POST",
+        headers: { "content-type": "application/json" },
+        credentials: "same-origin",
+        body: JSON.stringify({ ...formData, ...(patient ? { id: patient.id } : {}) }),
+      });
+
+      let result: PatientApiResult = {};
+      try {
+        result = (await response.json()) as PatientApiResult;
+      } catch {
+        result = { error: "PATIENT_DATABASE_ERROR" };
+      }
+
+      if (!response.ok || result.error) {
+        setServerError(localizeServerError(result.error || "PATIENT_DATABASE_ERROR"));
         return;
       }
 
