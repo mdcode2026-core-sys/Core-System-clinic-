@@ -18,19 +18,49 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci --ignore-scripts --no-audit --no-fund --prefer-offline
-      - name: Inspect offending helper components
+      - name: Move render-created helper components to module scope
         run: |
           node <<'NODE'
           const fs=require('fs');
           const files=['src/features/financial-resources/financial-resources-operations-center.tsx','src/features/financial-resources/financial-resources-workspace.tsx','src/features/financial-resources/financial-resources-settings.tsx','src/features/financial-resources/payment-center.tsx','src/features/financial-resources/financial-plans-operations.tsx','src/features/financial-resources/financial-plans-insurance-center.tsx'];
-          let out='# Offending component declarations\\n\\n';
-          for(const file of files){const s=fs.readFileSync(file,'utf8'); const names=[...s.matchAll(/const\\s+([A-Z][A-Za-z0-9_]*)\\s*=\\s*\\(/g)].map(m=>m[1]); out+=`## ${file}\\n\\n${[...new Set(names)].join(', ')||'(none)'}\\n\\n`;}
-          fs.writeFileSync('HELPERS_TEMP.md',out);
+          function extract(s,start){
+            let i=start, par=0, br=0, sq=0, quote=null, template=false, esc=false;
+            for(;i<s.length;i++){
+              const c=s[i], n=s[i+1];
+              if(quote){ if(esc){esc=false;continue;} if(c==='\\'){esc=true;continue;} if(c===quote)quote=null; continue; }
+              if(template){ if(esc){esc=false;continue;} if(c==='\\'){esc=true;continue;} if(c==='`')template=false; continue; }
+              if(c==='"'||c==="'"){quote=c;continue;} if(c==='`'){template=true;continue;}
+              if(c==='(')par++; else if(c===')')par--; else if(c==='{')br++; else if(c==='}')br--; else if(c==='[')sq++; else if(c===']')sq--;
+              if(c===';'&&par===0&&br===0&&sq===0)return i+1;
+            }
+            return -1;
+          }
+          for(const file of files){
+            let s=fs.readFileSync(file,'utf8'), moved=[];
+            const re=/\n[ \t]+const\s+([A-Z][A-Za-z0-9_]*)\s*=\s*\(/g;
+            let m;
+            while((m=re.exec(s))){
+              const start=m.index+1, end=extract(s,start);
+              if(end<0) continue;
+              const decl=s.slice(start,end);
+              moved.push(decl);
+            }
+            if(!moved.length) continue;
+            for(const decl of moved) s=s.replace('\n'+decl,'');
+            const anchor=s.search(/export\s+(?:default\s+)?(?:async\s+)?function\s/);
+            if(anchor<0) throw new Error(`No module export anchor in ${file}`);
+            s=s.slice(0,anchor)+moved.join('\n')+'\n'+s.slice(anchor);
+            fs.writeFileSync(file,s);
+          }
           NODE
-      - name: Publish report on audit branch
+      - name: Validate TypeScript and lint
+        run: |
+          npx tsc --noEmit
+          npx eslint src/features/financial-resources/financial-resources-operations-center.tsx src/features/financial-resources/financial-resources-workspace.tsx src/features/financial-resources/financial-resources-settings.tsx src/features/financial-resources/payment-center.tsx src/features/financial-resources/financial-plans-operations.tsx src/features/financial-resources/financial-plans-insurance-center.tsx
+      - name: Commit validated refactor
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add HELPERS_TEMP.md
-          git commit -m 'chore(audit): inspect offending helper components' || true
+          git add src/features/financial-resources
+          git commit -m 'fix(financial-resources): move helper components to module scope' || true
           git push
