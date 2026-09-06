@@ -28,7 +28,7 @@ jobs:
           for (const f of data) for (const m of f.messages) {
             const rule = m.ruleId || 'parse-error';
             if (!groups.has(rule)) groups.set(rule, []);
-            const first = String(m.message).split(/\\r?\\n/)[0];
+            const first = String(m.message).replace(/\\s+/g,' ').slice(0,180);
             groups.get(rule).push(`${f.filePath.replace(process.cwd()+'/','')}:${m.line}:${m.column} [${m.severity===2?'error':'warning'}] ${first}`);
           }
           const summary = [...groups.entries()].sort((a,b)=>b[1].length-a[1].length).map(([r,v])=>`${r}: ${v.length}`).join('\\n');
