@@ -2,7 +2,7 @@ name: CORE SYSTEM Reality Audit - Local CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, fix/workforce-closure]
   workflow_dispatch:
 
 permissions:
