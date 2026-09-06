@@ -4,6 +4,8 @@ import { getAuthorizedTenantId } from "@/domain/patients/patients.authorization"
 import type { PatientInsert, PatientUpdate } from "@/domain/patients/patients.types";
 
 type PatientPayload = Partial<PatientInsert> & { id?: string };
+type PatientGender = NonNullable<PatientInsert["gender"]>;
+
 const TENANT_MISSING = "PATIENT_TENANT_MISSING";
 const DATABASE_ERROR = "PATIENT_DATABASE_ERROR";
 const INVALID_REQUEST = "PATIENT_INVALID_REQUEST";
@@ -14,8 +16,13 @@ function clean(value: unknown): string | undefined {
   return trimmed === "" ? undefined : trimmed;
 }
 
+function normalizeGender(value: unknown): PatientGender | undefined {
+  const gender = clean(value);
+  return gender === "male" || gender === "female" || gender === "other" ? gender : undefined;
+}
+
 function normalizedPayload(input: PatientPayload) {
-  const gender = clean(input.gender);
+  const gender = normalizeGender(input.gender);
   return {
     first_name: clean(input.first_name) ?? "",
     last_name: clean(input.last_name) ?? "",
@@ -56,7 +63,13 @@ export async function POST(request: Request) {
   if (!tenantId) return NextResponse.json({ error: TENANT_MISSING }, { status: 401 });
 
   const id = crypto.randomUUID();
-  const patient: PatientInsert = { ...normalizedPayload(body), tenant_id: tenantId, first_name: firstName, last_name: lastName, phone_primary: phone };
+  const patient: PatientInsert = {
+    ...normalizedPayload(body),
+    tenant_id: tenantId,
+    first_name: firstName,
+    last_name: lastName,
+    phone_primary: phone,
+  };
   const { error } = await supabase.from("clinic_patients").insert({ ...patient, id });
   if (error) {
     console.error("[patients/api] create failed", { message: error.message, code: error.code });
