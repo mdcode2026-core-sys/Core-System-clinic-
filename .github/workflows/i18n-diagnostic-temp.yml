@@ -24,16 +24,21 @@ jobs:
           from pathlib import Path
           p=Path('src/app/(dashboard)/workforce/payroll/page.tsx')
           s=p.read_text()
-          s=s.replace('>net</','>{ar?"الصافي":"net"}</')
-          s=s.replace('>Short-term period</','>{ar?"فترة قصيرة الأجل":"Short-term period"}</')
+          s=s.replace(')} net</span>', ')} {ar ? "الصافي" : "net"}</span>')
+          s=s.replace('>net</span>', '>{ar ? "الصافي" : "net"}</span>')
+          s=s.replace('>Short-term period</', '>{ar ? "فترة قصيرة الأجل" : "Short-term period"}</')
           p.write_text(s)
           PY
       - name: Validate I18N
         run: |
           npm run i18n:parity
           npm run i18n:audit
-      - name: Publish validation report
-        if: always()
+      - name: Full validation
+        run: |
+          npx tsc --noEmit
+          npx eslint .
+      - name: Publish and clean temporary workflow
+        if: success()
         run: |
           git add src/app/'(dashboard)'/workforce/payroll/page.tsx i18n-audit-report.json
           git config user.name 'github-actions[bot]'
