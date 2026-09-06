@@ -8,12 +8,12 @@ import {
   approveLeaveRequest,
   createStaffSchedule,
   createPayrollPeriod,
-  createPayrollEntry,
   createBenefit,
   createStaffingNeed,
   createCandidate,
   promoteCandidateToEmployee,
 } from "@/domain/workforce/workforce.actions";
+import { createPayrollEntryFromWorkforce } from "@/domain/workforce/workforce.payroll.actions";
 
 const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
@@ -63,7 +63,7 @@ export default async function WorkforcePage() {
   async function decideLeave(fd: FormData) { "use server"; await approveLeaveRequest({ leave_request_id: String(fd.get("leave_request_id")), decision: String(fd.get("decision")) as "approved" | "rejected" }); }
   async function submitSchedule(fd: FormData) { "use server"; await createStaffSchedule({ employee_id: String(fd.get("employee_id")), day_of_week: Number(fd.get("day_of_week")), starts_at: String(fd.get("starts_at")), ends_at: String(fd.get("ends_at")), capacity_units: Number(fd.get("capacity") || 1) }); }
   async function submitPeriod(fd: FormData) { "use server"; await createPayrollPeriod({ period_start: String(fd.get("period_start")), period_end: String(fd.get("period_end")), currency: String(fd.get("currency") || "JOD") }); }
-  async function submitPayroll(fd: FormData) { "use server"; await createPayrollEntry({ payroll_period_id: String(fd.get("payroll_period_id")), employee_id: String(fd.get("employee_id")), base_salary_subunits: Math.round(Number(fd.get("base") || 0) * 100), allowances_subunits: Math.round(Number(fd.get("allowances") || 0) * 100), overtime_subunits: Math.round(Number(fd.get("overtime") || 0) * 100), bonuses_subunits: Math.round(Number(fd.get("bonuses") || 0) * 100), commissions_subunits: Math.round(Number(fd.get("commissions") || 0) * 100), deductions_subunits: Math.round(Number(fd.get("deductions") || 0) * 100) }); }
+  async function submitPayroll(fd: FormData) { "use server"; await createPayrollEntryFromWorkforce({ payroll_period_id: String(fd.get("payroll_period_id")), employee_id: String(fd.get("employee_id")), allowances_subunits: Math.round(Number(fd.get("allowances") || 0) * 100), overtime_subunits: Math.round(Number(fd.get("overtime") || 0) * 100), bonuses_subunits: Math.round(Number(fd.get("bonuses") || 0) * 100), deductions_subunits: Math.round(Number(fd.get("deductions") || 0) * 100) }); }
   async function submitBenefit(fd: FormData) { "use server"; await createBenefit({ employee_id: String(fd.get("employee_id")), benefit_name: String(fd.get("benefit_name")), value_subunits: Math.round(Number(fd.get("value") || 0) * 100), currency: String(fd.get("currency") || "JOD"), starts_on: String(fd.get("starts_on") || "") || null, ends_on: String(fd.get("ends_on") || "") || null }); }
   async function submitNeed(fd: FormData) { "use server"; await createStaffingNeed({ position_id: String(fd.get("position_id") || "") || null, title: String(fd.get("title")), quantity: Number(fd.get("quantity") || 1) }); }
   async function submitCandidate(fd: FormData) { "use server"; await createCandidate({ staffing_need_id: String(fd.get("staffing_need_id") || "") || null, first_name: String(fd.get("first_name")), last_name: String(fd.get("last_name")), phone: String(fd.get("phone") || "") || undefined, email: String(fd.get("email") || "") || undefined }); }
@@ -94,10 +94,10 @@ export default async function WorkforcePage() {
       <List rows={leaveRows} render={(r: any) => <><span>{r.employee?.first_name} {r.employee?.last_name} · {r.leave_type?.name_ar || r.leave_type?.name}</span><span className="flex items-center gap-2 text-sm"><span className="text-muted-foreground">{r.starts_on} → {r.ends_on} · {r.status}</span>{r.status === "pending" && <form action={decideLeave} className="flex gap-1"><input type="hidden" name="leave_request_id" value={r.id}/><button name="decision" value="approved" className="rounded border px-2 py-1">{ar ? "اعتماد" : "Approve"}</button><button name="decision" value="rejected" className="rounded border px-2 py-1">{ar ? "رفض" : "Reject"}</button></form>}</span></>} />
     </Section>
 
-    <Section title={ar ? "سجل الرواتب الأساسي والعمولات" : "Basic Payroll & Commissions"} description={ar ? "سجل تشغيلي بسيط للمكونات والعمولات، وليس محرك رواتب كامل." : "A simple operational record of pay components and commissions, not a full payroll engine."}>
+    <Section title={ar ? "سجل الرواتب الأساسي والعمولات" : "Basic Payroll & Commissions"} description={ar ? "ينشئ مسير الموظف من سجل التوظيف الفعال ويجمع العمولات المعتمدة تلقائياً ضمن فترة الراتب." : "Generates payroll from the active employment record and automatically aggregates approved commissions within the payroll period."}>
       <div className="grid gap-6 lg:grid-cols-2">
         <form action={submitPeriod} className="grid gap-2 md:grid-cols-3"><input name="period_start" type="date" required className="rounded-md border p-2"/><input name="period_end" type="date" required className="rounded-md border p-2"/><input name="currency" defaultValue="JOD" className="rounded-md border p-2"/><button className="rounded-md bg-primary px-4 py-2 text-primary-foreground md:col-span-3">{ar ? "فتح فترة راتب" : "Open payroll period"}</button></form>
-        <form action={submitPayroll} className="grid gap-2 md:grid-cols-2">{empSelect()}<select name="payroll_period_id" required className="rounded-md border bg-background p-2">{payrollPeriodRows.map((p: any) => <option key={p.id} value={p.id}>{p.period_start} → {p.period_end}</option>)}</select>{["base","allowances","overtime","bonuses","commissions","deductions"].map(n => <input key={n} name={n} type="number" step="0.01" min="0" placeholder={n} className="rounded-md border p-2"/>)}<button className="rounded-md bg-primary px-4 py-2 text-primary-foreground md:col-span-2">{ar ? "حفظ مسير الموظف" : "Save payroll entry"}</button></form>
+        <form action={submitPayroll} className="grid gap-2 md:grid-cols-2">{empSelect()}<select name="payroll_period_id" required className="rounded-md border bg-background p-2">{payrollPeriodRows.map((p: any) => <option key={p.id} value={p.id}>{p.period_start} → {p.period_end}</option>)}</select>{["allowances","overtime","bonuses","deductions"].map(n => <input key={n} name={n} type="number" step="0.01" min="0" placeholder={n} className="rounded-md border p-2"/>)}<button className="rounded-md bg-primary px-4 py-2 text-primary-foreground md:col-span-2">{ar ? "إنشاء مسير الموظف" : "Generate payroll entry"}</button></form>
       </div>
       <List rows={payrollEntryRows} render={(p: any) => <><span>{p.employee?.first_name} {p.employee?.last_name}</span><span className="text-sm text-muted-foreground">{(p.net_subunits / 100).toFixed(2)} · {p.status}</span></>} />
     </Section>
