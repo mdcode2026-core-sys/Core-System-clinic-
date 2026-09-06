@@ -18,36 +18,14 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci --ignore-scripts --no-audit --no-fund --prefer-offline
-      - name: Localize payroll literals
+      - name: Close remaining payroll literals
         run: |
           python3 - <<'PY'
           from pathlib import Path
           p=Path('src/app/(dashboard)/workforce/payroll/page.tsx')
           s=p.read_text()
-          attrs={
-            'placeholder="Amount"':'placeholder={ar?"المبلغ":"Amount"}',
-            'placeholder="Reason / reference"':'placeholder={ar?"السبب / المرجع":"Reason / reference"}',
-            'placeholder="Short-term period"':'placeholder={ar?"فترة قصيرة الأجل":"Short-term period"}',
-            'placeholder="Installment"':'placeholder={ar?"قسط":"Installment"}',
-            'placeholder="Reason"':'placeholder={ar?"السبب":"Reason"}',
-          }
-          for a,b in attrs.items(): s=s.replace(a,b)
-          pairs={
-            '>net<':'>\{ar?"الصافي":"net"\}<',
-            '>Manual<':'>\{ar?"يدوي":"Manual"\}<',
-            '>Attendance<':'>\{ar?"الحضور":"Attendance"\}<',
-            '>Leave<':'>\{ar?"الإجازة":"Leave"\}<',
-            '>Bonus<':'>\{ar?"مكافأة":"Bonus"\}<',
-            '>Benefit<':'>\{ar?"منفعة":"Benefit"\}<',
-            '>Employee advance<':'>\{ar?"سلفة موظف":"Employee advance"\}<',
-            '>Administrative action<':'>\{ar?"إجراء إداري":"Administrative action"\}<',
-            '>Country rule<':'>\{ar?"قاعدة الدولة":"Country rule"\}<',
-            '>Short-term<':'>\{ar?"قصيرة الأجل":"Short-term"\}<',
-            '>Installment<':'>\{ar?"قسط":"Installment"\}<',
-            '>No active benefits.<':'>\{ar?"لا توجد مزايا نشطة.":"No active benefits."\}<',
-            '>Save<':'>\{ar?"حفظ":"Save"\}<',
-          }
-          for a,b in pairs.items(): s=s.replace(a,b)
+          s=s.replace('>net</','>{ar?"الصافي":"net"}</')
+          s=s.replace('>Short-term period</','>{ar?"فترة قصيرة الأجل":"Short-term period"}</')
           p.write_text(s)
           PY
       - name: Validate I18N
@@ -60,5 +38,5 @@ jobs:
           git add src/app/'(dashboard)'/workforce/payroll/page.tsx i18n-audit-report.json
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git commit -m 'fix(workforce): localize payroll UI literals' || true
+          git commit -m 'fix(workforce): close payroll i18n audit' || true
           git push
