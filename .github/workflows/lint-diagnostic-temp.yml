@@ -18,29 +18,19 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci --ignore-scripts --no-audit --no-fund --prefer-offline
-      - name: Generate lint file counts
+      - name: Inspect offending helper components
         run: |
-          npx eslint . --format json > /tmp/lint.json || true
           node <<'NODE'
-          const fs = require('fs');
-          const data = JSON.parse(fs.readFileSync('/tmp/lint.json','utf8'));
-          const byRuleFile = new Map();
-          for (const f of data) for (const m of f.messages) {
-            const rule = m.ruleId || 'parse-error';
-            const file = f.filePath.replace(process.cwd()+'/','');
-            const key = `${rule}\t${file}`;
-            byRuleFile.set(key,(byRuleFile.get(key)||0)+1);
-          }
-          const rows = [...byRuleFile.entries()].sort((a,b)=>b[1]-a[1]);
-          fs.writeFileSync('LINT_FILE_COUNTS_TEMP.md', '# ESLint findings by rule and file\n\n'+rows.map(([k,n])=>{const [rule,file]=k.split('\t');return `- ${n} | ${rule} | ${file}`}).join('\n')+'\n');
-          const summary = new Map();
-          for (const [k,n] of rows) { const rule=k.split('\t')[0]; summary.set(rule,(summary.get(rule)||0)+n); }
-          fs.writeFileSync('LINT_SUMMARY_TEMP.md','# ESLint summary\n\n'+[...summary.entries()].sort((a,b)=>b[1]-a[1]).map(([r,n])=>`- ${n} | ${r}`).join('\n')+'\n');
+          const fs=require('fs');
+          const files=['src/features/financial-resources/financial-resources-operations-center.tsx','src/features/financial-resources/financial-resources-workspace.tsx','src/features/financial-resources/financial-resources-settings.tsx','src/features/financial-resources/payment-center.tsx','src/features/financial-resources/financial-plans-operations.tsx','src/features/financial-resources/financial-plans-insurance-center.tsx'];
+          let out='# Offending component declarations\\n\\n';
+          for(const file of files){const s=fs.readFileSync(file,'utf8'); const names=[...s.matchAll(/const\\s+([A-Z][A-Za-z0-9_]*)\\s*=\\s*\\(/g)].map(m=>m[1]); out+=`## ${file}\\n\\n${[...new Set(names)].join(', ')||'(none)'}\\n\\n`;}
+          fs.writeFileSync('HELPERS_TEMP.md',out);
           NODE
       - name: Publish report on audit branch
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add LINT_*_TEMP.*
-          git commit -m 'chore(audit): publish lint file counts' || true
+          git add HELPERS_TEMP.md
+          git commit -m 'chore(audit): inspect offending helper components' || true
           git push
