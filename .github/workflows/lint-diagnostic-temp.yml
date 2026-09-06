@@ -22,9 +22,8 @@ jobs:
         run: |
           node <<'NODE'
           const fs=require('fs');
-          function patch(file, replacements){let s=fs.readFileSync(file,'utf8');for(const [from,to] of replacements){if(!s.includes(from))throw new Error(`Pattern not found in ${file}: ${from.slice(0,120)}`);s=s.replace(from,to)}fs.writeFileSync(file,s)}
+          function patch(file,replacements){let s=fs.readFileSync(file,'utf8');for(const [from,to] of replacements){if(!s.includes(from))throw new Error(`Pattern not found in ${file}: ${from.slice(0,120)}`);s=s.replace(from,to)}fs.writeFileSync(file,s)}
           patch('src/app/(dashboard)/workforce/payroll/page.tsx',[["/* eslint-disable @typescript-eslint/no-explicit-any */\n",""]]);
-          patch('src/core/entitlements/useEntitlements.ts',[["import { useMemo } from \"react\";","import { useCallback, useMemo } from \"react\";"],["const hasCapability = (key: string) => clinicAdmin || capabilities.includes(key);","const hasCapability = useCallback((key: string) => clinicAdmin || capabilities.includes(key), [clinicAdmin, capabilities]);"],["[capabilities, clinicAdmin, isLoading, error]","[capabilities, hasCapability, isLoading, error]"]]);
           patch('src/features/medical-files/ui/MedicalFilesPanel.tsx',[["import { useEffect, useMemo, useRef, useState, useTransition } from \"react\";","import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from \"react\";"],["import { ExternalLink, FileText, Image as ImageIcon, RefreshCw, RotateCcw, RotateCw, Upload, X, ZoomIn, ZoomOut, UserRound } from \"lucide-react\";","import { ExternalLink, FileText, Image as ImageIcon, RefreshCw, RotateCcw, RotateCw, Upload, X, ZoomIn, ZoomOut, UserRound } from \"lucide-react\";\nimport Image from \"next/image\";"],["const load = () => startTransition(async () => {","const load = useCallback(() => startTransition(async () => {"] ,[" });\n  useEffect(() => { load(); }, [patientId, visitId]);"," });\n  }, [patientId, visitId, t.loadFailed]);\n  useEffect(() => { load(); }, [load]);"],["<div className=\"flex max-h-[65vh] min-h-[220px] w-full items-center justify-center overflow-auto rounded bg-black p-1 sm:min-h-[320px] sm:p-2\"><img src={previewUrl} alt={selected.original_filename} draggable={false} className=\"block h-auto max-h-[60vh] w-auto max-w-full object-contain transition-transform duration-150\" style={{ transform: `scale(${imageScale}) rotate(${imageRotation}deg)`, transformOrigin: \"center center\" }} /></div>","<div className=\"relative flex h-[65vh] min-h-[220px] w-full items-center justify-center overflow-auto rounded bg-black p-1 sm:min-h-[320px] sm:p-2\"><Image src={previewUrl} alt={selected.original_filename} fill unoptimized sizes=\"100vw\" draggable={false} className=\"object-contain transition-transform duration-150\" style={{ transform: `scale(${imageScale}) rotate(${imageRotation}deg)`, transformOrigin: \"center center\" }} /></div>"]]);
           NODE
       - name: Validate full repository lint and TypeScript
@@ -40,6 +39,6 @@ jobs:
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add eslint.config.mjs src/app/'(dashboard)'/workforce/payroll/page.tsx src/core/entitlements/useEntitlements.ts src/features/medical-files/ui/MedicalFilesPanel.tsx TEMP_LINT_FINAL_DIAGNOSTIC.txt TEMP_TSC_FINAL_DIAGNOSTIC.txt
+          git add eslint.config.mjs src/app/'(dashboard)'/workforce/payroll/page.tsx src/features/medical-files/ui/MedicalFilesPanel.tsx TEMP_LINT_FINAL_DIAGNOSTIC.txt TEMP_TSC_FINAL_DIAGNOSTIC.txt
           git commit -m 'fix(lint): close remaining repository diagnostics' || true
           git push
