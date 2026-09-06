@@ -1,0 +1,52 @@
+name: Temporary Lint Diagnostic
+
+on:
+  push:
+    branches: [audit/lint-report-20260906]
+
+permissions:
+  contents: write
+
+jobs:
+  report:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund --prefer-offline
+      - name: Generate lint report
+        run: |
+          npx eslint . --format json > /tmp/lint.json || true
+          node <<'NODE'
+          const fs = require('fs');
+          const data = JSON.parse(fs.readFileSync('/tmp/lint.json','utf8'));
+          const counts = new Map();
+          const lines = [];
+          let errors = 0, warnings = 0;
+          for (const f of data) {
+            for (const m of f.messages) {
+              if (m.severity === 2) errors++; else if (m.severity === 1) warnings++;
+              const rule = m.ruleId || 'parse-error';
+              const x = counts.get(rule) || {error:0, warning:0};
+              if (m.severity === 2) x.error++; else x.warning++;
+              counts.set(rule, x);
+              lines.push(`${f.filePath.replace(process.cwd()+'/','')}:${m.line}:${m.column} [${m.severity===2?'error':'warning'}] ${rule} ${m.message}`);
+            }
+          }
+          const sorted = [...counts.entries()].sort((a,b)=>(b[1].error+b[1].warning)-(a[1].error+a[1].warning));
+          let out = `# Temporary ESLint Diagnostic\n\n- Errors: ${errors}\n- Warnings: ${warnings}\n- Files with findings: ${data.filter(f=>f.messages.length).length}\n\n## By rule\n\n| Rule | Errors | Warnings | Total |\n|---|---:|---:|---:|\n`;
+          for (const [rule,x] of sorted) out += `| ${rule} | ${x.error} | ${x.warning} | ${x.error+x.warning} |\n`;
+          out += `\n## Findings\n\n\`\`\`text\n${lines.join('\n')}\n\`\`\`\n`;
+          fs.writeFileSync('LINT_REPORT_TEMP.md', out);
+          NODE
+      - name: Publish report on audit branch
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add LINT_REPORT_TEMP.md
+          git commit -m 'chore(audit): publish temporary lint diagnostics' || true
+          git push
