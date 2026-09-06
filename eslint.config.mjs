@@ -9,6 +9,12 @@ const config = [
       "no-debugger": "error",
     },
   },
+  {
+    files: ["tools/**/*.mjs"],
+    rules: {
+      "no-console": "off",
+    },
+  },
 ];
 
 export default config;

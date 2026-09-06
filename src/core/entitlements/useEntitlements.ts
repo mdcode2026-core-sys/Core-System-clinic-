@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { createClient } from "@/infrastructure/supabase/client";
 import { useTenantId } from "@/core/auth/useTenantId";
@@ -51,12 +51,12 @@ export function useEntitlements(): UseEntitlementsReturn {
     refetchOnWindowFocus: false,
   });
 
-  const hasCapability = (key: string) => clinicAdmin || capabilities.includes(key);
+  const hasCapability = useCallback((key: string) => clinicAdmin || capabilities.includes(key), [clinicAdmin, capabilities]);
   const isLoading = tenantLoading || adminLoading || (!clinicAdmin && !!tenantId && capabilityLoading);
   const error = tenantError ?? (adminError instanceof Error ? adminError.message : capabilityError instanceof Error ? capabilityError.message : null);
 
   return useMemo(
     () => ({ capabilities, hasCapability, isLoading, error }),
-    [capabilities, clinicAdmin, isLoading, error],
+    [capabilities, hasCapability, isLoading, error],
   );
 }
