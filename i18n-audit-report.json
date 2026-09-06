@@ -1,11 +1,4 @@
 {
-  "generatedAt": "2026-09-06T19:40:08.770Z",
-  "findings": [
-    {
-      "file": "src/app/(dashboard)/workforce/payroll/page.tsx",
-      "line": 48,
-      "kind": "jsx-text-literal",
-      "value": "net"
-    }
-  ]
+  "generatedAt": "2026-09-06T21:05:03.806Z",
+  "findings": []
 }
