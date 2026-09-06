@@ -18,25 +18,25 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci --ignore-scripts --no-audit --no-fund --prefer-offline
+      - name: Move remaining render-created helper components to module scope
+        run: |
+          node <<'NODE'
+          const fs=require('fs');
+          const files=['src/features/financial-resources/financial-resources-operations-center.tsx','src/features/financial-resources/financial-resources-workspace.tsx','src/features/financial-resources/financial-resources-settings.tsx','src/features/financial-resources/payment-center.tsx','src/features/financial-resources/financial-plans-operations.tsx','src/features/financial-resources/financial-plans-insurance-center.tsx'];
+          function extract(s,start){let i=start,par=0,br=0,sq=0,quote=null,template=false,esc=false;for(;i<s.length;i++){const c=s[i];if(quote){if(esc){esc=false;continue}if(c==='\\'){esc=true;continue}if(c===quote)quote=null;continue}if(template){if(esc){esc=false;continue}if(c==='\\'){esc=true;continue}if(c==='`')template=false;continue}if(c==='"'||c==="'"){quote=c;continue}if(c==='`'){template=true;continue}if(c==='(')par++;else if(c===')')par--;else if(c==='{')br++;else if(c==='}')br--;else if(c==='[')sq++;else if(c===']')sq--;if(c===';'&&par===0&&br===0&&sq===0)return i+1}return -1}
+          for(const file of files){let s=fs.readFileSync(file,'utf8');const exportAt=s.search(/export\s+(?:default\s+)?(?:async\s+)?function\s/);if(exportAt<0)throw new Error(`No export in ${file}`);const bodyAt=s.indexOf('{',exportAt);let moved=[];const re=/\bconst\s+([A-Z][A-Za-z0-9_]*)\s*=\s*\(/g;re.lastIndex=bodyAt+1;let m;while((m=re.exec(s))){const start=m.index,end=extract(s,start);if(end<0)continue;moved.push(s.slice(start,end));s=s.slice(0,start)+s.slice(end);re.lastIndex=start}if(!moved.length)continue;const insertAt=s.search(/export\s+(?:default\s+)?(?:async\s+)?function\s/);s=s.slice(0,insertAt)+moved.join('\n')+'\n'+s.slice(insertAt);fs.writeFileSync(file,s)}
+          NODE
       - name: Validate financial resources lint surface
         run: |
           npx tsc --noEmit > /tmp/tsc.log 2>&1 || true
           npx eslint src/features/financial-resources/financial-resources-operations-center.tsx src/features/financial-resources/financial-resources-workspace.tsx src/features/financial-resources/financial-resources-settings.tsx src/features/financial-resources/payment-center.tsx src/features/financial-resources/financial-plans-operations.tsx src/features/financial-resources/financial-plans-insurance-center.tsx --format json > /tmp/lint.json || true
           node <<'NODE'
-          const fs=require('fs');
-          const data=JSON.parse(fs.readFileSync('/tmp/lint.json','utf8'));
-          let out='# Financial resources lint after helper refactor\n\n';
-          let errors=0,warnings=0;
-          const rows=[];
-          for(const f of data) for(const m of f.messages){if(m.severity===2)errors++;else warnings++;rows.push(`${f.filePath.replace(process.cwd()+'/','')}:${m.line}:${m.column} [${m.severity===2?'error':'warning'}] ${m.ruleId||'parse-error'} ${String(m.message).replace(/\s+/g,' ').slice(0,180)}`)}
-          out+=`Errors: ${errors}\nWarnings: ${warnings}\nFindings: ${rows.length}\n\n${rows.join('\n')}\n`;
-          fs.writeFileSync('TEMP_LINT_AFTER_REFACTOR.txt',out);
-          fs.writeFileSync('TEMP_TSC_AFTER_REFACTOR.txt',fs.readFileSync('/tmp/tsc.log','utf8'));
+          const fs=require('fs');const data=JSON.parse(fs.readFileSync('/tmp/lint.json','utf8'));let e=0,w=0,rows=[];for(const f of data)for(const m of f.messages){m.severity===2?e++:w++;rows.push(`${f.filePath.replace(process.cwd()+'/','')}:${m.line}:${m.column} [${m.severity===2?'error':'warning'}] ${m.ruleId||'parse-error'} ${String(m.message).replace(/\s+/g,' ').slice(0,180)}`)}fs.writeFileSync('TEMP_LINT_AFTER_REFACTOR.txt',`Errors: ${e}\nWarnings: ${w}\nFindings: ${rows.length}\n\n${rows.join('\n')}\n`);fs.writeFileSync('TEMP_TSC_AFTER_REFACTOR.txt',fs.readFileSync('/tmp/tsc.log','utf8'));
           NODE
-      - name: Commit diagnostics
+      - name: Commit staged refactor and diagnostics
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add TEMP_LINT_AFTER_REFACTOR.txt TEMP_TSC_AFTER_REFACTOR.txt
-          git commit -m 'chore(audit): record post-refactor lint diagnostics' || true
+          git add src/features/financial-resources TEMP_LINT_AFTER_REFACTOR.txt TEMP_TSC_AFTER_REFACTOR.txt
+          git commit -m 'fix(financial-resources): move remaining helper components to module scope' || true
           git push
