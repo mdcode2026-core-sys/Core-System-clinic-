@@ -1,0 +1,149 @@
+{
+  "generatedAt": "2026-09-06T19:37:35.668Z",
+  "findings": [
+    {
+      "file": "src/app/(dashboard)/workforce/payroll/page.tsx",
+      "line": 48,
+      "kind": "jsx-text-literal",
+      "value": "net"
+    },
+    {
+      "file": "src/app/(dashboard)/workforce/payroll/page.tsx",
+      "line": 49,
+      "kind": "ui-attribute-literal",
+      "value": "Amount"
+    },
+    {
+      "file": "src/app/(dashboard)/workforce/payroll/page.tsx",
+      "line": 49,
+      "kind": "jsx-text-literal",
+      "value": "Manual"
+    },
+    {
+      "file": "src/app/(dashboard)/workforce/payroll/page.tsx",
+      "line": 49,
+      "kind": "jsx-text-literal",
+      "value": "Attendance"
+    },
+    {
+      "file": "src/app/(dashboard)/workforce/payroll/page.tsx",
+      "line": 49,
+      "kind": "jsx-text-literal",
+      "value": "Leave"
+    },
+    {
+      "file": "src/app/(dashboard)/workforce/payroll/page.tsx",
+      "line": 49,
+      "kind": "jsx-text-literal",
+      "value": "Bonus"
+    },
+    {
+      "file": "src/app/(dashboard)/workforce/payroll/page.tsx",
+      "line": 49,
+      "kind": "ui-attribute-literal",
+      "value": "Reason / reference"
+    },
+    {
+      "file": "src/app/(dashboard)/workforce/payroll/page.tsx",
+      "line": 50,
+      "kind": "ui-attribute-literal",
+      "value": "Amount"
+    },
+    {
+      "file": "src/app/(dashboard)/workforce/payroll/page.tsx",
+      "line": 50,
+      "kind": "jsx-text-literal",
+      "value": "Manual"
+    },
+    {
+      "file": "src/app/(dashboard)/workforce/payroll/page.tsx",
+      "line": 50,
+      "kind": "jsx-text-literal",
+      "value": "Attendance"
+    },
+    {
+      "file": "src/app/(dashboard)/workforce/payroll/page.tsx",
+      "line": 50,
+      "kind": "jsx-text-literal",
+      "value": "Leave"
+    },
+    {
+      "file": "src/app/(dashboard)/workforce/payroll/page.tsx",
+      "line": 50,
+      "kind": "jsx-text-literal",
+      "value": "Benefit"
+    },
+    {
+      "file": "src/app/(dashboard)/workforce/payroll/page.tsx",
+      "line": 50,
+      "kind": "jsx-text-literal",
+      "value": "Employee advance"
+    },
+    {
+      "file": "src/app/(dashboard)/workforce/payroll/page.tsx",
+      "line": 50,
+      "kind": "jsx-text-literal",
+      "value": "Administrative action"
+    },
+    {
+      "file": "src/app/(dashboard)/workforce/payroll/page.tsx",
+      "line": 50,
+      "kind": "jsx-text-literal",
+      "value": "Country rule"
+    },
+    {
+      "file": "src/app/(dashboard)/workforce/payroll/page.tsx",
+      "line": 50,
+      "kind": "ui-attribute-literal",
+      "value": "Reason / reference"
+    },
+    {
+      "file": "src/app/(dashboard)/workforce/payroll/page.tsx",
+      "line": 51,
+      "kind": "jsx-text-literal",
+      "value": "Short-term"
+    },
+    {
+      "file": "src/app/(dashboard)/workforce/payroll/page.tsx",
+      "line": 51,
+      "kind": "jsx-text-literal",
+      "value": "Installment"
+    },
+    {
+      "file": "src/app/(dashboard)/workforce/payroll/page.tsx",
+      "line": 51,
+      "kind": "ui-attribute-literal",
+      "value": "Amount"
+    },
+    {
+      "file": "src/app/(dashboard)/workforce/payroll/page.tsx",
+      "line": 51,
+      "kind": "jsx-text-literal",
+      "value": "Short-term period"
+    },
+    {
+      "file": "src/app/(dashboard)/workforce/payroll/page.tsx",
+      "line": 51,
+      "kind": "ui-attribute-literal",
+      "value": "Installment"
+    },
+    {
+      "file": "src/app/(dashboard)/workforce/payroll/page.tsx",
+      "line": 51,
+      "kind": "ui-attribute-literal",
+      "value": "Reason"
+    },
+    {
+      "file": "src/app/(dashboard)/workforce/payroll/page.tsx",
+      "line": 52,
+      "kind": "jsx-text-literal",
+      "value": "No active benefits."
+    },
+    {
+      "file": "src/app/(dashboard)/workforce/payroll/page.tsx",
+      "line": 52,
+      "kind": "jsx-text-literal",
+      "value": "Save"
+    }
+  ]
+}
