@@ -19,7 +19,7 @@ jobs:
           from pathlib import Path
           p = Path('src/app/(dashboard)/workforce/payroll/page.tsx')
           s = p.read_text()
-          s = s.replace(r'\\{ar?', '{ar?').replace(r'\\}', '}')
+          s = s.replace('\\{ar?', '{ar?').replace('\\}', '}')
           p.write_text(s)
           PY
       - name: Validate
@@ -29,7 +29,8 @@ jobs:
           npx eslint .
           npm run i18n:parity
           npm run i18n:audit
-      - name: Commit repair and remove temp workflow
+      - name: Commit repair
+        if: success()
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
