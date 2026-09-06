@@ -1,4 +1,0 @@
-src/features/medical-files/ui/MedicalFilesPanel.tsx(21,239): error TS1005: ')' expected.
-src/features/medical-files/ui/MedicalFilesPanel.tsx(22,4): error TS1128: Declaration or statement expected.
-src/features/medical-files/ui/MedicalFilesPanel.tsx(22,40): error TS1005: ';' expected.
-src/features/medical-files/ui/MedicalFilesPanel.tsx(43,1): error TS1128: Declaration or statement expected.
