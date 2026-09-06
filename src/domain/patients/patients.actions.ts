@@ -1,18 +1,109 @@
 "use server";
 
 import { createClient } from "@/infrastructure/supabase/server";
+import { getAuthorizedTenantId } from "@/domain/patients/patients.authorization";
 import type { PatientInsert, PatientUpdate } from "@/domain/patients/patients.types";
 
 const TENANT_MISSING = "PATIENT_TENANT_MISSING";
 const DATABASE_ERROR = "PATIENT_DATABASE_ERROR";
 type PatientMutationResult = { data?: { id: string }; error?: string };
-function getFormValue(formData: FormData, key: string): string | undefined { const value=formData.get(key); if(typeof value!=="string")return undefined; const trimmed=value.trim(); return trimmed===""?undefined:trimmed; }
-async function getAuthorizedTenantId(supabase: Awaited<ReturnType<typeof createClient>>) { const started=Date.now(); console.log("[patients] tenant auth start"); const {data:claimsData,error:claimsError}=await supabase.auth.getClaims(); console.log("[patients] getClaims done",Date.now()-started,"ms"); const userId=claimsData?.claims?.sub; if(claimsError||typeof userId!=="string"||!userId){console.error("[patients] claims failed",claimsError?.message);return null;} const lookupStarted=Date.now(); const {data,error}=await supabase.from("clinic_users").select("tenant_id").eq("auth_user_id",userId).eq("is_active",true).maybeSingle(); console.log("[patients] tenant lookup done",Date.now()-lookupStarted,"ms"); if(error){console.error("[patients] tenant lookup failed",{message:error.message,code:error.code});return null;} return data?.tenant_id??null; }
-function logDatabaseError(operation:string,error:{message:string;code?:string;details?:string;hint?:string}){console.error(`[${operation}] database error`,{message:error.message,code:error.code,details:error.details,hint:error.hint});}
-function success(id:string):PatientMutationResult{return {data:{id}};}
-function failure(error:string):PatientMutationResult{return {error};}
+function getFormValue(formData: FormData, key: string): string | undefined {
+  const value = formData.get(key);
+  if (typeof value !== "string") return undefined;
+  const trimmed = value.trim();
+  return trimmed === "" ? undefined : trimmed;
+}
+function logDatabaseError(operation: string, error: { message: string; code?: string; details?: string; hint?: string }) {
+  console.error(`[${operation}] database error`, { message: error.message, code: error.code, details: error.details, hint: error.hint });
+}
+function success(id: string): PatientMutationResult { return { data: { id } }; }
+function failure(error: string): PatientMutationResult { return { error }; }
 
-export async function createPatient(formData:FormData):Promise<PatientMutationResult>{const totalStarted=Date.now();console.log("[patients] create start");const supabase=await createClient();const tenantId=await getAuthorizedTenantId(supabase);if(!tenantId)return failure(TENANT_MISSING);const id=crypto.randomUUID();const patient:PatientInsert={tenant_id:tenantId,first_name:getFormValue(formData,"first_name")??"",last_name:getFormValue(formData,"last_name")??"",first_name_ar:getFormValue(formData,"first_name_ar"),last_name_ar:getFormValue(formData,"last_name_ar"),date_of_birth:getFormValue(formData,"date_of_birth"),gender:getFormValue(formData,"gender") as "male"|"female"|"other"|undefined,phone_primary:getFormValue(formData,"phone_primary")??"",phone_secondary:getFormValue(formData,"phone_secondary"),email:getFormValue(formData,"email"),preferred_channel:(getFormValue(formData,"preferred_channel")??"whatsapp") as "whatsapp"|"sms"|"email"|"phone",first_visit_date:getFormValue(formData,"first_visit_date"),referral_source:getFormValue(formData,"referral_source"),patient_status:(getFormValue(formData,"patient_status")??"active") as "active"|"inactive"|"archived"|"blocked",notes:getFormValue(formData,"notes")};const insertStarted=Date.now();console.log("[patients] insert start",id);const {error}=await supabase.from("clinic_patients").insert({...patient,id});console.log("[patients] insert done",Date.now()-insertStarted,"ms",error?.message??"ok");if(error){logDatabaseError("createPatient",error);return failure(DATABASE_ERROR);}console.log("[patients] create done",Date.now()-totalStarted,"ms");return success(id);}
-export async function createPatientFromObject(patientData:PatientInsert):Promise<PatientMutationResult>{const supabase=await createClient();const tenantId=await getAuthorizedTenantId(supabase);if(!tenantId)return failure(TENANT_MISSING);const id=crypto.randomUUID();const patient:PatientInsert={...patientData,tenant_id:tenantId};const {error}=await supabase.from("clinic_patients").insert({...patient,id});if(error){logDatabaseError("createPatientFromObject",error);return failure(DATABASE_ERROR);}return success(id);}
-export async function updatePatient(formData:FormData):Promise<PatientMutationResult>{const supabase=await createClient();const tenantId=await getAuthorizedTenantId(supabase);if(!tenantId)return failure(TENANT_MISSING);const id=getFormValue(formData,"id");if(!id)return failure(DATABASE_ERROR);const update:PatientUpdate={first_name:getFormValue(formData,"first_name"),last_name:getFormValue(formData,"last_name"),first_name_ar:getFormValue(formData,"first_name_ar"),last_name_ar:getFormValue(formData,"last_name"),date_of_birth:getFormValue(formData,"date_of_birth"),gender:getFormValue(formData,"gender") as "male"|"female"|"other"|undefined,phone_primary:getFormValue(formData,"phone_primary"),phone_secondary:getFormValue(formData,"phone_secondary"),email:getFormValue(formData,"email"),preferred_channel:getFormValue(formData,"preferred_channel") as "whatsapp"|"sms"|"email"|"phone"|undefined,first_visit_date:getFormValue(formData,"first_visit_date"),referral_source:getFormValue(formData,"referral_source"),patient_status:getFormValue(formData,"patient_status") as "active"|"inactive"|"archived"|"blocked"|undefined,notes:getFormValue(formData,"notes")};const {error}=await supabase.from("clinic_patients").update({...update,updated_at:new Date().toISOString()}).eq("id",id).eq("tenant_id",tenantId);if(error){logDatabaseError("updatePatient",error);return failure(DATABASE_ERROR);}return success(id);}
-export async function deletePatient(formData:FormData):Promise<PatientMutationResult>{const supabase=await createClient();const tenantId=await getAuthorizedTenantId(supabase);if(!tenantId)return failure(TENANT_MISSING);const id=getFormValue(formData,"id");if(!id)return failure(DATABASE_ERROR);const {error}=await supabase.from("clinic_patients").update({deleted_at:new Date().toISOString(),updated_at:new Date().toISOString()}).eq("id",id).eq("tenant_id",tenantId);if(error){logDatabaseError("deletePatient",error);return failure(DATABASE_ERROR);}return success(id);}
+export async function createPatient(formData: FormData): Promise<PatientMutationResult> {
+  const supabase = await createClient();
+  const tenantId = await getAuthorizedTenantId(supabase);
+  if (!tenantId) return failure(TENANT_MISSING);
+  const id = crypto.randomUUID();
+  const patient: PatientInsert = {
+    tenant_id: tenantId,
+    first_name: getFormValue(formData, "first_name") ?? "",
+    last_name: getFormValue(formData, "last_name") ?? "",
+    first_name_ar: getFormValue(formData, "first_name_ar"),
+    last_name_ar: getFormValue(formData, "last_name_ar"),
+    date_of_birth: getFormValue(formData, "date_of_birth"),
+    gender: getFormValue(formData, "gender") as "male" | "female" | "other" | undefined,
+    phone_primary: getFormValue(formData, "phone_primary") ?? "",
+    phone_secondary: getFormValue(formData, "phone_secondary"),
+    email: getFormValue(formData, "email"),
+    preferred_channel: (getFormValue(formData, "preferred_channel") ?? "whatsapp") as "whatsapp" | "sms" | "email" | "phone",
+    first_visit_date: getFormValue(formData, "first_visit_date"),
+    referral_source: getFormValue(formData, "referral_source"),
+    patient_status: (getFormValue(formData, "patient_status") ?? "active") as "active" | "inactive" | "archived" | "blocked",
+    notes: getFormValue(formData, "notes"),
+  };
+  const { error } = await supabase.from("clinic_patients").insert({ ...patient, id });
+  if (error) {
+    logDatabaseError("createPatient", error);
+    return failure(DATABASE_ERROR);
+  }
+  return success(id);
+}
+
+export async function createPatientFromObject(patientData: PatientInsert): Promise<PatientMutationResult> {
+  const supabase = await createClient();
+  const tenantId = await getAuthorizedTenantId(supabase);
+  if (!tenantId) return failure(TENANT_MISSING);
+  const id = crypto.randomUUID();
+  const patient: PatientInsert = { ...patientData, tenant_id: tenantId };
+  const { error } = await supabase.from("clinic_patients").insert({ ...patient, id });
+  if (error) {
+    logDatabaseError("createPatientFromObject", error);
+    return failure(DATABASE_ERROR);
+  }
+  return success(id);
+}
+
+export async function updatePatient(formData: FormData): Promise<PatientMutationResult> {
+  const supabase = await createClient();
+  const tenantId = await getAuthorizedTenantId(supabase);
+  if (!tenantId) return failure(TENANT_MISSING);
+  const id = getFormValue(formData, "id");
+  if (!id) return failure(DATABASE_ERROR);
+  const update: PatientUpdate = {
+    first_name: getFormValue(formData, "first_name"),
+    last_name: getFormValue(formData, "last_name"),
+    first_name_ar: getFormValue(formData, "first_name_ar"),
+    last_name_ar: getFormValue(formData, "last_name_ar"),
+    date_of_birth: getFormValue(formData, "date_of_birth"),
+    gender: getFormValue(formData, "gender") as "male" | "female" | "other" | undefined,
+    phone_primary: getFormValue(formData, "phone_primary"),
+    phone_secondary: getFormValue(formData, "phone_secondary"),
+    email: getFormValue(formData, "email"),
+    preferred_channel: getFormValue(formData, "preferred_channel") as "whatsapp" | "sms" | "email" | "phone" | undefined,
+    first_visit_date: getFormValue(formData, "first_visit_date"),
+    referral_source: getFormValue(formData, "referral_source"),
+    patient_status: getFormValue(formData, "patient_status") as "active" | "inactive" | "archived" | "blocked" | undefined,
+    notes: getFormValue(formData, "notes"),
+  };
+  const { error } = await supabase.from("clinic_patients").update({ ...update, updated_at: new Date().toISOString() }).eq("id", id).eq("tenant_id", tenantId);
+  if (error) {
+    logDatabaseError("updatePatient", error);
+    return failure(DATABASE_ERROR);
+  }
+  return success(id);
+}
+
+export async function deletePatient(formData: FormData): Promise<PatientMutationResult> {
+  const supabase = await createClient();
+  const tenantId = await getAuthorizedTenantId(supabase);
+  if (!tenantId) return failure(TENANT_MISSING);
+  const id = getFormValue(formData, "id");
+  if (!id) return failure(DATABASE_ERROR);
+  const now = new Date().toISOString();
+  const { error } = await supabase.from("clinic_patients").update({ deleted_at: now, updated_at: now }).eq("id", id).eq("tenant_id", tenantId);
+  if (error) {
+    logDatabaseError("deletePatient", error);
+    return failure(DATABASE_ERROR);
+  }
+  return success(id);
+}
