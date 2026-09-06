@@ -1,0 +1,5 @@
+Errors: 1
+Warnings: 0
+Findings: 1
+
+src/features/medical-files/ui/MedicalFilesPanel.tsx:21:238 [error] parse-error Parsing error: ')' expected.

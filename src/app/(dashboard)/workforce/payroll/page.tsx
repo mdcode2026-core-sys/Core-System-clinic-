@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { createClient } from "@/infrastructure/supabase/server";
