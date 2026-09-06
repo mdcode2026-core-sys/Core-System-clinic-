@@ -20,16 +20,36 @@ jobs:
       - run: npm ci --ignore-scripts --no-audit --no-fund --prefer-offline
       - name: Localize payroll literals
         run: |
-          node <<'NODE'
-          const fs=require('fs');
-          const file='src/app/(dashboard)/workforce/payroll/page.tsx';
-          let s=fs.readFileSync(file,'utf8');
-          const attrs={"Amount":"المبلغ","Reason / reference":"السبب / المرجع","Short-term period":"فترة قصيرة الأجل","Installment":"قسط","Reason":"السبب"};
-          for(const [en,ar] of Object.entries(attrs)){const from=`placeholder="${en}"`;const to=`placeholder={ar?"${ar}":"${en}"}`;if(!s.includes(from))throw new Error(`Missing ${from}`);s=s.split(from).join(to)}
-          const jsx={"net":"الصافي","Manual":"يدوي","Attendance":"الحضور","Leave":"الإجازة","Bonus":"مكافأة","Benefit":"منفعة","Employee advance":"سلفة موظف","Administrative action":"إجراء إداري","Country rule":"قاعدة الدولة","Short-term":"قصيرة الأجل","Installment":"قسط","No active benefits.":"لا توجد مزايا نشطة.","Save":"حفظ"};
-          for(const [en,ar] of Object.entries(jsx)){const re=new RegExp(`>(?:${en.replace(/[.*+?^${}()|[\\]\\\\]/g,'\\$&')})<`,'g');s=s.replace(re,`>{ar?"${ar}":"${en}"}<`)}
-          fs.writeFileSync(file,s);
-          NODE
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('src/app/(dashboard)/workforce/payroll/page.tsx')
+          s=p.read_text()
+          attrs={
+            'placeholder="Amount"':'placeholder={ar?"المبلغ":"Amount"}',
+            'placeholder="Reason / reference"':'placeholder={ar?"السبب / المرجع":"Reason / reference"}',
+            'placeholder="Short-term period"':'placeholder={ar?"فترة قصيرة الأجل":"Short-term period"}',
+            'placeholder="Installment"':'placeholder={ar?"قسط":"Installment"}',
+            'placeholder="Reason"':'placeholder={ar?"السبب":"Reason"}',
+          }
+          for a,b in attrs.items(): s=s.replace(a,b)
+          pairs={
+            '>net<':'>\{ar?"الصافي":"net"\}<',
+            '>Manual<':'>\{ar?"يدوي":"Manual"\}<',
+            '>Attendance<':'>\{ar?"الحضور":"Attendance"\}<',
+            '>Leave<':'>\{ar?"الإجازة":"Leave"\}<',
+            '>Bonus<':'>\{ar?"مكافأة":"Bonus"\}<',
+            '>Benefit<':'>\{ar?"منفعة":"Benefit"\}<',
+            '>Employee advance<':'>\{ar?"سلفة موظف":"Employee advance"\}<',
+            '>Administrative action<':'>\{ar?"إجراء إداري":"Administrative action"\}<',
+            '>Country rule<':'>\{ar?"قاعدة الدولة":"Country rule"\}<',
+            '>Short-term<':'>\{ar?"قصيرة الأجل":"Short-term"\}<',
+            '>Installment<':'>\{ar?"قسط":"Installment"\}<',
+            '>No active benefits.<':'>\{ar?"لا توجد مزايا نشطة.":"No active benefits."\}<',
+            '>Save<':'>\{ar?"حفظ":"Save"\}<',
+          }
+          for a,b in pairs.items(): s=s.replace(a,b)
+          p.write_text(s)
+          PY
       - name: Validate I18N
         run: |
           npm run i18n:parity
