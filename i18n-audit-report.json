@@ -1,17 +1,11 @@
 {
-  "generatedAt": "2026-09-06T19:39:23.858Z",
+  "generatedAt": "2026-09-06T19:40:08.770Z",
   "findings": [
     {
       "file": "src/app/(dashboard)/workforce/payroll/page.tsx",
       "line": 48,
       "kind": "jsx-text-literal",
       "value": "net"
-    },
-    {
-      "file": "src/app/(dashboard)/workforce/payroll/page.tsx",
-      "line": 51,
-      "kind": "jsx-text-literal",
-      "value": "Short-term period"
     }
   ]
 }
