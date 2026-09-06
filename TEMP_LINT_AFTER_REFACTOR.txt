@@ -1,1 +1,17 @@
-The compact formatter is no longer part of core ESLint. Install it manually with `npm install -D eslint-formatter-compact`
+# Financial resources lint after helper refactor
+
+Errors: 11
+Warnings: 0
+Findings: 11
+
+src/features/financial-resources/financial-plans-operations.tsx:6:1080 [error] react-hooks/static-components Error: Cannot create components during render Components created during render will reset their state each time they are created. Declare components outside of render. /home/runner
+src/features/financial-resources/financial-plans-operations.tsx:6:1182 [error] react-hooks/static-components Error: Cannot create components during render Components created during render will reset their state each time they are created. Declare components outside of render. /home/runner
+src/features/financial-resources/financial-plans-operations.tsx:6:1303 [error] react-hooks/static-components Error: Cannot create components during render Components created during render will reset their state each time they are created. Declare components outside of render. /home/runner
+src/features/financial-resources/payment-center.tsx:7:3669 [error] react-hooks/static-components Error: Cannot create components during render Components created during render will reset their state each time they are created. Declare components outside of render. /home/runner
+src/features/financial-resources/payment-center.tsx:7:4147 [error] react-hooks/static-components Error: Cannot create components during render Components created during render will reset their state each time they are created. Declare components outside of render. /home/runner
+src/features/financial-resources/payment-center.tsx:7:4972 [error] react-hooks/static-components Error: Cannot create components during render Components created during render will reset their state each time they are created. Declare components outside of render. /home/runner
+src/features/financial-resources/payment-center.tsx:7:5332 [error] react-hooks/static-components Error: Cannot create components during render Components created during render will reset their state each time they are created. Declare components outside of render. /home/runner
+src/features/financial-resources/payment-center.tsx:7:5670 [error] react-hooks/static-components Error: Cannot create components during render Components created during render will reset their state each time they are created. Declare components outside of render. /home/runner
+src/features/financial-resources/payment-center.tsx:7:5745 [error] react-hooks/static-components Error: Cannot create components during render Components created during render will reset their state each time they are created. Declare components outside of render. /home/runner
+src/features/financial-resources/payment-center.tsx:7:5851 [error] react-hooks/static-components Error: Cannot create components during render Components created during render will reset their state each time they are created. Declare components outside of render. /home/runner
+src/features/financial-resources/payment-center.tsx:7:5980 [error] react-hooks/static-components Error: Cannot create components during render Components created during render will reset their state each time they are created. Declare components outside of render. /home/runner
