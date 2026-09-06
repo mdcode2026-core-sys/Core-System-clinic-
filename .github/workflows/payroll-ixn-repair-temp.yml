@@ -1,0 +1,38 @@
+name: Payroll JSX Repair Temp
+on:
+  push:
+    branches: [audit/i18n-fix-20260906]
+permissions:
+  contents: write
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Repair invalid JSX escaping
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('src/app/(dashboard)/workforce/payroll/page.tsx')
+          s = p.read_text()
+          s = s.replace(r'\\{ar?', '{ar?').replace(r'\\}', '}')
+          p.write_text(s)
+          PY
+      - name: Validate
+        run: |
+          npm ci --ignore-scripts --no-audit --no-fund --prefer-offline
+          npx tsc --noEmit
+          npx eslint .
+          npm run i18n:parity
+          npm run i18n:audit
+      - name: Commit repair and remove temp workflow
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add 'src/app/(dashboard)/workforce/payroll/page.tsx'
+          git commit -m 'fix: repair payroll JSX localization expressions' || true
+          git push
