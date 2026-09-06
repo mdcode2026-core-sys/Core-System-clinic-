@@ -1,0 +1,1 @@
+# ESLint Diagnostic\n\nreact-hooks/static-components: 135\nno-console: 41\nreact-hooks/exhaustive-deps: 2\nparse-error: 1\n@next/next/no-img-element: 1\n
