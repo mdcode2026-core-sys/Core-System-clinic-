@@ -1,1 +1,0 @@
-src/features/medical-files/ui/MedicalFilesPanel.tsx:38:1836 [warning] Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incu

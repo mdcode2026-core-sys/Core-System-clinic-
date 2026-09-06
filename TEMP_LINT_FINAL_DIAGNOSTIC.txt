@@ -1,5 +1,0 @@
-Errors: 0
-Warnings: 0
-Findings: 0
-
-
