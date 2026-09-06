@@ -1,1 +1,2 @@
-src/core/entitlements/useEntitlements.ts:60:5 [warning] React Hook useMemo has a missing dependency: 'hasCapability'. Either include it or remove the dependency array.\nsrc/features/medical-files/ui/MedicalFilesPanel.tsx:21:32 [warning] React Hook useEffect has a missing dependency: 'load'. Either include it or remove the dependency array.\n
+src/core/entitlements/useEntitlements.ts:60:5 [warning] React Hook useMemo has a missing dependency: 'hasCapability'. Either include it or remove the dependency array.
+src/features/medical-files/ui/MedicalFilesPanel.tsx:21:32 [warning] React Hook useEffect has a missing dependency: 'load'. Either include it or remove the dependency array.

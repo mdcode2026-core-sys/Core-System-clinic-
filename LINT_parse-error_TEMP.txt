@@ -1,1 +1,1 @@
-src/app/(dashboard)/workforce/payroll/page.tsx:1:1 [warning] Unused eslint-disable directive (no problems were reported from '@typescript-eslint/no-explicit-any').\n
+src/app/(dashboard)/workforce/payroll/page.tsx:1:1 [warning] Unused eslint-disable directive (no problems were reported from '@typescript-eslint/no-explicit-any').
