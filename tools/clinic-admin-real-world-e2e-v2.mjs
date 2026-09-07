@@ -66,12 +66,11 @@ async function button(re) {
 }
 
 function isRetryableBookingConflict(errorCode) {
-  return typeof errorCode === "string" && [
-    "AGENDA_CONFLICT_DOCTOR",
-    "AGENDA_CONFLICT_ROOM",
-    "AGENDA_CONFLICT_RESOURCE",
-    "AGENDA_CONFLICT_PATIENT",
-  ].includes(errorCode.split("|")[0]);
+  if (typeof errorCode !== "string") return false;
+  const [code, reason = ""] = errorCode.split("|", 2);
+  if (["AGENDA_CONFLICT_DOCTOR", "AGENDA_CONFLICT_ROOM", "AGENDA_CONFLICT_RESOURCE", "AGENDA_CONFLICT_PATIENT"].includes(code)) return true;
+  if (code !== "AGENDA_UNAVAILABLE") return false;
+  return /already booked|blocked|unavailable/i.test(reason);
 }
 
 await step("login", login);
