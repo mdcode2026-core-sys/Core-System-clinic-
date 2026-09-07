@@ -1,7 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { SUPABASE_ANON_KEY, SUPABASE_URL } from "./config";
-import { resilientFetch } from "./resilientFetch";
 
 interface CookieOptions {
   path?: string;
@@ -28,12 +27,9 @@ export async function createClient() {
           );
         } catch {
           // The `setAll` method was called from a Server Component.
-          // This can be ignored if you have middleware refreshing user sessions.
+          // This can be ignored if middleware refreshes user sessions.
         }
       },
-    },
-    global: {
-      fetch: resilientFetch,
     },
   });
 
