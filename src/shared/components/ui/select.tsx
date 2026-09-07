@@ -17,6 +17,7 @@ const SelectContext = React.createContext<{
   onValueChange: (value: string) => void
   open: boolean
   setOpen: (open: boolean) => void
+  listboxId: string
 } | null>(null)
 
 function useSelect() {
@@ -28,12 +29,9 @@ function useSelect() {
 const Select = ({ value = "", onValueChange, children }: SelectProps) => {
   const [open, setOpen] = React.useState(false)
   const [selectedValue, setSelectedValue] = React.useState(value)
-
-  // Mirrors the controlled `value` prop into local state so a click can
-  // update the UI immediately without waiting on the parent's re-render.
-  // Adjusted during render (guarded by comparing against the previous
-  // prop value) rather than via setState-in-effect.
   const [prevValue, setPrevValue] = React.useState(value)
+  const listboxId = React.useId()
+
   if (value !== prevValue) {
     setPrevValue(value)
     setSelectedValue(value)
@@ -46,7 +44,15 @@ const Select = ({ value = "", onValueChange, children }: SelectProps) => {
   }
 
   return (
-    <SelectContext.Provider value={{ value: selectedValue, onValueChange: handleValueChange, open, setOpen }}>
+    <SelectContext.Provider
+      value={{
+        value: selectedValue,
+        onValueChange: handleValueChange,
+        open,
+        setOpen,
+        listboxId,
+      }}
+    >
       <div className="relative">{children}</div>
     </SelectContext.Provider>
   )
@@ -55,23 +61,38 @@ const Select = ({ value = "", onValueChange, children }: SelectProps) => {
 const SelectTrigger = React.forwardRef<
   HTMLButtonElement,
   React.ButtonHTMLAttributes<HTMLButtonElement> & { className?: string }
->(({ className, children, ...props }, ref) => {
-  const { value, open, setOpen } = useSelect()
+>(({ className, children, disabled, onKeyDown, ...props }, ref) => {
+  const { value, open, setOpen, listboxId } = useSelect()
 
   return (
     <button
       ref={ref}
       type="button"
-      onClick={() => setOpen(!open)}
+      role="combobox"
+      aria-haspopup="listbox"
+      aria-expanded={open}
+      aria-controls={listboxId}
+      aria-autocomplete="none"
+      disabled={disabled}
+      onClick={() => !disabled && setOpen(!open)}
+      onKeyDown={(event) => {
+        onKeyDown?.(event)
+        if (event.defaultPrevented || disabled) return
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault()
+          setOpen(!open)
+        } else if (event.key === "Escape" && open) {
+          event.preventDefault()
+          setOpen(false)
+        }
+      }}
       className={cn(
         "flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
         className
       )}
       {...props}
     >
-      <span className={value ? "" : "text-muted-foreground"}>
-        {children}
-      </span>
+      <span className={value ? "" : "text-muted-foreground"}>{children}</span>
       <ChevronDown className={cn("h-4 w-4 opacity-50 transition-transform", open && "rotate-180")} />
     </button>
   )
@@ -84,12 +105,14 @@ const SelectValue = ({ placeholder }: { placeholder?: string }) => {
 }
 
 const SelectContent = ({ className, children }: { className?: string; children?: React.ReactNode }) => {
-  const { open } = useSelect()
+  const { open, listboxId } = useSelect()
 
   if (!open) return null
 
   return (
     <div
+      id={listboxId}
+      role="listbox"
       className={cn(
         "absolute z-50 min-w-[8rem] max-h-60 overflow-y-auto rounded-md border bg-popover text-popover-foreground shadow-md mt-1 w-full",
         className
@@ -103,16 +126,27 @@ const SelectContent = ({ className, children }: { className?: string; children?:
 const SelectItem = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement> & { value: string; className?: string }
->(({ className, children, value, ...props }, ref) => {
+>(({ className, children, value, onKeyDown, ...props }, ref) => {
   const { value: selectedValue, onValueChange } = useSelect()
   const isSelected = selectedValue === value
 
   return (
     <div
       ref={ref}
+      role="option"
+      aria-selected={isSelected}
+      tabIndex={0}
       onClick={() => onValueChange(value)}
+      onKeyDown={(event) => {
+        onKeyDown?.(event)
+        if (event.defaultPrevented) return
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault()
+          onValueChange(value)
+        }
+      }}
       className={cn(
-        "relative flex w-full cursor-pointer select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none hover:bg-accent hover:text-accent-foreground",
+        "relative flex w-full cursor-pointer select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
         isSelected && "bg-accent text-accent-foreground",
         className
       )}
