@@ -2,10 +2,16 @@ type RetryableRequest = RequestInit & { method?: string };
 
 const RETRY_DELAYS_MS = [300, 900];
 
-function isPostgrestJwtTimingError(response: Response, url: string, method: string) {
+async function isPostgrestJwtTimingError(response: Response, url: string, method: string) {
   if (method !== "GET" && method !== "HEAD") return false;
   if (response.status !== 401 || !url.includes("/rest/v1/")) return false;
-  return true;
+
+  try {
+    const body = await response.clone().text();
+    return /PGRST303|JWT issued at future/i.test(body);
+  } catch {
+    return false;
+  }
 }
 
 /**
@@ -22,11 +28,10 @@ export async function resilientFetch(
   for (let attempt = 0; attempt <= RETRY_DELAYS_MS.length; attempt += 1) {
     const response = await fetch(input, init);
 
-    if (!isPostgrestJwtTimingError(response, url, method) || attempt === RETRY_DELAYS_MS.length) {
+    if (!(await isPostgrestJwtTimingError(response, url, method)) || attempt === RETRY_DELAYS_MS.length) {
       return response;
     }
 
-    // PGRST303 has a small, transient recovery window when the validator's clock catches up.
     await new Promise((resolve) => setTimeout(resolve, RETRY_DELAYS_MS[attempt]));
   }
 
