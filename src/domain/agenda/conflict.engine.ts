@@ -16,15 +16,34 @@ export async function checkConflicts(supabase: SupabaseServerClient, input: Conf
   return { hasConflict: false, rule: null, conflictingEventId: null, message: "" };
 }
 
-async function getOverlappingEvents(supabase: SupabaseServerClient, tenantId: string, start: string, end: string, excludeEventId?: string): Promise<AgendaEventRow[]> {
-  let query = supabase.from("master_agenda_events").select("*").eq("tenant_id", tenantId).not("status", "in", "(cancelled,no_show,completed)").or(`and(scheduled_start.lte.${end},buffer_end.gte.${start}),and(scheduled_start.gte.${start},scheduled_start.lt.${end}),and(buffer_end.gt.${start},buffer_end.lte.${end})`);
+async function getOverlappingEvents(
+  supabase: SupabaseServerClient,
+  tenantId: string,
+  start: string,
+  end: string,
+  excludeEventId?: string,
+): Promise<AgendaEventRow[]> {
+  let query = supabase
+    .from("master_agenda_events")
+    .select("*")
+    .eq("tenant_id", tenantId)
+    .not("status", "in", "(cancelled,no_show,completed)")
+    .lt("scheduled_start", end)
+    .gt("buffer_end", start);
   if (excludeEventId) query = query.neq("id", excludeEventId);
   const { data, error } = await query;
-  if (error) { console.error("Conflict Engine — Query Error:", error); return []; }
+  if (error) {
+    console.error("Conflict Engine — Query Error:", error);
+    return [];
+  }
   return (data ?? []) as AgendaEventRow[];
 }
 
-function findConflict(events: AgendaEventRow[], rule: ConflictRuleValue, ids: { doctorId: string; roomId: string | null; resourceId: string | null; patientId: string }): AgendaEventRow | null {
+function findConflict(
+  events: AgendaEventRow[],
+  rule: ConflictRuleValue,
+  ids: { doctorId: string; roomId: string | null; resourceId: string | null; patientId: string },
+): AgendaEventRow | null {
   for (const event of events) {
     if (rule === "doctor" && event.doctor_id === ids.doctorId) return event;
     if (rule === "room" && ids.roomId && event.room_id === ids.roomId) return event;
