@@ -41,6 +41,25 @@ function normalizedPayload(input: PatientPayload) {
   };
 }
 
+function normalizedUpdatePayload(input: PatientPayload): PatientUpdate {
+  const update: PatientUpdate = {};
+  if ("first_name" in input) update.first_name = clean(input.first_name);
+  if ("last_name" in input) update.last_name = clean(input.last_name);
+  if ("first_name_ar" in input) update.first_name_ar = clean(input.first_name_ar);
+  if ("last_name_ar" in input) update.last_name_ar = clean(input.last_name_ar);
+  if ("date_of_birth" in input) update.date_of_birth = clean(input.date_of_birth);
+  if ("gender" in input) update.gender = normalizeGender(input.gender);
+  if ("phone_primary" in input) update.phone_primary = clean(input.phone_primary);
+  if ("phone_secondary" in input) update.phone_secondary = clean(input.phone_secondary);
+  if ("email" in input) update.email = clean(input.email);
+  if ("preferred_channel" in input) update.preferred_channel = input.preferred_channel;
+  if ("first_visit_date" in input) update.first_visit_date = clean(input.first_visit_date);
+  if ("referral_source" in input) update.referral_source = clean(input.referral_source);
+  if ("patient_status" in input) update.patient_status = input.patient_status;
+  if ("notes" in input) update.notes = clean(input.notes);
+  return update;
+}
+
 async function parseBody(request: Request): Promise<PatientPayload | null> {
   try {
     const value = await request.json();
@@ -85,7 +104,8 @@ export async function PATCH(request: Request) {
   const tenantId = await getAuthorizedTenantId(supabase);
   if (!tenantId) return NextResponse.json({ error: TENANT_MISSING }, { status: 401 });
 
-  const update = normalizedPayload(body) as PatientUpdate;
+  const update = normalizedUpdatePayload(body);
+  if (Object.keys(update).length === 0) return NextResponse.json({ error: INVALID_REQUEST }, { status: 400 });
   const { error } = await supabase
     .from("clinic_patients")
     .update({ ...update, updated_at: new Date().toISOString() })
