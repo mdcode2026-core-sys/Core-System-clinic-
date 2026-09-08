@@ -58,19 +58,24 @@ await step("appointment booking", async () => {
   await goto("/patients"); const patient = page.getByText(`${stamp} Patient`, { exact: false }).first(); await patient.waitFor({ state: "visible", timeout: 20000 });
   const row = patient.locator("xpath=ancestor::div[contains(@class,'rounded-lg')][1]"); await row.getByRole("button", { name: /view|عرض/i }).click(); const detailDialog = page.getByRole("dialog"); await detailDialog.waitFor({ state: "visible", timeout: 10000 }); await detailDialog.getByRole("button", { name: /appointment|موعد/i }).click();
   const dialog = page.getByRole("dialog").last(); await dialog.waitFor({ state: "visible", timeout: 10000 }); await dialog.getByRole("heading", { name: /appointment|موعد/i }).waitFor({ state: "visible", timeout: 10000 });
-  const doctorTrigger = dialog.getByRole("combobox").nth(0); await doctorTrigger.waitFor({ state: "visible", timeout: 10000 }); await doctorTrigger.click(); const doctorOptions = page.getByRole("option"); await doctorOptions.first().waitFor({ state: "visible", timeout: 10000 }); await doctorOptions.first().click();
+  const doctorTrigger = dialog.getByRole("combobox").nth(0); await doctorTrigger.waitFor({ state: "visible", timeout: 10000 });
   const dateInputs = dialog.locator('input[type="date"]');
   if (await dateInputs.count()) { const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1); await dateInputs.first().fill(tomorrow.toISOString().slice(0, 10)); }
   const timeInputs = dialog.locator('input[type="time"]'); if (await timeInputs.count() < 2) throw new Error("Appointment time inputs missing");
-  const candidateSlots = [["08:00","08:30"],["08:30","09:00"],["09:00","09:30"],["09:30","10:00"],["10:00","10:30"],["10:30","11:00"],["11:00","11:30"],["11:30","12:00"],["12:00","12:30"],["13:00","13:30"],["13:30","14:00"],["14:00","14:30"],["14:30","15:00"],["15:00","15:30"],["15:30","16:00"],["16:00","16:30"],["16:30","17:00"],["17:00","17:30"],["17:30","18:00"]];
+  const candidateSlots = [["09:00","09:30"],["09:30","10:00"],["10:00","10:30"],["10:30","11:00"],["11:00","11:30"],["11:30","12:00"],["12:00","12:30"],["12:30","13:00"],["13:00","13:30"],["13:30","14:00"],["14:00","14:30"],["14:30","15:00"],["15:00","15:30"],["15:30","16:00"],["16:00","16:30"],["16:30","17:00"]];
   let booked = false; let lastConflict = "none";
-  for (const [start, end] of candidateSlots) {
-    await timeInputs.nth(0).fill(start); await timeInputs.nth(1).fill(end); const responsePromise = page.waitForResponse((r) => r.url().includes("/api/agenda/events") && r.request().method() === "POST", { timeout: 15000 }).catch(() => null); await dialog.getByRole("button", { name: /create|إنشاء/i }).click();
-    const response = await responsePromise; const result = response ? await response.json().catch(() => null) : null; const status = response?.status() ?? "no-response";
-    if (status >= 200 && status < 300 && !result?.error) { booked = true; console.log(`E2E_APPOINTMENT_BOOKED=${start}-${end}`); break; }
-    const errorCode = result?.error; lastConflict = String(errorCode ?? `HTTP_${status}`); if (!isRetryableBookingConflict(errorCode)) throw new Error(`Appointment booking failed at ${start}-${end}: ${lastConflict}; dialog: ${(await dialog.innerText()).slice(0, 1200)}`); console.log(`E2E_APPOINTMENT_SLOT_CONFLICT=${start}-${end} ERROR=${lastConflict}`); await page.waitForTimeout(150);
+  await doctorTrigger.click(); await page.getByRole("option").first().waitFor({ state: "visible", timeout: 10000 });
+  const doctorCount = await page.getByRole("option").count();
+  for (let doctorIndex = 0; doctorIndex < doctorCount && !booked; doctorIndex++) {
+    await doctorTrigger.click(); const options = page.getByRole("option"); await options.nth(doctorIndex).click();
+    for (const [start, end] of candidateSlots) {
+      await timeInputs.nth(0).fill(start); await timeInputs.nth(1).fill(end); const responsePromise = page.waitForResponse((r) => r.url().includes("/api/agenda/events") && r.request().method() === "POST", { timeout: 15000 }).catch(() => null); await dialog.getByRole("button", { name: /create|إنشاء/i }).click();
+      const response = await responsePromise; const result = response ? await response.json().catch(() => null) : null; const status = response?.status() ?? "no-response";
+      if (status >= 200 && status < 300 && !result?.error) { booked = true; console.log(`E2E_APPOINTMENT_BOOKED=doctor-${doctorIndex}:${start}-${end}`); break; }
+      const errorCode = result?.error; lastConflict = String(errorCode ?? `HTTP_${status}`); if (!isRetryableBookingConflict(errorCode)) throw new Error(`Appointment booking failed at doctor-${doctorIndex} ${start}-${end}: ${lastConflict}; dialog: ${(await dialog.innerText()).slice(0, 1200)}`); console.log(`E2E_APPOINTMENT_SLOT_CONFLICT=doctor-${doctorIndex}:${start}-${end} ERROR=${lastConflict}`); await page.waitForTimeout(150);
+    }
   }
-  if (!booked) throw new Error(`No collision-free appointment slot was accepted; last result: ${lastConflict}`); await dialog.waitFor({ state: "hidden", timeout: 15000 }); await page.waitForTimeout(1000); await goto("/agenda");
+  if (!booked) throw new Error(`No collision-free appointment slot was accepted across ${doctorCount} providers; last result: ${lastConflict}`); await dialog.waitFor({ state: "hidden", timeout: 15000 }); await page.waitForTimeout(1000); await goto("/agenda");
 });
 await step("agenda lifecycle", async () => { await goto("/agenda"); const patient = page.getByText(`${stamp} Patient`, { exact: false }).first(); await patient.waitFor({ state: "visible", timeout: 20000 }); await patient.click(); for (const re of [/reschedule|إعادة الجدولة/i,/confirm|تأكيد/i,/check in|arrived|حضر/i,/start|بدء/i,/finish|complete|إنهاء|إكمال/i]) if (await page.getByRole("button", { name: re }).count()) { await page.getByRole("button", { name: re }).first().click(); await page.waitForTimeout(250); } });
 await step("treatment plan", async () => { await goto("/treatment-plans"); if (await page.getByRole("button", { name: /new plan|خطة جديدة/i }).count()) await button(/new plan|خطة جديدة/i); });
