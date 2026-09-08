@@ -2,122 +2,61 @@
 
 **Reconciliation start:** 2026-09-08  
 **Baseline tag:** `pre-reconciliation-2026-09-07`  
-**Baseline main SHA:** `f1b42cef56d4ee4450e883b35efdc536455e2a02`
+**Baseline main SHA:** `f1b42cef56d4ee4450e883b35efdc536455e2a02`  
+**Current main SHA:** `eeee00c48e06b9b4fcac01d73dc4fb3da671ce47`
 
 ## Governance
 
-- No branch is merged or deleted without documented verification.
-- Security/database migrations are handled separately; no reconciliation security migration is applied directly to production without isolated validation.
-- Vercel is reserved for final production deployment and post-deployment health checks.
-- Ambiguity or conflicting intent is a stop condition; no guessing.
+- No merge or deletion without evidence.
+- Architecture decisions are checked against authoritative repository documentation and current canonical code.
+- Security/database migrations require isolated validation and lineage verification.
+- Vercel is reserved for production deployment and post-deployment health checks.
 
-## Phase 0 — protection and baseline
+## Completed reconciliation
 
-- Protection tag verified before reconciliation.
-- `Main` ruleset verified active for `refs/heads/main`.
-- Main protection verified: deletion protection ON; non-fast-forward ON; pull request required; required approvals 0; last-push approval OFF; code-owner approval OFF; bypass actors empty.
-- Reconciliation working branches were used instead of direct pushes to `main`.
+- Protection tag and main ruleset verified.
+- PR #72 merged validated workforce core as `1015337626b962216ac03b50a3ac0334062491f0`.
+- PR #75 merged retryable appointment-slot E2E handling.
+- PR #76 merged deterministic future-date appointment selection.
+- Duplicate/stale PRs #14, #21, #24, #25, #27, #59, #60, #61, #64, #68 and #77 were closed after verification.
+- Architecture branch audit was added in `docs/reconciliation/ARCHITECTURE_BRANCH_AUDIT_2026-09-08.md` and merged through PR #79 as `eeee00c48e06b9b4fcac01d73dc4fb3da671ce47`.
 
-## Phase 1 — `fix/workforce-closure`
+## Architecture reconciliation rule
 
-### Functional extraction
+The final branch-vs-main decisions were checked against `ARCHITECTURE_DECISIONS.md`, `MASTER_ROADMAP.md`, current handoff/index documents, `PJ-MASTER-DOCS`, current canonical source, and production database reality where migrations were involved.
 
-- Source branch started 71 commits ahead / 0 behind baseline; merge-base = baseline SHA.
-- Functional extraction stopped immediately before the four adjacent privilege migrations.
-- PR #72 contained 17 changed files, +1117/-148, and was merged to `main` as `1015337626b962216ac03b50a3ac0334062491f0`.
+Critical decisions applied:
 
-### Four isolated security privilege migrations
+1. `master_tenants` / `clinic_users` remain the current tenant/user source of truth.
+2. The existing canonical permission engine and role/permission schema are reused; legacy competing role-resolution engines are rejected.
+3. Workspace remains a working-surface/presentation layer and is not the Patient Journey or tenant administration.
+4. Modules remain independent and reuse canonical permission/navigation/feature-entitlement layers.
+5. Approved Patient Journey workflow remains authoritative.
+6. Procedure and Service remain distinct medical concepts.
+7. Duplicate or already-effective production migrations are not reapplied.
 
-1. `4bd51972c1763168b78d5463749c948bf3cfaee2` — `20260907142000_security_revoke_anon_invoice_guard_trigger_execution.sql`
-2. `3615602d5878d9406f4b50974849aa7218800c60` — `20260907142500_security_revoke_anon_trigger_function_execution.sql`
-3. `052a265e4f6cd93680292ed06a0487e7b4796185` — `20260907143000_security_revoke_public_trigger_function_execution.sql`
-4. `aee1fa66c736cf34fef50ae56a5ee8b18f7033f5` — `20260907143500_security_revoke_authenticated_trigger_function_execution.sql`
+High-risk historical branches were explicitly reconciled at file/feature level, including the AJM team-access/financial/workforce/communications/journey/insights/integration branches, workspace UX branches, I18N branches, Patient Journey branches, treatment-plan branch, global-search branch, and historical closure branches. Their decisions are recorded in the architecture audit document.
 
-Production Supabase `qaslsjyxjwvdoiczmhgq` was inspected read-only. All six target functions and their trigger bindings exist, and `EXECUTE` is denied to `public`, `anon`, and `authenticated` for the targeted trigger functions. A production migration-ledger query then confirmed that the same security intent is already represented by production migrations under these versions/names:
+## Security migration state
 
-- `20260907141824` — `security_revoke_anon_invoice_guard_trigger_execution`
-- `20260907142008` — `security_revoke_anon_trigger_function_execution`
-- `20260907142058` — `security_revoke_public_trigger_function_execution`
-- `20260907142413` — `security_revoke_authenticated_trigger_function_execution`
-- plus `20260907143958` — `security_revoke_authenticated_trigger_functions_complete`
-
-Therefore the earlier apparent ledger gap is resolved: the production database has an equivalent recorded migration lineage. No duplicate security migration was applied during reconciliation.
-
-## Phase 2 — active branches
-
-### `audit/i18n-fix-20260906`
-
-Verified against current main. Its remaining differences are older locale/navigation variants; current main already contains the canonical navigation/analytics wiring.  
-**Decision: Superseded — No Extraction Needed.**
-
-### `fix/settings-reconciliation-build`
-
-One commit changing `RoleTemplatesManager.tsx`; it removes the canonical `buildRoleKey()` helper and regresses the current role-template architecture.  
-**Decision: Superseded — No Extraction Needed.**
-
-### `fix/pj-stage6-clinic-admin-workspaces`
-
-One commit changing `permissionEngine.ts`; it reintroduces legacy `clinic_users.role` / `role_template_id` resolution instead of the current canonical `role_id` source of truth.  
-**Decision: Superseded — No Extraction Needed.**
-
-### `ux-financial-resources-final`
-
-File-level comparison against current main confirms the checked financial-resource workflow/UI files are already present on main. Its navigation variant is older/regressive and must not replace current navigation. Its migration files are not admitted to production by branch reconciliation.  
-**Decision: Superseded — No Extraction Needed.**
-
-## Phase 3 — historical feature branches
-
-The following historical branches were explicitly checked at feature/file level where relevant and are superseded by the current architecture rather than merged wholesale:
-
-- `ajm/ajm-1-team-access-foundation`
-- `ajm/ajm-2-financial-resources-foundation`
-- `ajm/ajm-3-workforce-foundation-2026-08-29`
-- `stage-8-global-search`
-- `ux-global-ia-audit`
-- `ux-stage-6-patient-flow`
-- `ux-stage-7-patient-context`
-- `stage9/overview-dashboard-reconciliation-final`
-- `stage-11-medical-files`
-- `i18n-completion-2026-08-24`
-- `recovery/pre-2026-08-30-current-state`
-- `fix/workspace-sidebar-and-assignment`
-- `fix/workspace-sidebar-and-assignment-v2`
-
-For `stage-8-global-search`, current main already contains the canonical `src/core/search/GlobalSearch.tsx` integration, so the historical implementation is not extracted.
-
-### Verified closure/no-pending branches
-
-Previously verified no-pending branches include:
-
-- `pj12-production-trigger`
-- `pj12-production-verify`
-- `pj12/final-production-trigger`
-- `pj12/security-fix-multiclinic-context`
-- `stage12-final-ready`
-- closure branches under the previously audited `stage12-*`, `stage13-*`, `stage14-*`, and `stage15-*` groups where their final state was already represented on main.
-
-**Decision for verified members: No Pending Work.**
-
-## Open PR reconciliation
-
-The previously open stale PR set was rechecked against current main. PRs #14, #21, #24, #25, #27, #59, #60, #61, #64, and #68 were closed after verification that their work was already present, superseded, redundant, or no longer safe to extract. No code was merged from these PRs.
-
-PR #72 (workforce functional extraction), PR #75 (retryable appointment-slot E2E conflict handling), and PR #76 (fresh appointment date / wider deterministic slot selection) were the validated merge path into main.
+The four workforce privilege migrations were isolated. Production read-only inspection confirmed the targeted trigger functions exist and `EXECUTE` is denied to `public`, `anon`, and `authenticated`. Production migration history contains equivalent recorded security intent, so no duplicate security migration was applied.
 
 ## Validation
 
-Latest main validation run: **GitHub Actions run `34173353092`**. The complete `Local/Codespaces Reality Validation` job finished **SUCCESS**, including TypeScript, Lint, I18N, UX/IA audits, AJM audits, production build without Vercel, Playwright installation, local production server, authenticated route E2E, real-world clinic journey E2E, and clean server shutdown.
+GitHub Actions run `34173353092` completed SUCCESS for the complete Local/Codespaces Reality Validation job against `b806a1ecde1837636616b12542e85c8fe0264657`.
 
-## Supabase final read-only advisor state
+A direct compare confirms current `main` (`eeee00c48e06b9b4fcac01d73dc4fb3da671ce47`) differs from that validated application commit only in reconciliation documentation; there is no application-code delta. This is recorded explicitly and is not misrepresented as a new CI run on `main`.
 
-Security advisor still reports WARN findings for several application-facing `SECURITY DEFINER` RPCs, `pg_net`/`btree_gist` in `public`, and leaked-password protection. These were not changed blindly because their contracts and intended exposure must be reviewed before privilege/schema changes.
+## Production
 
-Performance advisor reports existing INFO/WARN findings including unindexed foreign keys, RLS init-plan patterns, multiple permissive policies, unused indexes, duplicate indexes, and a recovery-schema no-primary-key set. No destructive index/policy changes were made during reconciliation without dependency and runtime verification.
+The production deployment for `main` at `7dfe5717043d37d70fc9122106f4793bb1802474` is READY, serves `/login` with HTTP 200 and expected security headers, and the runtime-error check found no runtime errors in the selected verification window. The subsequent main change `eeee00c48e06b9b4fcac01d73dc4fb3da671ce47` is documentation-only and does not change the deployed application tree.
 
-## Branch deletion / archival capability
+## Branch archival
 
-The connected GitHub integration provides branch inspection and PR lifecycle operations but does not expose a branch-delete operation. Physical deletion is therefore not claimed where the connector cannot perform it. A branch is treated as archived/no-pending only when its state is explicitly recorded by reconciliation evidence.
+The connected GitHub integration exposes branch inspection and PR lifecycle operations but no physical branch-delete operation. Therefore branch deletion is not claimed where the tool cannot perform it. Verified historical refs are instead classified as Merged, Superseded — No Extraction Needed, or No Pending Work in the architecture audit.
 
-## Final gate
+## Final state
 
-Functional validation is green. Production security state is effective and its equivalent migration lineage is recorded. Remaining closure work is the final evidence inventory for every remaining historical branch/ref, followed by final Vercel production deployment and health verification. **PRODUCTION CLOSED is not claimed until that final gate is completed.**
+The architectural reconciliation requested as part of the final audit is now recorded and incorporated into the repository evidence. No unreviewed application work was admitted from the historical branches. No duplicate production security migration was applied.
+
+**Final closure classification remains dependent only on the repository's physical branch-ref cleanup capability; the connected tool cannot perform that deletion.**
