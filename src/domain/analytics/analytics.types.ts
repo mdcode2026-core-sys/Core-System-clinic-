@@ -2,7 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 
 export type AnalyticsSupabaseClient = SupabaseClient;
 export interface DateRange { from: string; to: string; startAt: string; endAtExclusive: string; timezone: string; }
-export type DatePreset = "today" | "yesterday" | "this_week" | "last_week" | "this_month" | "last_month" | "this_quarter" | "custom";
+export type DatePreset = "today" | "yesterday" | "this_week" | "last_week" | "this_month" | "last_month" | "this_quarter" | "last_quarter" | "this_year" | "last_year" | "custom";
 export type AnalyticsCategory = "patients" | "appointments" | "queue" | "revenue" | "invoices" | "inventory" | "followup" | "workforce" | "communications" | "coordination";
 export type MetricDateBasis = "patient_first_visit_date" | "appointment_scheduled_start" | "session_event" | "procedure_performed_at" | "invoice_date" | "payment_date" | "refund_date" | "followup_scheduled_for" | "followup_sent_at" | "inventory_created_at" | "attendance_date" | "created_at" | "current_state";
 export interface AnalyticsBreakdownRow { key: string; label: string; value: number; count?: number; metadata?: Record<string, unknown>; }
