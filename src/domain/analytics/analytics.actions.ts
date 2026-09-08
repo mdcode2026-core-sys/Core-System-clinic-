@@ -7,29 +7,15 @@ import type { KpiResult, DatePreset, AnalyticsCategory } from "./analytics.types
 
 async function resolveTenantId(authUserId: string): Promise<string | null> {
   const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("clinic_users")
-    .select("tenant_id")
-    .eq("auth_user_id", authUserId)
-    .maybeSingle();
-  if (error) {
-    console.error("[analytics.actions] resolveTenantId error:", error);
-    return null;
-  }
+  const { data, error } = await supabase.from("clinic_users").select("tenant_id").eq("auth_user_id", authUserId).maybeSingle();
+  if (error) { console.error("[analytics.actions] resolveTenantId error:", error); return null; }
   return data?.tenant_id ?? null;
 }
 
 async function resolveTenantTimezone(tenantId: string): Promise<string> {
   const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("master_tenants")
-    .select("timezone")
-    .eq("id", tenantId)
-    .maybeSingle();
-  if (error) {
-    console.error("[analytics.actions] resolveTenantTimezone error:", error);
-    return "UTC";
-  }
+  const { data, error } = await supabase.from("master_tenants").select("timezone").eq("id", tenantId).maybeSingle();
+  if (error) { console.error("[analytics.actions] resolveTenantTimezone error:", error); return "UTC"; }
   return data?.timezone || "UTC";
 }
 
@@ -44,12 +30,12 @@ async function assertAnalyticsReadAccess(authUserId: string): Promise<{ tenantId
   return { tenantId, timezone: await resolveTenantTimezone(tenantId) };
 }
 
-export async function getAnalyticsOverview(authUserId: string, datePreset: DatePreset = "today"): Promise<KpiResult[]> {
+export async function getAnalyticsOverview(authUserId: string, datePreset: DatePreset = "today", customFrom?: string, customTo?: string): Promise<KpiResult[]> {
   const { tenantId, timezone } = await assertAnalyticsReadAccess(authUserId);
-  return getAllKpiData(await createClient(), tenantId, datePreset, timezone);
+  return getAllKpiData(await createClient(), tenantId, datePreset, timezone, customFrom, customTo);
 }
 
-export async function getAnalyticsByCategory(authUserId: string, category: AnalyticsCategory, datePreset: DatePreset = "today"): Promise<KpiResult[]> {
+export async function getAnalyticsByCategory(authUserId: string, category: AnalyticsCategory, datePreset: DatePreset = "today", customFrom?: string, customTo?: string): Promise<KpiResult[]> {
   const { tenantId, timezone } = await assertAnalyticsReadAccess(authUserId);
-  return getKpiDataByCategory(category, await createClient(), tenantId, datePreset, timezone);
+  return getKpiDataByCategory(category, await createClient(), tenantId, datePreset, timezone, customFrom, customTo);
 }
