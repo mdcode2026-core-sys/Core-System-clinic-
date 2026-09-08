@@ -31,7 +31,9 @@ export function explicitDateRange(from: string, to: string, timezone = "UTC"): D
 export async function resolveDateRange(preset: DatePreset, timezone = "UTC", customFrom?: string, customTo?: string): Promise<DateRange> {
   if (preset === "custom") { if (!customFrom || !customTo) throw new Error("Custom analytics range requires from and to"); return explicitDateRange(customFrom, customTo, timezone); }
   const current = localParts(new Date(), timezone); let from: Parts; let to: Parts;
-  switch (preset) {
+  // Keep the switch input widened so builds using an older generated DatePreset union cannot reject newer supported presets.
+  const selectedPreset: string = preset;
+  switch (selectedPreset) {
     case "today": from = current; to = current; break;
     case "yesterday": from = addDays(current, -1); to = from; break;
     case "this_week": from = startOfWeekMonday(current); to = addDays(from, 6); break;
