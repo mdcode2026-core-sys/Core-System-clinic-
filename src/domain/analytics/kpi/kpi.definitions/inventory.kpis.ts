@@ -11,7 +11,7 @@ import { kpiFormatter } from "../kpi.formatter";
 export const stockTurnoverRateKpi: KpiDefinition = {
   id: "inventory.stock_turnover_rate", nameAr: "معدل دوران المخزون", category: "inventory",
   dateBasis: "inventory_created_at", sourceTables: ["inventory_ledger", "inventory_items"], supportsDateFilter: true,
-  businessDefinition: "كمية الخروج الفعلية من المخزون خلال الفترة ÷ متوسط/الرصيد الحالي للمخزون. حالياً تستخدم البنية المتاحة الرصيد الحالي كمرجع إداري، لذلك ليست محاسبة زمنية كاملة لمتوسط المخزون.",
+  businessDefinition: "كمية الخروج الفعلية من المخزون خلال الفترة ÷ الرصيد الحالي للمخزون. هذا مؤشر حركة إداري وليس متوسط مخزون محاسبي زمني.",
   supportsBreakdown: true,
   calculator: async (supabase, tenantId, dateRange) => {
     const { data: movements, error: err1 } = await supabase.from("inventory_ledger").select("quantity_delta, quantity_consumed, consumption_type").eq("tenant_id", tenantId).is("deleted_at", null).gte("created_at", dateRange.startAt).lt("created_at", dateRange.endAtExclusive);
@@ -62,14 +62,13 @@ export const lowStockRiskRateKpi: KpiDefinition = {
 export const inventoryAdjustmentRateKpi: KpiDefinition = {
   id: "inventory.adjustment_rate", nameAr: "معدل تعديلات المخزون", category: "inventory",
   dateBasis: "inventory_created_at", sourceTables: ["inventory_ledger"], supportsDateFilter: true,
-  businessDefinition: "عدد حركات تعديل المخزون ÷ إجمالي حركات سجل المخزون في الفترة.",
+  businessDefinition: "عدد حركات adjustment ÷ إجمالي حركات سجل المخزون في الفترة. الحركة adjustment هي التصنيف القانوني للحركة، مع بقاء سببها التفصيلي في consumption_type.",
   calculator: async (supabase, tenantId, dateRange) => {
-    const base = supabase.from("inventory_ledger").select("id, consumption_type").eq("tenant_id", tenantId).is("deleted_at", null).gte("created_at", dateRange.startAt).lt("created_at", dateRange.endAtExclusive);
-    const { data, error } = await base;
+    const { data, error } = await supabase.from("inventory_ledger").select("id, movement_type").eq("tenant_id", tenantId).is("deleted_at", null).gte("created_at", dateRange.startAt).lt("created_at", dateRange.endAtExclusive);
     if (error) throw error;
     const rows = data ?? [];
     if (!rows.length) return 0;
-    const adjustments = rows.filter((r) => ["inventory_adjustment_increase", "inventory_adjustment_decrease"].includes(r.consumption_type ?? "")).length;
+    const adjustments = rows.filter((r) => r.movement_type === "adjustment").length;
     return (adjustments / rows.length) * 100;
   }, formatter: kpiFormatter.percentage,
 };
@@ -77,7 +76,7 @@ export const inventoryAdjustmentRateKpi: KpiDefinition = {
 export const purchaseReturnRateKpi: KpiDefinition = {
   id: "inventory.purchase_return_rate", nameAr: "معدل إرجاع المشتريات", category: "inventory",
   dateBasis: "inventory_created_at", sourceTables: ["inventory_ledger"], supportsDateFilter: true,
-  businessDefinition: "كمية المشتريات المعادة ÷ كمية المشتريات المستلمة/المسجلة في الفترة.",
+  businessDefinition: "كمية المشتريات المعادة ÷ كمية المشتريات المستلمة/المسجلة في الفترة. إذا لم توجد حركات purchase_return في البيانات، تكون النتيجة صفر دون اختلاق حركة.",
   calculator: async (supabase, tenantId, dateRange) => {
     const { data, error } = await supabase.from("inventory_ledger").select("consumption_type, quantity_consumed, quantity_delta").eq("tenant_id", tenantId).is("deleted_at", null).gte("created_at", dateRange.startAt).lt("created_at", dateRange.endAtExclusive).in("consumption_type", ["purchase", "purchase_return"]);
     if (error) throw error;
