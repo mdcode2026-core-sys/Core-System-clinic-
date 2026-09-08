@@ -4,14 +4,14 @@ import { kpiFormatter } from "../kpi.formatter";
 export const followupCompletionRateKpi: KpiDefinition = {
   id: "followup.completion_rate", nameAr: "معدل إنجاز المتابعات", category: "followup",
   dateBasis: "followup_scheduled_for", sourceTables: ["retention_followups"], supportsDateFilter: true,
-  businessDefinition: "المتابعات المجدولة داخل الفترة والتي اكتملت فعلياً ÷ كل المتابعات المجدولة داخل الفترة نفسها.",
+  businessDefinition: "المتابعات المجدولة داخل الفترة والتي أصبحت status = completed ÷ كل المتابعات المجدولة داخل الفترة نفسها، مع استبعاد cancelled من البسط.",
   calculator: async (supabase, tenantId, dateRange) => {
-    const { data, error } = await supabase.from("retention_followups").select("scheduled_for, delivery_status, status, completed_at").eq("tenant_id", tenantId).is("deleted_at", null).gte("scheduled_for", dateRange.startAt).lt("scheduled_for", dateRange.endAtExclusive);
+    const { data, error } = await supabase.from("retention_followups").select("status").eq("tenant_id", tenantId).is("deleted_at", null).gte("scheduled_for", dateRange.startAt).lt("scheduled_for", dateRange.endAtExclusive);
     if (error) throw error;
     const rows = data ?? [];
-    if (!rows.length) return 0;
-    const completed = rows.filter((r) => r.status === "completed" || r.completed_at !== null || ["sent", "delivered", "read"].includes(r.delivery_status ?? "")).length;
-    return (completed / rows.length) * 100;
+    const denominator = rows.filter((r) => r.status !== "cancelled").length;
+    if (!denominator) return 0;
+    return (rows.filter((r) => r.status === "completed").length / denominator) * 100;
   }, formatter: kpiFormatter.percentage,
 };
 
@@ -20,7 +20,7 @@ export const followupResponseRateKpi: KpiDefinition = {
   dateBasis: "followup_sent_at", sourceTables: ["retention_followups"], supportsDateFilter: true,
   businessDefinition: "المتابعات المرسلة داخل الفترة التي استقبلت رداً ÷ المتابعات المرسلة داخل الفترة.",
   calculator: async (supabase, tenantId, dateRange) => {
-    const { data, error } = await supabase.from("retention_followups").select("sent_at, response_received").eq("tenant_id", tenantId).is("deleted_at", null).in("delivery_status", ["sent", "delivered", "read"]).gte("sent_at", dateRange.startAt).lt("sent_at", dateRange.endAtExclusive);
+    const { data, error } = await supabase.from("retention_followups").select("response_received").eq("tenant_id", tenantId).is("deleted_at", null).in("delivery_status", ["sent", "delivered", "read"]).gte("sent_at", dateRange.startAt).lt("sent_at", dateRange.endAtExclusive);
     if (error) throw error;
     const rows = data ?? [];
     if (!rows.length) return 0;
@@ -38,15 +38,14 @@ export const overdueFollowupRateKpi: KpiDefinition = {
     if (error) throw error;
     const rows = data ?? [];
     if (!rows.length) return 0;
-    const overdue = rows.filter((r) => r.scheduled_for < now).length;
-    return (overdue / rows.length) * 100;
+    return (rows.filter((r) => r.scheduled_for < now).length / rows.length) * 100;
   }, formatter: kpiFormatter.percentage,
 };
 
 export const patientRetentionRateKpi: KpiDefinition = {
   id: "followup.patient_retention_rate", nameAr: "معدل الاحتفاظ بالمرضى", category: "followup",
-  dateBasis: "session_event", sourceTables: ["clinic_visit_sessions", "clinic_patients"], supportsDateFilter: true,
-  businessDefinition: "Returning Patients وفق التعريف السريري المعتمد: مرضى لديهم نشاط سريري مكتمل في الفترة ولديهم نشاط مكتمل سابق، ÷ المرضى ذوي نشاط مكتمل في الفترة.",
+  dateBasis: "session_event", sourceTables: ["clinic_visit_sessions"], supportsDateFilter: true,
+  businessDefinition: "نسبة المرضى العائدين وفق تعريف Returning Patient المعتمد ضمن المرضى الذين لديهم زيارة مكتملة في الفترة المختارة.",
   calculator: async (supabase, tenantId, dateRange) => {
     const { data: current, error: err1 } = await supabase.from("clinic_visit_sessions").select("patient_id").eq("tenant_id", tenantId).eq("session_status", "completed").is("deleted_at", null).gte("visit_closed_at", dateRange.startAt).lt("visit_closed_at", dateRange.endAtExclusive);
     if (err1) throw err1;
@@ -65,7 +64,7 @@ export const patientRetentionRateKpi: KpiDefinition = {
 export const avgFollowupDelayKpi: KpiDefinition = {
   id: "followup.avg_delay", nameAr: "متوسط تأخير المتابعة", category: "followup",
   dateBasis: "followup_sent_at", sourceTables: ["retention_followups"], supportsDateFilter: true,
-  businessDefinition: "متوسط الفرق بالساعات بين موعد المتابعة المجدول ووقت الإرسال للمتابعات المرسلة خلال الفترة؛ التأخير السلبي لا يعد تأخيراً.",
+  businessDefinition: "متوسط التأخير غير السالب بالساعات بين scheduled_for و sent_at للمتابعات المرسلة خلال الفترة.",
   calculator: async (supabase, tenantId, dateRange) => {
     const { data, error } = await supabase.from("retention_followups").select("scheduled_for, sent_at").eq("tenant_id", tenantId).is("deleted_at", null).not("sent_at", "is", null).gte("sent_at", dateRange.startAt).lt("sent_at", dateRange.endAtExclusive);
     if (error) throw error;
