@@ -6,10 +6,20 @@ import type { KpiResult, DatePreset, AnalyticsCategory } from "./analytics.types
 
 const analyticsQueryOptions = { staleTime: 30_000, gcTime: 5 * 60_000, retry: 1 };
 
-export function useAnalyticsOverview(authUserId: string | null | undefined, datePreset: DatePreset = "today") {
-  return useQuery({ ...analyticsQueryOptions, queryKey: ["analytics", "overview", authUserId, datePreset], queryFn: async () => { if (!authUserId) return [] as KpiResult[]; return getAnalyticsOverview(authUserId, datePreset); }, enabled: !!authUserId });
+export function useAnalyticsOverview(authUserId: string | null | undefined, datePreset: DatePreset = "today", customFrom?: string, customTo?: string) {
+  return useQuery({
+    ...analyticsQueryOptions,
+    queryKey: ["analytics", "overview", authUserId, datePreset, customFrom, customTo],
+    queryFn: async () => { if (!authUserId) return [] as KpiResult[]; return getAnalyticsOverview(authUserId, datePreset, customFrom, customTo); },
+    enabled: !!authUserId,
+  });
 }
 
-export function useAnalyticsByCategory(authUserId: string | null | undefined, category: AnalyticsCategory, datePreset: DatePreset = "today") {
-  return useQuery({ ...analyticsQueryOptions, queryKey: ["analytics", "category", category, authUserId, datePreset], queryFn: async () => { if (!authUserId) return [] as KpiResult[]; return getAnalyticsByCategory(authUserId, category, datePreset); }, enabled: !!authUserId });
+export function useAnalyticsByCategory(authUserId: string | null | undefined, category: AnalyticsCategory, datePreset: DatePreset = "today", customFrom?: string, customTo?: string) {
+  return useQuery({
+    ...analyticsQueryOptions,
+    queryKey: ["analytics", "category", category, authUserId, datePreset, customFrom, customTo],
+    queryFn: async () => { if (!authUserId) return [] as KpiResult[]; return getAnalyticsByCategory(authUserId, category, datePreset, customFrom, customTo); },
+    enabled: !!authUserId,
+  });
 }
