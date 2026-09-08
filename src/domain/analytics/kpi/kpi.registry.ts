@@ -1,6 +1,6 @@
 import type { KpiDefinition, KpiRegistry as IKpiRegistry } from "../analytics.types";
 import { patientsTotalKpi, patientsNewKpi, patientsReturningKpi, patientsActiveKpi, patientsGrowthRateKpi, patientsAvgVisitsKpi } from "./kpi.definitions/patient.kpis";
-import { appointmentsTotalKpi, appointmentsCompletedKpi, appointmentsCancelledKpi, appointmentsNoShowKpi, appointmentsAvgWaitingTimeKpi, appointmentsAvgDurationKpi } from "./kpi.definitions/appointment.kpis";
+import { appointmentsTotalKpi, appointmentsCompletedKpi, appointmentsCancelledKpi, appointmentsNoShowKpi, appointmentsAttendanceRateKpi, appointmentsAvgWaitingTimeKpi, appointmentsAvgDurationKpi } from "./kpi.definitions/appointment.kpis";
 import { queueAvgWaitingTimeKpi, queueLongestWaitKpi, queueCurrentKpi, queueServedTodayKpi } from "./kpi.definitions/queue.kpis";
 import { revenueTotalKpi, revenueByDoctorKpi, revenueByProcedureKpi, revenueTopProceduresKpi, revenueCollectedKpi, revenueRefundedKpi, revenueNetCollectedKpi } from "./kpi.definitions/revenue.kpis";
 import { invoicesPaidKpi, invoicesPendingKpi, invoicesCancelledKpi, invoicesCollectionRateKpi } from "./kpi.definitions/invoice.kpis";
@@ -10,7 +10,7 @@ import { workforceEmployeesKpi, workforceAttendanceKpi, communicationsMessagesKp
 
 const allKpis: KpiDefinition[] = [
   patientsTotalKpi, patientsNewKpi, patientsReturningKpi, patientsActiveKpi, patientsGrowthRateKpi, patientsAvgVisitsKpi,
-  appointmentsTotalKpi, appointmentsCompletedKpi, appointmentsCancelledKpi, appointmentsNoShowKpi, appointmentsAvgWaitingTimeKpi, appointmentsAvgDurationKpi,
+  appointmentsTotalKpi, appointmentsCompletedKpi, appointmentsCancelledKpi, appointmentsNoShowKpi, appointmentsAttendanceRateKpi, appointmentsAvgWaitingTimeKpi, appointmentsAvgDurationKpi,
   queueAvgWaitingTimeKpi, queueLongestWaitKpi, queueCurrentKpi, queueServedTodayKpi,
   revenueTotalKpi, revenueCollectedKpi, revenueRefundedKpi, revenueNetCollectedKpi, revenueByDoctorKpi, revenueByProcedureKpi, revenueTopProceduresKpi,
   invoicesPaidKpi, invoicesPendingKpi, invoicesCancelledKpi, invoicesCollectionRateKpi,
