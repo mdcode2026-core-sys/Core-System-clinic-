@@ -31,7 +31,7 @@ async function doctorBreakdown(supabase: any, tenantId: string, dateRange: any):
   const { data, error } = await supabase.from("clinic_invoices").select("id,total_subunits,invoice_date,session_id").eq("tenant_id", tenantId).is("deleted_at", null).in("invoice_status", billableInvoiceStatuses).gte("invoice_date", dateRange.from).lte("invoice_date", dateRange.to);
   if (error) throw error;
   const invoices = data ?? [];
-  const sessionIds: string[] = [...new Set(invoices.map((r: any) => r.session_id).filter((x: unknown): x is string => typeof x === "string"))];
+  const sessionIds = Array.from(new Set(invoices.map((r: any) => r.session_id).filter((x: unknown): x is string => typeof x === "string"))) as string[];
   const sessions: any[] = sessionIds.length
     ? ((await supabase.from("clinic_visit_sessions").select("id,doctor_id").eq("tenant_id", tenantId).in("id", sessionIds))).data ?? []
     : [];
@@ -52,12 +52,12 @@ async function serviceBreakdown(supabase: any, tenantId: string, dateRange: any)
   const { data, error } = await supabase.from("invoice_items").select("id,invoice_id,procedure_id,line_total_subunits,created_at,quantity").eq("tenant_id", tenantId);
   if (error) throw error;
   const items = data ?? [];
-  const invoiceIds: string[] = [...new Set(items.map((r: any) => r.invoice_id).filter((x: unknown): x is string => typeof x === "string"))];
+  const invoiceIds = Array.from(new Set(items.map((r: any) => r.invoice_id).filter((x: unknown): x is string => typeof x === "string"))) as string[];
   if (!invoiceIds.length) return [];
   const { data: invoices, error: invoiceError } = await supabase.from("clinic_invoices").select("id,invoice_date").eq("tenant_id", tenantId).is("deleted_at", null).in("id", invoiceIds).in("invoice_status", billableInvoiceStatuses).gte("invoice_date", dateRange.from).lte("invoice_date", dateRange.to);
   if (invoiceError) throw invoiceError;
   const invoiceSet = new Set<string>((invoices ?? []).map((r: any) => String(r.id)));
-  const procedureIds: string[] = [...new Set(items.map((r: any) => r.procedure_id).filter((x: unknown): x is string => typeof x === "string"))];
+  const procedureIds = Array.from(new Set(items.map((r: any) => r.procedure_id).filter((x: unknown): x is string => typeof x === "string"))) as string[];
   const procedures: any[] = procedureIds.length
     ? ((await supabase.from("clinic_procedures").select("id,procedure_name").eq("tenant_id", tenantId).in("id", procedureIds))).data ?? []
     : [];
