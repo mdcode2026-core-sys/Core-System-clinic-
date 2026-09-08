@@ -11,7 +11,9 @@ const presets: { value: DatePreset; ar: string; en: string }[] = [
   { value: "today", ar: "اليوم", en: "Today" }, { value: "yesterday", ar: "أمس", en: "Yesterday" },
   { value: "this_week", ar: "هذا الأسبوع", en: "This Week" }, { value: "last_week", ar: "الأسبوع الماضي", en: "Last Week" },
   { value: "this_month", ar: "هذا الشهر", en: "This Month" }, { value: "last_month", ar: "الشهر الماضي", en: "Last Month" },
-  { value: "this_quarter", ar: "هذا الربع", en: "This Quarter" }, { value: "custom", ar: "نطاق مخصص", en: "Custom Range" },
+  { value: "this_quarter", ar: "هذا الربع", en: "This Quarter" }, { value: "last_quarter", ar: "الربع الماضي", en: "Last Quarter" },
+  { value: "this_year", ar: "هذه السنة", en: "This Year" }, { value: "last_year", ar: "السنة الماضية", en: "Last Year" },
+  { value: "custom", ar: "نطاق مخصص", en: "Custom Range" },
 ];
 
 export function AnalyticsDashboard() {
