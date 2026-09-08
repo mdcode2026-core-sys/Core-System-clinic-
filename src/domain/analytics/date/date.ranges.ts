@@ -39,8 +39,8 @@ export async function resolveDateRange(preset: DatePreset, timezone = "UTC", cus
     case "this_month": from = startOfMonth(current); to = addDays(addMonths(from, 1), -1); break;
     case "last_month": to = addDays(startOfMonth(current), -1); from = startOfMonth(to); break;
     case "this_quarter": from = startOfQuarter(current); to = addDays(addMonths(from, 3), -1); break;
-    case "last_quarter": to = addDays(startOfQuarter(current), -1); from = addMonths(to, -2); break;
-    case "this_year": from = startOfYear(current); to = addDays({ year: current.year, month: 12, day: 31 }, 0); break;
+    case "last_quarter": from = startOfQuarter(addMonths(current, -3)); to = addDays(startOfQuarter(current), -1); break;
+    case "this_year": from = startOfYear(current); to = { year: current.year, month: 12, day: 31 }; break;
     case "last_year": to = addDays(startOfYear(current), -1); from = startOfYear(to); break;
     default: throw new Error(`Unknown date preset: ${preset}`);
   }
