@@ -3,7 +3,7 @@ import { getAnalyticsByCategory } from "@/domain/analytics/analytics.actions";
 import type { AnalyticsCategory, DatePreset } from "@/domain/analytics/analytics.types";
 
 const categories: AnalyticsCategory[] = ["patients", "appointments", "queue", "revenue", "invoices", "inventory", "followup", "workforce", "communications", "coordination"];
-const presets: DatePreset[] = ["today", "yesterday", "this_week", "last_week", "this_month", "last_month", "this_quarter", "custom"];
+const presets: DatePreset[] = ["today", "yesterday", "this_week", "last_week", "this_month", "last_month", "this_quarter", "last_quarter", "this_year", "last_year", "custom"];
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
