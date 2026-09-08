@@ -24,6 +24,26 @@ export const appointmentsCompletedKpi = appointmentBase("appointments.completed"
 export const appointmentsCancelledKpi = appointmentBase("appointments.cancelled", "مواعيد ملغاة", "cancelled");
 export const appointmentsNoShowKpi = appointmentBase("appointments.no_show", "لم يحضر", "no_show");
 
+export const appointmentsAttendanceRateKpi: KpiDefinition = {
+  id: "appointments.attendance_rate",
+  nameAr: "نسبة الحضور",
+  category: "appointments",
+  dateBasis: "appointment_scheduled_start",
+  sourceTables: ["master_agenda_events"],
+  businessDefinition: "Attendance Rate = completed / (completed + no_show + cancelled + rescheduled) ضمن وقت البداية المجدول للفترة المختارة.",
+  supportsDateFilter: true,
+  calculator: async (supabase, tenantId, dateRange) => {
+    const { data, error } = await supabase.from("master_agenda_events").select("status").eq("tenant_id", tenantId).is("deleted_at", null).gte("scheduled_start", dateRange.startAt).lt("scheduled_start", dateRange.endAtExclusive).in("status", ["completed", "no_show", "cancelled", "rescheduled"]);
+    if (error) throw error;
+    const rows = data ?? [];
+    const denominator = rows.length;
+    if (!denominator) return 0;
+    const completed = rows.filter((row: { status: string }) => row.status === "completed").length;
+    return (completed / denominator) * 100;
+  },
+  formatter: kpiFormatter.percentage,
+};
+
 export const appointmentsAvgWaitingTimeKpi: KpiDefinition = {
   id: "appointments.avg_waiting_time",
   nameAr: "متوسط وقت الانتظار",
