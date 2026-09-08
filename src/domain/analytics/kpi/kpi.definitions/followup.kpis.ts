@@ -5,19 +5,19 @@ const sentStatuses = ["sent", "delivered", "read"];
 
 export const followupCompletionRateKpi: KpiDefinition = {
   id: "followup.completion_rate", nameAr: "معدل إنجاز المتابعات", category: "followup", dateBasis: "followup_scheduled_for", sourceTables: ["retention_followups"], supportsDateFilter: true,
-  businessDefinition: "المتابعات المجدولة داخل الفترة والتي انتقلت إلى delivery status مرسل/مسلم/مقروء ÷ كل المتابعات المجدولة داخل الفترة. لا توجد حالة completed مستقلة في النموذج الحالي.",
+  businessDefinition: "المتابعات ذات status = completed والمجدولة داخل الفترة ÷ جميع المتابعات المجدولة داخل الفترة. status هو حالة إنجاز المتابعة؛ delivery_status يصف حالة الإرسال ولا يحل محلها.",
   calculator: async (supabase, tenantId, dateRange) => {
-    const { data, error } = await supabase.from("retention_followups").select("delivery_status").eq("tenant_id", tenantId).is("deleted_at", null).gte("scheduled_for", dateRange.startAt).lt("scheduled_for", dateRange.endAtExclusive);
+    const { data, error } = await supabase.from("retention_followups").select("status").eq("tenant_id", tenantId).is("deleted_at", null).gte("scheduled_for", dateRange.startAt).lt("scheduled_for", dateRange.endAtExclusive);
     if (error) throw error;
     const rows = data ?? [];
     if (!rows.length) return 0;
-    return (rows.filter((r: any) => sentStatuses.includes(r.delivery_status ?? "")).length / rows.length) * 100;
+    return (rows.filter((r: any) => r.status === "completed").length / rows.length) * 100;
   }, formatter: kpiFormatter.percentage,
 };
 
 export const followupResponseRateKpi: KpiDefinition = {
   id: "followup.response_rate", nameAr: "معدل استجابة المتابعات", category: "followup", dateBasis: "followup_sent_at", sourceTables: ["retention_followups"], supportsDateFilter: true,
-  businessDefinition: "المتابعات المرسلة داخل الفترة التي response_received = true ÷ المتابعات المرسلة داخل الفترة.",
+  businessDefinition: "المتابعات المرسلة داخل الفترة التي response_received = true ÷ المتابعات المرسلة داخل الفترة. الإرسال يحدد عبر delivery_status.",
   calculator: async (supabase, tenantId, dateRange) => {
     const { data, error } = await supabase.from("retention_followups").select("response_received, delivery_status").eq("tenant_id", tenantId).is("deleted_at", null).in("delivery_status", sentStatuses).gte("sent_at", dateRange.startAt).lt("sent_at", dateRange.endAtExclusive);
     if (error) throw error;
@@ -29,10 +29,10 @@ export const followupResponseRateKpi: KpiDefinition = {
 
 export const overdueFollowupRateKpi: KpiDefinition = {
   id: "followup.overdue_rate", nameAr: "معدل المتابعات المتأخرة", category: "followup", dateBasis: "followup_scheduled_for", sourceTables: ["retention_followups"], supportsDateFilter: false,
-  businessDefinition: "المتابعات pending التي تجاوز scheduled_for ÷ جميع المتابعات pending حالياً.",
+  businessDefinition: "المتابعات ذات status = pending التي تجاوز scheduled_for ÷ جميع المتابعات ذات status = pending حالياً.",
   calculator: async (supabase, tenantId) => {
     const now = new Date().toISOString();
-    const { data, error } = await supabase.from("retention_followups").select("scheduled_for").eq("tenant_id", tenantId).is("deleted_at", null).eq("delivery_status", "pending");
+    const { data, error } = await supabase.from("retention_followups").select("scheduled_for, status").eq("tenant_id", tenantId).is("deleted_at", null).eq("status", "pending");
     if (error) throw error;
     const rows = data ?? [];
     if (!rows.length) return 0;
