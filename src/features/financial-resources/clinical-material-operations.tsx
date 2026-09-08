@@ -1,0 +1,44 @@
+"use client";
+import { useState } from "react";
+import { deleteProcedureMaterialRequirement, saveProcedureMaterialRequirement, issueProcedureMaterial, consumeIssuedProcedureMaterial, returnUnusedProcedureMaterial } from "@/domain/inventory/procedure-material.actions";
+
+type Procedure={id:string;procedure_name:string;procedure_name_ar:string|null};
+type Item={id:string;name:string;name_ar:string|null;unit:string;current_stock:number;is_procedure_material:boolean};
+type Requirement={id:string;procedure_id:string;inventory_item_id:string;standard_quantity:number;required:boolean;notes:string|null};
+type Visit={id:string;patient_id:string;agenda_event_id:string|null;created_at:string};
+type Patient={id:string;first_name:string;last_name:string};
+type Issue={id:string;visit_id:string;procedure_id:string|null;inventory_item_id:string;quantity_issued:number;quantity_consumed:number;quantity_returned:number;status:string;issued_at:string;notes:string|null};
+
+type Props={locale:"ar"|"en";canManage:boolean;procedures:Procedure[];items:Item[];requirements:Requirement[];visits:Visit[];patients:Patient[];issues:Issue[]};
+
+export function ClinicalMaterialOperations({locale,canManage,procedures,items,requirements,visits,patients,issues}:Props){
+ const ar=locale==="ar"; const [msg,setMsg]=useState(""); const [busy,setBusy]=useState(false);
+ const [procedureId,setProcedureId]=useState(procedures[0]?.id??""); const [itemId,setItemId]=useState(items.find(i=>i.is_procedure_material)?.id??items[0]?.id??"");
+ const [visitId,setVisitId]=useState(visits[0]?.id??""); const [qty,setQty]=useState(1); const [reason,setReason]=useState("");
+ const text=(ar?{title:"مواد الإجراءات السريرية",sub:"تعريف المواد المطلوبة لكل إجراء، ثم تجهيزها للزيارة، تسجيل المستخدم فعلياً، وإرجاع الفائض غير المستخدم.",mapping:"تعريف مواد الإجراء",issue:"تجهيز مادة لزيارة",issues:"حركة المواد المجهزة",procedure:"الإجراء",item:"الصنف",quantity:"الكمية",save:"حفظ",visit:"الزيارة",reason:"السبب",issueBtn:"تسجيل التجهيز",useBtn:"تسجيل الاستخدام",returnBtn:"إرجاع الفائض",none:"لا توجد بيانات"}:{title:"Clinical Procedure Materials",sub:"Define materials per procedure, prepare them for a visit, record what was actually used, and return unused surplus.",mapping:"Procedure material definition",issue:"Prepare material for visit",issues:"Prepared material activity",procedure:"Procedure",item:"Item",quantity:"Quantity",save:"Save",visit:"Visit",reason:"Reason",issueBtn:"Record preparation",useBtn:"Record actual use",returnBtn:"Return unused",none:"No data"});
+ async function run(fn:()=>Promise<any>){setBusy(true);setMsg("");const r=await fn();setBusy(false);setMsg(r.success?(ar?"تم الحفظ":"Saved"):(r.error??(ar?"تعذر التنفيذ":"Operation failed")));if(r.success)location.reload();}
+ const procedureName=(id:string)=>{const p=procedures.find(x=>x.id===id);return p?(ar&&p.procedure_name_ar?p.procedure_name_ar:p.procedure_name):id};
+ const itemName=(id:string)=>{const i=items.find(x=>x.id===id);return i?(ar&&i.name_ar?i.name_ar:i.name):id};
+ const patientName=(id:string)=>{const p=patients.find(x=>x.id===id);return p?`${p.first_name} ${p.last_name}`:id};
+ return <div className="space-y-6" dir={ar?"rtl":"ltr"}>
+  <div><h1 className="text-xl font-semibold">{text.title}</h1><p className="mt-1 text-sm text-muted-foreground">{text.sub}</p></div>
+  {msg&&<div className="rounded-md border p-3 text-sm">{msg}</div>}
+  {canManage&&<div className="grid gap-5 lg:grid-cols-2">
+   <section className="rounded-lg border p-5 space-y-4"><h2 className="font-semibold">{text.mapping}</h2><div className="grid gap-3">
+    <label className="grid gap-1 text-sm"><span>{text.procedure}</span><select value={procedureId} onChange={e=>setProcedureId(e.target.value)} className="rounded-md border bg-background px-3 py-2">{procedures.map(p=><option key={p.id} value={p.id}>{ar&&p.procedure_name_ar?p.procedure_name_ar:p.procedure_name}</option>)}</select></label>
+    <label className="grid gap-1 text-sm"><span>{text.item}</span><select value={itemId} onChange={e=>setItemId(e.target.value)} className="rounded-md border bg-background px-3 py-2">{items.filter(i=>i.is_procedure_material).map(i=><option key={i.id} value={i.id}>{ar&&i.name_ar?i.name_ar:i.name} · {i.unit}</option>)}</select></label>
+    <label className="grid gap-1 text-sm"><span>{text.quantity}</span><input type="number" min="1" step="1" value={qty} onChange={e=>setQty(Math.max(1,Math.trunc(Number(e.target.value)||1)))} className="rounded-md border bg-background px-3 py-2"/></label>
+    <button disabled={busy||!procedureId||!itemId} onClick={()=>run(()=>saveProcedureMaterialRequirement({procedure_id:procedureId,inventory_item_id:itemId,standard_quantity:qty}))} className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground">{text.save}</button>
+   </div></section>
+   <section className="rounded-lg border p-5 space-y-4"><h2 className="font-semibold">{text.issue}</h2><div className="grid gap-3">
+    <label className="grid gap-1 text-sm"><span>{text.visit}</span><select value={visitId} onChange={e=>setVisitId(e.target.value)} className="rounded-md border bg-background px-3 py-2">{visits.map(v=><option key={v.id} value={v.id}>{patientName(v.patient_id)} · {new Date(v.created_at).toLocaleDateString()}</option>)}</select></label>
+    <label className="grid gap-1 text-sm"><span>{text.item}</span><select value={itemId} onChange={e=>setItemId(e.target.value)} className="rounded-md border bg-background px-3 py-2">{items.filter(i=>i.is_procedure_material).map(i=><option key={i.id} value={i.id}>{ar&&i.name_ar?i.name_ar:i.name} · {i.current_stock} {i.unit}</option>)}</select></label>
+    <label className="grid gap-1 text-sm"><span>{text.quantity}</span><input type="number" min="1" step="1" value={qty} onChange={e=>setQty(Math.max(1,Math.trunc(Number(e.target.value)||1)))} className="rounded-md border bg-background px-3 py-2"/></label>
+    <label className="grid gap-1 text-sm"><span>{text.reason}</span><input value={reason} onChange={e=>setReason(e.target.value)} className="rounded-md border bg-background px-3 py-2"/></label>
+    <button disabled={busy||!visitId||!itemId} onClick={()=>run(()=>issueProcedureMaterial({visit_id:visitId,item_id:itemId,quantity:qty,reason}))} className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground">{text.issueBtn}</button>
+   </div></section>
+  </div>}
+  <section className="rounded-lg border overflow-auto"><div className="p-5 border-b"><h2 className="font-semibold">{text.mapping}</h2></div><table className="w-full text-sm"><thead><tr className="border-b"><th className="p-3 text-start">{text.procedure}</th><th className="p-3 text-start">{text.item}</th><th className="p-3 text-start">{text.quantity}</th>{canManage&&<th className="p-3 text-start"/>}</tr></thead><tbody>{requirements.length?requirements.map(r=><tr key={r.id} className="border-t"><td className="p-3">{procedureName(r.procedure_id)}</td><td className="p-3">{itemName(r.inventory_item_id)}</td><td className="p-3">{r.standard_quantity}</td>{canManage&&<td className="p-3"><button disabled={busy} onClick={()=>run(()=>deleteProcedureMaterialRequirement(r.id))} className="text-sm underline">{ar?"حذف":"Remove"}</button></td>}</tr>):<tr><td className="p-5" colSpan={4}>{text.none}</td></tr>}</tbody></table></section>
+  <section className="rounded-lg border overflow-auto"><div className="p-5 border-b"><h2 className="font-semibold">{text.issues}</h2></div><table className="w-full text-sm"><thead><tr className="border-b"><th className="p-3 text-start">{text.visit}</th><th className="p-3 text-start">{text.item}</th><th className="p-3 text-start">{text.quantity}</th><th className="p-3 text-start">{ar?"المستخدم":"Used"}</th><th className="p-3 text-start">{ar?"المعاد":"Returned"}</th><th className="p-3 text-start">{ar?"الحالة":"Status"}</th><th className="p-3 text-start"/></tr></thead><tbody>{issues.length?issues.map(i=>{const remaining=i.quantity_issued-i.quantity_consumed-i.quantity_returned;return <tr key={i.id} className="border-t"><td className="p-3">{patientName(visits.find(v=>v.id===i.visit_id)?.patient_id??"")}</td><td className="p-3">{itemName(i.inventory_item_id)}</td><td className="p-3">{i.quantity_issued}</td><td className="p-3">{i.quantity_consumed}</td><td className="p-3">{i.quantity_returned}</td><td className="p-3">{i.status}</td><td className="p-3 flex gap-2">{canManage&&remaining>0&&<><button disabled={busy} onClick={()=>run(()=>consumeIssuedProcedureMaterial({issue_id:i.id,quantity:1}))} className="underline">{text.useBtn}</button><button disabled={busy} onClick={()=>run(()=>returnUnusedProcedureMaterial({issue_id:i.id,quantity:remaining}))} className="underline">{text.returnBtn}</button></>}</td></tr>}) : <tr><td className="p-5" colSpan={7}>{text.none}</td></tr>}</tbody></table></section>
+ </div>;
+}
