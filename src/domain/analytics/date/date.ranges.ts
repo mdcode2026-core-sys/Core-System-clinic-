@@ -20,6 +20,18 @@ function isoDate({ year, month, day }: Parts): string {
   return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 }
 
+function normalizeYearMonth(year: number, month: number): { year: number; month: number } {
+  const zeroBased = year * 12 + (month - 1);
+  const normalizedYear = Math.floor(zeroBased / 12);
+  const normalizedMonth = zeroBased - normalizedYear * 12 + 1;
+  return { year: normalizedYear, month: normalizedMonth };
+}
+
+function addMonths(parts: Parts, months: number): Parts {
+  const normalized = normalizeYearMonth(parts.year, parts.month + months);
+  return { year: normalized.year, month: normalized.month, day: Math.min(parts.day, new Date(Date.UTC(normalized.year, normalized.month, 0)).getUTCDate()) };
+}
+
 function addDays(parts: Parts, days: number): Parts {
   const d = new Date(Date.UTC(parts.year, parts.month - 1, parts.day + days));
   return { year: d.getUTCFullYear(), month: d.getUTCMonth() + 1, day: d.getUTCDate() };
@@ -78,31 +90,28 @@ export async function resolveDateRange(preset: DatePreset, timezone = "UTC"): Pr
       from = startOfWeekMonday(current);
       to = addDays(from, 6);
       break;
-    case "last_week":
-      to = addDays(startOfWeekMonday(current), -1);
+    case "last_week": {
+      const thisWeekStart = startOfWeekMonday(current);
+      to = addDays(thisWeekStart, -1);
       from = addDays(to, -6);
       break;
-    case "this_month":
+    }
+    case "this_month": {
       from = startOfMonth(current);
-      to = addDays({ year: current.year, month: current.month + 1 > 12 ? 1 : current.month + 1, day: 1 }, -1);
-      if (current.month === 12) from = { year: current.year, month: 1, day: 1 };
+      to = addDays(addMonths(from, 1), -1);
       break;
+    }
     case "last_month": {
       const thisMonth = startOfMonth(current);
       to = addDays(thisMonth, -1);
       from = startOfMonth(to);
       break;
     }
-    case "this_quarter":
+    case "this_quarter": {
       from = startOfQuarter(current);
-      to = addDays(addDays(startOfQuarter(current), 90), -1);
-      while (isoDate(to).slice(0, 7) === isoDate(addDays(to, 1)).slice(0, 7)) to = addDays(to, -1);
-      // Explicit calendar calculation avoids assuming every quarter has 90 days.
-      const quarterEndMonth = from.month + 2;
-      const quarterEndYear = from.year + (quarterEndMonth > 12 ? 1 : 0);
-      const normalizedEndMonth = quarterEndMonth > 12 ? quarterEndMonth - 12 : quarterEndMonth;
-      to = addDays({ year: quarterEndYear, month: normalizedEndMonth + 1 > 12 ? 1 : normalizedEndMonth + 1, day: 1 }, -1);
+      to = addDays(addMonths(from, 3), -1);
       break;
+    }
     case "custom":
       throw new Error("Custom date ranges require an explicit from/to range");
     default:
