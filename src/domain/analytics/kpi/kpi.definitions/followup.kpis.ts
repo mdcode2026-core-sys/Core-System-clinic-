@@ -1,78 +1,72 @@
 import type { KpiDefinition } from "../../analytics.types";
 import { kpiFormatter } from "../kpi.formatter";
 
-/**
- * Follow-up KPIs — Package 3.1.8
- * Approved: Follow-up Completion Rate, Follow-up Response Rate,
- *            Overdue Follow-up Rate, Patient Retention Rate,
- *            Average Follow-up Delay
- */
+const sentStatuses = ["sent", "delivered", "read"];
 
 export const followupCompletionRateKpi: KpiDefinition = {
-  id: "followup.completion_rate", nameAr: "معدل إنجاز المتابعات", category: "followup",
+  id: "followup.completion_rate", nameAr: "معدل إنجاز المتابعات", category: "followup", dateBasis: "followup_scheduled_for", sourceTables: ["retention_followups"], supportsDateFilter: true,
+  businessDefinition: "المتابعات ذات status = completed والمجدولة داخل الفترة ÷ جميع المتابعات المجدولة داخل الفترة. status هو حالة إنجاز المتابعة؛ delivery_status يصف حالة الإرسال ولا يحل محلها.",
   calculator: async (supabase, tenantId, dateRange) => {
-    const { count: completedCount, error: err1 } = await supabase.from("retention_followups").select("*", { count: "exact", head: true }).eq("tenant_id", tenantId).in("delivery_status", ["sent", "delivered", "read"]).gte("sent_at", `${dateRange.from}T00:00:00`).lte("sent_at", `${dateRange.to}T23:59:59`);
-    if (err1) throw err1;
-    const { count: totalCount, error: err2 } = await supabase.from("retention_followups").select("*", { count: "exact", head: true }).eq("tenant_id", tenantId).gte("scheduled_for", `${dateRange.from}T00:00:00`).lte("scheduled_for", `${dateRange.to}T23:59:59`);
-    if (err2) throw err2;
-    const total = totalCount ?? 0;
-    return total === 0 ? 0 : ((completedCount ?? 0) / total) * 100;
+    const { data, error } = await supabase.from("retention_followups").select("status").eq("tenant_id", tenantId).is("deleted_at", null).gte("scheduled_for", dateRange.startAt).lt("scheduled_for", dateRange.endAtExclusive);
+    if (error) throw error;
+    const rows = data ?? [];
+    if (!rows.length) return 0;
+    return (rows.filter((r: any) => r.status === "completed").length / rows.length) * 100;
   }, formatter: kpiFormatter.percentage,
 };
 
 export const followupResponseRateKpi: KpiDefinition = {
-  id: "followup.response_rate", nameAr: "معدل استجابة المتابعات", category: "followup",
+  id: "followup.response_rate", nameAr: "معدل استجابة المتابعات", category: "followup", dateBasis: "followup_sent_at", sourceTables: ["retention_followups"], supportsDateFilter: true,
+  businessDefinition: "المتابعات المرسلة داخل الفترة التي response_received = true ÷ المتابعات المرسلة داخل الفترة. الإرسال يحدد عبر delivery_status.",
   calculator: async (supabase, tenantId, dateRange) => {
-    const { count: respondedCount, error: err1 } = await supabase.from("retention_followups").select("*", { count: "exact", head: true }).eq("tenant_id", tenantId).eq("response_received", true).gte("sent_at", `${dateRange.from}T00:00:00`).lte("sent_at", `${dateRange.to}T23:59:59`);
-    if (err1) throw err1;
-    const { count: sentCount, error: err2 } = await supabase.from("retention_followups").select("*", { count: "exact", head: true }).eq("tenant_id", tenantId).in("delivery_status", ["sent", "delivered", "read"]).gte("sent_at", `${dateRange.from}T00:00:00`).lte("sent_at", `${dateRange.to}T23:59:59`);
-    if (err2) throw err2;
-    const sent = sentCount ?? 0;
-    return sent === 0 ? 0 : ((respondedCount ?? 0) / sent) * 100;
+    const { data, error } = await supabase.from("retention_followups").select("response_received, delivery_status").eq("tenant_id", tenantId).is("deleted_at", null).in("delivery_status", sentStatuses).gte("sent_at", dateRange.startAt).lt("sent_at", dateRange.endAtExclusive);
+    if (error) throw error;
+    const rows = data ?? [];
+    if (!rows.length) return 0;
+    return (rows.filter((r: any) => r.response_received === true).length / rows.length) * 100;
   }, formatter: kpiFormatter.percentage,
 };
 
 export const overdueFollowupRateKpi: KpiDefinition = {
-  id: "followup.overdue_rate", nameAr: "معدل المتابعات المتأخرة", category: "followup",
+  id: "followup.overdue_rate", nameAr: "معدل المتابعات المتأخرة", category: "followup", dateBasis: "followup_scheduled_for", sourceTables: ["retention_followups"], supportsDateFilter: false,
+  businessDefinition: "المتابعات ذات status = pending التي تجاوز scheduled_for ÷ جميع المتابعات ذات status = pending حالياً.",
   calculator: async (supabase, tenantId) => {
     const now = new Date().toISOString();
-    const { count: overdueCount, error: err1 } = await supabase.from("retention_followups").select("*", { count: "exact", head: true }).eq("tenant_id", tenantId).eq("delivery_status", "pending").lt("scheduled_for", now);
-    if (err1) throw err1;
-    const { count: pendingCount, error: err2 } = await supabase.from("retention_followups").select("*", { count: "exact", head: true }).eq("tenant_id", tenantId).eq("delivery_status", "pending");
-    if (err2) throw err2;
-    const pending = pendingCount ?? 0;
-    return pending === 0 ? 0 : ((overdueCount ?? 0) / pending) * 100;
+    const { data, error } = await supabase.from("retention_followups").select("scheduled_for, status").eq("tenant_id", tenantId).is("deleted_at", null).eq("status", "pending");
+    if (error) throw error;
+    const rows = data ?? [];
+    if (!rows.length) return 0;
+    return (rows.filter((r: any) => r.scheduled_for < now).length / rows.length) * 100;
   }, formatter: kpiFormatter.percentage,
 };
 
 export const patientRetentionRateKpi: KpiDefinition = {
-  id: "followup.patient_retention_rate", nameAr: "معدل الاحتفاظ بالمرضى", category: "followup",
-  calculator: async (supabase, tenantId) => {
-    const { data: followupPatients, error: err1 } = await supabase.from("retention_followups").select("patient_id").eq("tenant_id", tenantId);
+  id: "followup.patient_retention_rate", nameAr: "معدل الاحتفاظ بالمرضى", category: "followup", dateBasis: "session_event", sourceTables: ["clinic_visit_sessions"], supportsDateFilter: true,
+  businessDefinition: "نسبة المرضى العائدين وفق prior qualifying clinical activity + selected-period qualifying activity بين المرضى ذوي النشاط السريري المكتمل في الفترة.",
+  calculator: async (supabase, tenantId, dateRange) => {
+    const { data: current, error: err1 } = await supabase.from("clinic_visit_sessions").select("patient_id").eq("tenant_id", tenantId).eq("session_status", "completed").is("deleted_at", null).gte("visit_closed_at", dateRange.startAt).lt("visit_closed_at", dateRange.endAtExclusive);
     if (err1) throw err1;
-    const distinctFollowupPatients = new Set((followupPatients ?? []).map((row) => row.patient_id)).size;
-    const { count: totalPatients, error: err2 } = await supabase.from("clinic_patients").select("*", { count: "exact", head: true }).eq("tenant_id", tenantId).is("deleted_at", null);
+    const patients = [...new Set((current ?? []).map((r: any) => r.patient_id).filter(Boolean))];
+    if (!patients.length) return 0;
+    const { data: previous, error: err2 } = await supabase.from("clinic_visit_sessions").select("patient_id").eq("tenant_id", tenantId).eq("session_status", "completed").is("deleted_at", null).lt("visit_closed_at", dateRange.startAt).in("patient_id", patients as string[]);
     if (err2) throw err2;
-    const total = totalPatients ?? 0;
-    return total === 0 ? 0 : (distinctFollowupPatients / total) * 100;
+    const priorPatients = new Set((previous ?? []).map((r: any) => r.patient_id).filter(Boolean));
+    return (priorPatients.size / patients.length) * 100;
   }, formatter: kpiFormatter.percentage,
 };
 
 export const avgFollowupDelayKpi: KpiDefinition = {
-  id: "followup.avg_delay", nameAr: "متوسط تأخير المتابعة", category: "followup",
+  id: "followup.avg_delay", nameAr: "متوسط تأخير المتابعة", category: "followup", dateBasis: "followup_sent_at", sourceTables: ["retention_followups"], supportsDateFilter: true,
+  businessDefinition: "متوسط التأخير غير السالب بالساعات بين scheduled_for و sent_at للمتابعات المرسلة داخل الفترة.",
   calculator: async (supabase, tenantId, dateRange) => {
-    const { data, error } = await supabase.from("retention_followups").select("scheduled_for, sent_at").eq("tenant_id", tenantId).not("sent_at", "is", null).gte("sent_at", `${dateRange.from}T00:00:00`).lte("sent_at", `${dateRange.to}T23:59:59`);
+    const { data, error } = await supabase.from("retention_followups").select("scheduled_for, sent_at").eq("tenant_id", tenantId).is("deleted_at", null).not("sent_at", "is", null).gte("sent_at", dateRange.startAt).lt("sent_at", dateRange.endAtExclusive);
     if (error) throw error;
-    if (!data || data.length === 0) return 0;
-    let totalDelayHours = 0;
-    let validCount = 0;
-    for (const row of data) {
-      const scheduled = new Date(row.scheduled_for).getTime();
-      const sent = new Date(row.sent_at!).getTime();
-      const delayHours = (sent - scheduled) / (1000 * 60 * 60);
-      if (!isNaN(delayHours)) { totalDelayHours += delayHours; validCount++; }
+    const rows = data ?? [];
+    let total = 0; let count = 0;
+    for (const row of rows as any[]) {
+      const delayHours = (new Date(row.sent_at).getTime() - new Date(row.scheduled_for).getTime()) / 3600000;
+      if (Number.isFinite(delayHours)) { total += Math.max(0, delayHours); count++; }
     }
-    return validCount === 0 ? 0 : totalDelayHours / validCount;
-  },
-  formatter: async (v) => Math.round(v).toLocaleString("en-US", { numberingSystem: "latn" }),
+    return count ? total / count : 0;
+  }, formatter: async (v) => Math.round(v).toLocaleString("en-US", { numberingSystem: "latn" }),
 };

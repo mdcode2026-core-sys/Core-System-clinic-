@@ -1,15 +1,10 @@
 "use client";
-
 import { useQuery } from "@tanstack/react-query";
-import { getAnalyticsOverview, getAnalyticsByCategory } from "./analytics.actions";
-import type { KpiResult, DatePreset, AnalyticsCategory } from "./analytics.types";
-
+import { getAnalyticsOverview, getAnalyticsByCategory, getAnalyticsTrend, getAnalyticsComparison, getAnalyticsDrilldown } from "./analytics.actions";
+import type { KpiResult, DatePreset, AnalyticsCategory, AnalyticsDrilldownRow } from "./analytics.types";
 const analyticsQueryOptions = { staleTime: 30_000, gcTime: 5 * 60_000, retry: 1 };
-
-export function useAnalyticsOverview(authUserId: string | null | undefined, datePreset: DatePreset = "today") {
-  return useQuery({ ...analyticsQueryOptions, queryKey: ["analytics", "overview", authUserId, datePreset], queryFn: async () => { if (!authUserId) return [] as KpiResult[]; return getAnalyticsOverview(authUserId, datePreset); }, enabled: !!authUserId });
-}
-
-export function useAnalyticsByCategory(authUserId: string | null | undefined, category: AnalyticsCategory, datePreset: DatePreset = "today") {
-  return useQuery({ ...analyticsQueryOptions, queryKey: ["analytics", "category", category, authUserId, datePreset], queryFn: async () => { if (!authUserId) return [] as KpiResult[]; return getAnalyticsByCategory(authUserId, category, datePreset); }, enabled: !!authUserId });
-}
+export function useAnalyticsOverview(authUserId:string|null|undefined,datePreset:DatePreset="today",customFrom?:string,customTo?:string,enabled=true){return useQuery({...analyticsQueryOptions,queryKey:["analytics","overview",authUserId,datePreset,customFrom,customTo],queryFn:async()=>!authUserId?[] as KpiResult[]:getAnalyticsOverview(authUserId,datePreset,customFrom,customTo),enabled:!!authUserId&&enabled});}
+export function useAnalyticsByCategory(authUserId:string|null|undefined,category:AnalyticsCategory,datePreset:DatePreset="today",customFrom?:string,customTo?:string,enabled=true){return useQuery({...analyticsQueryOptions,queryKey:["analytics","category",category,authUserId,datePreset,customFrom,customTo],queryFn:async()=>!authUserId?[] as KpiResult[]:getAnalyticsByCategory(authUserId,category,datePreset,customFrom,customTo),enabled:!!authUserId&&enabled});}
+export function useAnalyticsTrend(authUserId:string|null|undefined,kpiId:string,datePreset:DatePreset="this_week",customFrom?:string,customTo?:string,enabled=true){return useQuery({...analyticsQueryOptions,queryKey:["analytics","trend",authUserId,kpiId,datePreset,customFrom,customTo],queryFn:async()=>!authUserId?[]:getAnalyticsTrend(authUserId,kpiId,datePreset,customFrom,customTo),enabled:!!authUserId&&!!kpiId&&enabled});}
+export function useAnalyticsComparison(authUserId:string|null|undefined,kpiId:string,datePreset:DatePreset="this_month",customFrom?:string,customTo?:string,enabled=true){return useQuery({...analyticsQueryOptions,queryKey:["analytics","comparison",authUserId,kpiId,datePreset,customFrom,customTo],queryFn:async()=>!authUserId?null:getAnalyticsComparison(authUserId,kpiId,datePreset,customFrom,customTo),enabled:!!authUserId&&!!kpiId&&enabled});}
+export function useAnalyticsDrilldown(authUserId:string|null|undefined,kpiId:string,datePreset:DatePreset="this_month",customFrom?:string,customTo?:string,enabled=true){return useQuery({...analyticsQueryOptions,queryKey:["analytics","drilldown",authUserId,kpiId,datePreset,customFrom,customTo],queryFn:async()=>!authUserId?[] as AnalyticsDrilldownRow[]:getAnalyticsDrilldown(authUserId,kpiId,datePreset,customFrom,customTo),enabled:!!authUserId&&!!kpiId&&enabled});}
