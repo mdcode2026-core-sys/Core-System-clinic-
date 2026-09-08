@@ -52,10 +52,10 @@ export interface KpiDefinition {
   id: string;
   nameAr: string;
   category: AnalyticsCategory;
-  dateBasis: MetricDateBasis;
-  sourceTables: string[];
-  businessDefinition: string;
-  supportsDateFilter: boolean;
+  dateBasis?: MetricDateBasis;
+  sourceTables?: string[];
+  businessDefinition?: string;
+  supportsDateFilter?: boolean;
   supportsBreakdown?: boolean;
   calculator: (supabase: AnalyticsSupabaseClient, tenantId: string, dateRange: DateRange) => Promise<number>;
   formatter: (value: number) => string | Promise<string>;
