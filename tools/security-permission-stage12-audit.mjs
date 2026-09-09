@@ -15,17 +15,15 @@ function read(rel) {
 
 function must(rel, patterns, label) {
   const text = read(rel);
-  for (const pattern of patterns) {
-    if (!pattern.test(text)) failures.push(`${rel}: missing ${label}: ${pattern}`);
-  }
+  for (const pattern of patterns) if (!pattern.test(text)) failures.push(`${rel}: missing ${label}: ${pattern}`);
 }
 
 must("src/core/permissions/permissionEngine.ts", [
   /auth_user_id/,
-  /\.eq\("tenant_id", tenantId\)/,
-  /is_active/,
-  /clinic_user_permissions/,
-  /clinic_user_permission_overrides/,
+  /get_effective_permissions/,
+  /has_effective_permission/,
+  /\.rpc\("get_effective_permissions"/,
+  /tenantId/,
 ], "effective-permission boundary");
 
 must("src/core/entitlements/entitlementEngine.ts", [
