@@ -1,0 +1,42 @@
+name: CORE SYSTEM Test Execution Contract
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  setup-contract:
+    name: SETUP — Test Execution Decision Engine
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout candidate
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Run SETUP decision engine
+        env:
+          TEST_BASE_REF: ${{ github.event.pull_request.base.sha || 'main' }}
+          TEST_HEAD_REF: ${{ github.event.pull_request.head.sha || github.sha }}
+          TEST_EXECUTION_PLAN: test-execution-plan.json
+        run: node tools/test-execution-setup.mjs
+
+      - name: Validate execution plan
+        run: |
+          node -e 'const p=require("./test-execution-plan.json"); if(!p.contract_version||!p.baseline||!p.candidate||!Array.isArray(p.changed_files)||!Array.isArray(p.impact)||!Array.isArray(p.required_engineering)||!Array.isArray(p.required_e2e)) process.exit(1); console.log("EXECUTION_CONTRACT=VALID")'
+
+      - name: Upload execution plan
+        uses: actions/upload-artifact@v4
+        with:
+          name: core-system-test-execution-plan
+          path: test-execution-plan.json
