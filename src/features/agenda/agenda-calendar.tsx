@@ -3,11 +3,13 @@
 import { useI18n } from "@/core/i18n/I18nProvider";
 import { Button } from "@/shared/components/ui/button";
 import { ChevronLeft, ChevronRight, Calendar } from "lucide-react";
+import { formatDateInTimeZone, formatTimeInTimeZone } from "@/shared/utils/dateTime";
 import type { AgendaEventWithRelations, AgendaEventStatusValue } from "@/domain/agenda/agenda.types";
 
 interface AgendaCalendarProps {
   events: AgendaEventWithRelations[];
   currentDate: Date;
+  timeZone?: string;
   onDateChange: (date: Date) => void;
   onEventClick: (event: AgendaEventWithRelations) => void;
   onTimeSlotClick: (date: string, hour: number) => void;
@@ -35,7 +37,7 @@ const StatusLabelKey: Record<AgendaEventStatusValue, "scheduled" | "confirmed" |
   rescheduled: "rescheduled",
 };
 
-export function AgendaCalendar({ events, currentDate, onDateChange, onEventClick, onTimeSlotClick }: AgendaCalendarProps) {
+export function AgendaCalendar({ events, currentDate, timeZone = "UTC", onDateChange, onEventClick, onTimeSlotClick }: AgendaCalendarProps) {
   const { locale, admin: a } = useI18n();
   const days = Array.from({ length: 7 }, (_, i) => {
     const start = new Date(currentDate);
@@ -43,11 +45,16 @@ export function AgendaCalendar({ events, currentDate, onDateChange, onEventClick
     return start;
   });
   const hours = Array.from({ length: 13 }, (_, i) => i + 8);
-  const dateLocale = locale === "ar" ? "ar" : "en-US";
-  const numeric = { numberingSystem: "latn" as const };
+  const sameTenantDay = (value: string, day: Date) => {
+    const eventDay = new Intl.DateTimeFormat("en-CA", { timeZone, year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date(value));
+    const calendarDay = new Intl.DateTimeFormat("en-CA", { timeZone, year: "numeric", month: "2-digit", day: "2-digit" }).format(day);
+    return eventDay === calendarDay;
+  };
   const getEvents = (day: Date, hour?: number) => events.filter((e) => {
-    const sameDay = e.scheduled_start.split("T")[0] === day.toISOString().split("T")[0];
-    return sameDay && (hour === undefined || new Date(e.scheduled_start).getHours() === hour);
+    if (!sameTenantDay(e.scheduled_start, day)) return false;
+    if (hour === undefined) return true;
+    const eventHour = Number(new Intl.DateTimeFormat("en-US", { timeZone, hour: "2-digit", hourCycle: "h23" }).format(new Date(e.scheduled_start)));
+    return eventHour === hour;
   });
   const shiftWeek = (amount: number) => {
     const next = new Date(currentDate);
@@ -55,7 +62,7 @@ export function AgendaCalendar({ events, currentDate, onDateChange, onEventClick
     onDateChange(next);
   };
   const statusLabel = (status: AgendaEventStatusValue) => a.agenda[StatusLabelKey[status]];
-  const formatTime = (event: AgendaEventWithRelations) => `${new Date(event.scheduled_start).toLocaleTimeString(dateLocale, { ...numeric, hour: "2-digit", minute: "2-digit" })} - ${new Date(event.scheduled_end).toLocaleTimeString(dateLocale, { ...numeric, hour: "2-digit", minute: "2-digit" })}`;
+  const formatTime = (event: AgendaEventWithRelations) => `${formatTimeInTimeZone(event.scheduled_start, locale, timeZone)} - ${formatTimeInTimeZone(event.scheduled_end, locale, timeZone)}`;
 
   return (
     <div className="space-y-4" dir={locale === "ar" ? "rtl" : "ltr"}>
@@ -65,16 +72,16 @@ export function AgendaCalendar({ events, currentDate, onDateChange, onEventClick
           <Button variant="outline" size="sm" onClick={() => onDateChange(new Date())}><Calendar className="me-1 h-4 w-4" />{a.agenda.today}</Button>
           <Button variant="outline" size="sm" onClick={() => shiftWeek(1)} aria-label={a.agenda.next}><ChevronRight className="h-4 w-4 rtl:rotate-180" /></Button>
         </div>
-        <div className="text-sm text-muted-foreground">{days[0].toLocaleDateString(dateLocale, { ...numeric, month: "long", year: "numeric" })}</div>
+        <div className="text-sm text-muted-foreground">{formatDateInTimeZone(days[0], locale, timeZone)}</div>
       </div>
 
       <div className="overflow-hidden rounded-lg border">
         <div className="grid grid-cols-8 border-b bg-muted/50">
           <div className="border-e p-2 text-center text-xs text-muted-foreground">{a.agenda.time}</div>
           {days.map((day) => (
-            <div key={day.toISOString()} className={`border-e p-2 text-center ${day.toDateString() === new Date().toDateString() ? "bg-primary/10" : ""}`}>
-              <div className="text-xs text-muted-foreground">{day.toLocaleDateString(dateLocale, { ...numeric, weekday: "short" })}</div>
-              <div className="text-sm font-bold">{day.getDate().toLocaleString("en-US", numeric)}</div>
+            <div key={day.toISOString()} className={`border-e p-2 text-center`}>
+              <div className="text-xs text-muted-foreground">{day.toLocaleDateString(locale === "ar" ? "ar" : "en-US", { numberingSystem: "latn", timeZone, weekday: "short" })}</div>
+              <div className="text-sm font-bold">{day.toLocaleDateString("en-US", { numberingSystem: "latn", timeZone, day: "numeric" })}</div>
             </div>
           ))}
         </div>
@@ -85,7 +92,7 @@ export function AgendaCalendar({ events, currentDate, onDateChange, onEventClick
               <div className="flex items-center justify-center border-e bg-muted/30 p-2 text-center text-xs text-muted-foreground">{String(hour).padStart(2, "0")}:00</div>
               {days.map((day) => {
                 const dayEvents = getEvents(day, hour);
-                const dateStr = day.toISOString().split("T")[0];
+                const dateStr = new Intl.DateTimeFormat("en-CA", { timeZone, year: "numeric", month: "2-digit", day: "2-digit" }).format(day);
                 return (
                   <div key={`${dateStr}-${hour}`} className="relative border-e p-1" onClick={() => dayEvents.length === 0 && onTimeSlotClick(dateStr, hour)}>
                     {dayEvents.map((event) => (

@@ -59,7 +59,7 @@ jobs:
       - name: Install Playwright
         run: |
           npm install --no-save --no-package-lock @playwright/test@1.55.0 playwright@1.55.0
-          npx playwright install --with-deps chromium
+          npx playwright install chromium
       - name: Start local production server
         env:
           NEXT_PUBLIC_APP_URL: http://127.0.0.1:3000
