@@ -1,77 +1,59 @@
 -- Stage 27 / inventory provenance reconciliation.
--- This forward-only migration does not change current_stock or delete evidence.
--- It records pre-canonical legacy balances explicitly in the ledger and closes
--- one audited receipt whose stock effect already exists in current_stock.
+-- Forward-only: no current_stock mutation and no deletion.
+-- The eight listed legacy balances were present before the canonical ledger path.
+-- Chemical Peel Solution additionally has an audited receipt whose stock effect
+-- already exists in current_stock but whose ledger provenance is missing.
 
-WITH mismatches AS (
-  SELECT i.id AS item_id,
-         i.tenant_id,
-         i.name,
-         i.current_stock - COALESCE(SUM(il.quantity_delta), 0)::numeric AS opening_delta,
-         i.valuation_cost_subunits
-  FROM public.inventory_items i
-  LEFT JOIN public.inventory_ledger il
-    ON il.item_id = i.id
-   AND il.tenant_id = i.tenant_id
-   AND il.deleted_at IS NULL
-  WHERE i.tenant_id = '2fa98983-8069-420f-9c27-7c36ef96ef6e'::uuid
-    AND i.deleted_at IS NULL
-  GROUP BY i.id, i.tenant_id, i.name, i.current_stock, i.valuation_cost_subunits
-  HAVING i.current_stock - COALESCE(SUM(il.quantity_delta), 0)::numeric > 0
-), classified AS (
-  SELECT m.*
-  FROM mismatches m
-  WHERE m.item_id IN (
-    '9bf31efd-9c0c-4d7b-983d-5bc56e83edfc'::uuid,
-    'ccc3760a-398a-4c2b-abe6-8b345bda9c92'::uuid,
-    'e3700059-c0c8-49de-8d04-94ea94e82c15'::uuid,
-    '0d80656a-1ccc-42bf-84b3-9491e9123bf9'::uuid,
-    '369f2f4e-c1dc-4d27-907f-f4aa4e3f5ec9'::uuid,
-    '06bdbc61-5cd5-4ad6-a5fa-07ca4c4f24c2'::uuid,
-    '5cc15bb9-0bd7-4c18-ac18-fa4356710264'::uuid,
-    'f4934c1c-4924-4656-ac2e-62da9bb48266'::uuid
-  )
-), opening_inserts AS (
-  INSERT INTO public.inventory_ledger (
-    tenant_id, item_id, material_name, quantity_consumed, consumption_type,
-    notes, created_at, quantity_delta, movement_type, source_type,
-    unit_cost_subunits, cost_total_subunits
-  )
-  SELECT tenant_id,
-         item_id,
-         name,
-         opening_delta,
-         'inventory_adjustment_increase',
-         'Historical opening balance reconciliation: pre-canonical inventory state recorded explicitly; no stock quantity changed.',
-         TIMESTAMPTZ '2026-09-01 11:11:52.429887+00',
-         opening_delta,
-         'adjustment',
-         'legacy_untraceable',
-         valuation_cost_subunits,
-         CASE WHEN valuation_cost_subunits IS NULL THEN NULL ELSE (opening_delta * valuation_cost_subunits)::integer END
-  FROM classified
-  WHERE opening_delta > 0
-    AND NOT EXISTS (
-      SELECT 1
-      FROM public.inventory_ledger prior
-      WHERE prior.tenant_id = classified.tenant_id
-        AND prior.item_id = classified.item_id
-        AND prior.source_type = 'legacy_untraceable'
-        AND prior.notes = 'Historical opening balance reconciliation: pre-canonical inventory state recorded explicitly; no stock quantity changed.'
-        AND prior.deleted_at IS NULL
-    )
-  RETURNING id
+WITH opening_balances(item_id, opening_delta) AS (
+  VALUES
+    ('9bf31efd-9c0c-4d7b-983d-5bc56e83edfc'::uuid, 12::numeric),
+    ('ccc3760a-398a-4c2b-abe6-8b345bda9c92'::uuid, 8::numeric),
+    ('e3700059-c0c8-49de-8d04-94ea94e82c15'::uuid, 15::numeric),
+    ('0d80656a-1ccc-42bf-84b3-9491e9123bf9'::uuid, 100::numeric),
+    ('369f2f4e-c1dc-4d27-907f-f4aa4e3f5ec9'::uuid, 50::numeric),
+    ('06bdbc61-5cd5-4ad6-a5fa-07ca4c4f24c2'::uuid, 20::numeric),
+    ('5cc15bb9-0bd7-4c18-ac18-fa4356710264'::uuid, 60::numeric),
+    ('f4934c1c-4924-4656-ac2e-62da9bb48266'::uuid, 25::numeric)
 )
+INSERT INTO public.inventory_ledger (
+  tenant_id, item_id, material_name, quantity_consumed, consumption_type,
+  notes, created_at, quantity_delta, movement_type, source_type,
+  unit_cost_subunits, cost_total_subunits
+)
+SELECT
+  i.tenant_id,
+  i.id,
+  i.name,
+  ob.opening_delta,
+  'inventory_adjustment_increase',
+  'Historical opening balance reconciliation: pre-canonical inventory state recorded explicitly; no stock quantity changed.',
+  i.created_at,
+  ob.opening_delta,
+  'adjustment',
+  'legacy_untraceable',
+  i.valuation_cost_subunits,
+  CASE WHEN i.valuation_cost_subunits IS NULL THEN NULL ELSE (ob.opening_delta * i.valuation_cost_subunits)::integer END
+FROM public.inventory_items i
+JOIN opening_balances ob ON ob.item_id=i.id
+WHERE i.tenant_id='2fa98983-8069-420f-9c27-7c36ef96ef6e'::uuid
+  AND i.deleted_at IS NULL
+  AND NOT EXISTS (
+    SELECT 1 FROM public.inventory_ledger prior
+    WHERE prior.tenant_id=i.tenant_id
+      AND prior.item_id=i.id
+      AND prior.source_type='legacy_untraceable'
+      AND prior.notes='Historical opening balance reconciliation: pre-canonical inventory state recorded explicitly; no stock quantity changed.'
+      AND prior.deleted_at IS NULL
+  );
+
 UPDATE public.purchase_orders po
-SET status = 'received',
-    updated_at = now()
-WHERE po.id = 'a7000000-0000-4000-8000-000000000001'::uuid
-  AND po.tenant_id = '2fa98983-8069-420f-9c27-7c36ef96ef6e'::uuid
+SET status='received', updated_at=now()
+WHERE po.id='a7000000-0000-4000-8000-000000000001'::uuid
+  AND po.tenant_id='2fa98983-8069-420f-9c27-7c36ef96ef6e'::uuid
   AND po.status <> 'received'
   AND NOT EXISTS (
-    SELECT 1
-    FROM public.purchase_order_items poi
-    WHERE poi.purchase_order_id = po.id
+    SELECT 1 FROM public.purchase_order_items poi
+    WHERE poi.purchase_order_id=po.id
       AND poi.quantity_received < poi.quantity_ordered
   );
 
@@ -96,11 +78,10 @@ SELECT
   2200,
   22000
 WHERE NOT EXISTS (
-  SELECT 1
-  FROM public.inventory_ledger il
-  WHERE il.tenant_id = '2fa98983-8069-420f-9c27-7c36ef96ef6e'::uuid
-    AND il.source_type = 'purchase_receipt'
-    AND il.source_id = 'a7200000-0000-4000-8000-000000000001'::uuid
-    AND il.item_id = 'ccc3760a-398a-4c2b-abe6-8b345bda9c92'::uuid
+  SELECT 1 FROM public.inventory_ledger il
+  WHERE il.tenant_id='2fa98983-8069-420f-9c27-7c36ef96ef6e'::uuid
+    AND il.source_type='purchase_receipt'
+    AND il.source_id='a7200000-0000-4000-8000-000000000001'::uuid
+    AND il.item_id='ccc3760a-398a-4c2b-abe6-8b345bda9c92'::uuid
     AND il.deleted_at IS NULL
 );
