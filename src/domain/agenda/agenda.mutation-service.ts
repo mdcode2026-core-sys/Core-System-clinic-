@@ -3,6 +3,7 @@ import { checkConflicts, isValidTimeRange } from "./conflict.engine";
 import { checkAvailability } from "./availability.engine";
 import { AgendaEventInsert, AgendaEventStatus, AgendaEventUpdate } from "./agenda.types";
 import { getEffectivePermissions } from "@/core/permissions/permissionEngine";
+import { tenantLocalToUtc } from "@/shared/utils/dateTime";
 
 const DATABASE_ERROR = "AGENDA_DATABASE_ERROR";
 const TENANT_MISSING = "AGENDA_TENANT_MISSING";
@@ -37,7 +38,18 @@ async function resolveContext() {
     .maybeSingle();
   if (clinicUserError || !clinicUser) return null;
   const permissions = await getEffectivePermissions(user.id, clinicUser.tenant_id);
-  return { supabase, clinicUser, tenantId: clinicUser.tenant_id, permissions };
+  const { data: tenant } = await supabase
+    .from("master_tenants")
+    .select("timezone")
+    .eq("id", clinicUser.tenant_id)
+    .maybeSingle();
+  return {
+    supabase,
+    clinicUser,
+    tenantId: clinicUser.tenant_id,
+    tenantTimezone: tenant?.timezone || "UTC",
+    permissions,
+  };
 }
 
 function can(permissions: string[], key: string) {
@@ -89,42 +101,56 @@ async function validateAvailability(
   }, supabase as any);
 }
 
+function normalizeScheduleTimes(input: AgendaMutationInput, tenantTimezone: string) {
+  return {
+    ...input,
+    scheduledStart: tenantLocalToUtc(input.scheduledStart, tenantTimezone),
+    scheduledEnd: tenantLocalToUtc(input.scheduledEnd, tenantTimezone),
+  };
+}
+
 export async function createAgendaEventMutation(input: AgendaMutationInput) {
   const ctx = await resolveContext();
   if (!ctx) return { error: TENANT_MISSING };
   if (!can(ctx.permissions, "agenda:create")) return { error: PERMISSION_DENIED };
 
-  const timeValidation = isValidTimeRange(input.scheduledStart, input.scheduledEnd);
+  let normalized: AgendaMutationInput;
+  try {
+    normalized = normalizeScheduleTimes(input, ctx.tenantTimezone);
+  } catch {
+    return { error: "AGENDA_INVALID_TIME_RANGE" };
+  }
+  const timeValidation = isValidTimeRange(normalized.scheduledStart, normalized.scheduledEnd);
   if (!timeValidation.valid) return { error: timeValidation.message };
-  if (!(await validateResource(ctx.supabase, ctx.tenantId, input.resourceId))) return { error: "AGENDA_RESOURCE_UNAVAILABLE" };
+  if (!(await validateResource(ctx.supabase, ctx.tenantId, normalized.resourceId))) return { error: "AGENDA_RESOURCE_UNAVAILABLE" };
 
-  const bufferEnd = await resolveBufferEnd(ctx.supabase, input.procedureId, input.scheduledEnd);
-  const availability = await validateAvailability(ctx.supabase, ctx.tenantId, input, bufferEnd);
+  const bufferEnd = await resolveBufferEnd(ctx.supabase, normalized.procedureId, normalized.scheduledEnd);
+  const availability = await validateAvailability(ctx.supabase, ctx.tenantId, normalized, bufferEnd);
   if (!availability.isAvailable) return { error: `AGENDA_UNAVAILABLE|${availability.reason || "requested capacity is unavailable"}` };
 
   const conflictResult = await checkConflicts(ctx.supabase, {
     tenantId: ctx.tenantId,
-    doctorId: input.doctorId,
-    roomId: input.roomId,
-    resourceId: input.resourceId,
-    patientId: input.patientId,
-    scheduledStart: input.scheduledStart,
-    scheduledEnd: input.scheduledEnd,
+    doctorId: normalized.doctorId,
+    roomId: normalized.roomId,
+    resourceId: normalized.resourceId,
+    patientId: normalized.patientId,
+    scheduledStart: normalized.scheduledStart,
+    scheduledEnd: normalized.scheduledEnd,
     bufferEnd,
   });
   if (conflictResult.hasConflict) return { error: conflictResult.message };
 
   const event: AgendaEventInsert = {
     tenant_id: ctx.tenantId,
-    patient_id: input.patientId,
-    doctor_id: input.doctorId,
-    room_id: input.roomId,
-    resource_id: input.resourceId,
-    procedure_id: input.procedureId,
-    inquiry_id: input.inquiryId ?? null,
+    patient_id: normalized.patientId,
+    doctor_id: normalized.doctorId,
+    room_id: normalized.roomId,
+    resource_id: normalized.resourceId,
+    procedure_id: normalized.procedureId,
+    inquiry_id: normalized.inquiryId ?? null,
     created_by: ctx.clinicUser.id,
-    scheduled_start: input.scheduledStart,
-    scheduled_end: input.scheduledEnd,
+    scheduled_start: normalized.scheduledStart,
+    scheduled_end: normalized.scheduledEnd,
     buffer_end: bufferEnd,
     event_type: "appointment",
     status: AgendaEventStatus.SCHEDULED,
@@ -142,37 +168,43 @@ export async function updateAgendaEventMutation(input: AgendaUpdateInput) {
   if (!ctx) return { error: TENANT_MISSING };
   if (!can(ctx.permissions, "agenda:update")) return { error: PERMISSION_DENIED };
 
-  const timeValidation = isValidTimeRange(input.scheduledStart, input.scheduledEnd);
+  let normalized: AgendaMutationInput;
+  try {
+    normalized = normalizeScheduleTimes(input, ctx.tenantTimezone);
+  } catch {
+    return { error: "AGENDA_INVALID_TIME_RANGE" };
+  }
+  const timeValidation = isValidTimeRange(normalized.scheduledStart, normalized.scheduledEnd);
   if (!timeValidation.valid) return { error: timeValidation.message };
-  if (!(await validateResource(ctx.supabase, ctx.tenantId, input.resourceId))) return { error: "AGENDA_RESOURCE_UNAVAILABLE" };
+  if (!(await validateResource(ctx.supabase, ctx.tenantId, normalized.resourceId))) return { error: "AGENDA_RESOURCE_UNAVAILABLE" };
 
-  const bufferEnd = await resolveBufferEnd(ctx.supabase, input.procedureId, input.scheduledEnd);
-  const availability = await validateAvailability(ctx.supabase, ctx.tenantId, input, bufferEnd);
+  const bufferEnd = await resolveBufferEnd(ctx.supabase, normalized.procedureId, normalized.scheduledEnd);
+  const availability = await validateAvailability(ctx.supabase, ctx.tenantId, normalized, bufferEnd);
   if (!availability.isAvailable) return { error: `AGENDA_UNAVAILABLE|${availability.reason || "requested capacity is unavailable"}` };
 
   const conflictResult = await checkConflicts(ctx.supabase, {
     tenantId: ctx.tenantId,
-    doctorId: input.doctorId,
-    roomId: input.roomId,
-    resourceId: input.resourceId,
-    patientId: input.patientId,
-    scheduledStart: input.scheduledStart,
-    scheduledEnd: input.scheduledEnd,
+    doctorId: normalized.doctorId,
+    roomId: normalized.roomId,
+    resourceId: normalized.resourceId,
+    patientId: normalized.patientId,
+    scheduledStart: normalized.scheduledStart,
+    scheduledEnd: normalized.scheduledEnd,
     bufferEnd,
     excludeEventId: input.eventId,
   });
   if (conflictResult.hasConflict) return { error: conflictResult.message };
 
   const updates: AgendaEventUpdate = {
-    patient_id: input.patientId,
-    doctor_id: input.doctorId,
-    room_id: input.roomId,
-    resource_id: input.resourceId,
-    procedure_id: input.procedureId,
-    scheduled_start: input.scheduledStart,
-    scheduled_end: input.scheduledEnd,
+    patient_id: normalized.patientId,
+    doctor_id: normalized.doctorId,
+    room_id: normalized.roomId,
+    resource_id: normalized.resourceId,
+    procedure_id: normalized.procedureId,
+    scheduled_start: normalized.scheduledStart,
+    scheduled_end: normalized.scheduledEnd,
     buffer_end: bufferEnd,
-    booking_notes: input.notes ?? null,
+    booking_notes: normalized.notes ?? null,
     updated_at: new Date().toISOString(),
   };
   if (input.reschedule) updates.status = AgendaEventStatus.RESCHEDULED;
