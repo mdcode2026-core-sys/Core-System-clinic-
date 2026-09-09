@@ -1,0 +1,19 @@
+# CORE SYSTEM — EXECUTION LEDGER
+
+| Date | Action | Evidence | Result | Decision | Next Action |
+|---|---|---|---|---|---|
+| 2026-09-09 03:16 +03 | Reconstructed resume point | Handoff/Ledger absent on `main`; inspected GitHub, Supabase, repository docs, CI, Vercel | Resume point reconstructed from live evidence | Baseline commit = `cdedb1937edc44bd93dafdceacfa52e70c19bbbb` | Continue DB↔docs reconciliation |
+| 2026-09-09 03:16 +03 | Git baseline | `main` = `cdedb193...`; no open PRs | Main state identified; local working tree not independently observable | Do not claim local clean/dirty | Use feature branch for changes |
+| 2026-09-09 03:16 +03 | Live DB baseline | Supabase project `qaslsjyxjwvdoiczmhgq`; latest migrations through `20260908181547` | Current schema/data observed read-only | Treat live DB as evidence | Complete domain/scenario classification |
+| 2026-09-09 03:16 +03 | Tenant reconstruction | Zada: 279 patients, 282 agenda events, 138 visits, 138 invoices, 113 inventory ledger; other tenants smaller | Principal operational evidence identified | Do not collapse audit/test tenants into Zada | Classify provenance |
+| 2026-09-09 03:16 +03 | Appointment↔Visit causality | 0 completed-without-visit; 0 non-completed-with-visit; 0 patient/doctor mismatches | Canonical appointment→visit relation consistent in inspected Zada data | No repair | Continue downstream causality |
+| 2026-09-09 03:16 +03 | Invoice causality | 138 invoice items ↔ visit procedures; 138/138 line and payment reconciliation | Invoice chain internally consistent | No repair | Validate procurement/inventory exceptions |
+| 2026-09-09 03:16 +03 | Inventory causality | 70 procedure-consumption rows are source-traced | Procedure consumption evidence is traceable | No repair | Investigate procurement exception |
+| 2026-09-09 03:16 +03 | Procurement exception | `AUDIT-PO-001` has receipt 10/10 but no purchase-receipt ledger; PO still `ordered` | Proven data anomaly; provenance unknown | Do not mutate baseline yet | Classify fixture vs production-realistic evidence |
+| 2026-09-09 03:16 +03 | Treatment plan reconciliation | 8 plan headers; 0 plan items; 0 plan visits | DB conflicts with PJ demo dataset description | Documentation/data conflict, not yet a code repair | Classify provenance and authority |
+| 2026-09-09 03:16 +03 | Provider availability root cause | Only doctor is Dr Said Saleh; only availability rows point to receptionist user id; 09:00–17:00 Mon–Fri | Canonical doctor has no availability; current E2E booking failure reproduced by CI | Data integrity blocker | Trace source/migration and prepare safe repair |
+| 2026-09-09 03:16 +03 | Legacy RPC forensic | Two `adjust_inventory_stock` overloads; 3-arg overload lacks permission check and ledger write | Potential high-severity permission/audit bypass | Treat as blocker pending caller analysis | Trace all callers and migration origin |
+| 2026-09-09 03:16 +03 | Security/RLS baseline | Key domain policies tenant-scope through `get_current_tenant_id()`/permission checks | No cross-tenant leak proven by read-only inspection | Continue negative-path audit | Test concrete RPC/view boundaries |
+| 2026-09-09 03:16 +03 | CI baseline | TS/Lint/I18N/UX/AJM/build/auth E2E pass; real-world clinic E2E fails | Main not fully validated | No merge/closure | Repair only after forensic baseline |
+| 2026-09-09 03:16 +03 | Production runtime | Production deployment `dpl_3SPDrcPYd73aj1JM1838Xo1vy8cD`; build-info matches main SHA; no error/fatal logs in inspected 24h | Production shell healthy in inspected checks | No deployment action | Continue pre-production closure work |
+| 2026-09-09 03:16 +03 | Change control | Created `reconciliation/execution-baseline-20260909` from baseline SHA | Safe non-main workspace established | All future modifications branch-only | Begin remediation branch work only after reconciliation |
