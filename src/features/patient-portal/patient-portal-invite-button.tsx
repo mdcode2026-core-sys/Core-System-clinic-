@@ -1,17 +1,71 @@
 "use client";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useI18n } from "@/core/i18n/I18nProvider";
 import { Button } from "@/shared/components/ui/button";
 import { createPatientPortalInvitation, type PortalChannel } from "@/domain/patient-portal/portal.actions";
 import { getPatientPortalAvailability, type PortalAvailability } from "@/domain/patient-portal/portal-access.actions";
+
 export function PatientPortalInviteButton({ patientId, tenantId, hasEmail, hasPhone }: { patientId: string; tenantId: string; hasEmail: boolean; hasPhone: boolean }) {
-  const { locale, admin: a, portal: p } = useI18n(); const [availability, setAvailability] = useState<PortalAvailability | null>(null); const [channel, setChannel] = useState<PortalChannel>(hasEmail ? "email" : "whatsapp"); const [fallback, setFallback] = useState<PortalChannel | "">(""); const [busy, setBusy] = useState(false); const [message, setMessage] = useState("");
-  useEffect(() => { let active = true; getPatientPortalAvailability(tenantId).then(result => { if (active) setAvailability(result); }).catch(() => { if (active) { setAvailability({ portal: false, email: false, sms: false, whatsapp: false }); setMessage(a.portal.unavailable); } }); return () => { active = false; }; }, [tenantId, a.portal.unavailable]);
-  const channels = useMemo<PortalChannel[]>(() => !availability ? [] : [availability.email ? "email" : null, availability.whatsapp ? "whatsapp" : null, availability.sms ? "sms" : null].filter(Boolean) as PortalChannel[], [availability]);
-  const channelHasDestination = (item: PortalChannel) => item === "email" ? hasEmail : hasPhone; const sendable = channels.filter(channelHasDestination); const effectiveChannel = sendable.includes(channel) ? channel : sendable[0] ?? channels[0] ?? "email"; const effectiveFallback = fallback && channels.includes(fallback) && fallback !== effectiveChannel ? fallback : "";
+  const { locale, admin: a, portal: p } = useI18n();
+  const [channel, setChannel] = useState<PortalChannel>(hasEmail ? "email" : "whatsapp");
+  const [fallback, setFallback] = useState<PortalChannel | "">("");
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState("");
+  const availabilityQuery = useQuery<PortalAvailability>({
+    queryKey: ["patient-portal-availability", tenantId],
+    queryFn: () => getPatientPortalAvailability(tenantId),
+    enabled: !!tenantId && (hasEmail || hasPhone),
+    staleTime: 5 * 60 * 1000,
+    gcTime: 15 * 60 * 1000,
+    refetchOnWindowFocus: false,
+  });
+  const availability = availabilityQuery.data ?? null;
+  const channels = useMemo<PortalChannel[]>(
+    () => !availability ? [] : [availability.email ? "email" : null, availability.whatsapp ? "whatsapp" : null, availability.sms ? "sms" : null].filter(Boolean) as PortalChannel[],
+    [availability],
+  );
+  const channelHasDestination = (item: PortalChannel) => item === "email" ? hasEmail : hasPhone;
+  const sendable = channels.filter(channelHasDestination);
+  const effectiveChannel = sendable.includes(channel) ? channel : sendable[0] ?? channels[0] ?? "email";
+  const effectiveFallback = fallback && channels.includes(fallback) && fallback !== effectiveChannel ? fallback : "";
   const label = (item: PortalChannel, isFallback = false) => `${item === "email" ? a.portal.email : item === "whatsapp" ? a.portal.whatsapp : a.portal.sms}${isFallback ? ` ${a.portal.fallback}` : ""}`;
   const localizeError = (code: string) => { const value = p[code as keyof typeof p]; return typeof value === "string" ? value : p.createFailed; };
-  async function invite() { setBusy(true); setMessage(""); try { if (!channelHasDestination(effectiveChannel)) { setMessage(effectiveChannel === "email" ? a.portal.noEmail : a.portal.noPhone); return; } const result = await createPatientPortalInvitation({ clinicPatientId: patientId, channel: effectiveChannel, fallbackChannel: effectiveFallback || null }); setMessage(result.success ? a.portal.queued : localizeError(result.error ?? "")); } catch (error) { console.error("Patient Portal invitation failed:", error); setMessage(a.portal.failed); } finally { setBusy(false); } }
-  if (!hasPhone && !hasEmail) return null; if (availability === null) return <span className="text-xs text-muted-foreground">{a.portal.checking}</span>; if (!availability.portal) return <span className="text-xs text-muted-foreground">{a.portal.unavailable}</span>; if (!channels.length) return <span className="text-xs text-muted-foreground">{a.portal.noChannel}</span>;
-  return <div className="flex flex-wrap items-center gap-1" dir={locale === "ar" ? "rtl" : "ltr"}><select className="h-9 rounded-md border bg-background px-2 text-xs" value={effectiveChannel} onChange={e => setChannel(e.target.value as PortalChannel)} disabled={busy} aria-label={a.portal.channel}>{channels.map(item => <option key={item} value={item} disabled={!channelHasDestination(item)}>{label(item)}{!channelHasDestination(item) ? ` (${a.portal.noDestination})` : ""}</option>)}</select><select className="h-9 rounded-md border bg-background px-2 text-xs" value={effectiveFallback} onChange={e => setFallback(e.target.value as PortalChannel | "")} disabled={busy} aria-label={a.portal.fallback}><option value="">{a.portal.noFallback}</option>{channels.filter(item => item !== effectiveChannel).map(item => <option key={item} value={item} disabled={!channelHasDestination(item)}>{label(item, true)}{!channelHasDestination(item) ? ` (${a.portal.noDestination})` : ""}</option>)}</select><Button variant="outline" size="sm" onClick={() => void invite()} disabled={busy || !channelHasDestination(effectiveChannel)}>{busy ? a.portal.sending : a.portal.invite}</Button>{message && <span className="text-xs text-muted-foreground" role="status" aria-live="polite">{message}</span>}</div>;
+
+  async function invite() {
+    setBusy(true);
+    setMessage("");
+    try {
+      if (!channelHasDestination(effectiveChannel)) {
+        setMessage(effectiveChannel === "email" ? a.portal.noEmail : a.portal.noPhone);
+        return;
+      }
+      const result = await createPatientPortalInvitation({ clinicPatientId: patientId, channel: effectiveChannel, fallbackChannel: effectiveFallback || null });
+      setMessage(result.success ? a.portal.queued : localizeError(result.error ?? ""));
+    } catch (error) {
+      console.error("Patient Portal invitation failed:", error);
+      setMessage(a.portal.failed);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  if (!hasPhone && !hasEmail) return null;
+  if (availabilityQuery.isLoading) return <span className="text-xs text-muted-foreground">{a.portal.checking}</span>;
+  if (availabilityQuery.isError || !availability?.portal) return <span className="text-xs text-muted-foreground">{a.portal.unavailable}</span>;
+  if (!channels.length) return <span className="text-xs text-muted-foreground">{a.portal.noChannel}</span>;
+
+  return <div className="flex flex-wrap items-center gap-1" dir={locale === "ar" ? "rtl" : "ltr"}>
+    <select className="h-9 rounded-md border bg-background px-2 text-xs" value={effectiveChannel} onChange={e => setChannel(e.target.value as PortalChannel)} disabled={busy} aria-label={a.portal.channel}>
+      {channels.map(item => <option key={item} value={item} disabled={!channelHasDestination(item)}>{label(item)}{!channelHasDestination(item) ? ` (${a.portal.noDestination})` : ""}</option>)}
+    </select>
+    <select className="h-9 rounded-md border bg-background px-2 text-xs" value={effectiveFallback} onChange={e => setFallback(e.target.value as PortalChannel | "")} disabled={busy} aria-label={a.portal.fallback}>
+      <option value="">{a.portal.noFallback}</option>
+      {channels.filter(item => item !== effectiveChannel).map(item => <option key={item} value={item} disabled={!channelHasDestination(item)}>{label(item, true)}{!channelHasDestination(item) ? ` (${a.portal.noDestination})` : ""}</option>)}
+    </select>
+    <Button variant="outline" size="sm" onClick={() => void invite()} disabled={busy || !channelHasDestination(effectiveChannel)}>
+      {busy ? a.portal.sending : a.portal.invite}
+    </Button>
+    {message && <span className="text-xs text-muted-foreground" role="status" aria-live="polite">{message}</span>}
+  </div>;
 }
