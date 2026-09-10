@@ -39,32 +39,64 @@ const commands = {
   "procurement-inventory-finance": [["procurement-inventory-finance-runtime", "npm", ["run", "test:cross-domain-runtime"]]],
 };
 
+const runtimeSuites = new Set([
+  "authenticated-e2e",
+  "patient-journey",
+  "cross-domain",
+  "database-integrity",
+  "authorization",
+  "procurement-inventory-finance",
+]);
+
 const required = [...new Set([...(plan.required_suites || []), "engineering"])]
   .filter((suite) => commands[suite]);
+
+// The production runtime is a consumer of the build artifact. Engineering must
+// therefore complete first; runtime/browser suites are deliberately sequenced
+// after it even when the contract lists suites in another order.
+const ordered = [
+  "engineering",
+  ...required.filter((suite) => suite !== "engineering" && !runtimeSuites.has(suite)),
+  ...required.filter((suite) => runtimeSuites.has(suite)),
+];
+
 const results = [];
 let server = null;
+let runtimeStartFailure = null;
+let buildPassed = false;
 
 function run(command, args, extra = {}) {
   return spawnSync(command, args, { stdio: "inherit", env: process.env, shell: false, ...extra });
 }
 
 function startServer() {
-  if (server) return;
+  if (server) return true;
+  if (!buildPassed) {
+    runtimeStartFailure = "Runtime suites require a successful production build";
+    return false;
+  }
+
   console.log("\n=== RUNTIME SERVER START ===");
   server = spawn("npm", ["start"], {
     stdio: "inherit",
     env: { ...process.env, NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL || "http://127.0.0.1:3000", PORT: "3000" },
   });
+
   for (let i = 0; i < 60; i += 1) {
     const probe = spawnSync("curl", ["-fsS", "--max-time", "3", "http://127.0.0.1:3000/api/build-info"], { stdio: "ignore" });
     if (probe.status === 0) {
       console.log("=== RUNTIME SERVER READY ===");
-      return;
+      return true;
     }
-    if (server.exitCode !== null) throw new Error(`Local production server exited with code ${server.exitCode}`);
+    if (server.exitCode !== null) {
+      runtimeStartFailure = `Local production server exited with code ${server.exitCode}`;
+      return false;
+    }
     spawnSync("sleep", ["2"], { stdio: "ignore" });
   }
-  throw new Error("Local production server did not become ready within 120 seconds");
+
+  runtimeStartFailure = "Local production server did not become ready within 120 seconds";
+  return false;
 }
 
 function stopServer() {
@@ -74,9 +106,29 @@ function stopServer() {
   server = null;
 }
 
+function addBlockedResult(suite, test, command, reason) {
+  results.push({
+    suite,
+    test,
+    command: [command, ...(commands[suite].find(([name]) => name === test)?.slice(2) || [])].join(" "),
+    status: "FAIL",
+    exitCode: 1,
+    durationMs: 0,
+    reason,
+  });
+  console.error(`=== SUITE=${suite} TEST=${test} FAIL blocked=${reason} ===`);
+}
+
 try {
-  for (const suite of required) {
-    if (["authenticated-e2e", "patient-journey"].includes(suite)) startServer();
+  for (const suite of ordered) {
+    const needsRuntime = runtimeSuites.has(suite);
+    if (needsRuntime && !startServer()) {
+      for (const [test, command, args] of commands[suite]) {
+        addBlockedResult(suite, test, command, runtimeStartFailure || "Runtime server unavailable");
+      }
+      continue;
+    }
+
     for (const [test, command, args] of commands[suite]) {
       const started = Date.now();
       console.log(`\n=== SUITE=${suite} TEST=${test} START ===`);
@@ -87,8 +139,16 @@ try {
       } catch (error) {
         console.error(error instanceof Error ? error.stack : String(error));
       }
-      const record = { suite, test, command: [command, ...args].join(" "), status: exitCode === 0 ? "PASS" : "FAIL", exitCode, durationMs: Date.now() - started };
+      const record = {
+        suite,
+        test,
+        command: [command, ...args].join(" "),
+        status: exitCode === 0 ? "PASS" : "FAIL",
+        exitCode,
+        durationMs: Date.now() - started,
+      };
       results.push(record);
+      if (suite === "engineering" && test === "build") buildPassed = exitCode === 0;
       console.log(`=== SUITE=${suite} TEST=${test} ${record.status} exit=${exitCode} ===`);
     }
   }
@@ -103,8 +163,13 @@ const report = {
   candidate: plan.candidate,
   regression_level: plan.regression_level,
   required_suites: required,
+  execution_order: ordered,
   results,
-  summary: { total: results.length, passed: results.filter((r) => r.status === "PASS").length, failed: failures.length },
+  summary: {
+    total: results.length,
+    passed: results.filter((r) => r.status === "PASS").length,
+    failed: failures.length,
+  },
   status: failures.length ? "FAIL" : "PASS",
 };
 
