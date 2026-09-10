@@ -63,7 +63,7 @@ export async function middleware(request: NextRequest) {
     }
   );
 
-  let user;
+  let user: { id: string } | null = null;
 
   try {
     const result = await supabase.auth.getUser();
