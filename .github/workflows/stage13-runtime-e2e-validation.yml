@@ -12,12 +12,18 @@ jobs:
     timeout-minutes: 50
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npm run test:execution-setup
+      - name: SETUP execution contract
+        env:
+          TEST_BASE_REF: origin/main
+          TEST_HEAD_REF: HEAD
+        run: npm run test:execution-setup
       - run: npx tsc --noEmit
       - run: npm run lint
       - run: npm run i18n:audit
