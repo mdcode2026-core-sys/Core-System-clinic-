@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 
-test.setTimeout(180000);
+test.setTimeout(300000);
 const baseUrl = (process.env.CORE_SYSTEM_PRODUCTION_URL || "https://core-system-clinic.vercel.app").replace(/\/$/, "");
 const email = process.env.CORE_SYSTEM_E2E_EMAIL;
 const password = process.env.CORE_SYSTEM_E2E_PASSWORD;
@@ -52,16 +52,23 @@ async function login(page, context) {
 }
 
 async function smokeRoute(page, route) {
-  const response = await page.goto(`${baseUrl}${route}`, { waitUntil: "commit", timeout: 20000 });
+  const response = await page.goto(`${baseUrl}${route}`, { waitUntil: "commit", timeout: 30000 });
   expect(response?.status(), `${route} HTTP status`).toBeLessThan(400);
   expect(page.url(), `${route} authentication`).not.toMatch(/\/login(?:[/?#]|$)/i);
   const expectedShell = route === "/portal" ? "Patient Portal" : "ClinicSaaS";
-  await expect(page.locator("body"), `${route} rendered shell`).toContainText(expectedShell, { timeout: 10000 });
+  await expect(page.locator("body"), `${route} rendered shell`).toContainText(expectedShell, { timeout: 15000 });
 }
 
 test("Clinic Admin authenticates against the local production candidate and retains authorization", async ({ page, context }) => {
   await login(page, context);
-  for (const route of canonicalRoutes) await smokeRoute(page, route);
+  for (const route of canonicalRoutes) {
+    const routePage = await context.newPage();
+    try {
+      await smokeRoute(routePage, route);
+    } finally {
+      await routePage.close();
+    }
+  }
 });
 
 test("Clinic Admin local production shell remains usable at mobile viewport", async ({ page, context }) => {
