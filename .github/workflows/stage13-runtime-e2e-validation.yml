@@ -10,6 +10,9 @@ jobs:
   stage13:
     runs-on: ubuntu-latest
     timeout-minutes: 50
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: https://qaslsjyxjwvdoiczmhgq.supabase.co
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: sb_publishable_6InZMjv8x7bi3WOC2Vy_nQ_d9F2Gy-Q
     steps:
       - uses: actions/checkout@v4
         with:
