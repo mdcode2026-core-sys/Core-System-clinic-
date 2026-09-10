@@ -16,33 +16,39 @@ const changed = git(["diff", "--name-only", `${base}...${head}`])
   .filter(Boolean);
 
 const plan = {
-  contract_version: "1.0",
+  contract_version: "2.0",
   baseline: base,
   candidate: head,
   changed_files: changed,
-  impact: new Set(),
+  impact: new Set(["TARGET"]),
   roles: new Set(),
   required_engineering: new Set(["typecheck", "lint", "build"]),
+  required_suites: new Set(["engineering"]),
   required_e2e: new Set(),
   regression_level: "R0",
 };
 
+const add = (impact, ...suites) => {
+  plan.impact.add(impact);
+  suites.forEach((suite) => plan.required_suites.add(suite));
+};
+
 for (const file of changed) {
   if (/^supabase\//.test(file) || /database|migration|rls|policy/i.test(file)) {
-    plan.impact.add("DATA_IMPACT");
+    add("DATA_IMPACT", "database-integrity", "authorization");
     plan.impact.add("SECURITY_IMPACT");
     plan.required_engineering.add("database-integrity");
     plan.required_engineering.add("authorization");
   }
   if (/permission|role|auth|workspace/i.test(file)) {
-    plan.impact.add("ROLE_IMPACT");
+    add("ROLE_IMPACT", "authorization", "authenticated-e2e");
     plan.impact.add("SECURITY_IMPACT");
     ["Clinic Admin", "Receptionist", "Doctor", "Nurse/Assistant", "Finance/Accounting", "Follow-up Staff", "Super Admin boundary"]
       .forEach((r) => plan.roles.add(r));
     plan.required_e2e.add("role-authorization");
   }
   if (/patient|appointment|agenda|queue|visit|treatment|follow-up|portal|work-center|clinical/i.test(file)) {
-    plan.impact.add("INTEGRATED");
+    add("INTEGRATED", "patient-journey", "cross-domain");
     plan.impact.add("CROSS_IMPACT");
     plan.roles.add("Receptionist");
     plan.roles.add("Doctor");
@@ -50,12 +56,13 @@ for (const file of changed) {
     plan.regression_level = "R3";
   }
   if (/inventory|purchas|supplier|invoice|payment|financial|analytics/i.test(file)) {
-    plan.impact.add("CROSS_IMPACT");
+    add("CROSS_IMPACT", "cross-domain", "procurement-inventory-finance");
     plan.impact.add("DATA_IMPACT");
     plan.roles.add("Finance/Accounting");
     plan.required_e2e.add("procurement-inventory-finance");
     plan.regression_level = "R3";
   }
+  if (/i18n|locale|translation|messages/i.test(file)) add("I18N_IMPACT", "i18n");
   if (/\.tsx?$|\.mjs$|\.css$|\.json$/.test(file)) plan.impact.add("TARGET");
 }
 
