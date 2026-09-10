@@ -22,6 +22,8 @@ jobs:
     steps:
       - name: Checkout exact candidate
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
@@ -31,7 +33,7 @@ jobs:
         run: npm ci
       - name: SETUP execution contract
         env:
-          TEST_BASE_REF: main
+          TEST_BASE_REF: origin/main
           TEST_HEAD_REF: HEAD
         run: npm run test:execution-setup
       - name: TypeScript
