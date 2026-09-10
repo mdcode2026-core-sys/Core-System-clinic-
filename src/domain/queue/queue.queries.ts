@@ -24,7 +24,9 @@ async function hydrateDurations(supabase: Awaited<ReturnType<typeof createClient
 
 export async function getQueue(filters?: QueueFilters): Promise<EnrichedSession[]> {
   const supabase = await createClient(); const tenantId = await getTenantId(); const { start, end } = getTodayRange();
-  let query = supabase.from("clinic_visit_sessions").select(`*,clinic_patients(first_name,last_name,phone_primary,file_number),clinic_users!clinic_visit_sessions_doctor_id_fkey(full_name),clinic_rooms(room_name)`).eq("tenant_id", tenantId).gte("created_at", start).lt("created_at", end).order("created_at", { ascending: true });
+  // clinic_visit_sessions has both the base patient FK and a composite same-tenant FK.
+  // PostgREST cannot infer the intended embed when the relation is unqualified.
+  let query = supabase.from("clinic_visit_sessions").select(`*,clinic_patients!clinic_visit_sessions_patient_id_fkey(first_name,last_name,phone_primary,file_number),clinic_users!clinic_visit_sessions_doctor_id_fkey(full_name),clinic_rooms!clinic_visit_sessions_room_id_fkey(room_name)`).eq("tenant_id", tenantId).gte("created_at", start).lt("created_at", end).order("created_at", { ascending: true });
   if (filters?.status?.length) query = query.in("session_status", filters.status); if (filters?.doctor_id) query = query.eq("doctor_id", filters.doctor_id);
   const { data, error } = await query; if (error) throw new Error(`Queue fetch failed: ${error.message}`);
   const hydrated = await hydrateDurations(supabase, tenantId, data || []);
@@ -37,7 +39,7 @@ export async function getQueueStats(): Promise<QueueStats> {
 }
 
 export async function getSessionById(sessionId: string): Promise<EnrichedSession | null> {
-  const supabase = await createClient(); const tenantId = await getTenantId(); const { data, error } = await supabase.from("clinic_visit_sessions").select(`*,clinic_patients(first_name,last_name,phone_primary,file_number),clinic_users!clinic_visit_sessions_doctor_id_fkey(full_name),clinic_rooms(room_name)`).eq("id", sessionId).eq("tenant_id", tenantId).single(); if (error) return null;
+  const supabase = await createClient(); const tenantId = await getTenantId(); const { data, error } = await supabase.from("clinic_visit_sessions").select(`*,clinic_patients!clinic_visit_sessions_patient_id_fkey(first_name,last_name,phone_primary,file_number),clinic_users!clinic_visit_sessions_doctor_id_fkey(full_name),clinic_rooms!clinic_visit_sessions_room_id_fkey(room_name)`).eq("id", sessionId).eq("tenant_id", tenantId).single(); if (error) return null;
   const hydrated = (await hydrateDurations(supabase, tenantId, [data]))[0] as any;
   return { ...hydrated, patient_name: hydrated.clinic_patients ? `${hydrated.clinic_patients.first_name} ${hydrated.clinic_patients.last_name}` : undefined, patient_phone: hydrated.clinic_patients?.phone_primary, patient_file_number: hydrated.clinic_patients?.file_number, doctor_name: hydrated.clinic_users?.full_name, room_name: hydrated.clinic_rooms?.room_name, wait_time_minutes: computeWaitTimeMinutes(hydrated.created_at) } as EnrichedSession;
 }
