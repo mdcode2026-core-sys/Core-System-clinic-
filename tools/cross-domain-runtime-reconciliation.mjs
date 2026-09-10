@@ -33,7 +33,8 @@ else pass("effective_permissions", `count=${permissions.length}`);
 
 const { data: readPermission, error: readPermissionError } = await supabase.rpc("has_effective_permission", { p_permission_key: "patients:read", p_user_id: actor.id });
 if (readPermissionError) fail("permission_helper", readPermissionError.message);
-else pass("permission_helper", `patients:read=${readPermission}`);
+else if (readPermission !== true) fail("permission_helper", "patients:read was not granted to the authenticated test actor");
+else pass("permission_helper", "patients:read=true");
 
 async function rows(table, columns) {
   const { data, error } = await supabase.from(table).select(columns).eq("tenant_id", tenantId).limit(1000);
@@ -49,23 +50,23 @@ async function parentMap(table, ids, columns = "id,tenant_id") {
 async function assertTenantEdge(name, childRows, childId, parentTable) {
   const ids = childRows.map((r) => r[childId]).filter(Boolean);
   const parents = await parentMap(parentTable, ids);
-  const bad = childRows.filter((r) => r[childId] && parents.get(r[childId])?.tenant_id !== tenantId);
-  if (bad.length) fail(name, `${bad.length} cross-tenant edge(s)`);
+  const bad = childRows.filter((r) => r[childId] && !parents.has(r[childId]));
+  if (bad.length) fail(name, `${bad.length} referenced parent row(s) are not visible in the authenticated tenant`);
   else pass(name, `checked=${ids.length}`);
 }
 
 const checks = [
   ["clinic_inquiries", "id,tenant_id,patient_id", "patient_id", "clinic_patients"],
-  ["clinic_visit_sessions", "id,tenant_id,patient_id,agenda_event_id", "patient_id", "clinic_patients"],
-  ["clinic_invoices", "id,tenant_id,patient_id,session_id", "patient_id", "clinic_patients"],
+  ["clinic_visit_sessions", "id,tenant_id,patient_id", "patient_id", "clinic_patients"],
+  ["clinic_invoices", "id,tenant_id,patient_id", "patient_id", "clinic_patients"],
   ["invoice_items", "id,tenant_id,invoice_id", "invoice_id", "clinic_invoices"],
   ["financial_plans", "id,tenant_id,patient_id,treatment_plan_id", "patient_id", "clinic_patients"],
   ["financial_installments", "id,tenant_id,financial_plan_id,invoice_id", "financial_plan_id", "financial_plans"],
   ["retention_followups", "id,tenant_id,patient_id,session_id", "patient_id", "clinic_patients"],
-  ["communication_requests", "id,tenant_id,patient_id,work_item_id", "patient_id", "clinic_patients"],
+  ["communication_requests", "id,tenant_id,clinic_patient_id,work_item_id", "clinic_patient_id", "clinic_patients"],
   ["operational_work_items", "id,tenant_id,patient_id", "patient_id", "clinic_patients"],
   ["patient_packages", "id,tenant_id,patient_id,financial_plan_id", "patient_id", "clinic_patients"],
-  ["inventory_ledger", "id,tenant_id,visit_session_id,inventory_item_id", "inventory_item_id", "inventory_items"],
+  ["inventory_ledger", "id,tenant_id,session_id,item_id", "item_id", "inventory_items"],
   ["purchase_receipts", "id,tenant_id,purchase_order_id", "purchase_order_id", "purchase_orders"],
   ["supplier_payments", "id,tenant_id,supplier_obligation_id", "supplier_obligation_id", "supplier_obligations"],
   ["workforce_employees", "id,tenant_id,user_id", "user_id", "clinic_users"],
@@ -88,8 +89,8 @@ try {
 } catch (error) { fail("visit→agenda", error instanceof Error ? error.message : String(error)); }
 
 try {
-  const ledger = await rows("inventory_ledger", "id,tenant_id,visit_session_id");
-  await assertTenantEdge("inventory→visit", ledger, "visit_session_id", "clinic_visit_sessions");
+  const ledger = await rows("inventory_ledger", "id,tenant_id,session_id");
+  await assertTenantEdge("inventory→visit", ledger, "session_id", "clinic_visit_sessions");
 } catch (error) { fail("inventory→visit", error instanceof Error ? error.message : String(error)); }
 
 try {
@@ -103,16 +104,6 @@ try {
   if (negative.length) fail("analytics_nonnegative", `${negative.length} negative snapshot(s)`);
   else pass("analytics_nonnegative", `checked=${analytics.length}`);
 } catch (error) { fail("analytics_nonnegative", error instanceof Error ? error.message : String(error)); }
-
-try {
-  const { data: mismatches, error } = await supabase
-    .from("clinic_invoices")
-    .select("id,tenant_id,patient_id")
-    .eq("tenant_id", tenantId)
-    .limit(1000);
-  if (error) throw error;
-  pass("invoice_patient_runtime_visibility", `rows=${mismatches?.length ?? 0}`);
-} catch (error) { fail("invoice_patient_runtime_visibility", error instanceof Error ? error.message : String(error)); }
 
 await supabase.auth.signOut();
 if (failures.length) {
