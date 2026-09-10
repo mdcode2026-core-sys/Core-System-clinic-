@@ -55,7 +55,8 @@ async function smokeRoute(page, route) {
   const response = await page.goto(`${baseUrl}${route}`, { waitUntil: "commit", timeout: 20000 });
   expect(response?.status(), `${route} HTTP status`).toBeLessThan(400);
   expect(page.url(), `${route} authentication`).not.toMatch(/\/login(?:[/?#]|$)/i);
-  await expect(page.locator("body"), `${route} rendered shell`).toContainText("ClinicSaaS", { timeout: 10000 });
+  const expectedShell = route === "/portal" ? "Patient Portal" : "ClinicSaaS";
+  await expect(page.locator("body"), `${route} rendered shell`).toContainText(expectedShell, { timeout: 10000 });
 }
 
 test("Clinic Admin authenticates against the local production candidate and retains authorization", async ({ page, context }) => {
