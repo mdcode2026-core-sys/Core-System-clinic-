@@ -28,6 +28,8 @@ create unique index if not exists uq_cdi_clinic_packages_tenant_id_id
   on public.clinic_packages (tenant_id, id);
 create unique index if not exists uq_cdi_clinic_services_tenant_id_id
   on public.clinic_services (tenant_id, id);
+create unique index if not exists uq_cdi_insurance_contracts_tenant_id_id
+  on public.insurance_contracts (tenant_id, id);
 
 -- Agenda → Patient / Clinical / Resources / Identity.
 alter table public.master_agenda_events
