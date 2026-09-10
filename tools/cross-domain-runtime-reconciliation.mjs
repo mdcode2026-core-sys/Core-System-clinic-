@@ -1,10 +1,13 @@
 import { createClient } from "@supabase/supabase-js";
+import { readFileSync } from "node:fs";
 
-const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const url = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://qaslsjyxjwvdoiczmhgq.supabase.co";
+const configSource = readFileSync("src/infrastructure/supabase/config.ts", "utf8");
+const defaultKey = configSource.match(/DEFAULT_SUPABASE_ANON_KEY\s*=\s*"([^"]+)"/)?.[1];
+const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || defaultKey;
 const email = process.env.CORE_SYSTEM_E2E_EMAIL;
 const password = process.env.CORE_SYSTEM_E2E_PASSWORD;
-if (!url || !key) throw new Error("Missing Supabase URL/key");
+if (!url || !key) throw new Error("Missing Supabase URL/key and no canonical fallback is available");
 if (!email || !password) throw new Error("Missing CORE_SYSTEM_E2E_EMAIL/CORE_SYSTEM_E2E_PASSWORD");
 
 const supabase = createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
