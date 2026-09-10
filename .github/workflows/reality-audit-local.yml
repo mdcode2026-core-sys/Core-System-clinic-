@@ -2,7 +2,7 @@ name: CORE SYSTEM Reality Audit - Local CI
 
 on:
   push:
-    branches: [main, fix/workforce-closure]
+    branches: [main, fix/workforce-closure, fix/cross-domain-runtime-closure-20260910]
   pull_request:
     branches: [main]
   workflow_dispatch:
@@ -18,7 +18,7 @@ jobs:
   reality-audit:
     name: Local/Codespaces Reality Validation
     runs-on: ubuntu-latest
-    timeout-minutes: 90
+    timeout-minutes: 100
     steps:
       - name: Checkout exact candidate
         uses: actions/checkout@v4
@@ -29,6 +29,11 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci
+      - name: SETUP execution contract
+        env:
+          TEST_BASE_REF: main
+          TEST_HEAD_REF: HEAD
+        run: npm run test:execution-setup
       - name: TypeScript
         run: npx tsc --noEmit
       - name: Lint
@@ -52,6 +57,11 @@ jobs:
         run: |
           npm run ajm:audit
           npm run ajm:migrations
+      - name: Cross-domain runtime reconciliation
+        env:
+          CORE_SYSTEM_E2E_EMAIL: ${{ secrets.CORE_SYSTEM_E2E_EMAIL }}
+          CORE_SYSTEM_E2E_PASSWORD: ${{ secrets.CORE_SYSTEM_E2E_PASSWORD }}
+        run: npm run test:cross-domain-runtime
       - name: Production build without Vercel
         env:
           NEXT_PUBLIC_APP_URL: http://127.0.0.1:3000
@@ -93,4 +103,3 @@ jobs:
         run: |
           if [ -f /tmp/core-system-next.pid ]; then kill "$(cat /tmp/core-system-next.pid)" || true; fi
           cat /tmp/core-system-next.log || true
-# Retry after transient external Supabase availability failure.
