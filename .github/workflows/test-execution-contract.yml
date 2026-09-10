@@ -1,20 +1,31 @@
-name: CORE SYSTEM Test Execution Contract
+name: CORE SYSTEM Unified Test Execution Engine
 
 on:
   pull_request:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      base_ref:
+        description: Optional baseline ref for manual execution
+        required: false
+        type: string
+        default: main
 
 permissions:
   contents: read
 
+env:
+  NEXT_PUBLIC_SUPABASE_URL: https://qaslsjyxjwvdoiczmhgq.supabase.co
+  NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+  NEXT_PUBLIC_APP_URL: http://127.0.0.1:3000
+
 jobs:
-  setup-contract:
-    name: SETUP — Test Execution Decision Engine
+  unified-test-engine:
+    name: UNIFIED — Test Execution Engine
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 120
     steps:
-      - name: Checkout candidate
+      - name: Checkout exact candidate
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
@@ -22,21 +33,69 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
+          cache: npm
 
-      - name: Run SETUP decision engine
+      - name: Install dependencies
+        run: npm ci
+
+      - name: SETUP — build execution contract
         env:
-          TEST_BASE_REF: ${{ github.event.pull_request.base.sha || 'main' }}
+          TEST_BASE_REF: ${{ github.event.pull_request.base.sha || inputs.base_ref || 'main' }}
           TEST_HEAD_REF: ${{ github.event.pull_request.head.sha || github.sha }}
           TEST_EXECUTION_PLAN: test-execution-plan.json
         run: node tools/test-execution-setup.mjs
 
-      - name: Validate execution plan
+      - name: Validate contract completeness
         run: |
-          node -e 'const p=require("./test-execution-plan.json"); if(!p.contract_version||!p.baseline||!p.candidate||!Array.isArray(p.changed_files)||!Array.isArray(p.impact)||!Array.isArray(p.required_engineering)||!Array.isArray(p.required_e2e)) process.exit(1); console.log("EXECUTION_CONTRACT=VALID")'
+          node - <<'NODE'
+          const p = require('./test-execution-plan.json');
+          const required = ['contract_version','baseline','candidate','changed_files','impact','roles','required_engineering','required_suites','required_e2e','regression_level'];
+          for (const key of required) {
+            if (p[key] === undefined || p[key] === null) throw new Error(`CONTRACT_MISSING_FIELD=${key}`);
+          }
+          if (!Array.isArray(p.required_suites) || !p.required_suites.includes('engineering')) throw new Error('CONTRACT_MISSING_ENGINEERING_GATE');
+          console.log(`EXECUTION_CONTRACT=VALID version=${p.contract_version} regression=${p.regression_level}`);
+          console.log(`REQUIRED_SUITES=${p.required_suites.join(',')}`);
+          NODE
 
-      - name: Upload execution plan
+      - name: Install Playwright runtime
+        run: |
+          npm install --no-save --no-package-lock @playwright/test@1.55.0 playwright@1.55.0
+          npx playwright install chromium
+
+      - name: EXECUTE — all selected test suites
+        env:
+          CORE_SYSTEM_E2E_EMAIL: ${{ secrets.CORE_SYSTEM_E2E_EMAIL }}
+          CORE_SYSTEM_E2E_PASSWORD: ${{ secrets.CORE_SYSTEM_E2E_PASSWORD }}
+          CORE_SYSTEM_PRODUCTION_URL: http://127.0.0.1:3000
+          NEXT_PUBLIC_APP_URL: http://127.0.0.1:3000
+          TEST_EXECUTION_PLAN: test-execution-plan.json
+        run: node tools/test-execution-runner.mjs
+
+      - name: Publish unified execution report
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: core-system-test-execution-plan
-          path: test-execution-plan.json
+          name: core-system-unified-test-evidence-${{ github.sha }}
+          path: |
+            test-execution-plan.json
+            test-execution-report.json
+            i18n-audit-report.json
+          if-no-files-found: warn
+
+      - name: Final execution decision
+        if: always()
+        run: |
+          node - <<'NODE'
+          const fs = require('fs');
+          if (!fs.existsSync('test-execution-report.json')) {
+            console.error('EXECUTION_DECISION=FAIL reason=missing-test-execution-report');
+            process.exit(1);
+          }
+          const r = JSON.parse(fs.readFileSync('test-execution-report.json','utf8'));
+          console.log(`EXECUTION_DECISION=${r.status}`);
+          console.log(`TESTS=${r.summary.total} PASSED=${r.summary.passed} FAILED=${r.summary.failed}`);
+          for (const f of r.results.filter(x => x.status === 'FAIL')) console.error(`FAILURE_LOCATION suite=${f.suite} test=${f.test} exit=${f.exitCode}`);
+          if (r.status !== 'PASS') process.exit(1);
+          NODE
