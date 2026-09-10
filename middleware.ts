@@ -75,8 +75,8 @@ export async function middleware(request: NextRequest) {
       return redirectToLogin(request);
     }
 
-    // Preserve the existing fail-closed behavior for unexpected auth failures.
-    return redirectToLogin(request);
+    // Do not hide unexpected authentication/service failures from production observability.
+    throw error;
   }
 
   if (!user) {
