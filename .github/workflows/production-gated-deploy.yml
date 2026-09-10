@@ -4,11 +4,11 @@ on:
   workflow_dispatch:
     inputs:
       candidate_sha:
-        description: Exact validated candidate SHA to prepare for final release
+        description: Exact candidate SHA whose unified test engine run must already be successful
         required: true
         type: string
   workflow_run:
-    workflows: ["CORE SYSTEM Reality Audit - Local CI"]
+    workflows: ["CORE SYSTEM Unified Test Execution Engine"]
     types: [completed]
 
 permissions:
@@ -17,12 +17,12 @@ permissions:
 
 jobs:
   candidate:
-    name: Validate release candidate without Vercel
+    name: Release Candidate Eligibility
     if: >-
       github.event_name == 'workflow_dispatch' ||
       (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
     runs-on: ubuntu-latest
-    timeout-minutes: 120
+    timeout-minutes: 20
     steps:
       - name: Resolve exact validated candidate
         id: candidate
@@ -37,62 +37,23 @@ jobs:
           echo "sha=$SHA" >> "$GITHUB_OUTPUT"
           echo "candidate_sha=$SHA"
 
-      - name: Checkout exact candidate
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ steps.candidate.outputs.sha }}
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-
-      - name: Install dependencies from lockfile
-        run: npm ci
-
-      - name: Execute release candidate engineering gate
-        env:
-          NEXT_PUBLIC_SUPABASE_URL: https://qaslsjyxjwvdoiczmhgq.supabase.co
-          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
-          CORE_SYSTEM_E2E_EMAIL: ${{ secrets.CORE_SYSTEM_E2E_EMAIL }}
-          CORE_SYSTEM_E2E_PASSWORD: ${{ secrets.CORE_SYSTEM_E2E_PASSWORD }}
-          NEXT_PUBLIC_APP_URL: http://127.0.0.1:3000
-        run: |
-          npm run test:execution-setup
-          npx tsc --noEmit
-          npm run lint
-          npm run i18n:audit
-          npm run i18n:parity
-          npm run ajm:audit
-          npm run ajm:migrations
-          npm run ux:widget-catalog
-          npm run ux:domain-surface
-          npm run ux:patient-flow-stage6
-          npm run ux:patient-context-stage7
-          npm run ux:global-search-stage8
-          npm run ux:mobile-stage11
-          npm run ux:security-stage12
-          npm run ux:legacy-stage14
-          npm run ux:docs-stage15
-          npm run test:cross-domain-runtime
-          npm run build
-
-      - name: Record release-candidate evidence
+      - name: Record release-candidate eligibility
         env:
           EXPECTED_SHA: ${{ steps.candidate.outputs.sha }}
+          SOURCE_RUN_ID: ${{ github.event.workflow_run.id || '' }}
         run: |
           set -euo pipefail
           cat > release-candidate-evidence.json <<EOF
           {
-            "status": "VALIDATED_FOR_FINAL_RELEASE",
+            "status": "ELIGIBLE_AFTER_UNIFIED_TEST_ENGINE_SUCCESS",
             "candidateSha": "${EXPECTED_SHA}",
             "workflowRunId": "${{ github.run_id }}",
-            "sourceRealityWorkflowRunId": "${{ github.event.workflow_run.id || '' }}",
+            "sourceUnifiedTestRunId": "${SOURCE_RUN_ID}",
             "vercelUsedForValidation": false,
-            "runtimeValidationEnvironment": "GitHub Actions local production server"
+            "validationAuthority": "CORE SYSTEM Unified Test Execution Engine"
           }
           EOF
+          cat release-candidate-evidence.json
 
       - name: Upload release-candidate evidence
         uses: actions/upload-artifact@v4
