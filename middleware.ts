@@ -5,8 +5,45 @@ import { getRequiredPermission } from "@/core/navigation/navigationRegistry";
 // المسارات العامة فقط — تسجيل الدخول وإنشاء الحساب
 const publicRoutes = ["/login", "/register"];
 
+function redirectToLogin(request: NextRequest) {
+  const url = request.nextUrl.clone();
+  url.pathname = "/login";
+
+  const response = NextResponse.redirect(url);
+
+  // A stale/invalid Supabase session must not survive the redirect.
+  // Remove only Supabase auth cookies; application cookies are left untouched.
+  for (const cookie of request.cookies.getAll()) {
+    if (cookie.name.startsWith("sb-") && cookie.name.includes("auth-token")) {
+      response.cookies.delete(cookie.name);
+    }
+  }
+
+  return response;
+}
+
+function isInvalidRefreshTokenError(error: unknown) {
+  if (!error || typeof error !== "object") return false;
+
+  const candidate = error as {
+    code?: unknown;
+    message?: unknown;
+    name?: unknown;
+  };
+
+  return (
+    candidate.code === "refresh_token_not_found" ||
+    (candidate.name === "AuthApiError" &&
+      typeof candidate.message === "string" &&
+      candidate.message.toLowerCase().includes("invalid refresh token"))
+  );
+}
+
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({ request });
+  const path = request.nextUrl.pathname;
+
+  if (publicRoutes.includes(path)) return response;
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -26,18 +63,24 @@ export async function middleware(request: NextRequest) {
     }
   );
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  let user: { id: string } | null = null;
 
-  const path = request.nextUrl.pathname;
+  try {
+    const result = await supabase.auth.getUser();
+    user = result.data.user;
+  } catch (error) {
+    // An invalid/stale refresh token is an expected expired-session condition.
+    // Clear the stale auth cookie and send the user through a clean login flow.
+    if (isInvalidRefreshTokenError(error)) {
+      return redirectToLogin(request);
+    }
 
-  if (publicRoutes.includes(path)) return response;
+    // Do not hide unexpected authentication/service failures from production observability.
+    throw error;
+  }
 
   if (!user) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/login";
-    return NextResponse.redirect(url);
+    return redirectToLogin(request);
   }
 
   // Navigation visibility and route authorization are related, but not identical.
@@ -55,9 +98,7 @@ export async function middleware(request: NextRequest) {
     .limit(1);
 
   if (cuError || !clinicUsers || clinicUsers.length === 0) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/login";
-    return NextResponse.redirect(url);
+    return redirectToLogin(request);
   }
 
   const clinicUser = clinicUsers[0];
