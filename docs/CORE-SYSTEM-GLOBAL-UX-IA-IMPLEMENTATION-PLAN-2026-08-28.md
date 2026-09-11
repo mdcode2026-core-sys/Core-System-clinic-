@@ -1,7 +1,8 @@
 # CORE SYSTEM — Global UX / Information Architecture Reorganization
 ## Approved Implementation Plan — 2026-08-28
 
-**Status:** APPROVED EXECUTION PLAN — PRE-IMPLEMENTATION
+**Status:** APPROVED EXECUTION PLAN — RECONCILED 2026-09-11
+**Current canonical surface interpretation:** `docs/CORE-SYSTEM-GLOBAL-SURFACES-CANONICAL-RECONCILIATION-2026-09-11.md`
 
 This plan governs the implementation of the approved Global UX / IA decisions. It is not a redesign from zero and it does not authorize removal of capabilities merely for simplification.
 
@@ -23,9 +24,21 @@ UX changes must not transfer Domain ownership, create duplicate Domains or busin
 
 ## 2. Approved user model
 
-A user is a member of the clinic team assigned a role for organizational purposes and granted permissions according to Clinic Admin's view of the clinic's actual work.
+A CORE SYSTEM user is a member of the clinic team assigned a Role/job function for organizational purposes and granted effective Permissions according to the clinic's actual work.
 
-**Role ≠ Permission.** Clinic Admin may grant any available permission to a user regardless of whether that permission is conventionally associated with the user's role. Clinic Admin controls user and role configuration within the available system permissions and non-bypassable security rules.
+The canonical relationship for the user's primary work environment is:
+
+```text
+Primary Role / Job Function
+        ↓
+Primary Work Context / Classification
+        ↓
+Role Workspace
+```
+
+Additional permissions may be granted outside the primary context. They expand authorized capabilities but do not, by themselves, change the user's Primary Role, Primary Work Context or Role Workspace.
+
+**Role ≠ Permission. Role Workspace ≠ Permission.**
 
 Role Templates are advisory starting points. They are editable, reusable and do not restrict Clinic Admin from creating new roles.
 
@@ -33,75 +46,76 @@ Role Templates are advisory starting points. They are editable, reusable and do 
 
 ### Sidebar
 
-The Sidebar exposes the user's authorized capabilities and remains the complete navigation surface. It is not merely a collection of Workspace shortcuts.
+The Sidebar exposes the user's authorized capabilities and remains the complete navigation surface. It is not merely a collection of Workspace shortcuts and is not the user's Role Workspace.
 
-A route does not automatically become a top-level Sidebar item. Navigation hierarchy follows user mental model, Domain ownership and workflow.
+A capability/domain may appear in Sidebar even when the user does not place a related Widget in My Workspace.
 
-### Workspace
+Primary Work Context must not suppress an otherwise authorized Domain.
 
-Workspace is the user's primary working surface. It is not merely an Overview, is not a Dashboard, is not a security boundary and is not a fixed Clinical/Operations/Administrative classification for the whole application.
+Do not create artificial labels such as `My Financial` or `My Agenda` merely to represent cross-context permissions.
 
-The user has a Workspace tailored to their authorized capabilities and can personalize it.
+### Role Workspace
 
-The previous model of three fixed global user Workspaces is superseded by this decision. This does not remove the three approved Patient Flow interfaces.
+Role Workspace is the user's primary professional working environment associated with the Primary Role / Primary Work Context. It is not a permission set, not the totality of the user's authorized capabilities, and not a substitute for Sidebar.
 
-### Workspace personalization
+A Clinical primary user remains in Clinical work context even if additional Financial, Operational, Administrative, Reporting or other permissions are granted.
 
-The user can add, remove, reorder and drag/drop Widgets that are available to them through their permissions. The user can arrange the Workspace according to personal working frequency and restore the default Workspace.
+The existing Clinical and Operational Workspaces remain their established primary work environments unless a separate approved decision changes them.
 
-The system provides a useful default Workspace rather than an unexplained blank screen.
+### My Workspace
 
-### Widgets
+My Workspace is the user's personal working/presentation surface associated with the user's Role Workspace.
 
-Widgets are reusable capabilities/surfaces independent from any one Workspace. They may be informational, actionable, operational or contextual. They are not restricted to Overview information.
+The user may add, remove, reorder and arrange permitted Widgets/tools here, including authorized capabilities originating outside the primary work context.
 
-Each Domain must be assessed individually. Some Domains need executable Widgets; some need informational Widgets; some may not need Widgets at all.
+My Workspace is not a second Role Workspace and not an authorization system.
 
-A Widget never grants permission. The binding relationship is:
+### Home
 
-**Permission → Widget availability → User chooses Widget → Widget appears in Workspace**
+Home is the independent global starting/awareness surface after login. It is not determined by Role Workspace and is not My Workspace.
 
-Removing a permission removes the user's ability to use the protected capability even if the Widget had previously been configured.
+Home may include daily awareness, global/lightweight utilities, calendar/date utility, external ambient information such as weather, user-selected shortcuts, optional system-managed content, and summarized actionable information that routes to authoritative work destinations.
 
-Widgets may also be exposed in the user's Sidebar where that improves discoverability or direct access. This does not make Widgets a replacement for the full capability/page.
+Home must not own full clinical/operational workflows or become a second Work Center/Workspace.
 
-### Quick Actions
+### Header
 
-Simple frequent actions may be represented as Quick Actions instead of large Widgets. Quick Actions are also permission-dependent and cannot create authorization.
+The Header is persistent global access, separate from Home and all Workspaces.
+
+Current conceptual global functions:
+
+- system identity/branding;
+- existing Global Search;
+- Communications access;
+- separate compact Chat access backed by Communications;
+- Notifications access;
+- Quick Actions for global interface/account actions such as Language and Logout.
+
+Quick Actions in the Header must not be confused with Workspace Widget/Quick Action categories.
+
+### My Settings
+
+My Settings remains in the Sidebar as the personal account/preferences destination.
 
 ## 4. Patient Flow and Queue
 
-Patient Flow remains an independent system and remains a named Sidebar item **Patient Flow** when explicitly enabled and authorized.
+Patient Flow remains an internal workflow/state authority within the Patient Journey. It is not absorbed into Workspace and is not replaced by Widgets.
 
-Patient Flow is not absorbed into Workspace, is not replaced by Widgets and is not removed. The existing Queue, drag-and-drop movement and visit flow must be inspected and reused/reconciled rather than rebuilt without evidence.
+Patient Flow must not appear to ordinary users as a standalone Sidebar Module/Domain merely because a user has a Clinical or Operational Role Workspace. It remains available in the administrative/background context required by the approved architecture.
 
-Patient Flow has exactly three approved interface variants:
-
-1. **Operations** — operational/reception-facing patient movement.
-2. **Clinical** — clinical-facing patient movement.
-3. **Administrative** — full patient-flow visibility and operational control for authorized administrative users.
-
-Patient Flow must not appear merely because a user's role or Workspace is Operations or Clinical.
-
-For Patient Flow to appear, Clinic Admin must explicitly enable it for the relevant user/role, the user must have the required permission, and the appropriate interface context must be selected.
-
-Therefore an Operations-oriented user may have no Patient Flow. Example: an accountant can have an Operations Workspace and financial permissions while Patient Flow remains absent.
-
-Queue remains part of Patient Flow. Queue Widgets may surface authorized information/actions but never replace the full Patient Flow system.
+The existing Queue/Patient Flow system must be reused and reconciled rather than rebuilt without evidence.
 
 ## 5. Dashboard and Overview
 
 **Dashboard ≠ Workspace.**
 
-Dashboard is an administrative/management monitoring surface. It is available to Clinic Admin and users delegated the relevant authority through the existing permission model. Clinic Admin retains visibility into the full system according to the approved authorization model.
+Dashboard is an administrative/management monitoring surface. Overview is a contextual summary surface for Status, Summary, Attention and KPI information appropriate to its relevant area.
 
-Overview is a contextual summary surface for Status, Summary, Attention and KPI information appropriate to its Domain. It must not become a second copy of the Workspace or the entire Domain.
+Neither is a substitute for the user's Role Workspace or My Workspace.
 
 ## 6. Patient Context
 
 CORE SYSTEM should reduce unnecessary navigation through contextual navigation around the patient and related records while preserving Domain ownership and permissions.
-
-Where authorized, patient context may provide direct access to Visits, Appointments, Treatment, Financial, Follow-up, Communication, Medical records/files and Patient Portal.
 
 Patient Context is not a new Domain.
 
@@ -109,33 +123,39 @@ Patient Context is not a new Domain.
 
 CORE SYSTEM must provide true Global Search from a consistent location. It searches authorized data across the system rather than only the current page or Domain.
 
-It must support, where available and authorized, patient name/number/phone, doctor/staff, invoice/payment, financial plan/installment, appointment, treatment plan, service/procedure, inventory item, supplier/purchase order, task/request/communication and relevant records/events.
-
-Results must identify type and context and allow direct navigation.
-
-Global Search must preserve tenant isolation, permissions, privacy and authorization and must work in Arabic and English.
+Global Search is a Header capability, not a Home Widget and not Workspace.
 
 ## 8. Execution stages
 
 ### Stage 0 — Baseline and implementation lock
 
-Inspect repository, database, runtime, navigation, Workspaces, Widgets, Patient Flow/Queue, Dashboard/Overview, roles, permissions, feature flags and legacy implementations. Produce the current-state and conflict/duplication maps. Do not delete anything solely because it looks old.
+Inspect repository, database, runtime, Header, Home, Sidebar, Role Workspace, My Workspace, Widgets, Patient Flow/Queue, Dashboard/Overview, roles, permissions, feature flags and legacy implementations. Produce the current-state and conflict/duplication maps. Do not delete anything solely because it looks old.
 
 ### Stage 1 — Navigation and Information Architecture reconciliation
 
-Map every relevant Sidebar item, route and page as Domain, sub-area, feature, configuration, operation, contextual feature, Patient Flow or Workspace capability. Reconcile duplicate and inappropriate navigation without deleting legitimate capabilities.
+Map every relevant Sidebar item, route and page as Domain, sub-area, feature, configuration, operation, contextual feature, Patient Flow, Workspace capability, Home utility or Header/global access surface. Reconcile duplicate and inappropriate navigation without deleting legitimate capabilities.
 
 ### Stage 2 — Permission-to-user-surface reconciliation
 
-Make effective permissions the authoritative input to visible capabilities. Verify mixed permission combinations, including non-conventional combinations such as reception + financial and clinical + administrative. Do not change the authorization model.
+Make effective permissions the authoritative input to visible capabilities while keeping the primary Role Workspace stable.
 
-### Stage 3 — Workspace foundation
+Validate mixed permission combinations, including non-conventional combinations such as reception + financial and clinical + administrative. Verify that additional permission grants do not change the primary Role Workspace.
 
-Inspect and reuse the existing Workspace implementation and persistence where correct. Establish default and personalized Workspace behavior without creating a second Workspace system.
+### Stage 3 — Role Workspace and My Workspace foundation
+
+Inspect and reuse the existing Workspace implementation and persistence where correct.
+
+Establish:
+
+- stable primary Role Workspace from primary work context;
+- separate My Workspace personalization;
+- no authorization semantics in Workspace personalization;
+- permitted cross-context Widgets/tools may appear in My Workspace without changing Role Workspace;
+- Home remains separate from both.
 
 ### Stage 4 — Widget foundation and personalization
 
-Inspect all current Widgets. Classify them as information, action, operational, contextual or unsuitable as Widgets. Define required permissions and contexts. Implement selection, removal, ordering, drag/drop, persistence and reset-to-default using existing infrastructure where possible.
+Inspect all current Widgets. Classify them as information, action, operational, contextual, Workspace Quick Action or unsuitable as Widgets. Define required permissions and contexts. Implement selection, removal, ordering, drag/drop, persistence and reset-to-default using existing infrastructure where possible.
 
 ### Stage 5 — Domain-by-Domain Widget classification
 
@@ -143,11 +163,11 @@ For each Domain inspect daily workflows, frequent/urgent actions, information re
 
 ### Stage 6 — Patient Flow and Queue reconciliation
 
-Inspect the existing Patient Flow, Queue, drag/drop behavior, arrival/start/end visit path, reception/clinical/administrative interfaces, saved states, permissions and mobile behavior. Preserve the existing system and reconcile it with the approved three-interface model.
+Inspect the existing Patient Flow, Queue, drag/drop behavior, arrival/start/end visit path, reception/clinical/administrative interfaces, saved states, permissions and mobile behavior. Preserve the existing system and reconcile it with the approved workflow model.
 
 ### Stage 7 — Patient Flow and Workspace integration
 
-Surface relevant authorized Patient Flow information/actions in Workspace through Widgets or Quick Actions where useful. Workspace surfaces must never grant Patient Flow access.
+Surface relevant authorized Patient Flow information/actions through Widgets or contextual entry points where useful. Workspace surfaces must never grant Patient Flow access.
 
 ### Stage 8 — Patient Context and contextual navigation
 
@@ -155,31 +175,47 @@ Implement/reconcile contextual links and actions around patient, visit and relat
 
 ### Stage 9 — Global Search
 
-Inspect existing search and reuse where correct. Establish one consistent Global Search entry point, multi-entity results and direct navigation while enforcing tenant isolation, authorization and privacy.
+Inspect existing search and reuse where correct. Maintain one consistent Header Global Search entry point, multi-entity results and direct navigation while enforcing tenant isolation, authorization and privacy.
 
 ### Stage 10 — Dashboard and Overview reconciliation
 
-Audit every Dashboard and Overview. Separate management/monitoring from contextual summary and from operational work/data entry. Move only demonstrably misplaced functions using authoritative existing implementations.
+Audit every Dashboard and Overview. Separate management/monitoring from contextual summary and from operational work/data entry.
 
 ### Stage 11 — Final Sidebar reconciliation
 
-After Workspace, Widgets and contextual navigation are established, reconcile Sidebar entries. Remove proven duplicates, legacy registrations and inappropriate top-level items while retaining full capabilities. Patient Flow remains independent.
+After Role Workspace, My Workspace, Widgets and contextual navigation are established, reconcile Sidebar entries. Keep complete authorized navigation independent of primary classification.
 
 ### Stage 12 — Responsive/mobile validation
 
-Validate Sidebar, Workspace scrolling, Widget sizing, drag/drop, Search, Patient Flow, tables, forms, modals/drawers, patient context and financial surfaces on desktop, tablet and mobile. Do not create a separate conceptual IA for mobile.
+Validate Header, Sidebar, Home, Role Workspace, My Workspace scrolling, Widget sizing, drag/drop, Search, Patient Flow, tables, forms, modals/drawers and patient context on desktop, tablet and mobile.
 
 ### Stage 13 — Arabic/English reconciliation
 
-Validate navigation, Workspace, Widgets, Patient Flow, Search, Dashboard/Overview, actions, states, terminology, RTL/LTR, ordering and formatting. Do not allow competing hard-coded translation systems.
+Validate Header, Sidebar, Home, Workspaces, Widgets, Patient Flow, Search, Dashboard/Overview, actions, states, terminology, RTL/LTR, ordering and formatting. Do not allow competing hard-coded translation systems.
 
 ### Stage 14 — Authorization, tenant and regression validation
 
-Verify Workspace customization and Widgets cannot grant access; Sidebar visibility follows effective authorization; Patient Flow requires explicit enablement + permission + context; tenant isolation and auditability remain intact.
+Verify:
+
+- Workspace customization cannot grant access;
+- Widgets cannot grant access;
+- additional permissions do not change Role Workspace;
+- Sidebar visibility follows effective authorization rather than primary classification;
+- Home remains independent;
+- Header controls remain global;
+- Communications and Chat reuse the same authority;
+- Notifications remain distinct from Communications/Follow-up;
+- Logout remains readily available for shared workstations.
 
 ### Stage 15 — Runtime validation
 
-Validate the complete deployed path: Login → user surface → Sidebar → Workspace → Widget selection → reorder → capability → patient context → Patient Flow → Global Search → save → reload. Validate both languages and device sizes. Build success alone is insufficient.
+Validate the complete deployed path:
+
+Login → Header/Home → Sidebar → Role Workspace → My Workspace → Widget selection → reorder → capability → patient context → Patient Flow → Global Search → save → reload.
+
+Also validate Header → Communications, Header → Chat, Header → Notifications and Header → Quick Actions → Language/Logout.
+
+Validate both languages and device sizes. Build success alone is insufficient.
 
 ### Stage 16 — Legacy cleanup
 
@@ -200,48 +236,51 @@ At minimum validate:
 1. Reception user with patient/appointment permissions.
 2. Reception user with additional financial permissions.
 3. Clinical user with clinical permissions.
-4. Clinical user with additional financial/administrative permissions.
+4. Clinical user with additional financial/administrative permissions while retaining Clinical Role Workspace.
 5. Administrative user with appropriate management permissions.
-6. Operations-oriented Workspace with Patient Flow disabled.
-7. Patient Flow Operations interface.
-8. Patient Flow Clinical interface.
-9. Patient Flow Administrative interface.
-10. Clinic Admin full authorized visibility.
-11. Widget add/remove/reorder.
-12. Permission removed after Widget configuration.
-13. Global patient search.
-14. Global invoice/identifier search.
-15. Patient contextual navigation.
-16. Arabic/English parity.
-17. Mobile Workspace scrolling and Widget interaction.
-18. Tenant isolation and unauthorized access attempts.
+6. Cross-context authorized Domain visible in Sidebar.
+7. Patient Flow workflow surfaces according to their approved access/context.
+8. Widget add/remove/reorder.
+9. Permission removed after Widget configuration.
+10. Global patient search.
+11. Global invoice/identifier search.
+12. Patient contextual navigation.
+13. Header Communications access.
+14. Header compact Chat.
+15. Header Notifications.
+16. Header Quick Actions including Language and Logout.
+17. Shared workstation: User A → Logout → User B.
+18. Arabic/English parity.
+19. Mobile Home/Workspace/Sidebar/Widget interaction.
+20. Tenant isolation and unauthorized access attempts.
 
 ## 10. Definition of Done
 
 The work is complete only when:
 
 - Sidebar is coherent and reflects authorized capabilities;
-- Workspace is the primary working surface;
-- Workspace personalization is permission-safe;
+- Role Workspace represents primary professional work context;
+- My Workspace is personal and configurable;
+- additional permissions expand access without redefining Role Workspace;
 - Widgets are reusable and permission-dependent;
 - executable Widgets exist where materially useful;
 - unsuitable Domains are not forced into Widget form;
-- Widgets may also be surfaced in Sidebar where appropriate;
-- Patient Flow remains independent and Queue remains part of it;
-- the three Patient Flow interfaces remain distinct;
-- Patient Flow does not appear merely because a Workspace/role is Operations or Clinical;
-- Dashboard and Workspace are no longer conflated;
+- Patient Flow remains independent;
+- Dashboard and Workspace are clearly separated;
 - Overview is not a duplicate operational surface;
 - Global Search works across authorized data;
 - Patient Context reduces unnecessary navigation;
+- Global Header remains persistent and coherent;
+- Communications/Chat/Notifications boundaries are preserved;
+- Logout remains easily accessible;
 - Role Templates remain flexible and advisory;
 - authorization and tenant isolation remain intact;
 - Arabic/English parity is preserved;
 - mobile behavior is validated;
 - duplicates/legacy implementations are removed only after proof;
 - runtime matches approved behavior;
-- documentation matches implementation.
+- documentation matches implementation and current terminology.
 
 ## 11. Change-control rule
 
-No new architectural decision may be silently introduced during execution. If an implementation exposes a conflict not resolved by these binding decisions, stop at that decision point and document the approved decision, the newly discovered conflict, repository/database/runtime evidence, relevant external comparison, possible resolutions and the exact decision required. Do not turn an implementation preference into an architectural decision without approval.
+No new architectural decision may be silently introduced during execution. If an implementation exposes a conflict not resolved by the binding decisions or the 2026-09-11 canonical reconciliation, stop at that decision point and document the approved decision, the newly discovered conflict, repository/database/runtime evidence, possible resolutions and the exact decision required. Do not turn an implementation preference into an architectural decision without approval.
