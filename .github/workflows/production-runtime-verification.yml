@@ -1,0 +1,91 @@
+name: CORE SYSTEM Production Runtime Verification
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      candidate_sha:
+        description: Exact promoted main SHA to verify
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+env:
+  PRODUCTION_URL: https://core-system-clinic.vercel.app
+
+jobs:
+  production-runtime-verification:
+    name: Authenticated Production Runtime E2E
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - name: Resolve exact candidate
+        id: candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          SHA="${{ inputs.candidate_sha || github.sha }}"
+          if ! [[ "$SHA" =~ ^[0-9a-fA-F]{40}$ ]]; then
+            echo "Invalid candidate SHA: $SHA" >&2
+            exit 1
+          fi
+          echo "sha=$SHA" >> "$GITHUB_OUTPUT"
+          echo "PRODUCTION_E2E_CANDIDATE_SHA=$SHA"
+
+      - name: Checkout exact candidate
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.candidate.outputs.sha }}
+          fetch-depth: 1
+
+      - name: Verify Production exposes exact candidate
+        shell: bash
+        env:
+          EXPECTED_SHA: ${{ steps.candidate.outputs.sha }}
+        run: |
+          set -euo pipefail
+          for attempt in $(seq 1 30); do
+            BODY="$(curl -fsS --max-time 10 "$PRODUCTION_URL/api/build-info" || true)"
+            echo "BUILD_INFO_ATTEMPT=$attempt BODY=$BODY"
+            if printf '%s' "$BODY" | grep -Fqi "$EXPECTED_SHA"; then
+              echo "PRODUCTION_BUILD_IDENTITY=PASS"
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "PRODUCTION_BUILD_IDENTITY=FAIL expected=$EXPECTED_SHA" >&2
+          exit 1
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright Chromium
+        run: |
+          npm install --no-save --no-package-lock @playwright/test@1.55.0 playwright@1.55.0
+          npx playwright install --with-deps chromium
+
+      - name: Run authenticated real-world Clinic Admin E2E against Production
+        env:
+          CORE_SYSTEM_E2E_EMAIL: ${{ secrets.CORE_SYSTEM_E2E_EMAIL }}
+          CORE_SYSTEM_E2E_PASSWORD: ${{ secrets.CORE_SYSTEM_E2E_PASSWORD }}
+          CORE_SYSTEM_PRODUCTION_URL: ${{ env.PRODUCTION_URL }}
+        run: |
+          set -o pipefail
+          node tools/clinic-admin-real-world-e2e-v2.mjs 2>&1 | tee production-runtime-e2e.log
+
+      - name: Publish production runtime evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: core-system-production-runtime-evidence-${{ steps.candidate.outputs.sha }}
+          path: production-runtime-e2e.log
+          if-no-files-found: warn
