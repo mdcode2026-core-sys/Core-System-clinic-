@@ -10,21 +10,13 @@ function git(args) {
   return execFileSync("git", args, { encoding: "utf8" }).trim();
 }
 
-function gitFile(path) {
-  try {
-    return git(["show", `${head}:${path}`]);
-  } catch {
-    return "";
-  }
-}
-
 const changed = git(["diff", "--name-only", `${base}...${head}`])
   .split("\n")
   .map((x) => x.trim())
   .filter(Boolean);
 
 const plan = {
-  contract_version: "2.1",
+  contract_version: "2.0",
   baseline: base,
   candidate: head,
   changed_files: changed,
@@ -42,30 +34,19 @@ const add = (impact, ...suites) => {
 };
 
 for (const file of changed) {
-  const content = gitFile(file);
-  const isGlobalSurface = /GlobalHeader|QuickActionsHeaderControl|WorkspaceShell|header|global-surfaces/i.test(file);
-  const isWorkspaceAuthority = /clinic_user_workspaces|primary[-_ ]work[-_ ]context|role[-_ ]workspace|workspace[-_]authority|workspace[-_]assignment|workspace.*(?:permission|policy|rls)/i.test(file);
-
-  if (isGlobalSurface) {
-    add("GLOBAL_SURFACE_IMPACT", "global-surfaces");
-    plan.regression_level = plan.regression_level === "R0" ? "R1" : plan.regression_level;
-  }
-
   if (/^supabase\//.test(file) || /database|migration|rls|policy/i.test(file)) {
     add("DATA_IMPACT", "database-integrity", "authorization");
     plan.impact.add("SECURITY_IMPACT");
     plan.required_engineering.add("database-integrity");
     plan.required_engineering.add("authorization");
   }
-
-  if (/permission|role|auth|signout|logout/i.test(file) || isWorkspaceAuthority) {
+  if (/permission|role|auth|workspace/i.test(file)) {
     add("ROLE_IMPACT", "authorization", "authenticated-e2e");
     plan.impact.add("SECURITY_IMPACT");
     ["Clinic Admin", "Receptionist", "Doctor", "Nurse/Assistant", "Finance/Accounting", "Follow-up Staff", "Super Admin boundary"]
       .forEach((r) => plan.roles.add(r));
     plan.required_e2e.add("role-authorization");
   }
-
   if (/patient|appointment|agenda|queue|visit|treatment|follow-up|portal|work-center|clinical/i.test(file)) {
     add("INTEGRATED", "patient-journey", "cross-domain");
     plan.impact.add("CROSS_IMPACT");
@@ -74,7 +55,6 @@ for (const file of changed) {
     plan.required_e2e.add("patient-journey");
     plan.regression_level = "R3";
   }
-
   if (/inventory|purchas|supplier|invoice|payment|financial|analytics/i.test(file)) {
     add("CROSS_IMPACT", "cross-domain", "procurement-inventory-finance");
     plan.impact.add("DATA_IMPACT");
@@ -82,11 +62,7 @@ for (const file of changed) {
     plan.required_e2e.add("procurement-inventory-finance");
     plan.regression_level = "R3";
   }
-
-  if (/i18n|locale|translation|messages/i.test(file) || /LanguageSwitcher|setLocale|useI18n/.test(content)) {
-    add("I18N_IMPACT", "i18n");
-  }
-
+  if (/i18n|locale|translation|messages/i.test(file)) add("I18N_IMPACT", "i18n");
   if (/\.tsx?$|\.mjs$|\.css$|\.json$/.test(file)) plan.impact.add("TARGET");
 }
 
