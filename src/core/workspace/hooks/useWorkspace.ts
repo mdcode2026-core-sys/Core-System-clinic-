@@ -68,8 +68,12 @@ export function useWorkspace(workspaceKey: WorkspaceSurfaceKey = "my-workspace")
     if (!definition || !hasPermission(definition.requiredPermission) || !isFeatureEnabled(definition.moduleKey)) return;
     setLayout((prev) => {
       const idx = prev.widgets.findIndex((w) => w.key === key);
-      if (idx === -1) return { ...prev, widgets: [...prev.widgets, { key, order: prev.widgets.length, size: definition.defaultSize, state }], lastUpdated: new Date().toISOString() };
-      const next = [...prev.widgets]; next[idx] = { ...next[idx], state }; return { ...prev, widgets: next, lastUpdated: new Date().toISOString() };
+      if (idx === -1) {
+        return { ...prev, widgets: [...prev.widgets, { key, order: prev.widgets.length, size: definition.defaultSize, state }], lastUpdated: new Date().toISOString() };
+      }
+      const next = [...prev.widgets];
+      next[idx] = { ...next[idx], state };
+      return { ...prev, widgets: next, lastUpdated: new Date().toISOString() };
     });
   }, [hasPermission, isFeatureEnabled, setLayout]);
 
@@ -83,11 +87,17 @@ export function useWorkspace(workspaceKey: WorkspaceSurfaceKey = "my-workspace")
     });
   }, [hasPermission, isFeatureEnabled, setLayout]);
 
-  const removeWidget = useCallback((key: string) => setLayout((prev) => ({ ...prev, widgets: prev.widgets.map((w) => w.key === key ? { ...w, state: "hidden" as WidgetState } : w), lastUpdated: new Date().toISOString() })), [setLayout]);
-  const reorderWidgets = useCallback((orderedKeys: string[]) => setLayout((prev) => {
-    const positions = new Map(orderedKeys.map((key, index) => [key, index]));
-    return { ...prev, widgets: prev.widgets.map((w) => positions.has(w.key) ? { ...w, order: positions.get(w.key)! } : w), lastUpdated: new Date().toISOString() };
-  }), [setLayout]);
+  const removeWidget = useCallback((key: string) => {
+    setLayout((prev) => ({ ...prev, widgets: prev.widgets.map((w) => w.key === key ? { ...w, state: "hidden" as WidgetState } : w), lastUpdated: new Date().toISOString() }));
+  }, [setLayout]);
+
+  const reorderWidgets = useCallback((orderedKeys: string[]) => {
+    setLayout((prev) => {
+      const positions = new Map(orderedKeys.map((key, index) => [key, index]));
+      return { ...prev, widgets: prev.widgets.map((w) => positions.has(w.key) ? { ...w, order: positions.get(w.key)! } : w), lastUpdated: new Date().toISOString() };
+    });
+  }, [setLayout]);
+
   const resetLayout = useCallback(() => reset(), [reset]);
 
   return { layout, resolved, visibleWidgets, availableWidgets, isLoading, hasErrors, updateWidgetState, addWidget, removeWidget, reorderWidgets, resetLayout };
