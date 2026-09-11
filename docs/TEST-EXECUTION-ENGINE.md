@@ -8,9 +8,31 @@
 
 `.github/workflows/test-execution-contract.yml` is the single automated test workflow for pull requests to `main` and manual execution.
 
+## Applicability is part of the authority
+
+Unified means **one test authority**, not **all tests for every change**.
+
+The decision engine must select suites according to actual impact. Engineering checks are always required; domain/runtime suites are required only when the changed implementation materially affects the behavior covered by those suites.
+
+A global UI/shell change must not be promoted into a database, patient-journey, inventory/finance, retention, or broad authorization regression merely because a generic filename matches a broad pattern.
+
+The binding selection rules are recorded in:
+
+`docs/TEST-APPLICABILITY-CONTRACT-2026-09-12.md`
+
+The generated `test-execution-plan.json` is the evidence for which suites were applicable to the exact candidate.
+
 ## Failure localization
 
 Every executed test is reported as `SUITE`, `TEST`, `STATUS`, and `exit` in the Actions log and in `test-execution-report.json`. A failed suite does not hide later failures; the runner continues through the selected plan and emits a final deterministic decision.
+
+Before treating a failure as a defect in the changed feature, verify that the failed suite was selected as applicable and that the changed surface actually crosses its authority boundary.
+
+## Targeted Global Surfaces validation
+
+Header/global-surface changes use the targeted `global-surfaces` suite, backed by `test:header-technical-foundation`, instead of inheriting unrelated domain suites.
+
+For example, Quick Actions requires the engineering baseline and the targeted Header contract, with i18n validation when the canonical i18n path is touched. It does not automatically require unrelated Patient Journey, Inventory/Finance, database-integrity, or retention tests.
 
 ## Runtime
 
