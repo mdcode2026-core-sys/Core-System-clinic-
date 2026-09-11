@@ -1,13 +1,18 @@
 # CORE SYSTEM — Global UX / IA / Interaction
 ## Stage 4 — Workspace Personalization — 2026-08-28
 
-**Status:** IMPLEMENTED — PRE-DEPLOYMENT VALIDATION IN PROGRESS; RUNTIME CLOSURE BLOCKED BY VERCEL RATE LIMIT
-**Authority:** `GLOBAL_UX_IA_FINAL_AUTHORITY_2026-08-28.md`
+**Status:** IMPLEMENTED — PRE-DEPLOYMENT VALIDATION IN PROGRESS; RUNTIME CLOSURE BLOCKED BY VERCEL RATE LIMIT — HISTORICAL STAGE RECORD
+**Authority:** `GLOBAL-UX-IA-FINAL-AUTHORITY-2026-08-28.md`
 **Execution plan:** `docs/GLOBAL-UX-IA-IMPLEMENTATION-PLAN-2026-08-28-FINAL.md`
+**Current canonical surface interpretation:** `docs/CORE-SYSTEM-GLOBAL-SURFACES-CANONICAL-RECONCILIATION-2026-09-11.md`
+
+> **2026-09-11 reconciliation notice:** Stage 4 is a historical implementation record for the personal presentation/personalization layer. Its generic use of “Workspace” must now be read specifically in relation to **My Workspace**. It does not redefine Role Workspace, Home, Sidebar, or authorization. Technical `global` identifiers are not product-level synonyms for Home and My Workspace.
 
 ## 1. Objective
 
-Stage 4 completes the approved Workspace personalization contract using the existing Workspace engine, registry, renderer and persistence mechanism.
+Stage 4 completes the approved Workspace personalization behavior using the existing Workspace engine, registry, renderer and persistence mechanism.
+
+Under the current canonical model, this personalization behavior serves **My Workspace**: the user's personal working/presentation surface associated with the user's primary Role Workspace.
 
 The implementation must provide:
 
@@ -16,7 +21,7 @@ The implementation must provide:
 - remove/hide selected Widgets;
 - desktop drag-and-drop ordering;
 - mobile move-up/move-down ordering;
-- per-user/per-Workspace persistence;
+- per-user/per-surface persistence;
 - Restore Defaults;
 - no authorization bypass;
 - no second Workspace engine;
@@ -26,7 +31,7 @@ The implementation must provide:
 
 ### 2.1 Canonical state ownership
 
-`WorkspaceRenderer` remains the principal Workspace renderer. Widget state changes are passed from the renderer into `WidgetContainer` and `WidgetToolbar` rather than creating an independent `useWorkspace()` state owner inside each Widget toolbar.
+`WorkspaceRenderer` remains the principal renderer. Widget state changes are passed from the renderer into `WidgetContainer` and `WidgetToolbar` rather than creating an independent `useWorkspace()` state owner inside each Widget toolbar.
 
 This prevents competing Workspace state instances from being created by individual Widgets.
 
@@ -41,15 +46,15 @@ A Widget is addable only when:
 
 The Library is not an authorization engine and cannot grant permissions.
 
-A Widget may be added even when it is not a default Widget for the current Workspace surface. Default placement and user selection are separate concepts.
+A Widget may be added even when it is not a default Widget for the current presentation surface. Default placement and user selection are separate concepts.
 
 ### 2.3 Add / remove
 
-Adding a Widget creates or restores its user Workspace layout entry as `visible`.
+Adding a Widget creates or restores its user presentation entry as `visible`.
 
 Removing a Widget changes its user presentation state to `hidden`. It does not delete the Widget definition, capability, permission, domain, or business functionality.
 
-Restore Defaults clears user-specific layout overrides so the canonical default Workspace configuration is restored.
+Restore Defaults clears user-specific layout overrides so the canonical default configuration for the associated work surface is restored.
 
 ### 2.4 Ordering
 
@@ -61,9 +66,9 @@ Widgets cannot be reordered across their defined Workspace layers. Ordering rema
 
 ### 2.5 Persistence
 
-Existing persistence remains local presentation state scoped by:
+Existing persistence remains presentation state scoped by:
 
-`authenticated user + Workspace surface`
+`authenticated user + presentation surface/context`
 
 No new database schema or authorization model was introduced.
 
@@ -75,7 +80,25 @@ If a permission is removed, a previously selected Widget cannot restore access t
 
 Workspace personalization is therefore presentation state, not a security boundary.
 
-## 3. Existing architecture reused
+## 3. Relationship to Role Workspace
+
+Stage 4 personalization does not redefine the user's primary professional environment.
+
+The canonical relationship is:
+
+```text
+Primary Role
+   ↓
+Primary Work Context
+   ↓
+Role Workspace
+   ↓
+My Workspace personalization
+```
+
+Additional permissions may expand the Widgets/tools available in My Workspace, including authorized cross-context capabilities, without changing the Role Workspace.
+
+## 4. Existing architecture reused
 
 The implementation reuses:
 
@@ -91,7 +114,13 @@ The implementation reuses:
 
 No parallel Workspace engine was created.
 
-## 4. AJM / PJ impact
+## 5. Home boundary
+
+Home is a separate global starting/awareness surface.
+
+Stage 4 does not define Home as the user's personal Widget workspace, and My Workspace personalization must not automatically alter Home presentation.
+
+## 6. AJM / PJ impact
 
 AJM ownership remains unchanged.
 
@@ -99,11 +128,11 @@ PJ ownership, Patient Flow, Queue, patient movement and visit lifecycle remain u
 
 Stage 4 does not recreate Queue or Patient Flow as Widgets.
 
-## 5. Database impact
+## 7. Database impact
 
 No Supabase migration or database schema change is required for Stage 4 personalization. Existing local user/surface presentation persistence is retained.
 
-## 6. Pre-deployment validation
+## 8. Pre-deployment validation
 
 Required gates:
 
@@ -119,7 +148,7 @@ The shared `.github/workflows/ux-stages-0-4-ci.yml` is intended to perform the r
 
 **Important:** the existence of the workflow is not itself evidence of a passing run. An actual CI run for the final candidate commit must be recorded before the stage can be marked CI validated.
 
-## 7. Runtime closure
+## 9. Runtime closure
 
 Runtime acceptance requires verification of:
 
@@ -131,18 +160,19 @@ Runtime acceptance requires verification of:
 6. Restore Defaults restores the default arrangement;
 7. desktop drag-and-drop persists ordering;
 8. mobile Move Up / Move Down persists ordering;
-9. changing Workspace surface does not leak personalization state;
+9. changing presentation surface does not leak personalization state between Home and My Workspace or between Role Workspaces;
 10. Arabic/English labels remain equivalent;
 11. RTL/LTR remains correct;
 12. Widget state cannot bypass authorization;
-13. existing Sidebar, AJM and PJ behavior remains intact.
+13. existing Sidebar, AJM and PJ behavior remains intact;
+14. additional permission changes may change authorized Widget availability without changing the user's primary Role Workspace.
 
 A new Vercel deployment is currently blocked by the platform's deployment rate limit. The latest GitHub commit status reports: **Deployment rate limited — retry in 24 hours**. Therefore deployed-runtime closure is not claimed yet.
 
-## 8. Current status
+## 10. Current status
 
-Stage 4 source implementation is present in `main`.
+Stage 4 source implementation is present in the historical candidate state.
 
-The stage is **not yet Production Ready** because the final pre-deployment CI evidence and deployed runtime evidence have not both been established for the final candidate.
+The stage remains subject to evidence requirements for runtime closure. The current canonical product meaning of its presentation state is governed by the 2026-09-11 reconciliation.
 
-This is an evidence gate, not an implementation shortcut.
+**End of Stage 4 historical record.**
