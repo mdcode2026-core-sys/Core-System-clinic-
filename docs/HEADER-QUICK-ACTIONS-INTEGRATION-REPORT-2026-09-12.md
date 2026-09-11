@@ -3,7 +3,8 @@
 **Date:** 2026-09-12  
 **PR:** #100 — `feat: header technical foundation`  
 **Scope:** Global Header Quick Actions only  
-**Status:** IMPLEMENTED — QUICK ACTIONS WORKSTREAM COMPLETE; PR-LEVEL CLOSURE REMAINS PENDING
+**Status:** IMPLEMENTED — QUICK ACTIONS WORKSTREAM COMPLETE; PR-LEVEL CLOSURE REMAINS PENDING  
+**Execution contract:** `docs/HEADER-QUICK-ACTIONS-EXECUTION-CONTRACT-2026-09-12.md`
 
 ## 1. Authority and boundary
 
@@ -80,11 +81,14 @@ These checks are structural guardrails; they do not replace runtime verification
 - `src/features/workspace/QuickActionsHeaderControl.tsx` — new bounded Quick Actions control.
 - `src/features/workspace/WorkspaceShell.tsx` — mounts Quick Actions in the Global Header and removes the duplicate sidebar Language/Logout utility block.
 - `tools/header-technical-foundation-audit.mjs` — adds Quick Actions boundary checks.
+- `docs/HEADER-QUICK-ACTIONS-EXECUTION-CONTRACT-2026-09-12.md` — binding Quick Actions workstream contract.
 - `docs/HEADER-QUICK-ACTIONS-INTEGRATION-REPORT-2026-09-12.md` — this implementation/verification record.
 
 ## 8. Verification status
 
 The Quick Actions workstream is implementation-complete.
+
+The workstream contract defines the applicable verification boundary. It does not alter the Unified Test Execution Engine and does not make unrelated domain suites into Quick Actions dependencies.
 
 It is **not** by itself a claim that PR #100 or Global Surfaces are production-closed. The remaining master-contract gates still include final Header UX, Chat, full accessibility/responsive/RTL/LTR validation, regression validation, production/runtime verification, documentation verification, and controlled promotion.
 
