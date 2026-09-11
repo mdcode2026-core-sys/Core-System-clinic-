@@ -30,6 +30,45 @@ export async function sendInternalMessage(input: { conversationId: string; body:
   revalidatePath("/communications");
 }
 
+/**
+ * Personal read-state contract for Communications.
+ * A message is read for one clinic user only when that user records a receipt.
+ * This never mutates a shared message-level read_at value.
+ */
+export async function markConversationRead(conversationId: string) {
+  const ctx = await getContext();
+  if (!ctx) return;
+
+  const { data: participant } = await ctx.supabase
+    .from("communication_conversation_participants")
+    .select("id")
+    .eq("tenant_id", ctx.tenantId)
+    .eq("conversation_id", conversationId)
+    .eq("clinic_user_id", ctx.clinicUser.id)
+    .maybeSingle();
+  if (!participant) return;
+
+  const { data: messages } = await ctx.supabase
+    .from("communication_messages")
+    .select("id")
+    .eq("tenant_id", ctx.tenantId)
+    .eq("conversation_id", conversationId);
+
+  if (messages?.length) {
+    await ctx.supabase.from("communication_message_reads").upsert(
+      messages.map((message) => ({
+        tenant_id: ctx.tenantId,
+        message_id: message.id,
+        clinic_user_id: ctx.clinicUser.id,
+        read_at: new Date().toISOString(),
+      })),
+      { onConflict: "tenant_id,message_id,clinic_user_id" },
+    );
+  }
+
+  revalidatePath("/communications");
+}
+
 export async function createCommunicationRequest(input: { title: string; details?: string; assigneeUserId?: string | null; clinicPatientId?: string | null; priority?: "low" | "normal" | "high" | "urgent"; category?: string; dueAt?: string | null; conversationId?: string | null }) {
   const ctx = await getContext(); if (!ctx || !(await hasEffectivePermission(ctx.user.id, "communications:request")) || !input.title.trim()) return;
   const { data } = await ctx.supabase.from("communication_requests").insert({ tenant_id: ctx.tenantId, conversation_id: input.conversationId || null, requester_clinic_user_id: ctx.clinicUser.id, assignee_clinic_user_id: input.assigneeUserId || null, clinic_patient_id: input.clinicPatientId || null, title: input.title.trim(), details: input.details?.trim() || null, priority: input.priority || "normal", category: input.category?.trim() || "general", due_at: input.dueAt || null }).select("id").single();
