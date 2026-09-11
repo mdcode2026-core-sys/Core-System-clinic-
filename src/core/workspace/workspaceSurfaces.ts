@@ -1,11 +1,14 @@
 import type { Permission } from "@/core/permissions/types";
 
 /**
- * The three business Workspaces are user-level working environments.
+ * Business Workspaces are user-level working environments.
  * Workspace assignment is stored per clinic user in clinic_user_workspaces.
  * Permissions remain independent and control capabilities inside the assigned Workspace.
+ *
+ * Home (`global`) and My Workspace (`my-workspace`) are global/personal surfaces,
+ * not business Workspace assignments.
  */
-export type WorkspaceSurfaceKey = "global" | "administration" | "operation" | "clinical";
+export type WorkspaceSurfaceKey = "global" | "my-workspace" | "administration" | "operation" | "clinical";
 
 export interface WorkspaceSurfaceDefinition {
   key: WorkspaceSurfaceKey;
@@ -18,16 +21,17 @@ export interface WorkspaceSurfaceDefinition {
 
 export const WORKSPACE_SURFACES: readonly WorkspaceSurfaceDefinition[] = [
   { key: "global", label: { ar: "الرئيسية", en: "Home" }, description: { ar: "واجهة دخول عامة وليست مساحة عمل تشغيلية", en: "Global entry surface, not a business Workspace" }, href: "/", requiredPermission: null, implemented: true },
+  { key: "my-workspace", label: { ar: "مساحة عملي", en: "My Workspace" }, description: { ar: "مساحة شخصية لتنظيم الأدوات المصرح بها", en: "Personal presentation surface for authorized tools" }, href: "/my-workspace", requiredPermission: null, implemented: true },
   { key: "operation", label: { ar: "مساحة التشغيل", en: "Operations" }, description: { ar: "العمل التشغيلي والتنسيق اليومي", en: "Daily operational work and coordination" }, href: "/operation", requiredPermission: null, implemented: true },
   { key: "clinical", label: { ar: "المساحة الطبية", en: "Clinical" }, description: { ar: "العمل الطبي والسريري", en: "Clinical and medical work" }, href: "/clinical", requiredPermission: null, implemented: true },
   { key: "administration", label: { ar: "مساحة الإدارة", en: "Administration" }, description: { ar: "إدارة العيادة والإعدادات", en: "Clinic administration and configuration" }, href: "/administration", requiredPermission: null, implemented: true },
 ] as const;
 
 export function getAvailableWorkspaceSurfaces(_hasPermission?: (permission: Permission) => boolean) {
-  return WORKSPACE_SURFACES.filter((surface) => surface.implemented && surface.key !== "global");
+  return WORKSPACE_SURFACES.filter((surface) => surface.implemented && !["global", "my-workspace"].includes(surface.key));
 }
 
 export function canUseWorkspaceSurface(key: WorkspaceSurfaceKey, _hasPermission?: (permission: Permission) => boolean) {
   const surface = WORKSPACE_SURFACES.find((item) => item.key === key);
-  return !!surface && surface.implemented && surface.key !== "global";
+  return !!surface && surface.implemented && key !== "global";
 }
