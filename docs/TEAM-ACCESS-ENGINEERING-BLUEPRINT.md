@@ -1,9 +1,12 @@
 # CORE SYSTEM — Team & Access Engineering Blueprint
 
-**Status:** Final pre-implementation engineering reference — reconciled with PJ, Workforce & Operations and Financial & Resources
-**Domain:** Team & Access
-**Scope:** Tenant / Clinic operational environment only
-**Authority:** This document governs Team & Access unless a later explicit architectural decision supersedes it.
+**Status:** Final pre-implementation engineering reference — reconciled with PJ, Workforce & Operations and Financial & Resources  
+**Domain:** Team & Access  
+**Scope:** Tenant / Clinic operational environment only  
+**Authority:** This document governs Team & Access unless a later explicit architectural decision supersedes it.  
+**Current Global Surfaces interpretation:** `docs/CORE-SYSTEM-GLOBAL-SURFACES-CANONICAL-RECONCILIATION-2026-09-11.md`
+
+> **2026-09-11 reconciliation:** Team & Access must distinguish Primary Role / Primary Work Context / Role Workspace from Effective Permissions. A user may receive additional permissions outside their primary context without changing their Role Workspace. Such permissions may expand Sidebar Domains, Widgets and My Workspace. Home is independent. Header is global. This clarification does not redefine Team & Access ownership of authorization.
 
 ## 1. Purpose
 
@@ -22,39 +25,38 @@ Super Admin is outside this tenant operating environment and belongs to the sepa
 ```text
 User
  ↓
-Workspace(s)
+Primary Role / Job Function
  ↓
-Clinic-defined Role (organizational label)
+Primary Work Context / Classification
  ↓
-Role Template / Permission Bundles
- ↓
-Permission Catalog
- ↓
-Direct Permissions / Overrides
- ↓
+Primary Role Workspace
+
+Separately:
 Effective Permissions
  ↓
-Enabled Tenant Capabilities
+Authorized Domains / Capabilities / Actions
  ↓
-Personalized Workspace / Sidebar / Widgets
+Sidebar + Widgets + My Workspace
 ```
 
 Permanent distinctions:
 
 ```text
-Role       ≠ Permission
-Workspace  ≠ Permission boundary
-Employee   ≠ User
-Job/Skill  ≠ Role
-Skill      ≠ Permission
-Template   ≠ Permission authority
-Bundle     ≠ Role
-Visibility ≠ Authorization
+Role             ≠ Permission
+Role Workspace   ≠ Permission boundary
+Primary Context  ≠ Sidebar filter
+My Workspace     ≠ Role Workspace
+Home             ≠ Workspace
+Employee         ≠ User
+Job/Skill        ≠ Role
+Skill            ≠ Permission
+Template         ≠ Permission authority
+Visibility       ≠ Authorization
 ```
 
 ## 3. Workspaces
 
-The three tenant workspaces remain:
+The three tenant work environments remain:
 
 ```text
 Administrative
@@ -62,11 +64,13 @@ Operation
 Clinical
 ```
 
-A Workspace is a working environment and UX organization mechanism, not an authorization boundary.
+A **Role Workspace** is the user's primary professional working environment associated with the Primary Role / Primary Work Context. It is not an authorization boundary and is not the complete inventory of the user's capabilities.
 
-A user may receive permissions that cross functional/workspace expectations when the Clinic Admin chooses that model.
+A user may receive permissions that cross functional/workspace expectations. Those permissions do not automatically change the user's Primary Role, Primary Work Context or Role Workspace.
 
-The existing Workspace architecture remains the foundation and must be reused. Widget/sidebar visibility remains permission-driven and must not depend on fixed job titles.
+**My Workspace** is a personal working/presentation arrangement associated with the primary Role Workspace. It may expose authorized cross-context tools/widgets.
+
+The existing Workspace architecture remains the foundation and must be reused. Widget/Sidebar visibility remains driven by effective authorization/capability and must not be reduced to fixed job titles.
 
 ## 4. Clinic Admin
 
@@ -84,6 +88,7 @@ Clinic Admin may:
 - Configure user settings.
 - Delegate appropriate administrative capabilities.
 - Review effective access and audit activity.
+- Set or change the user's primary work context/Workspace assignment where supported by the governing Workspace model.
 
 The system must not artificially constrain a small clinic because it lacks specialized staff, nor a larger clinic because responsibilities are combined.
 
@@ -130,11 +135,13 @@ The Permission Catalog is the authoritative catalog of permissions that can be g
 Conceptually:
 
 ```text
-Area / Workspace
+Area / Work Context
  → Domain
    → Resource
      → Action
 ```
+
+The area/context is explanatory metadata only; a permission's authorization meaning is the resource/action contract, not Workspace membership.
 
 Examples:
 
@@ -167,9 +174,11 @@ After applying a template, the Admin can:
 - Add permissions.
 - Remove permissions.
 - Replace permissions.
-- Change workspace.
+- Change primary work context/Workspace assignment intentionally.
 - Rename the role.
 - Duplicate it.
+
+Changing Workspace assignment is a distinct administrative decision. It is not inferred merely from adding or removing permissions.
 
 Templates are advisory and never immutable policy.
 
@@ -179,20 +188,7 @@ Permission Bundles are an approved modular configuration mechanism inspired by m
 
 They simplify configuration without becoming a new authorization engine.
 
-```text
-Inventory Basic Bundle
- → inventory.read
- → inventory.create
-
-Inventory Advanced Bundle
- → inventory.adjust
- → inventory.transfer
- → inventory.advanced_reports
-```
-
 The Permission Catalog remains authoritative.
-
-Bundles are **advanced as an exposed administrative capability**, but may be used behind Role Templates from the beginning to simplify setup.
 
 ## 9. Direct permissions and overrides
 
@@ -211,6 +207,8 @@ Resolution must be deterministic and explainable.
 
 A second permission engine must never be introduced.
 
+A permission override is **not** a Role Workspace change unless the administrator explicitly changes the user's primary work context/assignment through the appropriate Workspace administration mechanism.
+
 ## 10. Effective Access — Core
 
 Clinic Admin should be able to inspect what a user can actually do.
@@ -219,7 +217,7 @@ Example:
 
 ```text
 User: Ahmad
-Workspace: Operation
+Primary Work Context: Operation
 Role: Front Desk
 
 Effective Access
@@ -259,31 +257,27 @@ CORE does not need a complex enterprise administrative hierarchy to achieve this
 
 User Settings belong inside Team & Access but are separate from authorization.
 
-```text
-User
-├── Identity
-├── Workspace
-├── Role
-├── Permissions
-├── Overrides
-└── Preferences / Settings
-```
+Personal/account settings are not a Workspace or Role representation.
 
 Changing a preference must not change permissions, and changing permissions must not silently change preferences.
 
 ## 13. Personalized Sidebar and Workspace
+
+The canonical relation is:
 
 ```text
 Tenant Capability Available
         AND
 User Effective Permission
         ↓
-Relevant Module / Action
+Authorized Module / Domain / Action
         ↓
-Sidebar + Workspace + Widgets
+Sidebar + My Workspace + appropriate Widget
 ```
 
-The Sidebar is not a second permission system. It is a presentation of capabilities the user is actually entitled and permitted to use.
+The Sidebar is not a second permission system and is not a mirror of the Role Workspace.
+
+My Workspace is a personal presentation surface and may include authorized cross-context capabilities without changing the primary Role Workspace.
 
 ## 14. Administrative Oversight
 
@@ -301,32 +295,22 @@ Visibility ≠ Action
 
 Admin-wide visibility must not be confused with granting every action to every user.
 
-Clinic Admin may delegate selected capabilities where appropriate.
-
 ## 15. Audit and accountability — Core
 
 Reuse the existing audit architecture; do not create a parallel audit system.
-
-Important Team & Access changes must remain auditable, including:
-
-- User creation/activation/deactivation.
-- Role creation/modification/retirement.
-- Permission assignment changes.
-- Direct permissions.
-- Overrides.
-- Delegation.
-- Sensitive administrative actions.
 
 The objective is reliable accountability: who changed what and when, with reason where applicable.
 
 ## 16. Skill / Capability — Advanced
 
-Skill / Capability is an **Advanced** feature and is deliberately separate from Role and Permission.
+For current terminology, this section must be read as **Skill / human competence**. The platform **Capability** concept remains separate.
 
 ```text
 Role       = organizational function
 Permission = system authorization
-Skill      = qualification/capability of the person
+Skill      = human competence
+Qualification = formal credential/evidence
+Capability = platform/business ability
 ```
 
 Example:
@@ -349,7 +333,7 @@ Before significant access changes, CORE may show the expected impact:
 Removing payments.refund
 → 3 users affected
 → 1 role affected
-→ related workspace views affected
+→ related authorized views may be affected
 ```
 
 This is advisory. The Clinic Admin remains the decision maker.
@@ -357,14 +341,6 @@ This is advisory. The Clinic Admin remains the decision maker.
 ## 18. Groups — Future-ready only
 
 Groups may later help with team communication, task routing or larger-clinic administration, but they are not a mandatory authorization layer now.
-
-Do not require:
-
-```text
-User → Group → Role → Permission
-```
-
-The architecture should remain extensible without making Groups a prerequisite.
 
 ## 19. Entitlement vs Permission
 
@@ -378,16 +354,7 @@ User Permission
 = Is this user allowed to perform the action?
 ```
 
-Effective use requires both where applicable:
-
-```text
-Tenant Entitlement
- AND
-User Effective Permission
- → Effective Capability
-```
-
-A permission must not bypass tenant entitlement, and an enabled tenant capability must not automatically grant every user permission.
+Effective use requires both where applicable.
 
 ## 20. Relationship to Workforce & Operations
 
@@ -405,20 +372,11 @@ Job/Position ≠ Role.
 
 Skill ≠ Permission.
 
-Skills/Capabilities are the future bridge between Team & Access and Workforce, but Workforce remains the owner of workforce capability data and Team & Access remains the owner of authorization.
+Skills and platform capabilities are related but not synonymous.
 
 ## 21. Relationship to Financial, Clinical and Agenda domains
 
 Team & Access supplies authorization to other domains; it does not own their business logic.
-
-```text
-Financial → who may view/create/adjust/refund
-Agenda    → who may view/create/update/manage
-Clinical  → who may access protected clinical functions
-Inventory → who may perform catalogued inventory actions
-```
-
-Business rules remain in the owning domain.
 
 ## 22. Relationship to Patient Journey
 
@@ -437,7 +395,21 @@ Clinic decision
 
 PJ must not be embedded into authorization logic merely because permissions influence who performs a journey step.
 
-## 23. Features explicitly rejected
+## 23. Global Surfaces Boundary
+
+For any Team & Access documentation or implementation touching user presentation:
+
+- Role Workspace = primary professional work environment.
+- Additional permissions = expanded authorization, not Role Workspace reclassification.
+- My Workspace = personal working/presentation arrangement.
+- Sidebar = complete authorized navigation.
+- Home = independent global starting/awareness surface.
+- Header = persistent global access.
+- My Settings = personal account/preferences destination.
+
+Team & Access owns authorization and user/Role administration. It does not own Home/Header presentation semantics merely because permissions influence what those surfaces may display.
+
+## 24. Features explicitly rejected
 
 - Complex role inheritance hierarchy.
 - Enterprise IAM/policy-engine complexity.
@@ -448,36 +420,40 @@ PJ must not be embedded into authorization logic merely because permissions infl
 - A second permission engine.
 - A second audit system.
 
-## 24. Core / Advanced / Future-ready
+## 25. Core / Advanced / Future-ready
 
 ### Core
+
 Users; Workspaces; clinic-defined Roles; Role Templates; Permission Catalog; permission assignment; direct permissions/overrides; Effective Access; Access Explanation; User Settings; dynamic Sidebar/Workspace; Audit; tenant/security enforcement.
 
 ### Advanced
+
 Permission Bundles as exposed configuration tools; Delegation; Skill/Capability; Change Impact Preview; advanced access analysis.
 
 ### Future-ready
+
 Groups; advanced access review; skill-based assignment; AI access analysis; richer scoped administration.
 
-## 25. Final reconciliation decisions
+## 26. Final reconciliation decisions
 
 1. **Roles are fully independent from Permissions.**
-2. **Clinic Admin may create and name roles freely within the selected Workspace.**
+2. **Clinic Admin may create and name roles freely within the clinic's organizational model.**
 3. **Role templates are advisory and editable.**
 4. **Permission Catalog is authoritative and Core.**
 5. **Admin may grant any catalogued permission available to the tenant; the role name does not restrict the permission set.**
-6. **Workspace is UX/work organization, not a security boundary.**
-7. **Permission Bundles simplify templates/configuration; they do not replace the Permission Catalog.**
-8. **Direct permissions and overrides remain supported.**
-9. **Effective Access must be explainable.**
-10. **Delegation is Advanced.**
-11. **Skill/Capability is Advanced and belongs conceptually with Workforce, while remaining integrated with Team & Access.**
-12. **User Settings belong to Team & Access.**
-13. **Clinic Admin retains broad tenant operational authority; Super Admin remains outside tenant operations.**
-14. **No enterprise IAM hierarchy is required.**
-15. **No Team & Access capability may duplicate another domain's business logic.**
+6. **Primary Role / Primary Work Context determines the user's primary Role Workspace; additional permissions do not redefine it.**
+7. **Workspace is UX/work organization, not a security boundary.**
+8. **Permission Bundles simplify templates/configuration; they do not replace the Permission Catalog.**
+9. **Direct permissions and overrides remain supported.**
+10. **Effective Access must be explainable.**
+11. **Delegation is Advanced.**
+12. **Skill is a human/workforce concept and Capability is a platform/product concept; they are not interchangeable.**
+13. **User Settings remain separate from Workspace/presentation.**
+14. **Clinic Admin retains broad tenant operational authority; Super Admin remains outside tenant operations.**
+15. **No enterprise IAM hierarchy is required.**
+16. **No Team & Access capability may duplicate another domain's business logic.**
 
-## 26. Implementation rule
+## 27. Implementation rule
 
 ```text
 Approved Access Decision
