@@ -13,6 +13,7 @@ import { LanguageSwitcher } from "@/core/i18n/LanguageSwitcher";
 import { GlobalSearch } from "@/core/search/GlobalSearch";
 import { GlobalHeader } from "./GlobalHeader";
 import { CommunicationsHeaderControl } from "./CommunicationsHeaderControl";
+import { NotificationsHeaderControl } from "./NotificationsHeaderControl";
 
 interface WorkspaceShellProps {
   children: React.ReactNode;
@@ -204,7 +205,12 @@ export function WorkspaceShell({ children }: WorkspaceShellProps) {
           mobileSidebarOpen={mobileSidebarOpen}
           onOpenMobileSidebar={() => setMobileSidebarOpen(true)}
           search={<GlobalSearch />}
-          controls={<CommunicationsHeaderControl isArabic={isArabic} />}
+          controls={
+            <>
+              <CommunicationsHeaderControl isArabic={isArabic} />
+              <NotificationsHeaderControl isArabic={isArabic} />
+            </>
+          }
         />
         <div className="p-4 md:p-6">{children}</div>
       </main>
