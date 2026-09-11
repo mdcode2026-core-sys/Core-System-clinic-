@@ -16,6 +16,7 @@ const commands = {
     ["i18n-audit", "npm", ["run", "i18n:audit"]],
     ["i18n-parity", "npm", ["run", "i18n:parity"]],
   ],
+  "global-surfaces": [["header-technical-foundation", "npm", ["run", "test:header-technical-foundation"]]],
   ux: [
     ["widget-catalog", "npm", ["run", "ux:widget-catalog"]],
     ["domain-surface", "npm", ["run", "ux:domain-surface"]],
@@ -25,7 +26,7 @@ const commands = {
     ["mobile-stage11", "npm", ["run", "ux:mobile-stage11"]],
     ["security-stage12", "npm", ["run", "ux:security-stage12"]],
     ["legacy-stage14", "npm", ["run", "ux:legacy-stage14"]],
-    ["docs-stage15", "npm", ["run", "ux:docs-stage15"]],
+    ["docs-stage15", "npm", ["ux:docs-stage15"]],
   ],
   ajm: [
     ["ajm-static", "npm", ["run", "ajm:audit"]],
