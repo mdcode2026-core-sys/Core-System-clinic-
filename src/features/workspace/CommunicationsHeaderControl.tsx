@@ -2,26 +2,21 @@
 
 import Link from "next/link";
 import { MessageSquare } from "lucide-react";
-import { usePermissions } from "@/core/permissions/usePermissions";
 
 interface CommunicationsHeaderControlProps {
   isArabic: boolean;
 }
 
 /**
- * Header gateway into the authoritative Communications domain.
+ * Header gateway into the tenant-wide Communications domain.
  *
- * This adapter owns no communication data, unread state, authorization rules,
- * or messaging behavior. Visibility comes from the existing effective
- * permission model and the destination remains the domain-owned route.
+ * Communications is a common clinic domain surface. The Header therefore does
+ * not hide it behind a communications:read permission. Action-level permissions
+ * remain enforced by the Communications domain and server-side authorization.
  */
 export function CommunicationsHeaderControl({
   isArabic,
 }: CommunicationsHeaderControlProps) {
-  const { hasPermission } = usePermissions();
-
-  if (!hasPermission("communications:read")) return null;
-
   return (
     <Link
       href="/communications"
