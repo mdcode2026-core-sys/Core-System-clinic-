@@ -1,11 +1,13 @@
 # CORE SYSTEM — Terminology Governance
 
-**Version:** 1.0.0  
-**Date:** 2026-08-29  
+**Version:** 1.1.0  
+**Date:** 2026-09-11  
 **Status:** AUTHORITATIVE — terminology baseline for architecture, AJM, UX/IA and future implementation  
 **Scope:** Business architecture, product structure, authorization, workforce, UX/IA, Patient Journey (PJ), AJM and implementation documentation.
 
 > This document resolves terminology ambiguity. It does not silently rewrite historical decisions. Historical documents remain evidence of project evolution and are corrected only where the reconciliation register identifies a real current-state conflict.
+>
+> For the current Global Surfaces model, the canonical reconciliation is `docs/CORE-SYSTEM-GLOBAL-SURFACES-CANONICAL-RECONCILIATION-2026-09-11.md`.
 
 ## 1. Governing rules
 
@@ -17,6 +19,7 @@
 6. UX surface terms do not redefine business ownership.
 7. Authorization terms do not redefine business capabilities.
 8. Medical-standard mappings (for example, FHIR terminology) are mappings, not automatic replacements for CORE user-facing terminology.
+9. Technical identifiers must not be promoted into product concepts merely because they are used by code. In particular, `global` is not a product synonym for both Home and My Workspace.
 
 ## 2. Core architecture vocabulary
 
@@ -30,10 +33,14 @@
 | **Qualification** | **مؤهل** | A formal credential, certification, license, degree or other recognized qualification held by a person. | Skill, Role, Permission |
 | **Entitlement** | **استحقاق / أهلية استخدام** | The tenant/user-level right to have access to a licensed or included capability according to subscription/license rules. | Permission, Role, Feature |
 | **Permission** | **صلاحية** | An authorization grant describing an allowed action or access within the system. | Capability, Role, Entitlement |
-| **Role** | **دور وظيفي/تنظيمي** | An organizational label and configurable starting permission template. The role name does not itself determine authorization. | Permission, Skill, Job Position |
-| **Workspace** | **مساحة عمل** | A user's working interface organized around the work they perform. It is a UX surface, not a security boundary and not a Domain. | Domain, Dashboard, Permission boundary |
+| **Role** | **دور وظيفي/تنظيمي** | An organizational label and configurable starting permission template. The role name does not itself determine authorization. It identifies the user's primary professional function when used as the primary role. | Permission, Skill, Job Position, Role Workspace |
+| **Workspace** | **مساحة عمل** | A user's primary work environment organized around the work they perform. In the current model, a Role Workspace is tied to the user's primary work context; Workspace is not a permission set or authorization boundary. | Domain, Dashboard, Permission boundary, Role |
+| **Role Workspace** | **مساحة العمل الأساسية للدور** | The stable primary professional work environment associated with the user's primary role/work context. It does not expand or change merely because additional permissions are granted. | My Workspace, Role, Permission set |
+| **My Workspace** | **مساحة عملي** | The user's personal working/presentation surface associated with their work context. It arranges permitted tools/widgets and may include capabilities outside the primary work context when the user is authorized. | Role Workspace, Home, Permission boundary |
+| **Home** | **الرئيسية** | An independent global starting and awareness surface after login. It is not determined by the user's primary role/workspace and is not a work-execution workspace. | My Workspace, Role Workspace, Dashboard, Module |
+| **Sidebar** | **الشريط الجانبي** | Authorized navigation to the system's Domains/Modules and global surfaces. Visibility is driven by effective authorization/capability rules and is not identical to the user's Role Workspace. | Role Workspace, Permission model |
 | **Widget** | **مكوّن واجهة / عنصر عمل** | A focused information, action or attention surface used inside supported UX surfaces. It never grants permission. | Module, Domain, Workspace |
-| **Quick Action** | **إجراء سريع** | A focused shortcut to an authorized action that may exist without a full Widget. | Permission, Feature |
+| **Quick Action** | **إجراء سريع** | A focused shortcut to an authorized action that may exist without a full Widget. In the current Global Header model its initial scope is global interface/account actions such as Language and Logout. | Permission, Feature, Work Center |
 | **Feature Flag** | **علامة تفعيل** | A technical/product control used to enable or disable behavior or rollout. It is not itself a product feature or authorization grant. | Feature, Permission, Entitlement |
 
 ## 3. Operational and clinical vocabulary
@@ -109,6 +116,105 @@ Role is an organizational/configuration concept. Permission is authorization. Ro
 
 Workspace organizes work. Authorization determines what the user can access/do. Workspace must never become an alternate security boundary.
 
+### 5.7 Primary Role / Primary Work Context / Role Workspace
+
+The current canonical relation is:
+
+```text
+Primary Role / Job Function
+        ↓
+Primary Work Context / Classification
+        ↓
+Role Workspace
+```
+
+This relation is about the user's **primary professional work**, not the totality of their permissions.
+
+A user may receive additional permissions outside the primary context without changing the Primary Role, Primary Work Context, or Role Workspace.
+
+Example:
+
+```text
+Doctor
+Primary Work Context = Clinical
+Role Workspace = Clinical
+
+Additional permissions:
+Financial Read
+Operational capability
+Administration capability
+Reports Read
+
+Result:
+Role Workspace remains Clinical.
+Additional access appears through authorized Domains, Widgets,
+My Workspace and permitted actions.
+```
+
+A Role change is a separate intentional role-management event. It must not be inferred from a permission override.
+
+### 5.8 My Workspace vs Role Workspace
+
+**Role Workspace** answers:
+
+> Where is the user's primary professional work performed?
+
+**My Workspace** answers:
+
+> How does this user arrange the permitted tools/work needed for their daily work?
+
+My Workspace may expose tools originating from other functional classifications when the user has effective permission. That does not reclassify the user or alter the Role Workspace.
+
+### 5.9 Sidebar vs Role Workspace
+
+The Sidebar answers:
+
+> What authorized destinations/capabilities can this user access?
+
+It is therefore not a mirror of Role Workspace.
+
+A Clinical primary user may have authorized Financial, Operational, Administration, Reporting, Inventory or other Domains in the Sidebar. Their primary Role Workspace remains Clinical unless the primary work context itself is intentionally changed.
+
+### 5.10 Home vs all work surfaces
+
+Home is an independent global starting/awareness surface.
+
+It may provide:
+
+- current/personal context;
+- daily awareness;
+- lightweight calendar and ambient utilities;
+- weather or other externally supplied ambient information;
+- user-selected shortcuts;
+- optional system-managed content;
+- lightweight information and actions that lead to authoritative work destinations.
+
+It does not own the specialist workflow implemented by Clinical, Operational, Administration, Work Center or other Domains.
+
+### 5.11 Header vs Home
+
+The Header is a persistent global access layer.
+
+It is not Home and not a universal work dashboard.
+
+The current agreed model separates:
+
+- Global Search;
+- Communications access;
+- compact Chat access derived from Communications;
+- Notifications access;
+- Quick Actions such as Language and Logout.
+
+My Settings remains a Sidebar destination.
+
+### 5.12 Communications vs Chat vs Notifications
+
+- **Communications** is the authoritative broader internal communication domain.
+- **Chat** is a compact Messenger-style interaction surface over the same Communications authority.
+- **Notifications** is a separate attention/delivery mechanism and must not become the owner of Follow-up logic or be confused with Communications.
+
+No parallel chat or communications engine may be created for the compact surface.
+
 ## 6. Historical terminology policy
 
 The project contains older documents in which Module, Capability, Feature, Skill and related terms were used more broadly. Those documents are not rewritten by blind find/replace.
@@ -121,6 +227,8 @@ Every historical occurrence must be classified as one of:
 - **RECONCILE** — the old decision and current decision describe related but different layers.
 - **SUPERSEDE** — a later explicit architectural decision changed the concept.
 - **HISTORICAL** — retain unchanged as historical evidence; do not use as current authority.
+
+For documents touching Home / Workspace / Role / Permissions / Sidebar / Header, the 2026-09-11 canonical reconciliation is the current interpretation layer.
 
 ## 7. Visit / Encounter rule
 
@@ -139,3 +247,5 @@ CORE retains **Treatment Plan** as the user-facing and product concept. External
 ## 9. Enforcement rule for future documentation
 
 New architecture, AJM, UX/IA, PJ and implementation documents must use this glossary. If a new document needs a different meaning for an existing term, it must explicitly propose a terminology change rather than silently redefining the term.
+
+**End of Terminology Governance.**
