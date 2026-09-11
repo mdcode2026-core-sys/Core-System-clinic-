@@ -6,6 +6,46 @@
 
 This document records the currently approved decisions for this subject. It supersedes any earlier documentation that conflicts with these decisions. It is the architectural reference for the later engineering specification and execution plan.
 
+## 0. 2026-09-11 Canonical Clarification — Global Surfaces and Workspace Relationships
+
+The following is a clarification of the approved architecture, not a new replacement architecture.
+
+```text
+Primary Role / Job Function
+        ↓
+Primary Work Context / Classification
+        ↓
+Role Workspace
+```
+
+is independent from:
+
+```text
+Actual Effective Permissions
+        ↓
+Authorized Capabilities / Domains / Actions
+        ├── Sidebar entries
+        ├── Widgets
+        └── My Workspace content
+```
+
+Therefore:
+
+- Role Workspace is the user's stable primary professional work environment.
+- Additional permissions do not redefine the user's Role, Primary Work Context or Role Workspace.
+- A Clinical user remains in Clinical Workspace even after gaining authorized operational, administrative, financial, reporting or other capabilities.
+- Those additional capabilities may expand Sidebar visibility, Widgets, My Workspace content and permitted actions.
+- My Workspace is the user's personal working/presentation surface associated with the primary work context; it is not a second Role Workspace and not an authorization layer.
+- Home is an independent global starting/awareness surface; it is not determined by Role Workspace or My Workspace.
+- Sidebar is authorized navigation and is not a representation of the user's Role Workspace.
+- Header is a persistent global access layer and is not Home, My Workspace, or a universal business-action dashboard.
+- Technical identifiers such as `global` must not be interpreted as product synonyms for both Home and My Workspace.
+
+The complete reconciliation is maintained in:
+`docs/CORE-SYSTEM-GLOBAL-SURFACES-CANONICAL-RECONCILIATION-2026-09-11.md`.
+
+---
+
 ## 1. Patient Journey vs Patient Flow
 
 - **Patient Journey** and **Patient Flow** are different concepts and must never be used interchangeably.
@@ -30,6 +70,7 @@ This document records the currently approved decisions for this subject. It supe
 - These predefined permissions are default and advisory; they are not immutable final permissions.
 - Clinic Admin can determine the user's actual permissions.
 - Adding permissions outside the user's primary Patient Flow classification does not change the user's Role or primary classification and does not remove the user's responsibility in the primary area.
+- A permission override or additional grant is not, by itself, a role change.
 
 ## 4. Clinic Admin
 
@@ -42,20 +83,24 @@ This document records the currently approved decisions for this subject. It supe
 ## 5. Workspace
 
 - Workspace is a user's work environment, not a Role, not a permission set, and not Patient Flow itself.
-- The system provides a default Workspace appropriate to the user's Patient Flow work classification.
+- The user's primary Role / Primary Work Context determines the user's primary Role Workspace.
+- The primary Role Workspace remains stable when the user's permissions are expanded across other functional classifications; it changes only when the user's primary work context/assignment is intentionally changed.
 - The three work environments are Clinical, Operational, and Administration in function, regardless of whether those names are explicitly displayed to the user.
 - Workspaces must be genuinely different in their daily work, not merely differently named copies of the same dashboard.
-- The purpose of Workspace is to place the user's relevant daily work in an understandable and usable environment.
-- Workspace is a presentation/work surface; it does not redefine ownership of Patient Journey or Patient Flow.
+- The purpose of Workspace is to place the user's relevant primary daily work in an understandable and usable environment.
+- Workspace is a presentation/work surface; it does not redefine authorization, Role, ownership of Patient Journey or Patient Flow.
+- A user can have permissions for Domains outside the primary Workspace without acquiring another Role Workspace.
 
 ## 6. My Workspace
 
-- My Workspace is the user's personal working surface within the assigned/default Workspace.
+- My Workspace is the user's personal working surface associated with the assigned/default primary Workspace.
 - It begins with default widgets selected from the user's most important granted capabilities/permissions.
 - The default emphasis is on **executive/action-oriented widgets**, because My Workspace is primarily for doing daily work rather than merely viewing information.
 - Informational widgets are allowed when they are useful to daily work.
 - The user may personalize My Workspace within the capabilities granted to that user, including ordering, showing, hiding, and otherwise arranging available widgets as supported by the product.
+- Widgets/capabilities from outside the user's primary work classification may be available in My Workspace when the user has effective authorization.
 - Personalization must not grant access or permissions that the user does not have.
+- My Workspace is not a second Role Workspace, not a Role selector, not an authorization system, and not Home.
 
 ## 7. Widgets and Permissions
 
@@ -78,8 +123,6 @@ LOGIN
   ▼
 HOME
   │
-  ├── General information about daily clinic work
-  │
   ▼
 WORKSPACE
   │
@@ -93,9 +136,10 @@ MY WORKSPACE
   ▼
 MODULES / DOMAINS
   │
-  ├── Clinical
-  ├── Operational
-  └── Administration
+  ├── Authorized Clinical Domains
+  ├── Authorized Operational Domains
+  ├── Authorized Administration Domains
+  └── Other authorized domains/capabilities
   │
   ▼
 MY SETTINGS
@@ -105,6 +149,9 @@ MY SETTINGS
 
 - The Sidebar must not contain a `Patient Flow` item for ordinary users.
 - Modules/Domains shown to a user are those relevant and authorized for that user.
+- Primary Work Context must **not** suppress an otherwise authorized Domain.
+- A Domain outside the primary work context remains a normal Domain entry when authorized.
+- The Sidebar is not a mirror of Role Workspace and must not be used to infer the user's primary role.
 - The Sidebar must not turn general Domains into artificial labels such as `My Financial` or `My Agenda`; they remain general Modules/Domains governed by authorization.
 - `My Workspace` is not the same as `My Settings`.
 
@@ -122,25 +169,27 @@ These do not belong in My Workspace.
 ## 10. Home
 
 - Home is the landing page after login.
-- Home is **not** the user's Workspace.
-- Home provides general information useful at the start of the user's work, such as daily appointment counts, reminders, notifications, internal communications, Patient Portal information, Work Center information, and similar general daily context.
+- Home is **not** the user's Workspace and is not My Workspace.
+- Home is independent of the user's Role Workspace and of their My Workspace personalization.
+- Home is a global starting/awareness surface rather than a primary work-execution surface.
+- Home may contain useful general/current context and lightweight utilities, not only clinic KPIs.
+- The approved Home concept permits, where product design retains them, lightweight/global elements such as daily awareness, calendar/utility information, weather or other ambient information, user-selected shortcuts, optional system-managed content, and summarized actionable information leading to authoritative work destinations.
+- Home may expose lightweight actions such as creating an event/reminder or initiating an appropriate request, but the authoritative workflow remains owned by its Domain.
+- Home may summarize appointment/waiting/work/communication/portal information, but it must not own the underlying workflow or become a second Workspace.
 - The current contents of Home must not be treated as proof that every current widget belongs there.
-- Operational actions such as Quick Registration and Quick Appointment must not be placed in Home merely because they are useful actions; their proper placement must follow the approved Workspace/Widget model.
+- Operational actions such as Quick Registration and Quick Appointment must not be placed in Home merely because they are useful actions; their proper placement must follow the approved Workspace/Widget model and capability ownership.
 
-### 10.1 Architectural boundary vs engineering detail
+### 10.1 Home boundary
 
-The architecture decision is complete for the **nature, purpose, separation, and minimum information categories of Home**. There is no unresolved architectural decision about whether Home exists, whether it is separate from Workspace, or what general daily information it is intended to provide.
+Home should answer, at a glance:
 
-The architecture intentionally does **not** prescribe a frozen visual inventory of every future Home card/widget. That is not an architectural decision. The engineering/product-design work may determine the concrete composition needed to realize the approved Home purpose, but it may not:
+- Who am I and what clinic/context am I in?
+- What is relevant to me now/today?
+- Is there something important that needs attention?
+- What global information or utility do I want at hand?
+- Where can I quickly enter the work I actually need to perform?
 
-- remove the approved minimum information categories;
-- turn Home into Workspace;
-- make Home own Patient Flow transitions;
-- move required work into Home merely because it is convenient;
-- introduce a new authorization model;
-- use an implementation choice to create a new architectural decision.
-
-Any additional Home element that is not required by this architecture is optional implementation/product detail and must remain consistent with the approved boundaries. No new architectural choice is implied by adding or omitting such an optional element.
+Home must not become a complete copy of Clinical Workspace, Operational Workspace, Administration Workspace, Work Center, Communications, Notifications, or My Workspace.
 
 ## 11. Global Search
 
@@ -151,7 +200,7 @@ Any additional Home element that is not required by this architecture is optiona
 
 ### 11.1 Architectural boundary vs engineering detail
 
-The architecture decision for Global Search is **complete** for its existence, placement, system-wide nature, authorization boundary, and permitted purpose. There is no deferred architectural decision about whether Search belongs to Home, Workspace, or the header: it belongs to the authenticated global header.
+The architecture decision for Global Search is **complete** for its existence, placement, system-wide nature, authorization boundary, and permitted purpose. There is no unresolved architectural decision about whether Search belongs to Home, Workspace, or the header: it belongs to the authenticated global header.
 
 The following are engineering decisions, not architectural decisions, and must therefore be resolved in the engineering specification before coding:
 
@@ -172,18 +221,55 @@ The following are engineering decisions, not architectural decisions, and must t
 
 Engineering may choose these mechanisms only to implement the approved architecture. Engineering may not use them to redefine Search, create a second search concept, or weaken authorization.
 
-## 12. Architectural Simplicity Principle
+## 12. Global Header
+
+The authenticated Header is a persistent global access layer, distinct from Home, My Workspace and Role Workspace.
+
+Its current approved conceptual functions are:
+
+- system identity/branding;
+- existing Global Search;
+- Communications access;
+- separate compact Chat access backed by Communications;
+- Notifications access;
+- Quick Actions for global interface/account actions such as Language and Logout.
+
+The Header is not a universal business-action launcher and must not become a second Workspace.
+
+### 12.1 Communications and Chat
+
+- Communications remains the authoritative full internal communication domain.
+- Chat is a compact Messenger-style interaction surface over the same Communications authority.
+- Chat must not introduce a second communication database, conversation engine or authorization model.
+- Communications and Chat remain distinct user intents: Communications provides broader communication/domain access; Chat provides immediate conversation.
+- Group conversations may be supported through the existing Communications architecture; group management remains permission-controlled.
+
+### 12.2 Notifications
+
+- Notifications remain distinct from Communications and operational Follow-up.
+- The Header provides global access to Notifications.
+- Home may summarize important notification/attention state but is not the Notification system.
+
+### 12.3 Quick Actions
+
+- Quick Actions are a compact global interface/account surface, not a catch-all business launcher.
+- Initial agreed actions are Language and Logout.
+- Logout is especially important for shared clinic workstations because each user must operate under their own authenticated identity for accountability and auditability.
+- My Settings remains in the Sidebar; it is not moved into the Header merely to reduce visual density.
+
+## 13. Architectural Simplicity Principle
 
 - The user-facing experience must remain simple.
 - Architectural complexity belongs in the appropriate backend/domain layers and must not be exposed unnecessarily through the UI.
-- Role, Patient Flow classification, permissions, capabilities, Workspace, Modules/Domains, and widget behavior are distinct concepts even when they cooperate to produce one simple user experience.
+- Role, Patient Flow classification, permissions, capabilities, Workspace, Modules/Domains, My Workspace, Home, Header and widget behavior are distinct concepts even when they cooperate to produce one simple user experience.
 - No implementation may collapse these concepts merely because doing so appears simpler in code or documentation.
 
-## 13. Implementation Governance
+## 14. Implementation Governance
 
 - These decisions are the current approved architectural baseline for this subject.
-- Conflicting older architecture, UX/IA, implementation, or execution documents are superseded and must not be used as authority for implementation **only to the extent that they conflict with an approved decision in this document**.
+- Conflicting older architecture, UX/IA, implementation, and execution documents are superseded and must not be used as authority for implementation **only to the extent that they conflict with an approved decision in this document or the 2026-09-11 canonical reconciliation**.
 - Non-conflicting portions of older documents remain usable evidence and must not be discarded merely because another portion was superseded.
+- The 2026-09-11 canonical reconciliation is the required interpretation layer for any Home/Header/Workspace/Role/Permission/Sidebar ambiguity discovered in older documentation.
 - No engineering specification or execution plan may invent, silently extend, or postpone an architectural decision contained here.
 - Engineering specifications must classify every item as one of:
   1. **Approved architectural requirement** — mandatory implementation consequence;
