@@ -1,10 +1,12 @@
 # CORE SYSTEM — Global UX / IA / Interaction
 ## Stage 3 — Workspace Foundation — 2026-08-28
 
-**Status:** IMPLEMENTED — RUNTIME VALIDATION PENDING
-**Authority:** `GLOBAL_UX_IA_FINAL_AUTHORITY_2026-08-28.md`
+**Status:** IMPLEMENTED — RUNTIME VALIDATION PENDING — HISTORICAL IMPLEMENTATION RECORD
+**Authority:** `GLOBAL-UX-IA-FINAL-AUTHORITY-2026-08-28.md`
 **Execution plan:** `docs/GLOBAL-UX-IA-IMPLEMENTATION-PLAN-2026-08-28-FINAL.md`
-**Starting repository head:** `e8523f5a613b3b567789cb2d9cfc8c7f161c10a3`
+**Current canonical surface interpretation:** `docs/CORE-SYSTEM-GLOBAL-SURFACES-CANONICAL-RECONCILIATION-2026-09-11.md`
+
+> **2026-09-11 reconciliation notice:** This document records the historical Stage 3 implementation. Its references to a shared `global` rendering context and to Home being rendered through the Workspace renderer describe the implementation state/approach at that time. They must not be interpreted as defining the current product concepts. The current model explicitly separates **Home**, **Role Workspace**, and **My Workspace**. Technical `global` identifiers are implementation details and must not be used as product-level synonyms for these surfaces.
 
 ## 1. Scope
 
@@ -86,6 +88,8 @@ The repository already had a canonical Workspace engine, registry, renderer, per
 
 The `/` route already rendered `WorkspaceRenderer`, but the surface had no explicit working-surface presentation and did not communicate the user's current Workspace context.
 
+**Historical interpretation only:** this describes the implementation pattern observed in Stage 3 and does not override the 2026-09-11 canonical separation of Home, Role Workspace and My Workspace.
+
 ### 4.3 Widget defaults were not explicitly mapped to Workspace contexts
 
 The registry had a reusable Widget catalogue but most Widgets did not declare which Workspace contexts should receive them as defaults. This made the same Widget catalogue act as an undifferentiated surface.
@@ -102,9 +106,9 @@ Widget visibility already passed through the existing permission + feature engin
 
 ### 5.1 Reused the canonical Workspace renderer
 
-`WorkspaceRenderer` remains the single renderer. It now accepts an explicit `workspaceKey` and renders the active surface's bilingual label and description.
+`WorkspaceRenderer` remains the single renderer. It accepts an explicit `workspaceKey` and renders the active surface's bilingual label and description.
 
-The Home route continues to use the same renderer; no parallel Home/Workspace engine was created.
+The historical Stage 3 implementation allowed `/` and My Workspace to share the `global` rendering context. This technical reuse is preserved as historical implementation evidence but must not be read as current product meaning. Current product concepts are explicitly separated as Home, Role Workspace and My Workspace.
 
 ### 5.2 Established explicit Workspace-context defaults
 
@@ -118,7 +122,7 @@ The Home route continues to use the same renderer; no parallel Home/Workspace en
 - Billing Summary — Global/Home + Operations
 - Analytics Overview — Global/Home
 
-These are presentation defaults only. Effective permission and feature checks still determine whether a Widget is actually visible.
+These are presentation defaults only. Effective permission and feature checks still determine whether a Widget is actually visible. The `Global/Home` wording is historical registry terminology and is not permission or product identity.
 
 ### 5.3 Workspace context is passed through Widget rendering
 
@@ -130,7 +134,7 @@ These are presentation defaults only. Effective permission and feature checks st
 
 `authenticated user + Workspace surface`
 
-This prevents a user preference on Home from silently changing the presentation of Operations or Clinical.
+This prevents a user preference on one surface from silently changing the presentation of another surface.
 
 This remains presentation state and does not grant authorization.
 
@@ -199,10 +203,10 @@ No files were deleted.
 
 ### Source validation
 
-- Confirmed `/` still resolves to the canonical `WorkspaceRenderer`.
+- Confirmed the home/root route used the canonical Workspace renderer in the historical Stage 3 implementation.
 - Confirmed Widget visibility still uses the existing pure Workspace engine plus effective permissions and feature state.
 - Confirmed Workspace context only controls presentation/default placement, not authorization.
-- Confirmed Workspace state persistence is now isolated by user and surface.
+- Confirmed Workspace state persistence is isolated by user and surface.
 - Confirmed Operations and Clinical server routes remain independently permission-guarded.
 - Confirmed Patient Flow/Queue implementation files were not modified.
 - Confirmed no Supabase migration was introduced.
@@ -210,18 +214,20 @@ No files were deleted.
 
 ### Live database validation
 
-Production Workspace permission keys were queried directly. All three approved Workspace permissions are present in the live permission catalogue.
+Production Workspace permission keys were queried directly. All three approved Workspace permissions were present in the permission catalogue at the time of Stage 3 validation.
 
 ### Runtime validation gate
 
-A READY Vercel deployment containing the final Stage 3 head must be confirmed before closure. Required runtime checks:
+A READY Vercel deployment containing the final Stage 3 head must be confirmed before closure. The runtime semantics must now also be read against the later 2026-09-11 canonical surface reconciliation.
 
-1. Home loads as the canonical Workspace working surface.
-2. Permission-authorized Widgets render; unauthorized Widgets do not.
-3. Home/Operations/Clinical context labels remain correct where the renderer is used.
-4. Widget presentation state does not bleed between Workspace surfaces.
-5. Arabic/English labels and RTL/LTR presentation remain correct.
-6. Mobile Workspace remains scrollable and usable without changing the conceptual model.
-7. Existing `/operation`, `/clinical` and Patient Flow/Queue behavior remains intact.
+Required current interpretation checks:
 
-**Current status: IMPLEMENTED — RUNTIME VALIDATION PENDING.**
+1. Home is a distinct global starting/awareness surface.
+2. Role Workspace is the primary professional work environment.
+3. My Workspace is a distinct personal work/presentation surface.
+4. Technical `global` identifiers do not collapse those product concepts.
+5. Existing Operations and Clinical behavior remains intact.
+6. Arabic/English labels and RTL/LTR presentation remain correct.
+7. Mobile Workspace remains scrollable and usable without changing the conceptual model.
+
+**Current Stage 3 record remains historical; current surface authority is the 2026-09-11 canonical reconciliation.**
