@@ -1,11 +1,39 @@
 # CORE_SYSTEM_INDEX.md
 
-> Version: 1.4.0
+> Version: 1.4.1
 > Status: Authoritative Reference
 > Project: CORE SYSTEM
 > Architecture: SaaS
 > Owner: Yazeed Waleed
-> Last Updated: 2026-09-01
+> Last Updated: 2026-09-11
+
+---
+
+# 2026-09-11 GLOBAL SURFACES CANONICAL RECONCILIATION
+
+The canonical interpretation for **Header, Home, Role Workspace, My Workspace, Sidebar, Role, Primary Work Context, Permissions, Widgets and My Settings** is defined in:
+
+`docs/CORE-SYSTEM-GLOBAL-SURFACES-CANONICAL-RECONCILIATION-2026-09-11.md`
+
+That document is a reconciliation of existing approved architecture. It does not create a second architecture.
+
+The following rules are mandatory across all current and future engineering documentation:
+
+- **Primary Role / Job Function** identifies the user's primary professional function.
+- **Primary Work Context / Classification** identifies the user's primary work area.
+- **Role Workspace** is the user's primary professional work environment for that context.
+- Additional/effective Permissions do **not** redefine Role, Primary Work Context or Role Workspace.
+- Additional/effective Permissions may expand authorized Sidebar Domains, Widgets, My Workspace content and permitted actions.
+- **My Workspace** is the user's personal working arrangement and personalization surface associated with the user's work context. It is not a second Role Workspace and not an authorization system.
+- **Sidebar** is authorization/capability-driven navigation. Primary work classification must not suppress an otherwise authorized Domain.
+- **Home** is an independent global starting/awareness surface. It is not Role Workspace and not My Workspace.
+- **Header** is a persistent global access layer, not a work execution surface.
+- **My Settings** remains a Sidebar destination for personal/account preferences.
+- Clinical and Operational Workspaces remain their existing primary work environments; this reconciliation does not redesign them.
+- Administrative Workspace remains a separate product work area and is not silently redesigned here.
+- Technical identifiers such as `global` must not be treated as product-level synonyms for both Home and My Workspace.
+
+When any older document uses broader or ambiguous Workspace terminology, it must be interpreted and, where necessary, marked/reconciled using the 2026-09-11 canonical document.
 
 ---
 

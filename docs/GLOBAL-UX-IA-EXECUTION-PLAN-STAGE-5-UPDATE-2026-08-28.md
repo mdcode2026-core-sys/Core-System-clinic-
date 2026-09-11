@@ -2,11 +2,14 @@
 
 **Date:** 2026-08-28  
 **Stage:** 5 — Widget Library & Classification  
-**Status:** IMPLEMENTED / CI VALIDATED / DOCUMENTED
+**Status:** IMPLEMENTED / CI VALIDATED / DOCUMENTED — HISTORICAL EXECUTION RECORD  
+**Current interpretation:** `docs/CORE-SYSTEM-GLOBAL-SURFACES-CANONICAL-RECONCILIATION-2026-09-11.md`
+
+> **2026-09-11 reconciliation notice:** This document remains a historical Stage 5 execution record. Its `Quick Action` terminology refers to the Widget/Workspace classification used during Stage 5 and must not be confused with the separate **Global Header Quick Actions** concept. Historical `Global` Workspace context references must not be used to collapse Home and My Workspace. Current product relationships are governed by the 2026-09-11 canonical reconciliation.
 
 ## 1. Purpose
 
-This addendum records the execution-plan state after completing Stage 5. It is subordinate to `GLOBAL_UX_IA_FINAL_AUTHORITY_2026-08-28.md` and `docs/GLOBAL-UX-IA-IMPLEMENTATION-PLAN-2026-08-28-FINAL.md`, and exists so future stages can start from the actual repository state without relying on conversation history.
+This addendum records the execution-plan state after completing Stage 5. It is subordinate to the Global UX/IA authority and current canonical reconciliation, and exists so future stages can start from the actual repository state without relying on conversation history.
 
 ## 2. Stage 5 delivery
 
@@ -16,7 +19,7 @@ Delivered:
 
 - complete inventory/classification of the current 7 registered Widgets;
 - explicit Domain ownership, purpose, bilingual purpose, contexts and natural size;
-- Quick Action vs Widget distinction;
+- Workspace Quick Action vs full Widget distinction;
 - Sidebar capability distinction;
 - classification rationale;
 - one-to-one Registry/Catalog audit;
@@ -120,7 +123,8 @@ The executor must not return intermediate progress messages merely because a sub
 
 At the start of a future execution conversation, use the repository itself as the source of truth:
 
-- root Global UX/IA authority;
+- current Global UX/IA authority;
+- current canonical global-surface reconciliation;
 - final execution plan;
 - this Stage 5 update;
 - current stage records;

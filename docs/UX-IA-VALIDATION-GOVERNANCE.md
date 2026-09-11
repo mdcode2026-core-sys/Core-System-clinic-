@@ -2,7 +2,10 @@
 
 **Date:** 2026-08-28  
 **Status:** CURRENT — MANDATORY ENGINEERING/UX WORKFLOW RULE  
-**Authority relationship:** Supplemental operational rule to `GLOBAL_UX_IA_FINAL_AUTHORITY_2026-08-28.md`, `docs/GLOBAL-UX-IA-IMPLEMENTATION-PLAN-2026-08-28.md`, and the current Workspace architecture.
+**Authority relationship:** Supplemental operational rule to the current Global UX/IA authority and the current Workspace architecture.  
+**Current surface interpretation:** `docs/CORE-SYSTEM-GLOBAL-SURFACES-CANONICAL-RECONCILIATION-2026-09-11.md`
+
+> **2026-09-11 reconciliation:** Validation of UX/IA must distinguish Role Workspace, My Workspace, Home, Sidebar and Header. In particular, a Clinical-primary user who receives additional permissions must retain the same primary Role Workspace; additional access may appear in Sidebar, Widgets and My Workspace. Home remains independent and Header remains global.
 
 ## 1. Purpose
 
@@ -55,7 +58,7 @@ The important rule is **not** merely “use GitHub Actions”. The stage must be
 
 GitHub Actions is the default automated validation environment. A passing workflow is evidence for the checks it actually ran; a workflow definition by itself is never evidence of success.
 
-The shared UX 0–4 gate should perform, where applicable:
+The shared UX 0–5 gate should perform, where applicable:
 
 - `npm ci` using the repository lockfile;
 - TypeScript type checking;
@@ -99,7 +102,7 @@ Do **not** deploy to Vercel merely to discover TypeScript, lint, i18n parity, de
 
 ## 6. Production Readiness gate
 
-Before Vercel is used for a Stage 0–4 release candidate, the following must be true:
+Before Vercel is used for a Global UX/IA release candidate, the following must be true:
 
 1. Governing UX/AJM/PJ documentation has been inspected and reconciled.
 2. The intended stage scope has been implemented or corrected.
@@ -120,88 +123,101 @@ Therefore:
 
 **CI PASS ≠ Runtime PASS.**
 
-The purpose of this governance is to move all provable failures before deployment and reserve Vercel for the smaller set of checks that genuinely require deployment.
-
 ## 8. Supabase remains unchanged
 
 This governance does not modify the Supabase project, database, Auth, RLS, migrations, functions, storage, data model, or backend ownership.
 
-If a stage depends on Supabase behavior, backend/database validation remains mandatory. Vercel is used only if deployed integration is the evidence that cannot otherwise be obtained.
+## 9. Global-surface validation invariants
 
-## 9. Stage 0–4 application
-
-The rule applies retroactively as the **validation method** for UX Stages 0–4. It does **not** retroactively mark those stages complete.
-
-The current status of each stage must be established from actual repository evidence and actual validation runs. No stage may be marked Production Ready merely because a workflow exists or because source files appear implemented.
-
-| Stage | Required pre-deployment validation | Deployment purpose |
-|---|---|---|
-| UX 0 — Baseline Lock | repository/document reconciliation + CI + baseline structural checks | only runtime evidence not reproducible before deployment |
-| UX 1 — Navigation & IA | CI + navigation/route/permission structural checks + interactive checks where needed | deployed navigation/runtime verification only when necessary |
-| UX 2 — User Surface Model | CI + authorization/surface structural checks + AJM/PJ integration checks + interactive checks where needed | deployed auth/runtime verification when required |
-| UX 3 — Workspace Foundation | CI + Workspace/Sidebar/Widget architecture checks + responsive/i18n checks + interactive checks where needed | deployed Workspace runtime verification |
-| UX 4 — Workspace Personalization | CI + Widget add/remove/order/persistence structural checks + interactive behavior checks | deployed interaction/persistence verification when required |
-
-## 10. Evidence required for closure
-
-Every stage closure record must state:
-
-- commit SHA validated;
-- GitHub Actions run ID/result and checks passed;
-- stage-specific checks performed;
-- Codespaces/local runtime evidence, when used;
-- Vercel deployment ID/URL, when used;
-- reason Vercel was required;
-- deployed runtime checks passed/failed;
-- unresolved issues and whether they block closure.
-
-If evidence is missing, the stage remains **not closed**.
-
-## 11. Cost-conscious engineering rule
-
-The objective is not to avoid Vercel. The objective is to avoid wasting Vercel deployments on failures that should have been caught earlier.
-
-Correct pattern:
+Where a stage touches any of these surfaces, validation must explicitly preserve:
 
 ```text
-GitHub source
-→ pre-deployment CI
-→ fix failures
-→ repeat until PASS
-→ optional Codespaces/runtime inspection
-→ READY FOR DEPLOYMENT
-→ Vercel
-→ final runtime verification
+Primary Role
+    ↓
+Primary Work Context
+    ↓
+Role Workspace
+
+Effective Permissions
+    ↓
+Sidebar / Widgets / My Workspace
+
+Home = independent global starting/awareness
+Header = persistent global access
 ```
 
-Incorrect pattern:
+Required mixed-permission test:
+
+> Clinical primary user + additional Financial/Operational/Administrative/Reporting permission → Clinical Role Workspace remains unchanged; authorized non-primary Domains may appear normally in Sidebar and permitted tools/widgets may appear in My Workspace.
+
+Required surface-separation tests:
+
+- Home ≠ Role Workspace.
+- Home ≠ My Workspace.
+- My Workspace ≠ Role Workspace.
+- Sidebar ≠ Role Workspace.
+- Header ≠ Home/Workspace.
+- Widget ≠ authorization.
+- Workspace ≠ authorization.
+
+Required global Header tests, where implemented:
+
+- Global Search is available consistently.
+- Communications and Chat remain distinct intents over the same Communications authority.
+- Notifications remains distinct from Communications and Follow-up.
+- Quick Actions remain global interface/account actions; initial scope is Language + Logout.
+- Logout remains quickly accessible for shared workstations.
+
+## 10. Stage closure evidence
+
+A stage may close only when its applicable gates are satisfied:
+
+- source/CI gate;
+- interactive/local gate when applicable;
+- deployed runtime gate when applicable;
+- permission/security regression gate when applicable;
+- mobile/i18n gate when applicable;
+- database/backend gate when applicable;
+- documentation gate.
+
+The stage record must explicitly mark gates that are not applicable.
+
+## 11. Deployment efficiency rule
+
+Intermediate commits are development states. They should normally be validated by GitHub Actions/Codespaces.
+
+A Vercel deployment should represent a meaningful candidate for runtime validation, not every intermediate edit.
+
+## 12. Relationship to Vercel and Supabase
+
+- **GitHub:** source control, CI, automated validation and Codespaces development environment.
+- **Vercel:** deployed Next.js runtime and production/preview verification.
+- **Supabase:** database, authentication and backend services.
+
+The platforms remain complementary.
+
+## 13. Required stage log format
+
+Future stage documents should include:
 
 ```text
-source edit
-→ Vercel deployment
-→ compile/build failure
-→ source edit
-→ another Vercel deployment
+Validation
+- GitHub Actions: PASS / FAIL / N/A
+- Codespaces: PASS / FAIL / N/A
+- Vercel runtime: PASS / FAIL / N/A
+- Supabase/backend validation: PASS / FAIL / N/A
+- Mobile: PASS / FAIL / N/A
+- Arabic/English: PASS / FAIL / N/A
+
+Vercel deployment justification:
+- Required? YES / NO
+- Reason: <specific runtime evidence required>
 ```
 
-## 12. Scope and future stages
+## 14. Non-negotiable rule
 
-This governance applies to Global UX/IA, AJM-connected UX, PJ-connected UX, Workspace, Widgets, i18n, responsive work, and future feature implementation whenever equivalent validation can be performed before deployment.
+> **Never use Vercel as the first compiler, linter, build checker, or deterministic source-error detector when GitHub Actions can perform that check.**
 
-It does not prevent a stage from using Vercel earlier when the deployed environment itself is an explicit part of the test. That exception must be recorded with its reason.
+This rule applies to all current and future UX/IA stages and should be followed by AJM/PJ-connected implementation work whenever the validation type permits it.
 
-## 13. Engineering authority
-
-The project execution discipline remains:
-
-**READ → INSPECT → MAP → RECONCILE → IMPLEMENT → VALIDATE → DOCUMENT → CLOSE**
-
-with:
-
-**Inspect → Reuse → Extend → Reconcile → Create**.
-
-For validation, the operational rule is:
-
-**GitHub Actions first → Codespaces/local runtime when useful → Vercel only for evidence that genuinely requires deployment.**
-
-Future agents must follow this rule without relying on conversation history.
+**End of UX / IA Validation & Deployment Governance.**

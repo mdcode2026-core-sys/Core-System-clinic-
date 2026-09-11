@@ -1,9 +1,64 @@
 # Documentation Status & Authority
 
-**Status:** ACTIVE — implementation remediation in progress; 42-scenario closure BLOCKED by documented implementation gaps  
-**Last reviewed:** 2026-08-30
+**Status:** ACTIVE — documentation reconciliation in progress; current architecture/runtime closure remains governed by its applicable evidence gates  
+**Last reviewed:** 2026-09-11
 
-This file remains the repository-wide documentation status/freshness authority. `docs/CORE_SYSTEM_INDEX.md` is the canonical navigation index for the current remediation bundle.
+This file remains the repository-wide documentation status/freshness authority. `CORE_SYSTEM_INDEX.md` is the canonical navigation index for the current remediation bundle.
+
+## 2026-09-11 Global Surfaces Documentation Reconciliation
+
+A repository-wide targeted reconciliation was performed for all documentation that defines or materially references:
+
+- Header
+- Home
+- Role Workspace / Workspace
+- My Workspace
+- Sidebar / Navigation
+- Role / Primary Work Context
+- Permissions / Entitlements
+- Widgets / Quick Actions
+- Communications / Chat / Notifications
+- My Settings
+- Patient Flow where it intersects these surfaces
+
+The canonical interpretation is recorded in:
+
+`docs/CORE-SYSTEM-GLOBAL-SURFACES-CANONICAL-RECONCILIATION-2026-09-11.md`
+
+### Canonical relationship
+
+```text
+Primary Role / Job Function
+        ↓
+Primary Work Context / Classification
+        ↓
+Role Workspace
+
+Effective Permissions
+        ↓
+Authorized Domains / Capabilities
+        ├── Sidebar
+        ├── Widgets
+        └── My Workspace
+
+Home = independent global starting / awareness surface
+Header = persistent global access layer
+My Settings = personal account/preferences destination
+```
+
+### Mandatory interpretation
+
+Additional permissions do **not** redefine the user's Primary Role, Primary Work Context or Role Workspace. They may expand authorized Domains, Widgets and My Workspace content/actions.
+
+Home is independent from the primary Role Workspace and My Workspace.
+
+Clinical and Operational Workspaces remain their established primary work environments. Administrative Workspace remains separately tracked work.
+
+### Documentation dispositions
+
+Current authority/engineering documents were updated directly. Historical stage records received explicit reconciliation notices where rewriting historical facts would be misleading. A historical document must not be treated as current authority merely because it still exists in the repository.
+
+This reconciliation is documentation-only. No source/database/runtime behavior was changed by it.
 
 ## Authority
 
@@ -14,26 +69,15 @@ When documentation and implementation disagree, use:
 4. `PROJECT_HANDOFF.md`.
 5. `CHANGELOG.md`.
 6. Historical reports only as evidence.
-7. `GLOBAL_UX_IA_FINAL_AUTHORITY_2026-08-28.md` as current UX/IA authority.
-8. For implementation-document remediation requirements, `docs/CROSS-DOMAIN-IMPLEMENTATION-CONTRACTS-2026-08-30.md` and its linked matrices are the current contract authority.
-9. For current 42-scenario reality state, `docs/IDEAL-SCENARIO-REALITY-VALIDATION-2026-08-30.md` and `docs/IDEAL-SCENARIO-IMPLEMENTATION-GAP-MATRIX-2026-08-30.md` are the evidence records.
+7. `docs/CORE-SYSTEM-GLOBAL-SURFACES-CANONICAL-RECONCILIATION-2026-09-11.md` for the current Header/Home/Role Workspace/My Workspace/Sidebar relationship.
+8. `docs/CORE-SYSTEM-TERMINOLOGY-GOVERNANCE.md` for canonical terminology.
+9. `GLOBAL_UX_IA_FINAL_AUTHORITY-2026-08-28.md` / its actual current repository equivalent as the current UX/IA authority, to be interpreted through the current reconciliation where naming overlaps.
+10. For implementation-document remediation requirements, `docs/CROSS-DOMAIN-IMPLEMENTATION-CONTRACTS-2026-08-30.md` and its linked matrices are the current contract authority.
+11. For current scenario reality state, the applicable current reality/evidence documents are authoritative for their defined scope.
 
 ## Current remediation bundle
 
-- `docs/CORE_SYSTEM_INDEX.md`
-- `docs/IDEAL-OPERATIONAL-ARCHITECTURE-AUDIT-2026-08-30.md`
-- `docs/IDEAL-OPERATIONAL-SCENARIOS-2026-08-30.md`
-- `docs/IDEAL-SCENARIO-TRACEABILITY-MATRIX-2026-08-30.md`
-- `docs/CORE-SYSTEM-SCENARIO-REGISTER-2026-08-30.md`
-- `docs/IMPLEMENTATION-DOCUMENT-REMEDIATION-PLAN-2026-08-30.md`
-- `docs/IMPLEMENTATION-DOCUMENT-REMEDIATION-RUNBOOK-2026-08-30.md`
-- `docs/CROSS-DOMAIN-IMPLEMENTATION-CONTRACTS-2026-08-30.md`
-- `docs/IMPLEMENTATION-DOCUMENT-REMEDIATION-MASTER-MATRIX-2026-08-30.md`
-- `docs/FINAL-IMPLEMENTATION-DOCUMENTATION-REMEDIATION-REPORT-2026-08-30.md`
-- `docs/IDEAL-SCENARIO-IMPLEMENTATION-GAP-MATRIX-2026-08-30.md`
-- `docs/IDEAL-SCENARIO-REALITY-VALIDATION-2026-08-30.md`
-- `docs/FINAL-IDEAL-SCENARIO-CLOSURE-REPORT-2026-08-30.md`
-- `docs/CORE-SYSTEM-TERMINOLOGY-GOVERNANCE.md`
+The existing remediation bundle remains active. The 2026-09-11 reconciliation documents are additional interpretation/authority documents, not replacements for unrelated domain contracts.
 
 ## Documentation remediation state
 
@@ -49,14 +93,10 @@ When documentation and implementation disagree, use:
 - R09 — Communication → Request → Work: DOCUMENTATION CLOSED; implementation exists; validation pending.
 - R10 — Domain Event → Coordination → Authorized Actor → Completion: DOCUMENTATION CLOSED; permission repair applied; universal event handoff blocker remains.
 - R11 — Skill / Qualification / Permission: DOCUMENTATION CLOSED; implementation foundation added; seeded/E2E validation pending.
-- Ideal scenarios: 42/42 documentary traceability closed; 0/42 runtime-validated; 17 currently blocked.
-- Difficult scenarios: 60 preserved and deferred.
 
 ## Current production-readiness gate
 
 `Production SHA = final main SHA` remains mandatory for Production Readiness. Deployment success or a READY deployment does not prove scenario validation.
-
-The 2026-08-30 AJM Final Production Closure remains a separate production blocker record and is retained as such.
 
 ## Findings governance
 
@@ -64,12 +104,14 @@ Every warning, defect, security issue or architecture conflict must be investiga
 
 ## PJ / AJM state
 
-PJ status remains governed by PJ-MASTER-DOCS and current implementation records. AJM status remains governed by current AJM status/acceptance records. This phase may implement repairs covered by existing contracts but must not claim scenario/runtime closure without evidence.
+PJ status remains governed by PJ-MASTER-DOCS and current implementation records. AJM status remains governed by current AJM status/acceptance records. This reconciliation does not silently change those domain statuses.
 
 ## Schema freshness
 
-`DATABASE_SCHEMA.md` remains the structural schema reference. The implementation phase added Service/Package/Offer, skill/qualification, operating-expense and supplier-obligation/payment schema extensions; `DATABASE_SCHEMA.md` must be reconciled before final 42-scenario closure.
+`DATABASE_SCHEMA.md` remains the structural schema reference and must be reconciled against live schema when affected by implementation changes.
 
 ## Maintenance rule
 
-Every new remediation document is linked from `docs/CORE_SYSTEM_INDEX.md`. Historical documentation remains preserved and does not regain authority without an explicit current decision/evidence chain.
+Every new reconciliation/authority document must be linked from `CORE_SYSTEM_INDEX.md`. Historical documentation remains preserved and does not regain current authority without an explicit current decision/evidence chain.
+
+**End of Documentation Status & Authority.**

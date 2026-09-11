@@ -2,21 +2,46 @@
 ## PRE-CODE BASELINE + IMPACT MAP + DEPENDENCY / EXECUTION ORDER
 ### 2026-09-01
 
-**Status:** PRE-CODE — NO CODE EXECUTION AUTHORIZED
-**Baseline commit:** `e1c119a290d34c16a7678e44d2361cefb213bacc`
-**Architecture authority:** `docs/ARCHITECTURE-DECISIONS-WORKSPACE-PATIENT-FLOW-2026-09-01.md`
-**Engineering authority:** `docs/ENGINEERING-SPEC-WORKSPACE-PATIENT-FLOW-2026-09-01.md`
+**Status:** PRE-CODE — HISTORICAL BASELINE — RECONCILED 2026-09-11  
+**Baseline commit:** `e1c119a290d34c16a7678e44d2361cefb213bacc`  
+**Architecture authority:** `docs/ARCHITECTURE-DECISIONS-WORKSPACE-PATIENT-FLOW-2026-09-01.md`  
+**Current surface interpretation:** `docs/CORE-SYSTEM-GLOBAL-SURFACES-CANONICAL-RECONCILIATION-2026-09-11.md`  
+**Engineering authority:** `docs/ENGINEERING-SPEC-WORKSPACE-PATIENT-FLOW-2026-09-01.md`  
 **Execution plan:** `docs/IMPLEMENTATION-PLAN-WORKSPACE-PATIENT-FLOW-FULL-2026-09-01.md`
+
+> **2026-09-11 reconciliation notice:** This record preserves the 2026-09-01 pre-code baseline. Generic references to “Workspace” must now be read using the explicit separation of Role Workspace, My Workspace and Home. The historical baseline is evidence; the 2026-09-11 canonical reconciliation is the current interpretation authority.
 
 ## 1. Purpose
 
-This document is the pre-code baseline. It records what is demonstrably present in `main`, what is historically evidenced, what must be inspected/reconciled, and the dependency order that must be followed before any official source-code modification.
+This document is the pre-code baseline. It records what was demonstrably present in `main`, what was historically evidenced, what must be inspected/reconciled, and the dependency order that must be followed before official source-code modification.
 
-It does not authorize implementation and does not declare any existing behavior obsolete merely because it is not yet mapped.
+It does not authorize implementation and does not declare any existing behavior obsolete merely because it was not yet mapped.
 
-## 2. Baseline truth
+## 2. Canonical interpretation for this baseline
 
-### 2.1 Repository state
+```text
+Primary Role / Job Function
+        ↓
+Primary Work Context / Classification
+        ↓
+Role Workspace
+
+Effective Permissions
+        ↓
+Authorized Domains / Capabilities
+        ├── Sidebar
+        ├── Widgets
+        └── My Workspace
+
+Home = independent global starting / awareness surface
+Header = persistent global access layer
+```
+
+Additional permissions do not redefine Role, Primary Work Context or Role Workspace. They may expand Sidebar, Widgets and My Workspace content.
+
+## 3. Baseline truth
+
+### 3.1 Repository state
 
 The inspected `main` commit is:
 
@@ -24,7 +49,7 @@ The inspected `main` commit is:
 
 The repository contains dedicated feature areas including dashboard, doctor, patient-flow, patient-context, patients, reception, agenda, followup, inventory, invoicing, medical-files, patient-portal and other Domains. These are evidence that Workspace work must be reconciled with existing feature/domain boundaries rather than implemented as a standalone page.
 
-### 2.2 Queue / Patient Flow — verified existing implementation
+### 3.2 Queue / Patient Flow — verified existing implementation
 
 The Queue domain currently contains:
 
@@ -37,7 +62,7 @@ The Queue domain currently contains:
 
 `workspace.actions.ts` is server-side and currently resolves tenant/user context, obtains effective permissions, calls `queueEngine.validateTransition`, updates `clinic_visit_sessions`, and revalidates Workspace/Queue paths. It contains explicit operation/clinical workspace contexts and Patient Flow contexts. This is an existing canonical dependency and must be preserved/reconciled, not replaced by a new workflow engine.
 
-### 2.3 Patient Flow board — verified existing implementation
+### 3.3 Patient Flow board — verified existing implementation
 
 `src/features/patient-flow/PatientFlowBoard.tsx` currently:
 
@@ -54,19 +79,19 @@ This is direct evidence that drag-and-drop is an existing Patient Flow interacti
 
 The current board must therefore be treated as **REUSE / RECONCILE**, with the exact future Workspace presentation determined by the approved architecture and the existing workflow contracts.
 
-### 2.4 Existing clinical/operational distinction
+### 3.4 Existing clinical/operational distinction
 
-The current execution contains explicit `operation` and `clinical` workspace contexts in server actions and explicit `operations` and `clinical` Patient Flow contexts in the board. This is internal workflow context and must not be confused with the ordinary user's visible Workspace name or with Role.
+The current execution contains explicit `operation` and `clinical` workspace contexts in server actions and explicit `operations` and `clinical` Patient Flow contexts in the board. These are internal workflow contexts and must not be confused with Role, Primary Role, or the total permissions granted to a user.
 
-### 2.5 Existing doctor-centric dependency
+### 3.5 Existing doctor-centric dependency
 
-The current Queue workspace actions still contain `doctor_id` checks and require a provider assignment before transition to `in_consultation`. This is a concrete implementation dependency that must be audited against the approved clinical-team model. It is not evidence that the architectural model should revert to doctor-as-owner.
+The current Queue workspace actions still contain `doctor_id` checks and require a provider assignment before transition to `in_consultation`. This is a concrete implementation dependency that must be audited against the approved clinical-team model. It is not evidence that the primary professional Workspace should become permission-defined.
 
-### 2.6 Existing navigation/domain surface
+### 3.6 Existing navigation/domain surface
 
 The repository contains separate feature areas for multiple full Domains. The implementation must therefore preserve Domain ownership and route identity while changing ordinary-user presentation. The existence of these features is not permission to hide them by primary classification.
 
-## 3. Baseline classification
+## 4. Baseline classification
 
 | Area | Current evidence | Baseline disposition |
 |---|---|---|
@@ -80,17 +105,17 @@ The repository contains separate feature areas for multiple full Domains. The im
 | Locks | Clinical lock checks exist | KEEP / AUDIT |
 | Effective permissions | Existing server-side permission resolution | KEEP / AUDIT |
 | Tenant scoping | Existing tenant filters in workspace actions | KEEP / AUDIT |
-| Home | Existing dashboard/home area must be mapped completely | INSPECT / RECONCILE |
-| Header/Search | Existing shell/search must be mapped completely | INSPECT / RECONCILE |
-| Sidebar | Existing navigation registry/renderer must be mapped completely | INSPECT / RECONCILE |
-| Workspace presentation | Existing operation/clinical paths must be mapped | INSPECT / RECONCILE |
-| My Workspace | Existing widget architecture must be mapped | INSPECT / RECONCILE |
-| My Settings | Existing user settings must be mapped | INSPECT / RECONCILE |
-| Clinic Admin | Existing administration center must be mapped separately | PRESERVE / AUDIT |
+| Home | Existing Home area and data sources | INSPECT / RECONCILE as independent global surface |
+| Header/Search | Existing global shell/search | INSPECT / RECONCILE |
+| Sidebar | Existing navigation registry/renderer | INSPECT / RECONCILE as authorization-driven navigation |
+| Role Workspace | Existing operation/clinical work contexts/routes | PRESERVE / RECONCILE |
+| My Workspace | Existing widget architecture/personalization | PRESERVE / RECONCILE as personal surface |
+| My Settings | Existing user settings | PRESERVE / RECONCILE |
+| Clinic Admin | Existing administration center | PRESERVE / AUDIT |
 | Domain routes | Multiple feature areas exist | PRESERVE / AUTHORIZATION AUDIT |
 | Visit/room/procedure | Existing/future domain dependencies | MAP / DO NOT DUPLICATE |
 
-## 4. Critical findings before code
+## 5. Critical findings before code
 
 ### Finding B-01 — Drag & Drop is existing behavior
 
@@ -106,13 +131,21 @@ The current Patient Flow board implements native drag/drop and calls the canonic
 
 ### Finding B-04 — Existing Patient Flow UI exposes classification labels
 
-The current Patient Flow board explicitly renders Operations / Clinical / Administrative. This does not establish that ordinary-user Workspace must display those classifications. It is evidence of existing internal/admin/workflow presentation that must be reconciled with the new ordinary-user Workspace semantics.
+The current Patient Flow board explicitly renders Operations / Clinical / Administrative. This does not establish that the ordinary-user Role Workspace should expose those internal classifications as Role identity. It is evidence of existing workflow presentation that must be reconciled with the ordinary-user surface model.
 
-### Finding B-05 — Current execution plan had Drag & Drop explicitly under My Workspace
+### Finding B-05 — Workspace personalization and Patient Flow drag/drop are distinct
 
-The execution plan contains Drag & Drop under My Workspace widget personalization. That is separate from the verified Patient Flow drag/drop behavior. The two must not be conflated.
+The execution plan contains drag/drop under personal Widget arrangement while Patient Flow separately implements drag/drop for patient movement. They must never be treated as the same interaction/state owner.
 
-## 5. Impact Map
+### Finding B-06 — Home / Role Workspace / My Workspace separation must be explicit
+
+The historical implementation used shared Workspace infrastructure for more than one product surface. Current architecture requires explicit separation of Home, Role Workspace and My Workspace even where infrastructure may be reused.
+
+### Finding B-07 — Additional permissions are not a Workspace reclassification
+
+A user may receive cross-context permissions without changing primary Role Workspace. This relationship must be tested in implementation and documentation.
+
+## 6. Impact Map
 
 ### I-01 Shell / navigation
 
@@ -124,23 +157,23 @@ The execution plan contains Drag & Drop under My Workspace widget personalizatio
 
 **Must preserve:** existing Domain routes and shell architecture.
 
-### I-02 Workspace context
+### I-02 Role Workspace context
 
-**Affected:** workspace registry/resolution, operation/clinical paths, ordinary-user landing behavior.
+**Affected:** workspace registry/resolution, operation/clinical paths, ordinary-user Workspace destination.
 
-**Depends on:** user membership/default context, effective permissions, Patient Flow state.
+**Depends on:** Primary Work Context, user assignment/default context, Patient Flow state.
 
-**Can break:** role/context confusion, cross-context authorized Domains, clinical/operational work routing.
+**Can break:** Role/Workspace confusion, incorrect primary work routing.
 
-**Must preserve:** one canonical Workspace model and existing useful workflow surfaces.
+**Must preserve:** one canonical primary Role Workspace model.
 
 ### I-03 My Workspace / Widgets
 
 **Affected:** widget registry, renderer, persistence, defaults, personalization.
 
-**Depends on:** effective capabilities and Workspace surface.
+**Depends on:** effective capabilities and presentation surface.
 
-**Can break:** authorization leakage, widget persistence, Home/Workspace separation.
+**Can break:** authorization leakage, widget persistence, Home/Role Workspace separation.
 
 **Must preserve:** personalization as presentation only.
 
@@ -162,7 +195,7 @@ The execution plan contains Drag & Drop under My Workspace widget personalizatio
 
 **Can break:** clinical handoff and medical context.
 
-**Must preserve:** existing clinical workflow semantics while removing unjustified doctor-only presentation assumptions.
+**Must preserve:** existing clinical workflow semantics; do not turn cross-domain permission expansion into clinical-surface redesign.
 
 ### I-06 Operational Workspace
 
@@ -202,11 +235,11 @@ The execution plan contains Drag & Drop under My Workspace widget personalizatio
 
 **Can break:** clinic configuration and administrative oversight.
 
-**Must preserve:** separate Clinic Admin model; never force it through ordinary-user Workspace behavior.
+**Must preserve:** separate Clinic Admin model; never force it through ordinary-user Home/Workspace/My Workspace behavior.
 
 ### I-10 Data / persistence
 
-**Affected:** workspace membership/default data, sessions, widget state, audit, migrations/RLS.
+**Affected:** workspace assignment/default data, sessions, widget state, audit, migrations/RLS.
 
 **Depends on:** existing live schema and migration history.
 
@@ -214,7 +247,7 @@ The execution plan contains Drag & Drop under My Workspace widget personalizatio
 
 **Must preserve:** reuse-first principle and no duplicate core tables.
 
-## 6. Dependency graph
+## 7. Dependency graph
 
 ```text
 Authentication / Tenant
@@ -227,43 +260,37 @@ Canonical Patient Flow / Queue
         ↓
 Visit / Session / Provider / Room / Procedure context
         ↓
-Workspace Context Resolution
+Primary Work Context Resolution
         ↓
-┌─────────────────────────────────────┐
-│                                     │
-├── Global Shell / Home / Sidebar     │
-├── Clinical Workspace                │
-├── Operational Workspace             │
-└── My Workspace / Widgets            │
+Role Workspace
         ↓
-Domain contextual navigation/actions
-        ↓
-Server mutation / RLS / audit
-        ↓
-Revalidation / subscriptions
-        ↓
-Runtime / E2E evidence
+My Workspace / Widgets
+
+Separately:
+Home = global starting / awareness surface
+Header = global access layer
+Sidebar = authorized navigation
 ```
 
-**Important:** Home and Sidebar depend on authorization and authoritative data, but they must not become Patient Flow owners. Clinical and Operational Workspace depend on Patient Flow rather than replacing it.
+Home and Sidebar consume authorization and authoritative data but do not become Patient Flow owners. Role Workspace and My Workspace consume work context/permissions but do not redefine authorization.
 
-## 7. Dependency / execution order
+## 8. Dependency / execution order
 
 ### W0 — Freeze and evidence capture
 
-Record the baseline commit, inventory affected code/docs/data, and capture current behavior. No source modification.
+Record baseline commit, inventory affected code/docs/data, and capture current behavior. No source modification.
 
 ### W1 — Canonical context and authorization audit
 
-Resolve and document Workspace context, Role separation, effective permissions and existing route guards before changing presentation.
+Resolve and document Primary Work Context, Role separation, effective permissions and existing route guards before changing presentation.
 
 ### W2 — Queue / Patient Flow contract verification
 
-Verify transitions, locks, handoff, drag/drop, subscriptions, revalidation and server authorization. This is the foundation for both Clinical and Operational Workspace.
+Verify transitions, locks, handoff, drag/drop, subscriptions, revalidation and server authorization.
 
 ### W3 — Clinical and Operational Workspace reconciliation
 
-Reconcile existing operation/clinical surfaces with the single Workspace concept. Preserve existing drag/drop behavior. Remove only conflicting presentation/ownership assumptions. Do not redesign future Room/Procedure workflows.
+Preserve existing clinical/operational work behavior. Ensure Role Workspace remains primary professional context and is not recomputed from additional permissions.
 
 ### W4 — Patient/Visit context integration
 
@@ -271,33 +298,33 @@ Ensure clinical/operational work surfaces consume canonical patient/session/visi
 
 ### W5 — Shell / Home / Sidebar / Search
 
-Implement the ordinary-user shell against the already-established Workspace and authorization contracts. Ensure Home remains informational and Sidebar remains authorization-driven.
+Implement the ordinary-user shell against the established primary Role Workspace and authorization contracts. Keep Home independent and Sidebar authorization-driven.
 
 ### W6 — My Workspace / Widgets
 
-Connect default and personalized widgets to the established Workspace and permission model. Keep widget drag/drop distinct from Patient Flow drag/drop.
+Connect default and personalized widgets to the established Role Workspace + effective permission model. Keep Widget drag/drop distinct from Patient Flow drag/drop.
 
 ### W7 — Domain integration and regression
 
-Validate every authorized Domain, route, action and contextual entry point against the unchanged Domain ownership model.
+Validate every authorized Domain, route, action and contextual entry point against unchanged Domain ownership.
 
 ### W8 — Database/RLS only where proven necessary
 
-After the application dependency map is stable, make only schema changes that are demonstrably required. Validate live/repo migration parity before applying anything.
+After the dependency map is stable, make only schema changes demonstrably required. Validate live/repo migration parity before applying anything.
 
 ### W9 — Runtime / E2E validation
 
-Run clinical, operational, mixed-permission, search, Home, My Workspace, Domain and Clinic Admin scenarios end-to-end.
+Run clinical, operational, mixed-permission, search, Home, My Workspace, Domain, Header and Clinic Admin scenarios end-to-end.
 
 ### W10 — Production closure
 
 Only after all evidence is green may implementation be declared complete.
 
-## 8. Required evidence before each code phase
+## 9. Required evidence before each code phase
 
 ### Before W1
 
-- complete Workspace/Role/permission inventory;
+- complete Role / Primary Work Context / Workspace / permission inventory;
 - complete ordinary-user route inventory;
 - Clinic Admin route inventory.
 
@@ -316,7 +343,7 @@ Only after all evidence is green may implementation be declared complete.
 
 ### Before W5
 
-- Home widget/data-source inventory;
+- Home information/data-source inventory;
 - Header/Search inventory;
 - Sidebar registry inventory;
 - i18n/RTL/mobile baseline.
@@ -325,7 +352,8 @@ Only after all evidence is green may implementation be declared complete.
 
 - Widget registry and persistence inventory;
 - default widget source;
-- permission/capability mapping.
+- permission/capability mapping;
+- distinction between Role Workspace and My Workspace.
 
 ### Before W8
 
@@ -333,13 +361,11 @@ Only after all evidence is green may implementation be declared complete.
 - affected table/RLS map;
 - proof that existing schema cannot safely satisfy the requirement.
 
-## 9. No-code-change status
+## 10. No-code-change status
 
-This baseline and impact analysis introduces no source-code modification. The only repository change in this step is this pre-code documentation artifact.
+This baseline and impact analysis introduces no source-code modification. No implementation phase W1–W10 is authorized by this document alone.
 
-No implementation phase W1–W10 is authorized by this document alone.
-
-## 10. Exit criteria for PRE-CODE
+## 11. Exit criteria for PRE-CODE
 
 The next step may be authorized only when:
 
@@ -349,6 +375,6 @@ The next step may be authorized only when:
 - dependency order is accepted;
 - no critical dependency is being guessed;
 - historical valid behavior is protected;
-- implementation scope remains limited to the approved 2026-09-01 architectural decisions and their necessary engineering realization.
+- implementation scope remains limited to approved architecture and necessary engineering realization.
 
 **End of PRE-CODE Baseline / Impact / Order.**

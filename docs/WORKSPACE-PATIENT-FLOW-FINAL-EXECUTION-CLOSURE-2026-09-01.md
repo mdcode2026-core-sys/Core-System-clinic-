@@ -1,36 +1,48 @@
 # CORE SYSTEM — Workspace × Patient Flow
 ## Final Execution Closure — 2026-09-01
 
-**Scope:** approved `ARCHITECTURE-DECISIONS-WORKSPACE-PATIENT-FLOW-2026-09-01.md` decisions and their required integrated implementation.
-**Branch:** `main`
-**Final candidate:** `2364113e7225867c22e472fce19b2d1590ba58ba`
-**Database changes:** none in this execution.
+**Scope:** approved `ARCHITECTURE-DECISIONS-WORKSPACE-PATIENT-FLOW-2026-09-01.md` decisions and their required integrated implementation.  
+**Historical candidate:** `2364113e7225867c22e472fce19b2d1590ba58ba`  
+**Database changes in this execution:** none  
+**Current interpretation:** `docs/CORE-SYSTEM-GLOBAL-SURFACES-CANONICAL-RECONCILIATION-2026-09-11.md`
+
+> **2026-09-11 reconciliation notice:** This closure record documents a historical implementation candidate. Its statements about generic Workspace surfaces must now be interpreted using the current separation: **Role Workspace = primary professional work environment; My Workspace = personal working/presentation surface; Home = independent global starting/awareness surface; Sidebar = complete authorized navigation; Header = persistent global access.** The historical use of a shared `global` Widget surface does not define the current product architecture.
 
 ## 1. Execution result
 
-The implementation work on `main` was re-checked against the pre-code baseline, impact map, dependency order, repository implementation, historical implementation evidence, live Supabase state, and the latest Vercel production candidate.
+The 2026-09-01 implementation work on the historical `main` candidate was re-checked against its pre-code baseline, impact map, dependency order, repository implementation, historical implementation evidence, live Supabase state, and the then-current Vercel production candidate.
 
-The resulting implementation covers the approved Workspace/Patient Flow surface model without introducing a second authorization engine, second Queue engine, second Patient Flow state machine, or duplicate Domain ownership.
+The resulting implementation covered the approved Workspace/Patient Flow surface model without introducing a second authorization engine, second Queue engine, second Patient Flow state machine, or duplicate Domain ownership.
+
+Current product interpretation remains governed by the 2026-09-11 canonical reconciliation.
 
 ## 2. W0 — Freeze + Evidence
 
-Baseline and impact map were frozen before the implementation sequence. Historical behavior was treated as evidence and reusable implementation, not as disposable legacy.
+Baseline and impact map were frozen before the historical implementation sequence. Historical behavior was treated as evidence and reusable implementation, not as disposable legacy.
 
 Confirmed historical Clinical and Operational Drag & Drop behavior is preserved/reconciled rather than treated as a new requirement.
 
 ## 3. W1 — Workspace Context + Authorization
 
-`src/core/workspace/currentWorkspace.ts` explicitly resolves assigned Workspace from `clinic_user_workspaces` and does not infer Workspace from Role, job title, or permissions.
+The historical implementation used `src/core/workspace/currentWorkspace.ts` to resolve assigned Workspace from `clinic_user_workspaces` and did not intentionally infer Workspace from Role, job title, or permissions.
 
-Permissions remain capabilities inside the assigned Workspace; Workspace itself is not an authorization boundary.
+Current interpretation now requires the primary relationship to be explicit:
+
+```text
+Primary Role / Job Function
+        ↓
+Primary Work Context / Classification
+        ↓
+Role Workspace
+```
+
+Permissions remain capabilities inside/alongside the assigned work context; Workspace itself is not an authorization boundary.
 
 ## 4. W2 — Queue + Patient Flow
 
 Existing Queue and Patient Flow remain canonical. The current code continues to use the existing queue queries/actions and canonical session state transitions.
 
-Live production data was inspected without mutation. Current `clinic_visit_sessions` contains records across `waiting`, `in_consultation`, `pending_close`, `completed`, `cancelled`, and `no_show` states.
-
-No migration or schema modification was performed in this execution.
+Live production data was inspected without mutation at the historical closure point. No migration or schema modification was performed in that execution.
 
 ## 5. W3 — Clinical + Operational Workspace
 
@@ -42,31 +54,35 @@ Operational Workspace contains Queue lanes for waiting, clinical work, pending c
 
 The implementation does not replace the underlying domains with Workspace-local state.
 
+These two established primary work environments remain preserved; this 2026-09-11 reconciliation does not redesign them.
+
 ## 6. W4 — Patient / Visit Context
 
 Clinical Workspace uses the canonical visit/session and patient identifiers and integrates with existing Medical Files, Treatment Plans and Follow-up routes. Contextual navigation does not create replacement domain ownership.
 
 ## 7. W5 — Shell + Home + Sidebar + Search
 
-The authenticated shell contains the approved global header controls including Global Search, language, branding and user presentation.
+The historical authenticated shell contained the approved global header controls including Global Search, language, branding and user presentation.
 
-Home is the ordinary-user landing surface and is separate from Workspace. It exposes daily clinic context using existing appointment and Queue data sources.
+Home was the ordinary-user landing surface and separate from Workspace at the conceptual level. Current interpretation further clarifies that Home is independent from both Role Workspace and My Workspace and may serve as a broader global starting/awareness surface.
 
-Sidebar contains the conceptual ordinary-user order:
+Sidebar contained the conceptual ordinary-user order:
 
 `Home → Workspace → My Workspace → authorized Domains → My Settings`
 
-Patient Flow remains contextual rather than a normal ordinary-user Sidebar Domain in the current registry.
+Patient Flow remains contextual/independently governed and must not be inferred from a primary Role Workspace alone.
 
 Global Search remains a system-wide capability and is separate from Home and Workspace.
 
 ## 8. W6 — My Workspace + Widgets
 
-`/my-workspace` is a distinct personal surface using the global Widget surface.
+The historical implementation used the shared Widget surface for `/my-workspace` and recorded personal customization state. Current product interpretation explicitly treats this as **My Workspace**, not as Home.
 
 The Widget system supports default selection, add/remove, reorder and Drag & Drop ordering, reset-to-defaults and permission-aware availability. Personalization changes presentation only and does not grant authorization.
 
 Current Widget registry includes Quick Registration, Quick Appointment, Queue, Follow-up, Medical Files, Billing Summary and Analytics Overview with explicit workspace/capability metadata.
+
+A technical `global` key used by the historical renderer must not be interpreted as making Home and My Workspace the same product surface.
 
 ## 9. W7 — Domain Integration
 
@@ -74,85 +90,49 @@ Existing Domains remain authoritative. Workspace surfaces consume Domain capabil
 
 Authorized Domains outside a user's primary work classification remain independently visible through normal Sidebar authorization filtering.
 
+Additional permissions may expand Sidebar and My Workspace content without changing Role Workspace.
+
 ## 10. W8 — Database / RLS
 
-No database write was performed.
+No database write was performed by the historical implementation.
 
-Live Supabase verification returned:
+Live Supabase verification at that time returned the recorded historical counts. Those counts are historical evidence and must not be reused as current counts without revalidation.
 
-- `clinic_user_workspaces`: 9 rows;
-- `clinic_visit_sessions`: 63 rows;
-- `role_permissions`: 235 rows;
-- `clinic_user_permission_overrides`: 0 rows.
-
-Workspace assignments currently include 4 administration defaults, 4 clinical defaults and 1 operation default.
-
-No production data was deleted or modified.
+No production data was deleted or modified by that execution.
 
 ## 11. W9 — Runtime / E2E
 
-Latest `main` candidate is deployed to Vercel Production and is `READY`.
+The historical candidate was deployed to Vercel Production and was `READY` at the time of the record.
 
-The production build completed successfully, including TypeScript and static generation. The deployment currently exposes the expected Workspace, My Workspace, Clinical, Operation, Patient Flow and Domain routes.
+The production build completed successfully, including TypeScript and static generation. The deployment exposed the expected historical Workspace, My Workspace, Clinical, Operation, Patient Flow and Domain routes.
 
-Vercel runtime error aggregation reports no runtime errors in the checked production window.
-
-Authenticated browser click-through could not be independently completed through the available Vercel URL interface because the deployment is protected by Vercel SSO. Therefore this record does not falsely claim a full authenticated browser E2E certificate.
+Authenticated browser click-through could not be independently completed through the available Vercel URL interface because the deployment was protected by Vercel SSO. Therefore this record does not falsely claim a full authenticated browser E2E certificate.
 
 ## 12. W10 — Production Closure
 
-The approved Workspace/Patient Flow implementation work is closed from the engineering side. No new architectural decision blocker was created.
+The historical approved Workspace/Patient Flow implementation work was recorded as closed from the engineering side. That historical closure must not be read as proof that every current UI relationship is final; subsequent product clarification requires current Home/Role Workspace/My Workspace/Header/Sidebar reconciliation and current runtime verification before declaring a new UI state closed.
 
-The following diagnostics remain explicitly recorded rather than hidden:
-
-### D1 — Pre-existing Next/Vercel chunk warnings
-
-The production build reports two circular chunk dependency warnings:
-
-- `Circular dependency between chunks with runtime (compute, webpack)`
-- `Circular dependency between chunks with runtime (compute, webpack-runtime)`
-
-The same warnings were present in the baseline deployment at commit `08b9960`; they are therefore not attributable to the Workspace/Patient Flow changes in this execution.
-
-### D2 — Pre-existing npm install-script warnings
-
-Vercel reports pending install scripts for:
-
-- `core-js-pure@3.50.0`
-- `unrs-resolver@1.12.2`
-
-These were also present in the baseline deployment and were not introduced by this execution. No package approval change was made because doing so would alter dependency/security policy outside the approved scope.
-
-### D3 — Historical AJM audit references missing from current main
-
-The existing `tools/ajm-integrated-static-audit.mjs` still references historical records that were intentionally neutralized in an earlier reconciliation cycle. Current `main` therefore produces missing-document diagnostics for the historical AJM/UX/PJ execution records.
-
-These were not deleted by the Workspace/Patient Flow implementation. The historical files remain recoverable from their original commits, but restoring them unchanged would reintroduce superseded execution authority. They are therefore recorded as historical-governance diagnostics rather than silently recreated.
+The diagnostics recorded by the historical closure remain historical evidence and are not automatically current defects.
 
 ## 13. Architecture decision status
 
-No new architectural decision was created by implementation.
+No new architectural decision was created by the historical implementation.
 
-No approved 2026-09-01 Workspace/Patient Flow decision was intentionally deferred, removed or replaced.
-
-Engineering choices were limited to implementation mechanisms required to realize the approved behavior.
+The current binding interpretation is the 2026-09-11 canonical reconciliation together with the 2026-09-01 approved architecture.
 
 ## 14. User acceptance handoff
 
-Engineering closure is complete. The remaining activity is the owner's real-world acceptance check, not another autonomous architecture or implementation cycle.
+The historical acceptance sequence remains useful as evidence, but current acceptance must additionally verify:
 
-The acceptance sequence is:
+1. Home is distinct from Role Workspace and My Workspace.
+2. Role Workspace remains stable when additional permissions are granted.
+3. Additional authorized Domains remain visible in Sidebar without changing primary Role Workspace.
+4. My Workspace personalization remains separate from Home and does not alter authorization.
+5. Header global access remains persistent.
+6. Communications, compact Chat and Notifications maintain their distinct meanings when implemented.
+7. Shared workstation Login → Logout → Login preserves actor attribution.
+8. Clinical and Operational Workspaces retain their established work behavior.
+9. Clinic Admin remains distinct from the ordinary-user presentation model.
+10. Any discrepancy is classified against the current canonical architecture before code changes are proposed.
 
-1. Sign in as the ordinary Clinical user.
-2. Verify Home first.
-3. Open Sidebar and verify `Home → Workspace → My Workspace → authorized Domains → My Settings`.
-4. Verify Clinical Workspace and Clinical Drag & Drop against a real waiting patient.
-5. Verify Operational Workspace and Operational Drag & Drop.
-6. Verify `pending_close → operational → completed`.
-7. Verify a user with an authorized Domain outside primary classification still sees that Domain normally.
-8. Verify My Workspace personalization does not change permissions.
-9. Verify Global Search from the authenticated shell.
-10. Verify My Settings.
-11. Separately verify Clinic Admin remains in its administrative surface and is not forced into the ordinary-user Workspace model.
-
-Any observed discrepancy must first be classified against the architecture decision matrix before any code change is made.
+**End of historical closure record.**

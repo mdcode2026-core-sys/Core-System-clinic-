@@ -5,7 +5,36 @@
 **Status:** CURRENT — MANDATORY FOR UX/IA STAGES  
 **Related authority:** `GLOBAL_UX_IA_FINAL_AUTHORITY_2026-08-28.md`  
 **Related plan:** `docs/GLOBAL-UX-IA-IMPLEMENTATION-PLAN-2026-08-28-FINAL.md`  
-**Operational governance:** `docs/UX-IA-VALIDATION-GOVERNANCE.md`
+**Operational governance:** `docs/UX-IA-VALIDATION-GOVERNANCE.md`  
+**Current surface interpretation:** `docs/CORE-SYSTEM-GLOBAL-SURFACES-CANONICAL-RECONCILIATION-2026-09-11.md`
+
+## 0. Canonical surface validation interpretation
+
+Every UX/IA validation run involving these surfaces must explicitly preserve the following relationships:
+
+```text
+Primary Role / Job Function
+        ↓
+Primary Work Context / Classification
+        ↓
+Role Workspace
+
+Effective Permissions
+        ↓
+Authorized Domains / Capabilities
+        ├── Sidebar
+        ├── Widgets
+        └── My Workspace
+
+Home = independent global starting / awareness surface
+Header = persistent global access layer
+```
+
+Validation must include a mixed-permission user scenario. Granting additional operational, financial, administrative or reporting permissions to a Clinical-primary user must not change the user's Primary Role, Primary Work Context or Role Workspace.
+
+My Workspace personalization may expose permitted cross-context tools/widgets, while Sidebar remains complete authorized navigation.
+
+Technical identifiers such as `global` must not be used as evidence that Home and My Workspace are the same product surface.
 
 ## 1. Validation ladder
 
@@ -103,7 +132,39 @@ Vercel deployment justification:
 - Reason: <specific runtime evidence required>
 ```
 
-## 8. Non-negotiable rule
+## 8. Required global-surface acceptance scenarios
+
+Where an applicable UX/IA stage touches these surfaces, validation must include:
+
+### Role Workspace stability
+
+Clinical-primary user + additional Financial/Operational/Administrative/Reporting permission → primary Role Workspace remains Clinical.
+
+### My Workspace separation
+
+Changing My Workspace widget arrangement does not alter Role Workspace, Role, Sidebar authorization or Patient Flow ownership.
+
+### Sidebar independence
+
+An authorized Domain outside Primary Work Context remains visible under its normal Domain identity.
+
+### Home independence
+
+Home remains a global starting/awareness surface and does not become the Role Workspace or My Workspace merely because they share implementation infrastructure.
+
+### Header persistence
+
+Global Search and other approved global Header controls remain consistently accessible from major authenticated surfaces.
+
+### Shared workstation
+
+User A → Logout → User B login → subsequent actions are attributable to User B.
+
+### Communications / Chat / Notifications
+
+Where implemented, Communications access, compact Chat and Notifications must remain distinct interaction surfaces backed by their authoritative domains. Chat must not introduce a parallel communication store.
+
+## 9. Non-negotiable rule
 
 > **Never use Vercel as the first compiler, linter, build checker, or deterministic source-error detector when GitHub Actions can perform that check.**
 

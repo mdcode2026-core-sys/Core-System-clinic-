@@ -1,12 +1,43 @@
 # PROJECT_HANDOFF.md
 
-**Project:** CORE SYSTEM — ClinicSaaS™
-**Status:** ACTIVE / Stages 12–15 validated through documentation candidate; final Production SHA gate PENDING
-**Last Updated:** 2026-09-03
+**Project:** CORE SYSTEM — ClinicSaaS™  
+**Status:** ACTIVE / Stages 12–15 validated through documentation candidate; final Production SHA gate PENDING  
+**Last Updated:** 2026-09-11
 
 ## Current Global UX/IA State
 
-Stages 0–11 remain governed by their existing records and the Global UX/IA Final Authority. Stages 12–15 extend the same architecture and do not replace AJM, PJ, Agenda, Patient Flow, authorization, entitlement or Workspace ownership.
+Stages 0–11 remain governed by their existing records and the Global UX/IA authority. Stages 12–15 extend the same architecture and do not replace AJM, PJ, Agenda, Patient Flow, authorization, entitlement or Workspace ownership.
+
+### Canonical 2026-09-11 surface clarification
+
+The current model is:
+
+```text
+Primary Role / Job Function
+        ↓
+Primary Work Context / Classification
+        ↓
+Role Workspace
+
+Effective Permissions
+        ↓
+Authorized Domains / Capabilities
+        ├── Sidebar
+        ├── Widgets
+        └── My Workspace
+
+Home = independent global starting / awareness surface
+Header = persistent global access layer
+My Settings = Sidebar personal/account destination
+```
+
+Additional permissions do not redefine Primary Role, Primary Work Context or Role Workspace. A Clinical-primary user remains in Clinical Role Workspace after receiving authorized Financial, Operational, Administrative, Reporting or other permissions; those capabilities may appear through Sidebar, Widgets and My Workspace.
+
+My Workspace is the personal working/presentation surface associated with the user's primary Role Workspace. It is not another role workspace and not an authorization layer.
+
+Home is independent from Role Workspace and My Workspace. It may contain global/daily awareness and lightweight utility information, but it does not own specialist workflows.
+
+The Header is persistent global access and is distinct from Home/Workspace. Global Search already belongs here. Communications access, compact Chat over the Communications domain, Notifications and global Quick Actions (initially Language and Logout) are distinct global surfaces where implemented.
 
 ### Stage 12 — Security / Permission Regression
 
@@ -51,12 +82,11 @@ Documentation is reconciled on the final Stage 15 candidate branch. It must not 
 Canonical records:
 - `docs/STAGE15-DOCUMENTATION-CLOSURE-2026-08-29.md`
 - `docs/STAGES12-15-UNRESOLVED-FINDINGS-REGISTER-2026-08-29.md`
+- `docs/CORE-SYSTEM-GLOBAL-SURFACES-CANONICAL-RECONCILIATION-2026-09-11.md`
 
 ## Findings governance
 
 Every discovered issue is investigated. Safe/authorized defects are fixed. Cross-workstream findings are documented with evidence, owner, severity and recommendation. No real defect is suppressed to make CI green.
-
-Current Stages 12–15 register: `docs/STAGES12-15-UNRESOLVED-FINDINGS-REGISTER-2026-08-29.md`.
 
 ## Architecture decisions currently binding
 
@@ -64,13 +94,19 @@ Current Stages 12–15 register: `docs/STAGES12-15-UNRESOLVED-FINDINGS-REGISTER-
 - Clinic Admin is the clinic administrator/highest clinic authority.
 - Super Admin is the platform owner/lessor.
 - Patient Portal remains subscription-controlled under `ADR-012-PATIENT-PORTAL.md`.
-- Workspace is a presentation/work surface, not a security boundary.
+- Primary Role / Primary Work Context / Role Workspace are distinct from effective permissions.
+- Role Workspace remains the user's primary professional work environment and does not change merely because additional permissions are granted.
+- My Workspace is the personal work/presentation surface associated with the primary Role Workspace.
+- Workspace is not a security boundary.
 - Patient Flow remains independent and owns canonical patient movement/Queue behavior.
 - Widget metadata/classification does not grant access.
+- Home is an independent global starting/awareness surface and is not Role Workspace or My Workspace.
+- Header is a persistent global access layer.
 - Patient Context and Global Search are presentation/orchestration surfaces.
 - Dashboard is a management/monitoring surface and does not replace Workspace or contextual Domain Overview surfaces.
 - Sidebar is an authorized entry-point surface, not a security boundary.
-- Global UX/IA authority is `GLOBAL_UX_IA_FINAL_AUTHORITY_2026-08-28.md`.
+- My Settings remains in Sidebar.
+- Global UX/IA interpretation is governed by `docs/CORE-SYSTEM-GLOBAL-SURFACES-CANONICAL-RECONCILIATION-2026-09-11.md` together with the current UX/IA authority.
 
 ## PJ / AJM
 

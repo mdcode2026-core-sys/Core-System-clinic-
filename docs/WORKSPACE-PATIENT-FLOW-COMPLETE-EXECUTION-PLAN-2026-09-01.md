@@ -1,10 +1,13 @@
 # CORE SYSTEM — COMPLETE EXECUTION PLAN
 ## Workspace × Patient Flow × Home × Search × Navigation × Widgets
-### 2026-09-01
+### 2026-09-01 — RECONCILED 2026-09-11
 
-**Status:** PRE-CODE — COMPLETE SCOPE
-**Authority:** `docs/ARCHITECTURE-DECISIONS-WORKSPACE-PATIENT-FLOW-2026-09-01.md`
-**Companion:** `docs/WORKSPACE-PATIENT-FLOW-COMPLETE-DECISION-COVERAGE-MATRIX-2026-09-01.md`
+**Status:** PRE-CODE — COMPLETE SCOPE — CANONICAL INTERPRETATION UPDATED  
+**Authority:** `docs/ARCHITECTURE-DECISIONS-WORKSPACE-PATIENT-FLOW-2026-09-01.md`  
+**Companion:** `docs/WORKSPACE-PATIENT-FLOW-COMPLETE-DECISION-COVERAGE-MATRIX-2026-09-01.md`  
+**Current surface interpretation:** `docs/CORE-SYSTEM-GLOBAL-SURFACES-CANONICAL-RECONCILIATION-2026-09-11.md`
+
+> **2026-09-11 canonical clarification:** The word “Workspace” in this historical plan must be interpreted at the correct layer. The product model distinguishes **Role Workspace** (primary professional work environment), **My Workspace** (personal working/presentation surface), **Home** (independent global starting/awareness surface), and **Sidebar** (authorization-driven navigation). Additional permissions do not redefine Role Workspace; they may expand Sidebar Domains, Widgets and My Workspace content. Header is a persistent global access layer. This clarification supersedes only ambiguous terminology; it does not remove or redesign unrelated approved work.
 
 ## 0. Scope and authority
 
@@ -40,7 +43,40 @@ Every section of the architecture decision document must have an explicit execut
 
 No section is documentation-only. Each section is traced to affected UI, workflow, domain ownership, authorization, data, persistence/API, integration, responsive/i18n behavior and acceptance testing where applicable.
 
-## 2. Pre-code truth map
+## 2. Canonical surface model
+
+The execution plan MUST use the following model:
+
+```text
+Primary Role / Job Function
+        ↓
+Primary Work Context / Classification
+        ↓
+ROLE WORKSPACE
+
+Effective Permissions
+        ↓
+Authorized Domains / Capabilities / Actions
+        ├── Sidebar
+        ├── Widgets
+        └── MY WORKSPACE
+
+HOME = independent global starting / awareness surface
+HEADER = persistent global access layer
+MY SETTINGS = personal account/preferences destination
+```
+
+The following invariants are mandatory:
+
+- Role Workspace is the primary professional work environment.
+- Additional permissions do not redefine Primary Role, Primary Work Context or Role Workspace.
+- My Workspace is personal presentation/work arrangement associated with Role Workspace.
+- Sidebar is complete authorized navigation and is not a mirror of Role Workspace.
+- Home is independent of Role Workspace and My Workspace.
+- Header is independent global access.
+- Technical `global` identifiers are implementation details and must not collapse Home and My Workspace.
+
+## 3. Pre-code truth map
 
 Before modifying source, map all affected existing behavior:
 
@@ -49,7 +85,7 @@ Before modifying source, map all affected existing behavior:
 - Home and every existing Home widget/card/data source;
 - global search and searchable records;
 - Sidebar registry, route guards and Domain registry;
-- Workspace resolution, memberships and routes;
+- Primary Work Context / Role Workspace resolution, memberships and routes;
 - My Workspace widgets, registry, defaults, persistence and personalization;
 - My Settings;
 - Role and effective-permission resolution;
@@ -64,23 +100,13 @@ Before modifying source, map all affected existing behavior:
 
 Output must be a file-by-file and data-path truth map identifying **KEEP / MODIFY / ADD / REMOVE ONLY IF PROVEN DUPLICATE OR OBSOLETE**.
 
-## 3. Home — complete implementation workstream
+## 4. Home — complete implementation workstream
 
 Home is the post-login landing page for ordinary clinic users and is not Workspace.
 
-The implementation must preserve the approved Home purpose: give the user useful general daily clinic context without becoming a second operational or clinical workflow controller.
+Home is an independent global starting/awareness surface. It may contain general daily context, global/lightweight utilities, calendar/date utility, weather/ambient information, user-selected shortcuts, optional system-managed content, and summarized actionable information that routes to authoritative work destinations.
 
-Minimum approved content categories must not be dropped:
-
-- today's appointments / counts;
-- patients waiting / daily activity;
-- reminders;
-- notifications;
-- internal messages/communications;
-- Patient Portal information;
-- Work Center information;
-- other general daily clinic context;
-- utility/ambient information such as clock/weather where retained by the approved product design.
+Home must not become a second Role Workspace, My Workspace, Work Center, full Communications surface, full Notification Center, or full Domain workflow.
 
 For **every Home information surface/widget/card**, engineering must identify:
 
@@ -100,27 +126,29 @@ For **every Home information surface/widget/card**, engineering must identify:
 - mobile/responsive behavior;
 - accessibility;
 - Patient Flow dependency, if any;
-- data freshness expectations.
+- data freshness expectations;
+- entitlement behavior where applicable.
 
-No required Home category may be silently removed because it is "only a widget". No Home element may acquire ownership of a domain workflow merely because it is displayed on Home.
+The existence of a Home category does not transfer workflow ownership from its authoritative Domain.
 
-Quick Registration and Quick Appointment must be explicitly classified and placed according to the approved Workspace/Widget model; they must not be omitted or arbitrarily moved to Home merely for convenience.
+Quick Registration and Quick Appointment are subject to the Widget/Workspace surface classification. They must not be moved to Home merely for convenience.
 
-**Acceptance:** ordinary users land on Home after login and can understand the relevant daily clinic context without Home replacing Workspace or Patient Flow.
+**Acceptance:** ordinary users land on Home after login and can understand useful global/daily context without Home replacing Role Workspace, My Workspace, or Patient Flow.
 
-## 4. Header and Global Search — complete implementation workstream
+## 5. Header and Global Search — complete implementation workstream
 
-The authenticated header must preserve the approved global shell behavior, including where applicable:
+The authenticated header is persistent and global.
 
-- global Search bar;
-- language control;
-- user display name/identity presentation;
-- system branding/logo;
-- other already-approved shell controls.
+It must preserve or provide the approved global shell functions:
+
+- system branding/identity;
+- existing Global Search;
+- Communications access;
+- separate compact Chat access backed by Communications;
+- Notifications access;
+- Quick Actions for global interface/account actions such as Language and Logout.
 
 Global Search is a system-wide capability, not a Home widget and not Workspace.
-
-Engineering must provide one coherent authorization-aware search contract over authorized searchable data, reusing existing infrastructure where possible.
 
 The search workstream must cover, where corresponding domains/data exist:
 
@@ -155,255 +183,190 @@ Search must specify and test:
 - RTL/LTR;
 - mobile/header responsiveness.
 
-These are engineering specifications of the approved Global Search decision, not new product decisions. No linguistic search capability may be promised unless supported by the selected implementation.
+Global Search is already part of the existing system and must be reused rather than replaced.
 
-**Acceptance:** from authenticated system surfaces the user can locate an authorized record without needing to know its owning Domain, while unauthorized records cannot be inferred through any search output or behavior.
-
-## 5. Sidebar and navigation — complete implementation workstream
+## 6. Sidebar and navigation — complete implementation workstream
 
 For ordinary users the conceptual order is:
 
 `Home → Workspace → My Workspace → authorized Modules/Domains → My Settings`.
 
-The implementation must preserve all authorized Domains, including Domains outside the user's primary Patient Flow classification.
+Sidebar is authorization-driven navigation.
 
-Primary classification must not suppress an authorized Domain.
+Primary Work Context must not suppress an otherwise authorized Domain.
 
-Domains retain their normal names; no artificial `My Financial`, `My Agenda`, or equivalent copies are created.
+Domains retain their normal names; no artificial `My Financial`, `My Agenda`, or equivalent copies are created merely to reflect cross-context permission.
 
 Patient Flow remains hidden from ordinary users as a standalone Sidebar Domain while remaining available to Clinic Admin in its approved administrative/background context.
 
-Sidebar visibility does not replace route-level authorization.
+Sidebar visibility does not replace route-level or server-side authorization.
 
-Existing navigation entries must not be deleted merely because Workspace changed. Remove/reconcile only proven duplicates or obsolete registrations after establishing their actual ownership and usage.
+Existing navigation entries must not be deleted merely because Workspace changed. Remove/reconcile only proven duplicates or obsolete registrations after establishing actual ownership and usage.
 
-**Acceptance:** a user with mixed authorized Domains sees every authorized Domain normally while unauthorized Domains remain unavailable through both navigation and direct routes.
+**Acceptance:** a user with mixed authorized Domains sees every authorized Domain normally while unauthorized Domains remain unavailable through navigation and direct routes.
 
-## 6. Workspace — complete implementation workstream
+## 7. Role Workspace — complete implementation workstream
 
-Workspace is a user's work environment. It is not Role, permission, Patient Flow, or a security boundary.
+Role Workspace is the user's primary professional work environment associated with the user's Primary Role / Primary Work Context.
 
-Engineering must:
+It is not:
 
-- retain one canonical Workspace system;
-- resolve a deterministic default/assigned work context;
-- keep internal Clinical/Operational/Administration classification available to the system;
-- avoid forcing a classification label into ordinary-user identity/presentation;
-- make daily work meaningfully different by context;
-- consume current work from canonical Patient Flow and Domains;
-- avoid duplicating Domain business logic;
-- avoid deriving authorization from Workspace.
+- the user's complete permission set;
+- the complete Sidebar;
+- Home;
+- My Workspace;
+- a security boundary.
 
-Workspace is the evolved replacement for the earlier role-specific provider/doctor/reception work boards; this evolution must not erase the underlying workflows that made those surfaces operationally useful.
+### Stability requirement
 
-**Acceptance:** the user experiences one understandable Workspace work environment, while the system internally applies the appropriate work context without confusing Workspace with Role or authorization.
+The Role Workspace remains unchanged when additional permissions are granted or removed, provided the Primary Role / Primary Work Context remains unchanged.
 
-## 7. My Workspace and complete Widget system
+A Clinical primary user with additional Financial, Operational, Administrative, Reporting or other permissions remains a Clinical Role Workspace user.
 
-My Workspace is the user's personal working surface within the assigned/default Workspace.
+An intentional change to the user's Primary Role / Primary Work Context may change the Role Workspace. A permission override alone may not.
 
-It must support the approved behavior:
+### Existing Workspaces
 
-- system-selected default Widgets based on important granted capabilities/permissions;
-- action/executive daily emphasis;
-- useful informational Widgets where appropriate;
-- add;
-- remove;
-- show/hide;
-- reorder;
-- drag-and-drop ordering;
+Clinical and Operational Workspaces are established primary work environments and are preserved by this plan. This execution plan does not authorize broadening either merely because a user gains cross-domain permissions.
+
+Administration Workspace remains a separate work area and is outside this plan's redesign scope.
+
+## 8. My Workspace — complete implementation workstream
+
+My Workspace is the user's personal working/presentation surface associated with the primary Role Workspace.
+
+It must support:
+
+- system-selected defaults based on granted capabilities/permissions and work context;
+- action-oriented daily work emphasis;
+- useful informational Widgets;
+- add/remove/show/hide/reorder where supported;
+- drag-and-drop ordering where supported;
 - continuous vertical scrolling;
-- intended Widget sizes;
 - reset/restore defaults;
-- persistence across reload/session as designed;
-- correct user/surface/context scoping;
-- no authorization changes through personalization.
+- correct user/surface/context persistence;
+- authorized cross-context tools/widgets without changing Role Workspace.
 
-Every Widget must be mapped to:
+Personalization MUST NOT:
 
-- capability/domain;
-- effective permission(s);
-- entitlement/feature dependency where applicable;
-- type;
-- supported context;
-- default status;
-- size;
-- action;
-- destination;
-- patient/visit dependency where applicable;
-- AR/EN labels/content;
-- loading/empty/error behavior;
-- unauthorized behavior.
+- grant authorization;
+- revoke authorization;
+- change Role;
+- change Primary Work Context;
+- change Role Workspace merely because a Widget or permission changed;
+- become Home;
+- become a duplicate of a full Domain.
 
-Widget classes include Information, Action, Operational, Contextual, Quick Action, Full-page capability, and No-Widget capability.
+### Critical implementation rule
 
-Permission behavior remains:
+Home and My Workspace may reuse rendering infrastructure only as an implementation detail. Their product semantics, data composition, persistence scope and user-facing identity must remain distinct.
+
+## 9. Widgets and permissions
+
+Widget availability and behavior remain governed by effective authorization and feature/entitlement state.
+
+A Widget may expose a capability; it never becomes the authority for that capability.
+
+Permission behavior:
 
 `Read → information/read actions only`
 
-`Create/Write → corresponding create action only`
+`Create/Write → corresponding create action`
 
 `Edit/Modify → corresponding additional modification actions`
 
 `No relevant permission → normally absent`
 
-A locked presentation is permitted only where intentionally useful and never implies authorization.
+No Widget may bypass server-side authorization.
 
-**Acceptance:** personalization changes presentation only; it cannot grant, remove, or elevate permissions.
+## 10. My Settings — complete implementation workstream
 
-## 8. My Settings — complete implementation workstream
+My Settings is separate from Home, Role Workspace, and My Workspace.
 
-My Settings is separate from My Workspace.
+It remains a Sidebar destination for personal account/preferences.
 
-It must support, where allowed by the existing account architecture:
+Supported functions remain according to the existing account architecture, including display name, password, personal profile image and other user-level preferences.
 
-- display-name modification, not immutable user ID modification;
-- secure password change;
-- personal profile image add/change;
-- other personal user-level preferences already supported.
+Changes must not modify Role Workspace, Primary Work Context, permissions or Domain access.
 
-Changes must affect personal account presentation/preferences only and must not modify Workspace assignment, Patient Flow classification, permissions or Domain access.
+## 11. Patient Flow and Queue — canonical workflow workstream
 
-## 9. Patient Flow and Queue — canonical workflow workstream
+Patient Journey remains the system-wide concept; Patient Flow remains the internal workflow/state authority.
 
-Patient Journey remains the system-wide concept; Patient Flow remains the internal workflow.
+Workspace actions must invoke canonical transition authority. No Workspace-local state machine and no Home-local workflow controller may be introduced.
 
-The canonical workflow must remain authoritative:
+The canonical sequence remains:
 
-`Arrival → Waiting → Clinical handoff → Clinical work → Pending Close → Operational/Reception → Completed`.
+`Arrival → Waiting → Clinical handoff → Clinical work → Pending Close → Operational/Reception → Completed`
 
-Where already authoritative, preserve `cancelled` and `no_show` paths.
+where supported by the approved workflow, with preserved cancellation/no-show history behavior.
 
-Workspace actions must invoke canonical transition authority. No Workspace-local state machine and no client-only workflow mutation may be introduced.
+## 12. Clinical Workspace — existing primary work environment
 
-Preserve and validate:
+Clinical Workspace is preserved as the established clinical primary work environment.
 
-- transition validation;
-- permissions;
-- clinical locking;
-- handoff;
-- revalidation;
-- invalidation/refetch;
-- audit records;
-- visit/session references;
-- current state consistency.
+It must remain focused on the clinical portion of the Patient Journey and must not become a generic cross-domain permission dashboard.
 
-**Acceptance:** the full patient chain remains coherent when operated through the new Workspace surfaces.
+Additional user permissions are surfaced through Sidebar/My Workspace/Widgets/full Domains rather than by changing Clinical Workspace identity.
 
-## 10. Clinical Workspace — complete implementation workstream
+No broad clinical redesign is authorized by this document.
 
-Clinical Workspace is the evolution from the previous doctor/provider board to a clinical-team work surface.
+## 13. Operational Workspace — existing primary work environment
 
-When relevant and authorized it must expose the working context required by the clinical task, including:
+Operational Workspace is preserved as the established operational/reception primary work environment.
 
-- patient information;
-- current visit/session;
-- required procedures/work;
-- reports;
-- medical images/files;
-- permitted medical-record context;
-- permitted clinical actions;
-- completion/handoff.
+Additional permissions must not turn it into a generic permission dashboard.
 
-Resolution follows:
+It remains responsible for the operational side of Patient Flow, including arrival, queue, routing, pending close and completion as already implemented.
 
-`Patient Flow state + Visit/session + required work + Room/Procedure context + effective permission → clinical work surface`.
+## 14. Domain integration
 
-Workspace integrates with Visit, Room, Procedure, Service Catalog, Treatment Plan, Medical Photos, Follow-up and other domains; it does not duplicate their business logic.
+Every Module/Domain remains a complete authoritative capability.
 
-The physician must not remain a hard-coded universal owner where the approved architecture has moved clinical work to the clinical team.
+Workspace/Home/Header/My Workspace provide presentation, awareness or entry points only. They do not duplicate Domain business logic.
 
-## 11. Operational Workspace — complete implementation workstream
+A full Domain reached from Sidebar must have the same business semantics whether entered from Home, My Workspace, Role Workspace, Header or contextual navigation.
 
-Operational Workspace must expose actual reception/operational work from canonical Queue/Patient Flow and the relevant operational Domains.
-
-It must support the approved handoffs:
-
-- operational/reception → clinical;
-- clinical → `pending_close` → operational/reception;
-- completion.
-
-It must not become a collection of duplicate Patients/Agenda/Billing/Queue mini-applications.
-
-## 12. Patient Context and Domain integration
-
-Patient Context is a presentation/orchestration mechanism, not a new Domain.
-
-Where authorized it must preserve useful contextual navigation among the existing patient-related Domains, including where applicable:
-
-- Patient;
-- Visit;
-- Appointment;
-- Treatment Plan;
-- Financial Plan;
-- Payments/Installments;
-- Follow-up;
-- Communications;
-- medical records/files/photos;
-- Portal information;
-- resources/consumption owned by existing Domains.
-
-Domain ownership remains intact. Route/action authorization and tenant isolation remain mandatory. Patient/visit context should be preserved when navigating where the existing product model supports it.
-
-## 13. Role, permissions and tenant security
-
-Role remains job/function. Clinical/Operational/Administration remain Patient Flow work classifications. Workspace remains a work surface. Permissions remain authorization.
+## 15. Permission / tenant / security
 
 Effective permissions are authoritative.
 
-Mixed permissions must work: an ordinary user may have permissions outside primary classification without changing Workspace or Role/classification.
+Workspace identity and personalization are not security mechanisms.
 
 Validate authorization independently at:
 
 - Sidebar;
-- Workspace Widgets;
+- Widgets;
 - Widget actions;
 - Search;
-- contextual navigation;
-- Patient Flow mutations;
+- Patient Context;
+- Patient Flow transitions;
 - Domain routes/actions;
-- Clinic Admin actions.
+- Clinic Admin operations.
 
-Validate RLS and tenant isolation independently from UI visibility.
+Validate RLS and tenant isolation independently of UI visibility.
 
-No second authorization engine may be introduced.
+## 16. Clinic Admin
 
-## 14. Clinic Admin — separate complete workstream
+Clinic Admin is not an ordinary user with every permission.
 
-Clinic Admin is not an ordinary user with a larger permission set.
+Preserve the tenant administration center and its clinic-wide authority. Do not force Clinic Admin into the ordinary-user mental model or silently redesign its administration surface.
 
-The implementation must preserve the clinic administration center and its clinic-wide authority over:
+## 17. Database, persistence and API
 
-- users;
-- Roles;
-- permissions;
-- Patient Flow classifications;
-- Workspace configuration;
-- Modules/Domains;
-- clinic-level administration;
-- oversight/testing of the subscribed system as approved.
+Before any migration, inspect actual live schema against repository migrations.
 
-Ordinary-user Home/Workspace/My Workspace behavior must not replace, simplify, or erase Clinic Admin administration.
+Reuse existing structures where suitable.
 
-The current intentional open test Clinic Admin account must remain capable of testing the currently available subscribed system during implementation.
+Create new schema/API structures only when the approved requirements cannot be safely implemented through the existing canonical model.
 
-## 15. Database, persistence and API
+No duplicate Role, Permission, Workspace authorization, Patient Flow, Communications or Chat authority may be introduced.
 
-Inspect actual live schema against repository migrations before changing schema.
+Presentation persistence must remain distinct from authorization/policy state.
 
-Reuse valid existing Workspace, Widget, Patient Flow, Queue, permission and account structures.
+## 18. i18n / responsive / accessibility
 
-Only create schema/API objects when the approved requirements cannot be implemented safely with the existing canonical model.
-
-Every persistence change must have repository migration evidence and must preserve tenant/RLS/security semantics.
-
-Widget personalization persistence must remain presentation-only and correctly scoped.
-
-Search infrastructure must not introduce an unauthorized cross-tenant index or data cache.
-
-## 16. i18n, RTL/LTR, responsive and accessibility
-
-Every affected visible element is part of the implementation contract, including small controls and states.
+Every affected visible element, including small controls and states, is part of the implementation contract.
 
 Validate:
 
@@ -419,85 +382,84 @@ Validate:
 - error/stale;
 - accessibility.
 
-No post-render translation workaround may be introduced.
+## 19. Historical reconciliation
 
-## 17. Historical/legacy reconciliation
+When older documentation or implementation uses ambiguous terminology:
 
-When older implementation or documentation conflicts with the 2026-09-01 decisions:
+1. identify the exact meaning intended in its historical context;
+2. compare it with the canonical 2026-09-11 model;
+3. preserve historical facts where they are useful evidence;
+4. clarify or annotate the historical record rather than rewriting history silently;
+5. update current/active authority documents to the canonical meaning;
+6. retain unrelated valid content;
+7. remove duplicate/obsolete content only after proof.
 
-1. identify the exact conflict;
-2. verify that it is within this decision scope;
-3. preserve every non-conflicting behavior and artifact;
-4. modify only the conflicting portion;
-5. retain useful historical implementation patterns where they satisfy the new decisions;
-6. remove code/documentation only when it is proven duplicate, obsolete, or directly contradictory;
-7. document the reconciliation.
+No blind find/replace of “Workspace” is allowed.
 
-**No wholesale deletion is allowed because one portion conflicts.**
+## 20. Required end-to-end scenarios
 
-## 18. End-to-end scenarios
+### Clinical user with additional permissions
 
-### Clinical team member
-`Login → Home → Header/Search → Sidebar → Workspace → patient available → clinical work → patient/visit/report/image context → permitted procedure/work → finish clinical work → Pending Close → operational handoff`.
+`Doctor / Clinical → Clinical Role Workspace → additional Financial/Operational/Admin/Reports permissions → Sidebar expands as authorized → My Workspace may expand → Role Workspace remains Clinical.`
 
-### Operational/reception member
-`Login → Home → Workspace → waiting/queue → prepare/route patient → clinical handoff → return to operational work → completion`.
+### Home
 
-### Mixed permissions
-`Primary work remains unchanged → authorized outside-classification Domain appears normally in Sidebar → only actual permitted actions are available`.
+`Login → Home → global/daily awareness + utilities → authorized destination for work.`
 
 ### My Workspace
-`Default widgets → personalize → add/remove/show/hide/reorder/drag-drop → reload → reset → no authorization change`.
 
-### Search
-`Header search → authorized query → result type/context → permitted destination → no unauthorized inference`.
+`Workspace → My Workspace → personalize permitted tools/widgets → persistence → no authorization/Role Workspace change.`
 
-### Clinic Admin
-`Administrative surface remains distinct → administer users/Roles/permissions/Workspace/Domains → test subscribed system → ordinary-user behavior remains separate`.
+### Header
 
-## 19. Final closure gates
+`Authenticated surface → Global Search / Communications / Chat / Notifications / Quick Actions → remain accessible globally.`
 
-No completion claim is valid until evidence exists for every applicable architecture decision and every coverage-matrix row, including:
+### Shared workstation
+
+`User A → Logout → User B Login → subsequent actions attributable to User B.`
+
+### Patient Journey
+
+`Arrival → Waiting → Clinical → Pending Close → Reception/Operational → Completed`.
+
+## 21. Final closure gates
+
+No completion claim is valid until evidence exists for every applicable architecture decision and coverage row, including:
 
 - Home;
-- every required Home information/widget category;
 - Header;
 - Global Search;
 - Sidebar;
-- Workspace;
+- Role Workspace;
 - My Workspace;
-- every Widget behavior and personalization function;
+- Widget behavior and personalization;
 - My Settings;
-- Clinical Workspace;
-- Operational Workspace;
-- Patient Flow;
-- Queue;
-- handoffs/Pending Close;
+- Clinical Workspace preservation;
+- Operational Workspace preservation;
+- Patient Flow / Queue;
 - Patient Context;
-- affected Domain integrations;
+- Domain integrations;
 - Role/permission separation;
-- effective authorization;
-- tenant isolation/RLS;
+- mixed-permission stability;
+- authorization/RLS/tenant isolation;
 - Clinic Admin separation;
 - database/persistence/API;
-- AR/EN;
+- Arabic/English;
 - RTL/LTR;
 - mobile/responsive;
 - loading/empty/error states;
-- runtime regression.
+- runtime regression evidence.
 
-Evidence must include source diff, build/type/test, DB/migration, authorization/RLS, runtime browser, ordinary-user scenarios, Clinic Admin scenarios, responsive/i18n evidence, and documentation/index/handoff updates.
+A build passing while the surface relationships are wrong is not a pass. A visually correct shell with incorrect authorization is not a pass.
 
-## 20. Final architecture-to-execution integrity rule
+## 22. Final integrity rule
 
-Before code modification begins, the implementation package must satisfy both directions:
+The execution plan must satisfy both directions:
 
-**Forward traceability:** every approved architectural decision has one or more explicit implementation tasks and acceptance tests.
+**Forward:** every approved architectural decision has implementation tasks and acceptance evidence.
 
-**Reverse traceability:** every implementation task is justified by an approved architectural decision, an explicit user clarification that concretizes that decision, or a necessary technical mechanism required to realize it without changing its meaning.
+**Reverse:** every implementation task is justified by an approved decision, an explicit clarification that concretizes it, or a necessary technical mechanism required to realize the approved meaning.
 
-Anything that cannot satisfy either direction is not silently implemented.
-
-**No important approved item is deferred. No architectural decision is invented by engineering. No unrelated architecture is redesigned. No partial implementation may be reported as complete.**
+Anything outside both directions is not silently implemented.
 
 **End of Complete Execution Plan.**

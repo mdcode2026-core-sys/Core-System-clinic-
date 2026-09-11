@@ -7,6 +7,9 @@
 **Authority:** `GLOBAL-UX-IA-FINAL-AUTHORITY-2026-08-28.md`
 **Execution plan:** `docs/GLOBAL-UX-IA-IMPLEMENTATION-PLAN-2026-08-28-FINAL.md`
 **Validation governance:** `docs/UX-IA-VALIDATION-GOVERNANCE.md`
+**Current surface interpretation:** `docs/CORE-SYSTEM-GLOBAL-SURFACES-CANONICAL-RECONCILIATION-2026-09-11.md`
+
+> **2026-09-11 reconciliation note:** In this historical Stage 5 document, `Quick Action` refers to a Workspace/widget classification for small executable capability surfaces. It must not be confused with the separate **Global Header Quick Actions** menu, whose current initial scope is Language and Logout. Historical use of `Global` as a Workspace context must also not be interpreted as making Home and My Workspace the same product surface.
 
 ## 1. Objective
 
@@ -31,7 +34,7 @@ Stage 5 covers:
 - supported Workspace/patient/visit contexts;
 - natural Widget size;
 - distinction between information, action, operational and contextual surfaces;
-- distinction between Quick Actions and full Widget surfaces;
+- distinction between Workspace Quick Actions and full Widget surfaces;
 - whether a capability also has a Sidebar representation;
 - domain-to-surface decisions for the governed navigation domains;
 - automated completeness/consistency validation.
@@ -42,9 +45,23 @@ Stage 5 does not create a second authorization engine, duplicate Domain logic, r
 
 The approved relationship remains:
 
-`Permission → Widget available → User chooses Widget → Workspace`
+`Permission → Widget available → User chooses Widget → My Workspace / supported work surface`
 
 Widget availability remains enforced by the existing effective permission and feature/entitlement checks. The Stage 5 catalogs are descriptive metadata and do not grant access.
+
+### 3.1 Quick Action terminology
+
+Two different uses of the word Quick Action exist in the project's documentation and must remain distinct:
+
+**Workspace Quick Action**
+
+A small executable capability surface that may be represented as a Widget/classification when it materially improves daily work, such as Quick Registration or Quick Appointment.
+
+**Global Header Quick Actions**
+
+A persistent Header menu for global interface/account actions. Its initial approved scope is Language and Logout.
+
+They are not the same surface, do not share the same placement semantics, and must not be merged merely because both use shortcut-like interactions.
 
 ## 4. Repository inspection
 
@@ -54,19 +71,21 @@ Inspected the current `main` implementation and governing sources before modific
 
 The current registry contains seven Widgets:
 
-| Widget | Domain owner | Classification | Quick Action | Sidebar capability | Contexts |
+| Widget | Domain owner | Classification | Workspace Quick Action | Sidebar capability | Contexts |
 |---|---|---|---|---|---|
-| Quick Registration | Patients | Quick Action | Yes | No | Global, Operations |
-| Quick Appointment | Agenda | Quick Action | Yes | No | Global, Operations, Agenda |
-| Queue | Patient Flow | Contextual | No | No | Global, Operations, Clinical, Patient, Visit |
-| Follow-up | Follow-up | Operational | No | Yes | Global, Operations, Clinical, Patient, Follow-up |
-| Medical Files | Medical Files | Contextual | No | No | Global, Clinical, Patient, Visit |
-| Billing Summary | Financial & Resources | Information | No | Yes | Global, Operations, Financial |
-| Analytics Overview | Analytics | Information | No | Yes | Global, Analytics |
+| Quick Registration | Patients | Quick Action | Yes | No | Global/legacy context, Operations |
+| Quick Appointment | Agenda | Quick Action | Yes | No | Global/legacy context, Operations, Agenda |
+| Queue | Patient Flow | Contextual | No | No | Global/legacy context, Operations, Clinical, Patient, Visit |
+| Follow-up | Follow-up | Operational | No | Yes | Global/legacy context, Operations, Clinical, Patient, Follow-up |
+| Medical Files | Medical Files | Contextual | No | No | Global/legacy context, Clinical, Patient, Visit |
+| Billing Summary | Financial & Resources | Information | No | Yes | Global/legacy context, Operations, Financial |
+| Analytics Overview | Analytics | Information | No | Yes | Global/legacy context, Analytics |
+
+The `Global/legacy context` label above is intentionally retained only to describe the historical registry context. Current product architecture distinguishes Home from My Workspace and does not treat a technical `global` key as a product-level synonym for both.
 
 ## 6. Domain surface decisions
 
-The governed domain catalog now records one explicit Stage 5 decision for each of these 12 surfaces:
+The governed domain catalog records one explicit Stage 5 decision for each of these 12 surfaces:
 
 - Workspace
 - Patients
@@ -99,7 +118,7 @@ The catalog records for every registered Widget:
 - supported contexts;
 - natural size;
 - Sidebar capability indicator;
-- Quick Action indicator;
+- Workspace Quick Action indicator;
 - rationale for the classification.
 
 ### 7.2 Domain surface catalog
@@ -124,8 +143,8 @@ The catalogs identify ownership for clarity but do not move business logic into 
 
 ## 8. Classification decisions
 
-- **Quick Registration:** Quick Action because registration is a high-frequency action and Patients remains the full authoritative domain.
-- **Quick Appointment:** Quick Action because booking is high-frequency and Agenda remains authoritative.
+- **Quick Registration:** Workspace Quick Action because registration is a high-frequency action and Patients remains the full authoritative domain.
+- **Quick Appointment:** Workspace Quick Action because booking is high-frequency and Agenda remains authoritative.
 - **Queue:** Contextual because it is a surface of the existing Patient Flow/Queue capability and must never replace Patient Flow.
 - **Follow-up:** Operational because it leads directly to actionable follow-up work; the full Follow-up capability remains available through Sidebar.
 - **Medical Files:** Contextual because the useful interaction is tied to patient/clinical/visit context and must not become a miniature medical-record domain.
@@ -179,7 +198,7 @@ This avoids consuming a Hobby deployment merely to validate static governance me
 - [x] Purpose recorded in Arabic and English.
 - [x] Supported contexts recorded.
 - [x] Natural size recorded.
-- [x] Quick Action distinction recorded.
+- [x] Workspace Quick Action distinction recorded.
 - [x] Sidebar capability distinction recorded.
 - [x] Classification rationale recorded.
 - [x] Governed domain surface decisions recorded.
