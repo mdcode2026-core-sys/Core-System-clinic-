@@ -311,20 +311,24 @@ No second messaging system may be created inside Coordination.
 
 ## 16. Patient Portal integration
 
-Patient Portal remains the patient-facing domain.
+**Reconciled / supersedes the earlier wording that called Patient Portal a patient-facing domain.**
+
+Patient Portal is a **patient-facing Module / Surface / Channel**, not a clinic operational Domain and not an independent messaging engine.
 
 Portal activity may generate clinic work:
 
 ```text
 Patient request
- → Coordination work
+ → Communications
+ → Coordination work when an operational action is explicitly required
  → Staff action
- → Portal communication
+ → Communications
+ → Patient Portal
 ```
 
-Clinic work may also request patient action through the Portal.
+Patient ↔ clinic messaging is owned by **Communications**. Patient Portal provides the patient-facing channel for that communication. Portal must not maintain an independent messaging authority in parallel with Communications.
 
-Patient-facing clinical/financial information remains governed by the relevant domains and Portal access rules.
+Clinic work may request patient action through the Portal, but the relevant work and domain remain authoritative outside Portal. Patient-facing clinical/financial information remains governed by the relevant domains and Portal access rules.
 
 ## 17. My Work / Work Center — Core
 
@@ -543,6 +547,8 @@ Coordination must never weaken:
 13. Skills/Capabilities are Advanced and are not a permission mechanism.
 14. Coordination data must be structured for Insights and future AI from day one.
 15. Financial, administrative, clinical, legal and privacy controls always take precedence over convenience.
+16. Patient Portal is a patient-facing Module / Surface / Channel and does not own messaging.
+17. Communications is the single authority for patient ↔ clinic communication; Portal is a channel over that authority.
 
 ## 28. Implementation rule
 
