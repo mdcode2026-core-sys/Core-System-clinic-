@@ -1,12 +1,12 @@
 # CORE SYSTEM — Terminology Application Register
 
 **Date:** 2026-08-29  
-**Status:** AUTHORITATIVE RECONCILIATION CONTROL  
+**Status:** AUTHORITATIVE RECONCILIATION CONTROL — EXTENDED 2026-09-11  
 **Applies to:** AJM, UX/IA, PJ, domain blueprints and implementation plans
 
 ## Purpose
 
-This register converts the terminology governance decision into an execution control. It prevents historical wording from silently redefining current architecture and identifies the specific corrections that must be applied when a document is next edited.
+This register converts terminology governance into an execution control. It prevents historical wording from silently redefining current architecture and identifies corrections that must be applied when a document is edited.
 
 ## 1. Binding current distinctions
 
@@ -18,12 +18,24 @@ This register converts the terminology governance decision into an execution con
 | Capability | Platform/product/tenant-available ability | Skill, Qualification, Permission, Entitlement |
 | Skill | Human learned competence | Capability, Qualification, Role |
 | Qualification | Formal credential/certification/license/degree | Skill, Role, Permission |
+| Primary Role | User's primary professional/job function | Permission set, Workspace |
+| Primary Work Context | User's primary work classification | Role, Permission set, Sidebar filter |
+| Role Workspace | Stable primary professional work environment | Role, Permission set, Home, My Workspace |
+| My Workspace | Personal working/presentation arrangement associated with Role Workspace | Role Workspace, Home, authorization |
+| Home | Independent global starting/awareness surface | Role Workspace, My Workspace, Dashboard |
+| Sidebar | Complete authorization-aware navigation surface | Role Workspace, My Workspace |
+| Header | Persistent global access layer | Home, Work Center, Workspace |
+| Communications | Full authoritative communication domain | Chat, Notifications |
+| Chat | Compact interaction surface over Communications | Independent domain |
+| Notifications | Separate attention/delivery capability | Communications, Follow-up |
+| Workspace Quick Action | Small executable work capability/widget classification | Global Header Quick Actions |
+| Global Header Quick Actions | Global interface/account actions, initially Language + Logout | Workspace Quick Actions, business launcher |
 
 ## 2. Mandatory corrections identified in current AJM material
 
 ### AJM Implementation Plan
 
-Current wording in AJM-1 and AJM-3 uses `Skill / Capability` for the human/workforce context.
+Current AJM wording may use `Skill / Capability` for human/workforce context.
 
 Required interpretation:
 
@@ -35,25 +47,13 @@ Where workforce eligibility is discussed, use `Skill` and, where appropriate, `Q
 
 ### Journey Coordination Engineering Blueprint
 
-The existing section titled `Skill / Capability` currently defines:
-
-`Skill = capability/qualification`
-
-This is no longer an acceptable current definition.
-
-The governing interpretation is:
-
-```text
-Skill        = human competence
-Qualification = formal credential/evidence
-Capability   = platform/business/tenant capability
-```
+Existing `Skill / Capability` wording must not be interpreted as a single person attribute.
 
 Advanced routing may use `Skill` and `Qualification` as workforce inputs. A platform `Capability` may determine whether a routing function is available/enabled, but it is not a person's skill.
 
 ### Team & Access
 
-Any historical use of `Skill / Capability` as a single person attribute must be treated as `RECONCILE` and split according to the governing glossary when the document is next updated.
+Historical use of `Skill / Capability` as a single person attribute must be reconciled and split according to the governing glossary when the document is next updated.
 
 ## 3. ADR-006 treatment
 
@@ -65,11 +65,9 @@ Therefore:
 
 > Domain ≠ Module.
 
-No document may infer a one-to-one Domain → Module hierarchy unless a future explicit architecture decision establishes that relationship.
-
 ## 4. UX application rule
 
-UX/IA may expose modules, features, capabilities, workspaces and widgets as needed for user experience, but the visual hierarchy does not redefine business ownership or authorization.
+UX/IA may expose modules, features, capabilities, workspaces and widgets as needed for user experience, but visual hierarchy does not redefine business ownership or authorization.
 
 ```text
 Domain ownership
@@ -78,14 +76,12 @@ Business/product capabilities and modules
       ↓
 Features
       ↓
-UX surfaces: Workspace / Page / Widget / Quick Action
+UX surfaces: Role Workspace / My Workspace / Home / Page / Widget / Header
 ```
 
-This is a conceptual separation, not an assertion of a mandatory implementation hierarchy.
+This is a conceptual separation, not a mandatory implementation hierarchy.
 
 ## 5. Authorization rule
-
-The following are distinct:
 
 ```text
 Entitlement → whether the tenant/user may have a licensed capability
@@ -94,19 +90,36 @@ Permission  → what the authorized user may do
 Role        → organizational/configuration label
 ```
 
-No UX visibility decision may be treated as a permission grant merely because an element is visible.
+No UX visibility decision grants permission.
 
-## 6. Clinical terminology rule
+## 6. Global surface application rule
 
-CORE uses:
+The relationship below is mandatory for current and future documentation:
 
 ```text
-Appointment = planned booking
-Visit       = actual CORE patient visit
-Encounter   = external/medical-standard mapping when applicable
-Treatment Plan = CORE patient-care planning concept
-CarePlan      = external interoperability mapping when applicable
+Primary Role / Job Function
+        ↓
+Primary Work Context / Classification
+        ↓
+Role Workspace
 ```
+
+Effective permissions are a separate axis:
+
+```text
+Effective Permissions
+        ↓
+Authorized Domains / Capabilities / Actions
+        ├── Sidebar
+        ├── Widgets
+        └── My Workspace
+```
+
+Additional permissions do not redefine Primary Role, Primary Work Context or Role Workspace.
+
+A clinical-primary user remains in Clinical Role Workspace when additional Financial, Operational, Administrative, Reporting or other permissions are granted. The additional access may appear in Sidebar, Widgets and My Workspace according to authorization.
+
+Home is independent from this primary-work relationship, and Header is a persistent global access layer.
 
 ## 7. Historical-document handling
 
@@ -125,12 +138,13 @@ The original historical decision must remain recoverable.
 
 ## 8. Implementation gate
 
-Before beginning any new AJM or UX implementation stage:
+Before beginning any new AJM, PJ or UX implementation stage:
 
 1. Read `CORE-SYSTEM-TERMINOLOGY-GOVERNANCE.md`.
 2. Read this register.
-3. Check the stage documents for prohibited conflations.
-4. If a conflict is found, resolve the terminology before implementation proceeds.
-5. Do not create a new synonym for an existing governed concept.
+3. Read `docs/CORE-SYSTEM-GLOBAL-SURFACES-CANONICAL-RECONCILIATION-2026-09-11.md` for Home/Header/Workspace/Sidebar interpretation.
+4. Check the stage documents for prohibited conflations.
+5. If a conflict is found, resolve terminology before implementation proceeds.
+6. Do not create a new synonym for an existing governed concept.
 
-**End of register.**
+**End of Register.**
