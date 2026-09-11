@@ -1,9 +1,12 @@
 # CORE SYSTEM — Workforce & Operations Engineering Blueprint
 
-**Status:** Final pre-implementation engineering reference — reconciled with PJ, Financial & Resources and Team & Access
-**Domain:** Workforce & Operations
-**Scope:** Tenant / Clinic operational environment
-**Authority:** This document governs the Workforce & Operations domain unless a later explicit architectural decision supersedes it.
+**Status:** Final pre-implementation engineering reference — reconciled with PJ, Workforce & Operations and Team & Access  
+**Domain:** Workforce & Operations  
+**Scope:** Tenant / Clinic operational environment  
+**Authority:** This document governs the Workforce & Operations domain unless a later explicit architectural decision supersedes it.  
+**Current Global Surfaces interpretation:** `docs/CORE-SYSTEM-GLOBAL-SURFACES-CANONICAL-RECONCILIATION-2026-09-11.md`
+
+> **2026-09-11 reconciliation:** Workforce must distinguish employment/job/skills from Team & Access authorization and from the user's primary Role Workspace. Workforce data may influence availability, routing or operational capability, but it does not redefine the user's Primary Role, Primary Work Context or Role Workspace. Additional platform permissions may expand Sidebar, Widgets and My Workspace without changing the primary work environment.
 
 ## 1. Product position
 
@@ -65,7 +68,7 @@ Workforce and Agenda are separate domains.
 - Benefits.
 - Commissions/incentives.
 - Workforce productivity/performance.
-- Workforce skills/capabilities when the Advanced capability is activated.
+- Workforce skills when the Advanced capability is activated.
 
 ### Agenda owns
 
@@ -94,7 +97,7 @@ Existing User structures remain the system-account/access identity.
 
 ### Roles & Permissions
 
-Existing PJ-era permission architecture remains the authorization foundation.
+Existing Team & Access / Permission Engine architecture remains the authorization foundation.
 
 **REUSE + EXTEND.**
 
@@ -151,8 +154,6 @@ Support:
 
 Employment/Contracts are part of the Workforce domain, not Team & Access.
 
-Team & Access answers system identity and authorization; Workforce answers employment reality.
-
 ## 6. Recruitment — Core clinic-sized capability
 
 Recruitment is important but must remain clinic-sized rather than becoming a recruitment marketplace.
@@ -196,7 +197,7 @@ Minimum capability:
 - Impact on availability.
 - Impact on payroll.
 
-Leave must feed operational availability without replacing Agenda.
+Leave may be initiated through an approved global/lightweight entry point, such as Home Calendar or another authorized surface, but the authoritative leave workflow remains within Workforce & Operations. A leave request does not imply administrative approval merely because the request was created.
 
 ## 9. Payroll — Core clinic-sized capability
 
@@ -293,7 +294,7 @@ Conceptually:
 Employee
  + Working Pattern
  + Attendance / Leave
- + Skill / Capability when enabled
+ + Skill when enabled
  + Capacity
  + Required Resource
         ↓
@@ -310,14 +311,16 @@ Capacity is therefore a combined operational concept, while ownership remains se
 
 ## 15. Advanced Skill / Capability
 
-Skill / Capability is an **Advanced** capability, not a Core permission mechanism.
+`Skill` is a **human/workforce competence**. `Capability` is a **platform/product/business ability**.
 
-It must remain separate from:
+They are not interchangeable.
 
 ```text
-Role       = organizational label
+Role       = organizational function
 Permission = system authorization
-Skill     = capability/qualification of the person
+Skill      = human competence
+Qualification = formal credential/evidence
+Capability = platform/business ability
 ```
 
 Example:
@@ -461,7 +464,7 @@ Complex calculations may remain in the background while the daily UI stays simpl
 
 ### Advanced
 
-- Skill / Capability.
+- Skill / workforce competence.
 - Advanced workforce planning.
 - Complex commission plans.
 - Advanced performance analytics.
@@ -498,23 +501,32 @@ Patient/team balance must never weaken:
 - Separation of duties where appropriate.
 - Tenant isolation.
 
-## 22. Final reconciliation decisions
+## 22. Global surface relationship
+
+Workforce owns employment, attendance, leave, capacity and workforce reality. It does not own Home/Header/Sidebar/Role Workspace semantics.
+
+A lightweight Leave action may be initiated from a global surface, but the authoritative request, approval, balance and availability effects remain Workforce-owned.
+
+Workforce availability or Skill data may influence Domain workflows and future routing, but must not automatically reclassify a user's Primary Role or Role Workspace.
+
+## 23. Final reconciliation decisions
 
 1. **Workforce and Agenda remain separate domains.**
 2. **Staff Scheduling is distinct from Appointment Scheduling.**
 3. **Employee is distinct from User.**
 4. **Employee/Job/Position is distinct from System Role.**
 5. **Team & Access owns authorization; Workforce owns employment/operational workforce reality.**
-6. **Skills/Capabilities are Advanced and separate from Roles and Permissions.**
-7. **Agenda remains the canonical appointment scheduler.**
-8. **Availability is integrated: Workforce supplies staff constraints/capacity; Agenda owns booking availability.**
-9. **Rooms/Resources remain canonical and are not recreated inside Workforce.**
-10. **Workforce Performance feeds the shared Insights/Analytics domain rather than creating a second analytics system.**
-11. **Payroll, Recruitment, Benefits, Leave and Commissions are important Core clinic capabilities but remain clinic-sized.**
-12. **Patient outcome is prioritized, but financial, administrative, legal and team-sustainability controls are not weakened.**
-13. **No enterprise HR suite is being built.**
+6. **Primary Role / Primary Work Context determines the user's primary Role Workspace; additional permissions do not redefine it.**
+7. **Skills and platform capabilities are different concepts.**
+8. **Agenda remains the canonical appointment scheduler.**
+9. **Availability is integrated: Workforce supplies staff constraints/capacity; Agenda owns booking availability.**
+10. **Rooms/Resources remain canonical and are not recreated inside Workforce.**
+11. **Workforce Performance feeds the shared Insights/Analytics domain rather than creating a second analytics system.**
+12. **Payroll, Recruitment, Benefits, Leave and Commissions are important Core clinic capabilities but remain clinic-sized.**
+13. **Patient outcome is prioritized, but financial, administrative, legal and team-sustainability controls are not weakened.**
+14. **No enterprise HR suite is being built.**
 
-## 23. Implementation rule
+## 24. Implementation rule
 
 ```text
 Approved Workforce Decision
