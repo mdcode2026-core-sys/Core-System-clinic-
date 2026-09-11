@@ -1,6 +1,6 @@
 # CORE SYSTEM — Governed Documentation Index
 
-**Date:** 2026-09-01  
+**Date:** 2026-09-11  
 **Status:** CURRENT — documentation navigation authority  
 **Scope:** Documentation navigation and authority routing. This index does not override domain decisions.
 
@@ -11,6 +11,40 @@
 3. This file is the canonical navigation index for the remediation/documentation bundle.
 4. Historical documents remain retained evidence and never regain authority merely because they are newer in filename or marked CLOSED.
 5. A closure is authoritative only when its exact evidence chain is recorded under the current closure policy.
+6. For the relationship among Home, Header, Role Workspace, My Workspace, Sidebar, Role/Primary Work Context and Permissions, the current interpretation is `docs/CORE-SYSTEM-GLOBAL-SURFACES-CANONICAL-RECONCILIATION-2026-09-11.md`.
+7. Current terminology is governed by `docs/CORE-SYSTEM-TERMINOLOGY-GOVERNANCE.md`.
+
+## 2026-09-11 Global Surfaces reconciliation
+
+### Canonical interpretation
+
+```text
+Primary Role / Job Function
+        ↓
+Primary Work Context / Classification
+        ↓
+Role Workspace
+
+Effective Permissions
+        ↓
+Authorized Domains / Capabilities
+        ├── Sidebar
+        ├── Widgets
+        └── My Workspace
+
+Home = independent global starting / awareness surface
+Header = persistent global access layer
+My Settings = personal account/preferences destination
+```
+
+Additional permissions do not redefine Role, Primary Work Context or Role Workspace. They may expand authorized Sidebar Domains, Widgets and My Workspace content/actions.
+
+### Reconciliation register
+
+- `docs/CORE-SYSTEM-GLOBAL-SURFACES-CANONICAL-RECONCILIATION-2026-09-11.md`
+- `docs/GLOBAL-SURFACES-DOCUMENTATION-RECONCILIATION-REGISTER-2026-09-11.md`
+
+The register records the disposition of relevant root/nested documentation and identifies historical documentation that must not be treated as current authority.
 
 ## 2026-09-01 Workspace / Patient Flow decision package
 
@@ -24,8 +58,27 @@
 ### Execution authority
 - `docs/WORKSPACE-PATIENT-FLOW-COMPLETE-EXECUTION-PLAN-2026-09-01.md` — full implementation sequence, dependencies, validation and closure gates.
 - `docs/WORKSPACE-PATIENT-FLOW-PRE-CODE-EXECUTION-CONTRACT-2026-09-01.md` — pre-code gate and observed repository implementation constraints.
+- `docs/WORKSPACE-PATIENT-FLOW-PRECODE-BASELINE-IMPACT-ORDER-2026-09-01.md` — historical baseline and dependency/impact map, reconciled 2026-09-11.
+- `docs/WORKSPACE-PATIENT-FLOW-FINAL-ENGINEERING-READINESS-REPORT-2026-09-01.md` — engineering readiness record, reconciled 2026-09-11.
+- `docs/WORKSPACE-PATIENT-FLOW-FINAL-EXECUTION-CLOSURE-2026-09-01.md` — historical execution closure, reconciled 2026-09-11.
 
-**Scope lock:** These documents implement only the 2026-09-01 Workspace/Patient Flow decision set. They do not cancel unrelated architecture. Conflicting older rules are superseded only where the conflict concerns an approved 2026-09-01 decision.
+**Scope lock:** These documents implement only the 2026-09-01 Workspace/Patient Flow decision set plus the 2026-09-11 surface clarification. They do not cancel unrelated architecture. Conflicting older rules are superseded only where the conflict concerns an approved decision.
+
+## Global UX / IA records
+
+### Current/reconciled
+- `docs/CORE-SYSTEM-TERMINOLOGY-GOVERNANCE.md`
+- `docs/GLOBAL-UX-IA-IMPLEMENTATION-PLAN-2026-08-28.md`
+- `docs/CORE-SYSTEM-GLOBAL-UX-IA-IMPLEMENTATION-PLAN-2026-08-28.md`
+- `docs/GLOBAL-UX-IA-VALIDATION-PROTOCOL-2026-08-28.md`
+- `docs/UX-IA-VALIDATION-GOVERNANCE.md`
+
+### Historical stage records with reconciliation notices
+- `docs/GLOBAL-UX-IA-STAGE-3-WORKSPACE-FOUNDATION-2026-08-28.md`
+- `docs/GLOBAL-UX-IA-STAGE-4-WORKSPACE-PERSONALIZATION-2026-08-28.md`
+- `docs/GLOBAL-UX-IA-STAGE-5-WIDGET-LIBRARY-2026-08-28.md`
+- `docs/GLOBAL-UX-IA-EXECUTION-PLAN-STAGE-5-UPDATE-2026-08-28.md`
+- `docs/TERMINOLOGY-HISTORICAL-RECONCILIATION-2026-08-29.md`
 
 ## Current remediation bundle
 
@@ -47,16 +100,9 @@
 - `docs/IDEAL-SCENARIO-REALITY-VALIDATION-2026-08-30.md`
 - `docs/FINAL-IDEAL-SCENARIO-CLOSURE-REPORT-2026-08-30.md`
 
-### Terminology and historical governance
-- `docs/CORE-SYSTEM-TERMINOLOGY-GOVERNANCE.md`
-- `DOCUMENTATION_STATUS.md`
-- `PROJECT_HANDOFF.md`
-- `CHANGELOG.md`
-
 ### PJ / UX / implementation authorities
 - Current PJ-MASTER-DOCS and approved PJ decision records.
-- `GLOBAL_UX_IA_FINAL_AUTHORITY_2026-08-28.md`
-- `docs/GLOBAL-UX-IA-IMPLEMENTATION-PLAN-2026-08-28-FINAL.md`
+- Current UX/IA records listed above and interpreted through the 2026-09-11 canonical reconciliation.
 - Current AJM status/acceptance records under `docs/`.
 
 ## R12 status authority
@@ -71,7 +117,7 @@ For this implementation phase, `VALIDATED` and `PRODUCTION VERIFIED` require act
 
 ## Historical handling
 
-Historical AJM, Stage, UX/IA, PJ and implementation documents are retained. When they conflict with the current bundle, the current bundle must state the supersession/reconciliation relationship; historical files are not silently rewritten or deleted.
+Historical AJM, Stage, UX/IA, PJ and implementation documents are retained. When they conflict with the current bundle, the current bundle must state the reconciliation relationship; historical files are not silently rewritten or deleted merely because one part is superseded. The dedicated Global Surfaces Reconciliation Register records the exact disposition.
 
 ## Navigation rule
 
