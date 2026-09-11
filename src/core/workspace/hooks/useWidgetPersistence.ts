@@ -6,7 +6,10 @@ import type { WorkspaceSurfaceKey } from "../workspaceSurfaces";
 import { WORKSPACE_STORAGE_PREFIX } from "../workspace.constants";
 import { createClient } from "@/infrastructure/supabase/client";
 
-const DEFAULT_STATE: WorkspaceUserState = { widgets: [], lastUpdated: new Date().toISOString() };
+const DEFAULT_STATE: WorkspaceUserState = {
+  widgets: [],
+  lastUpdated: new Date().toISOString(),
+};
 
 function getStorageKey(userId: string | undefined, workspaceKey: WorkspaceSurfaceKey): string {
   const identity = userId ?? "anonymous";
@@ -21,12 +24,18 @@ function readFromStorage(key: string): WorkspaceUserState {
     const parsed = JSON.parse(raw) as WorkspaceUserState;
     if (!parsed.widgets || !Array.isArray(parsed.widgets)) return DEFAULT_STATE;
     return parsed;
-  } catch { return DEFAULT_STATE; }
+  } catch {
+    return DEFAULT_STATE;
+  }
 }
 
 function writeToStorage(key: string, state: WorkspaceUserState): void {
   if (typeof window === "undefined") return;
-  try { window.localStorage.setItem(key, JSON.stringify(state)); } catch { /* Storage full or private mode. */ }
+  try {
+    window.localStorage.setItem(key, JSON.stringify(state));
+  } catch {
+    // Storage full or private mode — silently fail
+  }
 }
 
 export interface UseWidgetPersistenceResult {
@@ -53,12 +62,23 @@ export function useWidgetPersistence(workspaceKey: WorkspaceSurfaceKey = "my-wor
       setStorageKey(resolvedKey);
       setInternalLayout(readFromStorage(resolvedKey));
     });
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [workspaceKey]);
 
-  useEffect(() => { writeToStorage(storageKey, layout); }, [storageKey, layout]);
+  useEffect(() => {
+    writeToStorage(storageKey, layout);
+  }, [storageKey, layout]);
 
-  const setLayout = useCallback((updater: (prev: WorkspaceUserState) => WorkspaceUserState) => setInternalLayout((prev) => updater(prev)), []);
+  const setLayout = useCallback(
+    (updater: (prev: WorkspaceUserState) => WorkspaceUserState) => {
+      setInternalLayout((prev) => updater(prev));
+    },
+    [],
+  );
+
   const reset = useCallback(() => setInternalLayout(DEFAULT_STATE), []);
+
   return { layout, setLayout, reset };
 }
