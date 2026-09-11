@@ -37,24 +37,22 @@ async function ensureNextAction(supabase: any, tenantId: string, clinicUserId: s
   return workItem.id as string;
 }
 
-function mapPlan(row: any): TreatmentPlanRecord {
-  return { id: row.id, patient_id: row.patient_id, patient_name: row.clinic_patients ? `${row.clinic_patients.first_name} ${row.clinic_patients.last_name}` : null, source_visit_id: row.source_visit_id, title: row.title, diagnosis_summary: row.diagnosis_summary, goals: row.goals, status: row.status, start_date: row.start_date, target_end_date: row.target_end_date, completed_at: row.completed_at, created_at: row.created_at, updated_at: row.updated_at, items: (row.clinic_treatment_plan_items ?? []).sort((a: any, b: any) => a.sequence_no - b.sequence_no).map((item: any) => ({ id: item.id, treatment_plan_id: item.treatment_plan_id, procedure_id: item.procedure_id, procedure_name: item.clinic_procedures?.procedure_name ?? null, title: item.title, description: item.description, sequence_no: item.sequence_no, planned_date: item.planned_date, quantity: item.quantity, status: item.status, completed_at: item.completed_at, notes: item.notes })), visits: row.clinic_treatment_plan_visits ?? [] };
-}
-
 async function loadPlan(supabase: any, tenantId: string, planId: string): Promise<TreatmentPlanRecord | null> {
   const { data, error } = await supabase.from("clinic_treatment_plans").select(`id,patient_id,source_visit_id,title,diagnosis_summary,goals,status,start_date,target_end_date,completed_at,created_at,updated_at,clinic_patients(first_name,last_name),clinic_treatment_plan_items(id,treatment_plan_id,procedure_id,title,description,sequence_no,planned_date,quantity,status,completed_at,notes,clinic_procedures(procedure_name)),clinic_treatment_plan_visits(id,treatment_plan_item_id,visit_id,linked_at)`).eq("id", planId).eq("tenant_id", tenantId).single();
   if (error || !data) return null;
-  return mapPlan(data);
+  const row = data as any;
+  return { id: row.id, patient_id: row.patient_id, patient_name: row.clinic_patients ? `${row.clinic_patients.first_name} ${row.clinic_patients.last_name}` : null, source_visit_id: row.source_visit_id, title: row.title, diagnosis_summary: row.diagnosis_summary, goals: row.goals, status: row.status, start_date: row.start_date, target_end_date: row.target_end_date, completed_at: row.completed_at, created_at: row.created_at, updated_at: row.updated_at, items: (row.clinic_treatment_plan_items ?? []).sort((a: any, b: any) => a.sequence_no - b.sequence_no).map((item: any) => ({ id: item.id, treatment_plan_id: item.treatment_plan_id, procedure_id: item.procedure_id, procedure_name: item.clinic_procedures?.procedure_name ?? null, title: item.title, description: item.description, sequence_no: item.sequence_no, planned_date: item.planned_date, quantity: item.quantity, status: item.status, completed_at: item.completed_at, notes: item.notes })), visits: row.clinic_treatment_plan_visits ?? [] };
 }
 
 export async function getTreatmentPlans(patientId?: string): Promise<TreatmentPlanRecord[]> {
   const { supabase, tenantId, permissions } = await getContext();
   requirePermission(permissions, "treatment_plans:read");
-  let query = supabase.from("clinic_treatment_plans").select(`id,patient_id,source_visit_id,title,diagnosis_summary,goals,status,start_date,target_end_date,completed_at,created_at,updated_at,clinic_patients(first_name,last_name),clinic_treatment_plan_items(id,treatment_plan_id,procedure_id,title,description,sequence_no,planned_date,quantity,status,completed_at,notes,clinic_procedures(procedure_name)),clinic_treatment_plan_visits(id,treatment_plan_item_id,visit_id,linked_at)`).eq("tenant_id", tenantId).order("created_at", { ascending: false });
+  let query = supabase.from("clinic_treatment_plans").select("id").eq("tenant_id", tenantId).order("created_at", { ascending: false });
   if (patientId) query = query.eq("patient_id", patientId);
   const { data, error } = await query;
   if (error) throw new Error(`Treatment plans fetch failed: ${error.message}`);
-  return (data ?? []).map(mapPlan);
+  const plans = await Promise.all((data ?? []).map((row: any) => loadPlan(supabase, tenantId, row.id)));
+  return plans.filter(Boolean) as TreatmentPlanRecord[];
 }
 
 export async function getTreatmentPlan(planId: string): Promise<TreatmentPlanRecord | null> {
@@ -64,7 +62,7 @@ export async function getTreatmentPlan(planId: string): Promise<TreatmentPlanRec
 }
 
 export async function createTreatmentPlan(input: CreateTreatmentPlanInput): Promise<string> {
-  const { supabase, clinicUser, tenantId, permissions } = await getContext();
+  const { supabase, user, clinicUser, tenantId, permissions } = await getContext();
   requirePermission(permissions, "treatment_plans:create");
   const title = input.title.trim();
   if (!title) throw new Error("Treatment plan title is required");
