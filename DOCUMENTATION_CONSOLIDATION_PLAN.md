@@ -6,6 +6,8 @@
 
 This document is retained as the historical record of the documentation-consolidation effort. The planned cleanup has been executed and this file is no longer an active work plan.
 
+> **2026-09-11 reconciliation notice:** The 2026-08-24 consolidation established the authority/freshness structure but did not itself define the later global-surface terminology reconciliation. For current interpretation of Header, Home, Role Workspace, My Workspace, Sidebar, Role, Primary Work Context, Permissions, Widgets, Communications/Chat/Notifications and My Settings, use `docs/CORE-SYSTEM-GLOBAL-SURFACES-CANONICAL-RECONCILIATION-2026-09-11.md`. This notice does not rewrite the historical decisions recorded below.
+
 ## Completed Actions
 
 1. Established `DOCUMENTATION_STATUS.md` as the repository documentation authority/freshness registry.
