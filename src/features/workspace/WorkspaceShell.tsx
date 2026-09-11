@@ -3,17 +3,17 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { LogOut, X, ChevronDown } from "lucide-react";
+import { X, ChevronDown } from "lucide-react";
 import { getSidebarNavigation, type NavItem } from "@/core/navigation/navigationRegistry";
 import { usePermissions } from "@/core/permissions/usePermissions";
 import { createClient } from "@/infrastructure/supabase/client";
 import { cn } from "@/shared/utils/cn";
 import { useI18n } from "@/core/i18n/I18nProvider";
-import { LanguageSwitcher } from "@/core/i18n/LanguageSwitcher";
 import { GlobalSearch } from "@/core/search/GlobalSearch";
 import { GlobalHeader } from "./GlobalHeader";
 import { CommunicationsHeaderControl } from "./CommunicationsHeaderControl";
 import { NotificationsHeaderControl } from "./NotificationsHeaderControl";
+import { QuickActionsHeaderControl } from "./QuickActionsHeaderControl";
 
 interface WorkspaceShellProps {
   children: React.ReactNode;
@@ -184,18 +184,6 @@ export function WorkspaceShell({ children }: WorkspaceShellProps) {
           <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4">
             {filteredNav.map((item) => renderItem(item))}
           </nav>
-
-          <div className="border-t px-4 py-3">
-            <LanguageSwitcher />
-            <button
-              type="button"
-              onClick={handleSignOut}
-              className="mt-3 flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
-            >
-              <LogOut className="h-4 w-4" />
-              {workspace.signOut}
-            </button>
-          </div>
         </div>
       </aside>
 
@@ -209,6 +197,10 @@ export function WorkspaceShell({ children }: WorkspaceShellProps) {
             <>
               <CommunicationsHeaderControl isArabic={isArabic} />
               <NotificationsHeaderControl isArabic={isArabic} />
+              <QuickActionsHeaderControl
+                isArabic={isArabic}
+                onSignOut={handleSignOut}
+              />
             </>
           }
         />
