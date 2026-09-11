@@ -4,7 +4,8 @@
 **Status:** BINDING WORKSTREAM CONTRACT  
 **Workstream:** Header / Quick Actions  
 **Parent authority:** `docs/MASTER-EXECUTION-REPAIR-CONTRACT-GLOBAL-SURFACES-2026-09-11.md`  
-**Supporting report:** `docs/HEADER-QUICK-ACTIONS-INTEGRATION-REPORT-2026-09-12.md`
+**Supporting report:** `docs/HEADER-QUICK-ACTIONS-INTEGRATION-REPORT-2026-09-12.md`  
+**SETUP descriptor:** `docs/testing/workstream-contracts/header-quick-actions.execution.json`
 
 ## 1. Purpose
 
@@ -13,6 +14,8 @@ This contract defines the exact implementation and verification boundary for **Q
 It is a workstream contract. It does **not** modify, replace, or redefine the CORE SYSTEM Unified Test Execution Engine.
 
 The Unified Test Execution Engine remains the single execution authority and must execute the verification scope applicable to this contract without requiring changes to the engine itself.
+
+The machine-readable SETUP descriptor is the delivery adapter for this contract: SETUP resolves it when the changed-file applicability rules match, records the workstream contract in `test-execution-plan.json`, and preserves the existing PR-level impact classification for all other changed workstreams.
 
 ## 2. Product boundary
 
