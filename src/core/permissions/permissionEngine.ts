@@ -22,6 +22,10 @@ export async function isClinicAdminUser(userId: string, tenantId: string): Promi
  * Canonical permission resolution is owned by the database permission engine.
  * Subscription is the ceiling; role/direct grants and the latest override are
  * resolved server-side by get_effective_permissions().
+ *
+ * Communications domain entry is a baseline tenant capability rather than an
+ * Admin-granted read permission. Action permissions such as send/manage/request
+ * remain governed by the normal effective-permission engine.
  */
 export async function getEffectivePermissions(userId: string, tenantId: string): Promise<Permission[]> {
   const supabase = await createClient();
@@ -31,7 +35,8 @@ export async function getEffectivePermissions(userId: string, tenantId: string):
   });
 
   if (error || !Array.isArray(data)) return [];
-  return data.filter((key): key is Permission => typeof key === "string") as Permission[];
+  const resolved = data.filter((key): key is Permission => typeof key === "string") as Permission[];
+  return resolved.includes("communications:read") ? resolved : [...resolved, "communications:read"];
 }
 
 export async function hasEffectivePermission(permission: string, userId: string): Promise<boolean> {
