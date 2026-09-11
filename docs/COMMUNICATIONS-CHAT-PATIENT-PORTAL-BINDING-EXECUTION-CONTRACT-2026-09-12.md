@@ -1,9 +1,9 @@
 # CORE SYSTEM — Communications + Global Chat + Patient Portal
-## Binding Architecture / Execution Contract
+## Final Binding Architecture / Execution Contract
 
 **Date:** 2026-09-12  
-**Status:** BINDING  
-**Scope:** Communications, Patient Portal communication integration, Global Header Chat, personal read/unread, group communication, attachments, permissions, tenant isolation, documentation reconciliation and verification.
+**Status:** FINAL / BINDING  
+**Scope:** Communications, Patient Portal communication integration, Global Header Chat, personal read/unread, group communication, attachments, permissions, tenant isolation, Work Center integration boundary, documentation reconciliation and verification.
 
 ---
 
@@ -113,7 +113,7 @@ Group membership management must extend the existing participant model rather th
 
 Only clinic users belonging to the same tenant may participate in internal Chat.
 
-The final contract for group administration must define authorized creation, membership changes and deletion/archival behavior before implementation of those actions.
+The final implementation must define and verify authorized creation, membership changes and deletion/archival behavior before those actions are considered complete.
 
 ---
 
@@ -192,7 +192,48 @@ A notification may point to or alert about a Communication, but a notification i
 
 ---
 
-## 13. Entitlements
+## 13. Work Center / Journey Coordination boundary
+
+Work Center is the user-facing coordination surface of Journey Coordination. It is not part of Communications and must not be merged into it.
+
+Journey Coordination owns operational work such as:
+
+- tasks
+- requests
+- assignment and ownership state
+- handoffs
+- next actions
+- work priority
+- expected/due completion
+- escalation state
+- My Work / Work Center presentation
+- coordination history
+
+Communications owns communication. A message is not automatically a work item.
+
+A Communication may create or update Work Center work only when an explicit operational action is required. Once created, the work item remains authoritative in Journey Coordination / Work Center.
+
+Likewise, completion of operational work may generate an appropriate notification or message through Communications, but Communications does not become the owner of that work.
+
+**Required boundary:**
+
+```text
+Communication
+    ↓ explicit operational action required
+Work Center / Journey Coordination
+    ↓
+Task / Request / Handoff / Next Action / Escalation
+```
+
+No Communications feature may introduce duplicate assignment, task, operational queue, work-priority, due-date or work-ownership authority.
+
+No Work Center feature may introduce a parallel messaging/conversation/read-state authority.
+
+Work Center expansion from this workstream is prohibited except for a directly required, narrow integration boundary.
+
+---
+
+## 14. Entitlements
 
 Basic patient ↔ clinic communication through Patient Portal is Core Communications capability.
 
@@ -202,7 +243,7 @@ The existing association of basic Portal messaging with `patient_experience.adva
 
 ---
 
-## 14. Legacy `patient_portal_messages`
+## 15. Legacy `patient_portal_messages`
 
 `patient_portal_messages` is recognized as an existing implementation primitive, not the final authority.
 
@@ -219,7 +260,7 @@ The implementation phase must:
 
 ---
 
-## 15. Delete / history
+## 16. Delete / history
 
 Deletion behavior must be explicitly authorized and audited.
 
@@ -229,7 +270,7 @@ Until the final deletion policy is implemented and verified, retained history re
 
 ---
 
-## 16. Testing integration
+## 17. Testing integration
 
 The Unified Test Execution Engine is unchanged.
 
@@ -251,7 +292,7 @@ Communications/Chat/Portal verification must be represented through the appropri
 
 ---
 
-## 17. Required verification before closure
+## 18. Required verification before closure
 
 The work is **NOT CLOSED** until objective verification covers:
 
@@ -268,6 +309,7 @@ The work is **NOT CLOSED** until objective verification covers:
 - attachment visibility/security where implemented
 - deletion/retention behavior where implemented
 - Portal entitlement behavior
+- Work Center boundary and any explicit Communication → Work integration
 - responsive behavior
 - Arabic/English
 - RTL/LTR
@@ -279,7 +321,7 @@ Vercel success alone is never sufficient for production closure.
 
 ---
 
-## 18. Documentation reconciliation
+## 19. Documentation reconciliation
 
 This contract supersedes conflicting historical wording that describes Patient Portal as an operational Domain or an independent messaging authority.
 
@@ -288,12 +330,13 @@ Historical documents must be corrected, neutralized or explicitly marked superse
 - “Patient Portal remains the patient-facing domain”
 - independent Portal messaging authority
 - Chat as a separate messaging system
+- Communications as the owner of operational work assignment or work queues
 
-must be reconciled against this contract and the current Communications Blueprint.
+must be reconciled against this final contract, the Communications Blueprint and the Journey Coordination Engineering Blueprint.
 
 ---
 
-## 19. Explicit prohibitions
+## 20. Explicit prohibitions
 
 Do not create:
 
@@ -306,11 +349,43 @@ Do not create:
 - a second permission engine
 - a second tenant-isolation model
 - a modification to the Unified Test Execution Engine merely to support this work
-- Work Center expansion outside a directly required narrow integration boundary
+- Work Center expansion beyond a directly required narrow integration boundary
+- duplicate Work Center assignment/task/queue authority inside Communications
 
 ---
 
-## 20. Execution order
+## 21. Final architecture decision
+
+The boundaries are formally reconciled:
+
+```text
+Patient Portal
+      ↕
+Communications
+      ↕
+Global Chat
+
+Communications ── narrow operational integration ──> Work Center
+Work Center ───── completion/trigger context ──────> Communications
+
+Notifications = separate notification authority
+```
+
+The relationship between Communications and Work Center is integration, not ownership overlap.
+
+Communications answers:
+
+> What communication exists, who participates, what is visible, and what has this user personally read?
+
+Work Center answers:
+
+> What operational work exists, who owns it, what is due, what is its status, and what requires action?
+
+Neither surface may absorb the other's authority.
+
+---
+
+## 22. Execution order
 
 ```text
 VERIFY
@@ -327,6 +402,8 @@ Implement Global Chat over Communications
   ↓
 Implement group management / attachments / deletion according to approved boundaries
   ↓
+Implement only required narrow Work Center integration
+  ↓
 Reconcile historical documentation
   ↓
 BUILD + VERIFY + REVIEW
@@ -336,4 +413,4 @@ Production verification
 CLOSE
 ```
 
-**Binding conclusion:** Communications remains the single communication authority; Patient Portal and Global Chat are surfaces/channels over that authority. No parallel messaging or read-state system is permitted.
+**Binding conclusion:** Communications remains the single communication authority; Patient Portal and Global Chat are surfaces/channels over that authority; Journey Coordination / Work Center remains the authority for operational work. No parallel messaging, read-state, or operational-work system is permitted.
