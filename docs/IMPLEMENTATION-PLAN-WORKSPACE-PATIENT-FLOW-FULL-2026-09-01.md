@@ -2,16 +2,48 @@
 ## Complete implementation preparation — no partial implementation
 
 **Date:** 2026-09-01  
-**Status:** READY FOR FULL IMPLEMENTATION  
+**Status:** READY FOR FULL IMPLEMENTATION — RECONCILED 2026-09-11  
 **Architecture authority:** `docs/ARCHITECTURE-DECISIONS-WORKSPACE-PATIENT-FLOW-2026-09-01.md`  
 **Engineering authority:** `docs/ENGINEERING-SPEC-WORKSPACE-PATIENT-FLOW-2026-09-01.md`  
-**Traceability:** `docs/WORKSPACE-PATIENT-FLOW-ENGINEERING-TRACEABILITY-2026-09-01.md`
+**Traceability:** `docs/WORKSPACE-PATIENT-FLOW-ENGINEERING-TRACEABILITY-2026-09-01.md`  
+**Global surfaces reconciliation:** `docs/CORE-SYSTEM-GLOBAL-SURFACES-CANONICAL-RECONCILIATION-2026-09-11.md`
+
+---
+
+## 0.1 CURRENT CANONICAL USER / SURFACE MODEL
+
+This implementation plan must be interpreted according to the 2026-09-11 reconciliation:
+
+```text
+Primary Role / Job Function
+        ↓
+Primary Work Context / Classification
+        ↓
+Role Workspace
+```
+
+is independent from:
+
+```text
+Effective Permissions
+        ↓
+Authorized Domains / Capabilities
+        ├── Sidebar
+        ├── Widgets
+        └── My Workspace
+```
+
+Additional permissions do not redefine the user's Role, Primary Work Context or Role Workspace. My Workspace is the user's personal working arrangement, not a second Role Workspace. Home is an independent global starting/awareness surface. The Header is a persistent global access layer.
+
+A Clinical primary user therefore remains in Clinical Workspace when granted additional financial, operational, administrative, reporting or other permissions; those capabilities may appear through authorized Domains, Sidebar entries, Widgets and My Workspace without changing the primary Role Workspace.
+
+The current Clinical and Operational Workspaces are preserved as their established primary work environments. Administrative Workspace is outside this reconciliation's redesign scope.
 
 ---
 
 ## 0. EXECUTION PRINCIPLE
 
-This is a full implementation plan for the 2026-09-01 architectural decisions.
+This is a full implementation plan for the 2026-09-01 architectural decisions plus the 2026-09-11 global-surface clarification.
 
 It is **not** a request to implement only the visible Workspace page.
 
@@ -22,11 +54,17 @@ Architecture
    ↓
 Engineering contracts
    ↓
-Navigation / shell
+Global Header
    ↓
-Workspace / My Workspace / Home
+Home
    ↓
-Permissions
+Sidebar
+   ↓
+Role Workspace
+   ↓
+My Workspace
+   ↓
+Permissions / Entitlements
    ↓
 Patient Flow / Queue
    ↓
@@ -53,14 +91,18 @@ Establish the exact current implementation before changing anything.
 - inventory Workspace-related files;
 - inventory Patient Flow/Queue files;
 - inventory navigation/sidebar files;
+- inventory Header files;
+- inventory Home files;
 - inventory widget files;
 - inventory permission files;
 - inventory visit/clinical files;
+- inventory Communications/Notifications/auth/i18n files;
 - inventory relevant migrations and RLS;
 - identify current routes and redirects;
-- identify all references to `operation`, `clinical`, `administrative`, `workspace`, `my workspace`, `doctor`, `queue`, `pending_close`;
+- identify all references to `operation`, `clinical`, `administrative`, `workspace`, `my workspace`, `home`, `header`, `communications`, `chat`, `notifications`, `logout`, `queue`, `pending_close`;
 - identify stale/duplicate implementations;
-- compare archived historical implementation packages to current implementation only as evidence, not as authority.
+- compare archived historical implementation packages to current implementation only as evidence, not as authority;
+- identify documentation using obsolete or ambiguous Workspace terminology.
 
 ### Exit gate
 A complete baseline map exists and no implementation change has been made under this plan.
@@ -70,71 +112,127 @@ A complete baseline map exists and no implementation change has been made under 
 ## 2. PHASE W1 — CANONICAL WORKSPACE CONTEXT
 
 ### Objective
-Create one authoritative resolution path for the ordinary user's current/default Workspace presentation.
+Create one authoritative resolution path for the ordinary user's primary/default Role Workspace presentation.
 
 ### Required changes
 - inspect and reuse existing workspace membership/default data;
 - define the current presentation context contract;
-- ensure the resolver does not equate Workspace with Role;
+- ensure the resolver does not equate Workspace with Role as authorization;
 - ensure it does not grant permissions;
 - ensure it can coexist with effective permissions outside the primary context;
 - expose a stable server-side context to shell/Workspace/widget consumers;
-- remove competing context derivations.
+- remove competing context derivations;
+- keep Role Workspace stable when only additional permissions change.
 
 ### Required tests
 - user with normal clinical context;
 - user with operational context;
 - user with cross-context Domain permissions;
+- user whose extra permissions are added/removed without a primary-context change;
 - user with no invalid workspace assignment;
 - tenant isolation.
 
 ---
 
-## 3. PHASE W2 — GLOBAL SHELL / HOME / SIDEBAR
+## 3. PHASE W2 — GLOBAL HEADER / HOME / SIDEBAR
 
 ### Objective
-Make the ordinary-user navigation model match the architectural decision without breaking existing Domain routes.
+Make the global shell and navigation model match the architectural decision without breaking existing Domain routes.
 
 ### Required structure
+```text
+Header (persistent global access)
+   ↓
+Home (global starting / awareness surface)
+   ↓
+Workspace (primary professional work environment)
+   ↓
+My Workspace (personal work arrangement)
+   ↓
+Authorized Domains
+   ↓
+My Settings
+```
+
+### Header required boundary
+The Header must remain a persistent global access layer.
+
+It should provide the minimum stable global functions:
+
+- system identity/branding;
+- existing Global Search;
+- Communications access;
+- separate compact Chat access backed by Communications;
+- Notifications access;
+- Quick Actions with initial global actions such as Language and Logout.
+
+The Header must not become a universal business-action dashboard, second Home, or second Workspace.
+
+### Home required boundary
+Home is independent from Role Workspace and My Workspace.
+
+Home may provide global/lightweight information and utilities such as:
+
+- user/clinic context;
+- daily awareness;
+- appointment/waiting/work summaries;
+- attention summary;
+- global Calendar utility and lightweight calendar/request actions;
+- Weather/ambient external information;
+- user-selected quick-access shortcuts;
+- optional system-managed/partner content;
+- summaries that route to the authoritative work destination.
+
+Home must not own full clinical/operational workflows.
+
+### Sidebar required boundary
 ```text
 Home
 Workspace
 My Workspace
-Authorized Domains
+authorized Modules/Domains
 My Settings
 ```
+
+Primary classification must not suppress an authorized Domain. Additional permissions may expose Domains outside the user's primary context.
 
 ### Required changes
 - remove any Role-like Workspace naming from ordinary-user UI;
 - preserve internal classifications where required by engineering;
 - make Sidebar Domain visibility authorization-driven;
 - preserve full Domain routes;
-- ensure Home is separate from Workspace;
+- ensure Home is separate from Role Workspace and My Workspace;
+- ensure Home content is not treated as proof that all current widgets belong there;
 - preserve global search/header/i18n behavior;
-- preserve mobile/responsive behavior.
+- preserve mobile/responsive behavior;
+- preserve My Settings in Sidebar.
 
 ### Regression focus
 - RTL/LTR;
 - language switching;
+- logout/shared-workstation behavior;
 - route guards;
 - deep links;
 - unauthorized route access;
-- cross-context authorized Domain visibility.
+- cross-context authorized Domain visibility;
+- global Header persistence.
 
 ---
 
 ## 4. PHASE W3 — MY WORKSPACE / WIDGET SYSTEM
 
 ### Objective
-Implement My Workspace as a personalization surface, not a permission or workflow system.
+Implement My Workspace as a personal work/presentation surface associated with the user's Role Workspace, not as a permission or workflow system.
 
 ### Required changes
 - establish default widget catalogue;
 - associate widget availability with effective authorization/capability;
-- preserve personalization state by user + surface;
+- preserve personalization state by user + surface/context;
 - support add/remove/hide/reorder where already required;
 - prevent personalization from mutating authorization;
 - prevent widget actions from bypassing server authorization;
+- ensure Home is not treated as My Workspace;
+- ensure cross-context permitted widgets may appear without changing Role Workspace;
 - ensure Home preferences do not bleed into My Workspace and vice versa.
 
 ### Required tests
@@ -143,6 +241,8 @@ Implement My Workspace as a personalization surface, not a permission or workflo
 - read-only capability;
 - write capability;
 - unauthorized capability;
+- authorized cross-context capability;
+- primary Role Workspace remains unchanged when permissions change;
 - mobile rendering.
 
 ---
@@ -173,7 +273,7 @@ The current implementation already uses effective permissions and `queueEngine.v
 ## 6. PHASE W5 — CLINICAL WORKSPACE
 
 ### Objective
-Replace doctor-centric assumptions with the approved clinical-team work surface while preserving the existing clinical workflow.
+Preserve and validate the existing clinical primary work environment without making it responsible for cross-domain permission presentation.
 
 ### Required changes
 - inspect clinical entry points;
@@ -183,20 +283,21 @@ Replace doctor-centric assumptions with the approved clinical-team work surface 
 - preserve patient chart context;
 - preserve medical documents/photos/procedures as Domain-owned data;
 - preserve future Visit/Room/Procedure workflow boundaries;
-- keep the Workspace focused on presenting the work required now.
+- keep the Workspace focused on the primary clinical work required by Patient Flow.
 
 ### Prohibited changes
 - no new clinical Role architecture;
 - no new clinical workflow engine;
 - no embedding room/procedure business logic in Workspace;
-- no deletion of existing visit workflow.
+- no deletion of existing visit workflow;
+- no expansion merely because the user received cross-domain permissions; those belong to Sidebar/My Workspace/Widgets.
 
 ---
 
 ## 7. PHASE W6 — OPERATIONAL WORKSPACE
 
 ### Objective
-Ensure the operational surface is the correct predecessor/successor in the patient handoff chain.
+Preserve and validate the existing operational primary work environment as the correct predecessor/successor in the patient handoff chain.
 
 ### Required changes
 - waiting patient presentation;
@@ -214,7 +315,7 @@ Full daily reception simulation from arrival to completion.
 ## 8. PHASE W7 — DOMAIN INTEGRATION
 
 ### Objective
-Ensure Workspace does not create reduced duplicates of Modules/Domains.
+Ensure Workspace does not create reduced duplicates of Modules/Domains and that cross-domain permissions do not mutate primary work context.
 
 ### Required integration audit
 For every currently visible authorized Domain:
@@ -228,10 +329,11 @@ For every currently visible authorized Domain:
 - subscription/entitlement dependency;
 - Workspace contextual entry points;
 - patient/visit relationships;
-- audit behavior.
+- audit behavior;
+- whether the Domain belongs in Sidebar only, My Workspace, a Widget, Home summary, or more than one surface for distinct purposes.
 
 ### Required behavior
-A Domain shown in Sidebar remains the same Domain whether reached from Sidebar or a contextual Workspace action.
+A Domain shown in Sidebar remains the same Domain whether reached from Sidebar, My Workspace, Home, Header, or a contextual Workspace action.
 
 ---
 
@@ -258,7 +360,7 @@ This phase prepares the integration; it does not invent detailed Visit/Room/Proc
 ## 10. PHASE W9 — PERMISSION / SECURITY / RLS
 
 ### Objective
-Guarantee that the new presentation model does not weaken authorization.
+Guarantee that the presentation model does not weaken authorization and that permission expansion does not mutate Role Workspace.
 
 ### Required audit
 - Permission Engine;
@@ -269,6 +371,9 @@ Guarantee that the new presentation model does not weaken authorization.
 - Workspace membership access;
 - widget action authorization;
 - Domain route authorization;
+- Sidebar authorization;
+- Home data visibility;
+- Header global-access authorization;
 - Clinic Admin authority.
 
 ### Required invariant
@@ -277,6 +382,8 @@ UI visibility ≠ authorization
 Workspace ≠ authorization
 Widget ≠ authorization
 Role ≠ Workspace
+Additional Permission ≠ Role Workspace change
+Primary Classification ≠ Sidebar visibility filter
 ```
 
 ---
@@ -284,7 +391,7 @@ Role ≠ Workspace
 ## 11. PHASE W10 — CLINIC ADMIN PRESERVATION
 
 ### Objective
-Ensure ordinary-user Workspace work does not destroy or regress Clinic Admin.
+Ensure ordinary-user work does not destroy or regress Clinic Admin.
 
 ### Required work
 - audit current Clinic Admin route/shell;
@@ -314,7 +421,7 @@ Apply only schema changes proven necessary by the preceding phases.
 10. validate rollback/recovery path.
 
 ### No-go
-No duplicate Workspace table, permission table, Role table, Patient Flow state table, widget ACL table, or visit table.
+No duplicate Workspace table, permission table, Role table, Patient Flow state table, widget ACL table, Chat database, Communications database, or visit table.
 
 ---
 
@@ -350,27 +457,35 @@ Clinical team member opens assigned/available work → sees patient context → 
 
 ### Scenario 3 — Cross-context Domain
 
-Clinical primary user has authorized access to another Domain → Domain appears normally in Sidebar → Domain remains full Domain → actions respect its permissions.
+Clinical primary user has authorized access to another Domain → Domain appears normally in Sidebar → Domain remains full Domain → My Workspace may expose permitted tools/widgets → Clinical Role Workspace remains unchanged.
 
 ### Scenario 4 — My Workspace
 
-User changes widget arrangement → arrangement persists → no authorization changes → Patient Flow unaffected.
+User changes widget arrangement → arrangement persists → no authorization changes → no Role Workspace change → Patient Flow unaffected.
 
 ### Scenario 5 — Home
 
-Home displays daily information → user moves to Workspace → workflow starts from authoritative current state.
+Home displays global/daily information and lightweight utilities → user moves to the appropriate Workspace/Domain for execution. Home does not own the workflow.
 
-### Scenario 6 — Clinic Admin
+### Scenario 6 — Header communications
+
+User opens Communications from the Header for broader communication access or opens Chat for an immediate conversation. Both use the existing Communications authority.
+
+### Scenario 7 — Header notifications
+
+User opens Notifications from anywhere in the system and receives the same authoritative notification state.
+
+### Scenario 8 — Shared workstation
+
+User A performs work → Logout → User B authenticates → subsequent actions are attributable to User B. Logout must be easily accessible.
+
+### Scenario 9 — Clinic Admin
 
 Clinic Admin configures users/roles/permissions/workspaces/domains without losing administrative capabilities.
 
-### Scenario 7 — Unauthorized action
+### Scenario 10 — Unauthorized mutation
 
-User can see a relevant record but cannot perform an unauthorized mutation → server rejects it.
-
-### Scenario 8 — Concurrent clinical work
-
-Two authorized clinical users encounter the same work → lock/ownership prevents unsafe simultaneous transition according to existing Queue rules.
+User reaches a UI entry point but lacks the required permission. Server rejects the mutation.
 
 ---
 
@@ -380,6 +495,12 @@ Regression must include:
 
 - authentication;
 - tenant resolution;
+- Header;
+- Global Search;
+- Communications;
+- Chat compact surface;
+- Notifications;
+- Quick Actions;
 - Home;
 - Workspace;
 - My Workspace;
@@ -411,8 +532,10 @@ Closure requires:
 - all required source changes merged;
 - migrations applied and verified;
 - runtime scenarios passed;
-- no duplicate workflow/authorization engines;
-- documentation synchronized;
+- no duplicate workflow/authorization/communications engines;
+- Home/Header/Workspace/My Workspace/Sidebar semantics verified against the canonical reconciliation;
+- documentation synchronized across active architecture/engineering documents;
+- historical documentation clearly classified where terminology is obsolete;
 - production evidence captured;
 - unresolved conflicts explicitly escalated rather than silently changed.
 
@@ -423,18 +546,21 @@ Closure requires:
 Before coding begins, implementation should produce/update:
 
 1. Workspace context contract.
-2. Navigation/sidebar contract.
-3. Widget/presentation contract.
-4. Patient Flow integration contract.
-5. Clinical Workspace integration contract.
-6. Operational Workspace integration contract.
-7. Domain integration inventory.
-8. Permission/RLS impact matrix.
-9. Database migration plan where required.
-10. Runtime/E2E scenario matrix.
-11. Evidence/closure report.
+2. Global Header contract.
+3. Home composition contract.
+4. Navigation/sidebar contract.
+5. Widget/presentation contract.
+6. Patient Flow integration contract.
+7. Clinical Workspace integration contract.
+8. Operational Workspace integration contract.
+9. Domain integration inventory.
+10. Permission/RLS impact matrix.
+11. Database migration plan where required.
+12. Runtime/E2E scenario matrix.
+13. Documentation reconciliation register.
+14. Evidence/closure report.
 
-These artifacts are subordinate to the 2026-09-01 architecture decision and must not introduce new architectural decisions.
+These artifacts are subordinate to the approved architecture and canonical reconciliation and must not introduce new architectural decisions.
 
 ---
 
@@ -447,8 +573,9 @@ Implementation must stop and escalate if:
 - a new authorization engine appears necessary;
 - Patient Flow requires a new state not covered by approved architecture;
 - Clinic Admin behavior would need architectural redesign;
-- an old document appears to contain a decision that directly conflicts with the 2026-09-01 decisions and cannot be reconciled without an explicit architectural decision;
-- the only proposed solution is destructive deletion of existing documentation/code that contains unrelated valid functionality.
+- an old document appears to contain a decision that directly conflicts with the approved decisions and cannot be reconciled without an explicit architectural decision;
+- the only proposed solution is destructive deletion of existing documentation/code that contains unrelated valid functionality;
+- engineering wants to change Role Workspace because of additional permissions rather than an intentional primary-context change.
 
 ---
 
@@ -456,10 +583,12 @@ Implementation must stop and escalate if:
 
 The objective is not to make Workspace "look right".
 
-The objective is to make the entire system behave as one coherent product under the 2026-09-01 decisions:
+The objective is to make the entire system behave as one coherent product under the approved architecture and the 2026-09-11 global-surface clarification:
 
 ```text
 correct architecture
+      +
+correct surface boundaries
       +
 correct engineering relationships
       +
