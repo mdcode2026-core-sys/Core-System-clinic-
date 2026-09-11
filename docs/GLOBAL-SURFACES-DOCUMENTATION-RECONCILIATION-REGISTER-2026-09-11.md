@@ -84,8 +84,15 @@ The document was inspected as context but does not define or materially affect t
 | `CORE_SYSTEM_INDEX.md` | UPDATED | Added canonical Global Surfaces interpretation and terminology gate. |
 | `DOCUMENTATION_STATUS.md` | UPDATED | Added reconciliation status and current authority. |
 | `PROJECT_HANDOFF.md` | UPDATED | Added canonical user/surface model for future sessions. |
+| `ARCHITECTURE_DECISIONS.md` | VERIFIED-ALIGNED / GOVERNED | Chronological ADR history was inspected. It remains historical decision evidence; the 2026-09-11 reconciliation is the current interpretation layer for surface terminology and does not rewrite prior ADR history. |
+| `ENGINEERING_CONSTITUTION.md` | VERIFIED-ALIGNED / GOVERNED | Engineering principles and authority rules were inspected; no conflicting current surface definition was found. The constitution remains the highest engineering governance layer. |
+| `MASTER_ROADMAP.md` | VERIFIED-ALIGNED / GOVERNED | Product sequencing/roadmap authority was inspected; it does not define the detailed Home/Header/Role Workspace/My Workspace relationship. |
+| `DATABASE_SCHEMA.md` | VERIFIED-ALIGNED / STRUCTURAL | Structural schema reference is not a product-surface authority; it remains governed separately and must be reconciled against live schema when implementation changes affect it. |
+| `CHANGELOG.md` | HISTORICAL-NOTICE / EVIDENCE | Changelog is an execution history. Historical entries are not rewritten to retroactively express the 2026-09-11 architecture. |
 | `docs/CORE-SYSTEM-TERMINOLOGY-GOVERNANCE.md` | UPDATED | Added Role Workspace/My Workspace/Home/Header/Sidebar terminology. |
 | `docs/TERMINOLOGY-HISTORICAL-RECONCILIATION-2026-08-29.md` | UPDATED | Extended historical terminology reconciliation to global surfaces. |
+| `DOCUMENTATION_CONSOLIDATION_PLAN.md` | UPDATED | Added reconciliation notice while preserving the historical consolidation record. |
+| `archive/README.md` | UPDATED | Added explicit archive/historical authority governance. |
 
 ### Workspace / Patient Flow architecture
 
@@ -98,8 +105,8 @@ The document was inspected as context but does not define or materially affect t
 | `docs/WORKSPACE-PATIENT-FLOW-COMPLETE-DECISION-COVERAGE-MATRIX-2026-09-01.md` | UPDATED | Added full coverage for Home/Header/Role Workspace/My Workspace/Sidebar. |
 | `docs/WORKSPACE-PATIENT-FLOW-ENGINEERING-TRACEABILITY-2026-09-01.md` | UPDATED | Traced the separation and mixed-permission behavior. |
 | `docs/IMPLEMENTATION-PLAN-WORKSPACE-PATIENT-FLOW-FULL-2026-09-01.md` | UPDATED | Updated implementation sequence and user model. |
-| `docs/WORKSPACE-PATIENT-FLOW-COMPLETE-EXECUTION-PLAN-2026-09-01.md` | INSPECTED / CURRENT TARGET REQUIRES CANONICAL INTERPRETATION | Existing plan content was inspected; current implementation sequencing must be read with the canonical clarification. A later revision is required before new execution that depends on ambiguous historical wording. |
-| `docs/WORKSPACE-PATIENT-FLOW-PRE-CODE-EXECUTION-CONTRACT-2026-09-01.md` | UPDATED | Added current separation and mixed-permission expectations. |
+| `docs/WORKSPACE-PATIENT-FLOW-COMPLETE-EXECUTION-PLAN-2026-09-01.md` | UPDATED | Reconciled generic Workspace terminology and added Header/Home/Role Workspace/My Workspace boundaries. |
+| `docs/WORKSPACE-PATIENT-FLOW-PRE-CODE-EXECUTION-CONTRACT-2026-09-01.md` | UPDATED | Added current separation and mixed-permission expectations; preserved historical target context. |
 | `docs/WORKSPACE-PATIENT-FLOW-PRECODE-BASELINE-IMPACT-ORDER-2026-09-01.md` | UPDATED | Added canonical model and reconciliation findings. |
 | `docs/WORKSPACE-PATIENT-FLOW-FINAL-ENGINEERING-READINESS-REPORT-2026-09-01.md` | UPDATED | Added current surface interpretation and stability rule. |
 | `docs/WORKSPACE-PATIENT-FLOW-FINAL-EXECUTION-CLOSURE-2026-09-01.md` | UPDATED | Preserved historical closure while preventing outdated `global` interpretation. |
@@ -121,10 +128,21 @@ The document was inspected as context but does not define or materially affect t
 
 | Document / reference | Disposition | Reason |
 |---|---|---|
-| `docs/GLOBAL-UX-IA-EXECUTION-PLAN-STAGE-5-UPDATE-2026-08-28.md` | UPDATED | Historical Stage 5 plan retained with clarification. |
 | `docs/STAGE-7-IMPLEMENTATION-RECORD-2026-08-28.md` | VERIFIED-ALIGNED / HISTORICAL | Patient Context ownership is consistent; its runtime closure claims remain historical evidence. No direct current-surface conflict was found requiring a rewrite. |
-| `docs/TERMINOLOGY-HISTORICAL-RECONCILIATION-2026-08-29.md` | UPDATED | Global surface terminology added. |
 | `CORE_SYSTEM_FORENSIC_AUDIT(1).md` | HISTORICAL-NOTICE / EVIDENCE | Historical audit; not rewritten into current state. Its findings remain evidence and must be revalidated before action. |
+| `/archive/*` implementation packages, prompts and execution records | HISTORICAL / GOVERNED | Archive governance now explicitly prevents historical files from regaining current authority through terminology reuse. |
+
+### Cross-domain documentation inventory
+
+The following additional repository documentation areas were inspected because they can indirectly define Role, Permission, Capability, Workspace, navigation or user-surface semantics:
+
+| Area | Disposition | Current rule |
+|---|---|---|
+| `docs/TEAM-ACCESS-ENGINEERING-BLUEPRINT.md` | UPDATED | Authorization remains separate from Primary Role/Primary Work Context/Role Workspace; cross-context permissions do not reclassify the primary workspace. |
+| `docs/CLINIC-OPERATIONS-WORKFORCE-REFERENCE.md` | UPDATED | Workforce/job/skill data remains distinct from authorization and Role Workspace; lightweight global requests do not transfer domain ownership. |
+| AJM / Journey Coordination documentation under `docs/` | GOVERNED BY TERMINOLOGY + CANONICAL RECONCILIATION | Existing domain ownership remains authoritative; any ambiguous surface wording must be interpreted through the current terminology and global-surface documents. No blind historical rewrite was performed. |
+| Patient Journey master/decision documentation | GOVERNED / OUTSIDE THIS SURFACE REDESIGN | PJ remains the workflow authority. Patient Flow remains contextual/background for ordinary users as already approved; this reconciliation does not redesign PJ. |
+| Financial, Inventory, Agenda and other Domain blueprints | GOVERNED / OUTSIDE THIS SURFACE REDESIGN | Domain ownership is preserved. Cross-context authorization may expose normal Domain navigation without changing Role Workspace. |
 
 ## 5. Referenced authority artifacts not found at current paths
 
