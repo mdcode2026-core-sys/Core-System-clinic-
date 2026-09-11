@@ -48,7 +48,7 @@ export interface UseWidgetPersistenceResult {
  * Persist presentation state per authenticated user and Workspace surface.
  * This is presentation state only and never grants authorization.
  */
-export function useWidgetPersistence(workspaceKey: WorkspaceSurfaceKey = "global"): UseWidgetPersistenceResult {
+export function useWidgetPersistence(workspaceKey: WorkspaceSurfaceKey = "my-workspace"): UseWidgetPersistenceResult {
   const initialKey = getStorageKey(undefined, workspaceKey);
   const [storageKey, setStorageKey] = useState<string>(initialKey);
   const [layout, setInternalLayout] = useState<WorkspaceUserState>(() => readFromStorage(initialKey));

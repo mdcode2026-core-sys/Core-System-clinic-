@@ -31,6 +31,7 @@ const commands = {
     ["ajm-static", "npm", ["run", "ajm:audit"]],
     ["ajm-migrations", "npm", ["run", "ajm:migrations"]],
   ],
+  "workspace-authority": [["global-surfaces-workspace-authority", "npm", ["run", "test:global-surfaces-workspace-authority"]]],
   "cross-domain": [["cross-domain-runtime", "npm", ["run", "test:cross-domain-runtime"]]],
   "database-integrity": [["database-integrity", "npm", ["run", "test:cross-domain-runtime"]]],
   authorization: [["authorization-runtime", "npm", ["run", "test:cross-domain-runtime"]]],
@@ -51,9 +52,6 @@ const runtimeSuites = new Set([
 const required = [...new Set([...(plan.required_suites || []), "engineering"])]
   .filter((suite) => commands[suite]);
 
-// The production runtime is a consumer of the build artifact. Engineering must
-// therefore complete first; runtime/browser suites are deliberately sequenced
-// after it even when the contract lists suites in another order.
 const ordered = [
   "engineering",
   ...required.filter((suite) => suite !== "engineering" && !runtimeSuites.has(suite)),

@@ -24,7 +24,7 @@ export interface UseWorkspaceResult {
   resetLayout: () => void;
 }
 
-export function useWorkspace(workspaceKey: WorkspaceSurfaceKey = "global"): UseWorkspaceResult {
+export function useWorkspace(workspaceKey: WorkspaceSurfaceKey = "my-workspace"): UseWorkspaceResult {
   const { layout, setLayout, reset } = useWidgetPersistence(workspaceKey);
   const { hasPermission, isLoading: permissionsLoading } = usePermissions();
   const moduleKeys = useMemo(() => Array.from(new Set(widgetRegistry.map((w) => w.moduleKey))), []);
