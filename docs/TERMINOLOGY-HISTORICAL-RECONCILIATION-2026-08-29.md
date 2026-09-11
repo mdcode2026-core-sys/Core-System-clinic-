@@ -1,8 +1,11 @@
 # CORE SYSTEM — Historical Terminology Reconciliation
 
 **Date:** 2026-08-29  
-**Status:** EXECUTED BASELINE RECONCILIATION  
-**Companion authority:** `docs/CORE-SYSTEM-TERMINOLOGY-GOVERNANCE.md`
+**Status:** EXECUTED BASELINE RECONCILIATION — EXTENDED 2026-09-11  
+**Companion authority:** `docs/CORE-SYSTEM-TERMINOLOGY-GOVERNANCE.md`  
+**Current global-surface authority:** `docs/CORE-SYSTEM-GLOBAL-SURFACES-CANONICAL-RECONCILIATION-2026-09-11.md`
+
+> **2026-09-11 extension:** The original terminology investigation is preserved as historical work. The present extension adds the canonical distinctions required to prevent future confusion among Role, Primary Work Context, Role Workspace, My Workspace, Home, Sidebar, Header, Widgets, Communications, Chat, Notifications and Quick Actions.
 
 ## 1. Purpose
 
@@ -27,13 +30,10 @@ The reconciliation was grounded in the current `main` repository and the active 
 - `docs/AJM-UX-IA-RECONCILIATION-ADDENDUM-2026-08-28.md`
 - `docs/AJM-UX-UNIFIED-EXECUTION-PLAN-2026-08-29.md`
 - `docs/AJM-UX-UNIFIED-RECONCILIATION-EXECUTIVE-REPORT-2026-08-29.md`
-- `GLOBAL_UX_IA_FINAL_AUTHORITY_2026-08-28.md`
-- `GLOBAL_UX_IA_IMPLEMENTATION_PLAN_2026-08-28.md`
-- `GLOBAL_UX_IA_AUDIT_FINAL_REPORT_2026-08-28.md`
-- `CORE-SYSTEM-GLOBAL-UX-IA-MASTER-EXECUTION.md`
-- relevant AJM/UX branches and their repository state.
+- Global UX/IA authority and implementation plans
+- relevant AJM/UX branches and repository state.
 
-The branch inventory confirmed the active AJM/UX line includes `ajm/ajm-0-baseline-readiness`, `ajm/ajm-1-team-access-foundation`, the AJM-2 implementation branches, `ajm-ux-reconciliation-2026-08-29`, and the UX audit/stage branches including `ux-global-ia-audit`, `ux-ia-stage-0-baseline-2026-08-28`, `ux-stage-6-patient-flow`, `ux-stage-7-patient-context`, `ux-stage-10-sidebar-finalization`, `docs/global-ux-ia-final-reconciliation-2026-08-28`, and the workspace foundation/personalization branches.
+The branch inventory confirmed the active AJM/UX line includes UX audit/stage branches, workspace foundation/personalization branches, Patient Flow/Patient Context work, and the historical terminology reconciliation work.
 
 ## 3. Executive finding
 
@@ -69,7 +69,7 @@ Domain was not consistently established as the primary product-structure term in
 
 ### Current pattern
 
-AJM explicitly defines six reconciled domains and requires clear ownership of business logic and authoritative records. A consuming domain integrates with the authoritative owner rather than duplicating it.
+AJM explicitly defines reconciled domains and requires clear ownership of business logic and authoritative records. A consuming domain integrates with the authoritative owner rather than duplicating it.
 
 ### Disposition
 
@@ -184,7 +184,53 @@ The following distinctions are now locked for current documentation:
 | Module / Workspace | Product unit vs working interface | SEPARATE |
 | Feature / Feature Flag | Functionality vs activation/rollout control | SEPARATE |
 
-## 12. Historical-to-current disposition matrix
+## 12. Global Surface terminology — 2026-09-11 extension
+
+The following terms are now also locked:
+
+| Term | Current meaning | Must NOT be treated as |
+|---|---|---|
+| **Primary Role** | User's primary professional/job function | Permission set or Workspace |
+| **Primary Work Context / Classification** | User's primary area of work within Patient Flow/work organization | Role, permission or Sidebar filter |
+| **Role Workspace** | Stable primary professional work environment associated with Primary Role/Primary Work Context | Permission set, Role, Home, My Workspace |
+| **My Workspace** | Personal working/presentation arrangement associated with the Role Workspace | Role Workspace, Home, authorization |
+| **Home** | Independent global starting/awareness surface | Role Workspace, My Workspace, Dashboard |
+| **Sidebar** | Complete authorization-aware navigation surface | Role Workspace or My Workspace |
+| **Header** | Persistent global access layer | Home or universal work dashboard |
+| **Workspace Quick Action** | Small executable work capability surface/Widget classification | Global Header Quick Actions |
+| **Global Header Quick Actions** | Global interface/account actions, initially Language and Logout | Workspace Widgets / business action launcher |
+| **Communications** | Full authoritative communication domain | Chat or Notifications |
+| **Chat** | Compact Messenger-style surface over Communications | Separate communication domain |
+| **Notifications** | Separate attention/delivery capability | Communications or Follow-up |
+
+## 13. Primary Role → Workspace rule
+
+The current canonical relationship is:
+
+```text
+Primary Role / Job Function
+        ↓
+Primary Work Context / Classification
+        ↓
+Role Workspace
+```
+
+Effective permissions are a separate axis:
+
+```text
+Effective Permissions
+        ↓
+Authorized Domains / Capabilities / Actions
+        ├── Sidebar
+        ├── Widgets
+        └── My Workspace
+```
+
+Additional permission grants do not redefine the user's Primary Role, Primary Work Context or Role Workspace.
+
+An intentional Role/primary-context change is a separate event and must not be inferred from a permission override.
+
+## 14. Historical-to-current disposition matrix
 
 | Historical usage | Intended meaning found from context | Current term | Action |
 |---|---|---|---|
@@ -197,10 +243,14 @@ The following distinctions are now locked for current documentation:
 | `Skill / Capability` | Mixed human/system concept | Skill + Capability | SPLIT |
 | `Qualification` as skill-like term | Formal credential | Qualification | CLARIFY |
 | `Domain` used loosely for a UI/product area | Ambiguous | Domain / Module / Workspace based on intended meaning | RECONCILE |
+| `Workspace` used as generic Dashboard/Global surface | Working interface or legacy global surface | Role Workspace / My Workspace / Home based on intended meaning | RECONCILE |
+| `global` technical key used as product concept | Legacy implementation context | Technical implementation identifier only | CLARIFY |
+| `Quick Action` without surface qualifier | Either Workspace quick capability or global Header action | Qualify as Workspace Quick Action or Global Header Quick Action | CLARIFY |
+| Mail/message icon used as generic chat | Communication access | Communications | KEEP; distinguish from Chat |
 
-## 13. Documents requiring terminology attention
+## 15. Documents requiring terminology attention
 
-The following are not declared wrong wholesale. They require targeted review under the glossary when next touched:
+The following are not declared wrong wholesale. They require targeted review under the current glossary when next touched:
 
 1. `ARCHITECTURE_DECISIONS.md` — ADR-006 and any module/capability statements that predate AJM Domains.
 2. `docs/AJM-IMPLEMENTATION-PLAN.md` — especially the `Skill / Capability` wording in AJM-1.
@@ -210,10 +260,10 @@ The following are not declared wrong wholesale. They require targeted review und
 6. `docs/AJM-UX-IA-RECONCILIATION-ADDENDUM-2026-08-28.md` — validate surface vs product terminology.
 7. `docs/AJM-UX-UNIFIED-EXECUTION-PLAN-2026-08-29.md` — validate Domain/Module/Feature/Capability wording.
 8. `docs/AJM-UX-UNIFIED-RECONCILIATION-EXECUTIVE-REPORT-2026-08-29.md` — validate final terminology references.
-9. `GLOBAL_UX_IA_FINAL_AUTHORITY_2026-08-28.md` — retain its Workspace/Widget/Capability distinctions; only correct terminology where it conflicts with the glossary.
-10. `GLOBAL_UX_IA_IMPLEMENTATION_PLAN_2026-08-28.md` and the Global UX master execution document — validate all structural terminology before further implementation.
+9. Global UX/IA authority — retain valid Workspace/Widget/Capability distinctions; apply the 2026-09-11 clarification where its historical terminology overlaps current concepts.
+10. Global UX/IA implementation/master execution documents — validate all structural terminology before further implementation.
 
-## 14. What must NOT be changed
+## 16. What must NOT be changed
 
 Do not:
 
@@ -223,9 +273,11 @@ Do not:
 - rename Visit to Encounter for standards compliance;
 - create a second user-facing CarePlan concept solely because FHIR has that term;
 - treat Workspace or Widget as security boundaries;
-- treat a database table, route or page as automatically defining a Module or Domain.
+- treat a database table, route or page as automatically defining a Module or Domain;
+- treat `global` as a product concept that collapses Home and My Workspace;
+- treat additional permissions as an automatic Role Workspace change.
 
-## 15. Required implementation consequence
+## 17. Required implementation consequence
 
 Before resuming AJM execution stages that depend on visibility, access, workforce eligibility or UX presentation, the implementation must use the glossary as the terminology gate.
 
@@ -233,16 +285,18 @@ Specifically:
 
 1. AJM must distinguish **business ownership (Domain)** from **product packaging/functional unit (Module)**.
 2. AJM must distinguish **system/product Capability** from **human Skill** and **formal Qualification**.
-3. UX must distinguish **Module/Feature/Capability** from **Workspace/Widget**.
+3. UX must distinguish **Module/Feature/Capability** from **Role Workspace/My Workspace/Home/Sidebar/Header**.
 4. Subscription/License work must distinguish **Capability/Entitlement/Permission**.
 5. PJ remains the patient-centered authority; terminology changes must not alter PJ ownership or clinical behavior.
 6. Any future architecture change that needs a different relationship between Domain and Module must be recorded as an explicit architectural decision.
+7. Any future document touching Workspace must identify whether it means Role Workspace, My Workspace, Home or a technical implementation identifier.
 
-## 16. Closure status
+## 18. Closure status
 
-**Terminology investigation:** CLOSED for the six requested primary terms.  
+**Original terminology investigation:** CLOSED.  
+**Global-surface terminology extension:** CLOSED as of 2026-09-11.  
 **Terminology baseline:** ESTABLISHED.  
 **Historical decisions:** PRESERVED.  
-**Current ambiguous usages:** REGISTERED for targeted reconciliation.  
+**Current ambiguous usages:** RECONCILED through the canonical global-surface document and this glossary.  
 **Global blind rename:** PROHIBITED.  
-**Ready to resume AJM/UX work:** YES, subject to using the glossary as the terminology gate and completing targeted wording corrections when the affected documents are next modified.
+**Ready to resume AJM/UX work:** YES, subject to using the glossary as the terminology gate and applying the canonical surface model.
