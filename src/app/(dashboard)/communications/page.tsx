@@ -2,7 +2,6 @@ import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { createClient } from "@/infrastructure/supabase/server";
 import { resolveTenantId } from "@/core/auth/resolveTenantId";
-import { getEffectivePermissions } from "@/core/permissions/permissionEngine";
 import { createCommunicationRequest, createConversation, sendInternalMessage, updateCommunicationRequest } from "@/domain/communications/communications.actions";
 
 export default async function CommunicationsPage({ searchParams }: { searchParams: Promise<{ patientId?: string }> }) {
@@ -11,8 +10,6 @@ export default async function CommunicationsPage({ searchParams }: { searchParam
   if (!user) redirect("/login");
   const tenantId = await resolveTenantId(user.id);
   if (!tenantId) redirect("/login");
-  const permissions = await getEffectivePermissions(user.id, tenantId);
-  if (!permissions.includes("communications:read" as never)) redirect("/");
   const ar = (await cookies()).get("core-system-locale")?.value === "ar";
   const params = await searchParams;
   const patientId = params.patientId?.trim() || null;
