@@ -10,15 +10,16 @@ import { GripVertical, Plus, RotateCcw, Settings2, X } from "lucide-react";
 
 interface WorkspaceRendererProps { context?: WorkspaceContext; workspaceKey?: WorkspaceSurfaceKey; }
 
-export function WorkspaceRenderer({ context, workspaceKey = "global" }: WorkspaceRendererProps) {
+export function WorkspaceRenderer({ context, workspaceKey = "my-workspace" }: WorkspaceRendererProps) {
   const { visibleWidgets, availableWidgets, isLoading, hasErrors, updateWidgetState, addWidget, removeWidget, reorderWidgets, resetLayout } = useWorkspace(workspaceKey);
   const { locale, workspace } = useI18n();
   const [customizing, setCustomizing] = useState(false);
   const [draggedKey, setDraggedKey] = useState<string | null>(null);
   const surface = getAvailableWorkspaceSurfaces(() => true).find((item) => item.key === workspaceKey);
   const direction = locale === "ar" ? "rtl" : "ltr";
-  const title = workspaceKey === "global" ? (locale === "ar" ? "مساحة عملي" : "My Workspace") : surface?.label[locale] ?? (locale === "ar" ? "مساحة العمل" : "Workspace");
-  const description = workspaceKey === "global" ? (locale === "ar" ? "مساحة العمل الشخصية لتنظيم الأدوات المهمة لعملك اليومي." : "Your personal working surface for organizing the tools that matter to your daily work.") : surface?.description[locale] ?? (locale === "ar" ? "مساحة العمل المخصصة لك." : "Your working surface.");
+  const isMyWorkspace = workspaceKey === "my-workspace";
+  const title = isMyWorkspace ? (locale === "ar" ? "مساحة عملي" : "My Workspace") : surface?.label[locale] ?? (locale === "ar" ? "مساحة العمل" : "Workspace");
+  const description = isMyWorkspace ? (locale === "ar" ? "مساحة العمل الشخصية لتنظيم الأدوات المصرح بها لعملك اليومي." : "Your personal presentation surface for organizing the tools you are authorized to use daily.") : surface?.description[locale] ?? (locale === "ar" ? "مساحة العمل المخصصة لك." : "Your working surface.");
 
   const selectedKeys = useMemo(() => new Set(visibleWidgets.map((w) => w.definition.key)), [visibleWidgets]);
   const layer2 = visibleWidgets.filter((w) => w.definition.layer === 2);
