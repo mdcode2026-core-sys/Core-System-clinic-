@@ -95,9 +95,9 @@ export function PatientForm({ patient, isOpen, onClose, onSuccess }: PatientForm
         return;
       }
 
-      invalidateAll(tenantId);
       onSuccess?.();
       onClose();
+      invalidateAll(tenantId);
     } catch {
       setServerError(t.unexpected);
     } finally {
@@ -170,5 +170,5 @@ function Field({ id, label, required, value, error, onChange, type = "text", pla
 }
 
 function SelectField({ label, placeholder, value, onChange, items }: { label: string; placeholder: string; value: string; onChange: (value: string) => void; items: [string, string][] }) {
-  return <div className="space-y-2"><Label>{label}</Label><Select value={value} onValueChange={onChange}><SelectTrigger><SelectValue placeholder={placeholder} /></SelectTrigger><SelectContent>{items.map(([itemValue, itemLabel]) => <SelectItem key={itemValue} value={itemValue}>{itemLabel}</SelectItem>)}</SelectContent></Select>;
+  return <div className="space-y-2"><Label>{label}</Label><Select value={value} onValueChange={onChange}><SelectTrigger><SelectValue placeholder={placeholder} /></SelectTrigger><SelectContent>{items.map(([itemValue, itemLabel]) => <SelectItem key={itemValue} value={itemValue}>{itemLabel}</SelectItem>)}</SelectContent></Select></div>;
 }
