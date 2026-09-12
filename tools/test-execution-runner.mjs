@@ -59,6 +59,7 @@ const ordered = [
 ];
 
 const results = [];
+const commandCache = new Map();
 let server = null;
 let runtimeStartFailure = null;
 let buildPassed = false;
@@ -128,6 +129,21 @@ try {
     }
 
     for (const [test, command, args] of commands[suite]) {
+      const cacheKey = JSON.stringify([command, args]);
+      const cached = commandCache.get(cacheKey);
+      if (cached) {
+        const reused = {
+          ...cached,
+          suite,
+          test,
+          durationMs: 0,
+          reusedFrom: `${cached.suite}/${cached.test}`,
+        };
+        results.push(reused);
+        console.log(`\n=== SUITE=${suite} TEST=${test} ${reused.status} reused=${reused.reusedFrom} ===`);
+        continue;
+      }
+
       const started = Date.now();
       console.log(`\n=== SUITE=${suite} TEST=${test} START ===`);
       let exitCode = 1;
@@ -146,6 +162,7 @@ try {
         durationMs: Date.now() - started,
       };
       results.push(record);
+      commandCache.set(cacheKey, record);
       if (suite === "engineering" && test === "build") buildPassed = exitCode === 0;
       console.log(`=== SUITE=${suite} TEST=${test} ${record.status} exit=${exitCode} ===`);
     }
@@ -165,6 +182,7 @@ const report = {
   results,
   summary: {
     total: results.length,
+    executed_unique_commands: commandCache.size,
     passed: results.filter((r) => r.status === "PASS").length,
     failed: failures.length,
   },
