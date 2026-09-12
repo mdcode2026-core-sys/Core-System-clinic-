@@ -37,6 +37,36 @@ export async function createConversation(input: { subject?: string; recipientUse
   revalidatePath("/communications");
 }
 
+export async function addConversationParticipant(input: { conversationId: string; clinicUserId: string }) {
+  const ctx = await getContext();
+  if (!ctx || !(await hasEffectivePermission(ctx.user.id, "communications:manage"))) return;
+  const { data: conversation } = await ctx.supabase.from("communication_conversations").select("id,kind,status").eq("tenant_id", ctx.tenantId).eq("id", input.conversationId).maybeSingle();
+  if (!conversation || conversation.kind !== "internal" || conversation.status === "archived") return;
+  const { data: target } = await ctx.supabase.from("clinic_users").select("id").eq("tenant_id", ctx.tenantId).eq("id", input.clinicUserId).eq("is_active", true).is("deleted_at", null).maybeSingle();
+  if (!target) return;
+  await ctx.supabase.from("communication_conversation_participants").upsert({ tenant_id: ctx.tenantId, conversation_id: conversation.id, clinic_user_id: target.id, role: "participant" }, { onConflict: "tenant_id,conversation_id,clinic_user_id" });
+  revalidatePath("/communications");
+}
+
+export async function removeConversationParticipant(input: { conversationId: string; clinicUserId: string }) {
+  const ctx = await getContext();
+  if (!ctx || !(await hasEffectivePermission(ctx.user.id, "communications:manage"))) return;
+  const { data: conversation } = await ctx.supabase.from("communication_conversations").select("id,kind,status,created_by").eq("tenant_id", ctx.tenantId).eq("id", input.conversationId).maybeSingle();
+  if (!conversation || conversation.kind !== "internal" || conversation.status === "archived") return;
+  if (conversation.created_by === input.clinicUserId) return;
+  await ctx.supabase.from("communication_conversation_participants").delete().eq("tenant_id", ctx.tenantId).eq("conversation_id", input.conversationId).eq("clinic_user_id", input.clinicUserId);
+  revalidatePath("/communications");
+}
+
+export async function archiveConversation(conversationId: string) {
+  const ctx = await getContext();
+  if (!ctx || !(await hasEffectivePermission(ctx.user.id, "communications:manage"))) return;
+  const { data: conversation } = await ctx.supabase.from("communication_conversations").select("id,kind,created_by").eq("tenant_id", ctx.tenantId).eq("id", conversationId).maybeSingle();
+  if (!conversation) return;
+  await ctx.supabase.from("communication_conversations").update({ status: "archived", updated_at: new Date().toISOString() }).eq("tenant_id", ctx.tenantId).eq("id", conversation.id);
+  revalidatePath("/communications");
+}
+
 export async function sendInternalMessage(input: { conversationId: string; body: string; internalNote?: boolean; relatedType?: string | null; relatedId?: string | null }) {
   const ctx = await getContext();
   if (!ctx || !(await hasEffectivePermission(ctx.user.id, "communications:send")) || !input.body.trim()) return;
