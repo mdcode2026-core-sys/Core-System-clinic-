@@ -28,15 +28,7 @@ jobs:
       - name: Checkout exact candidate
         uses: actions/checkout@v4
         with:
-          fetch-depth: 1
-
-      - name: Fetch execution baseline and candidate refs
-        env:
-          TEST_BASE_REF: ${{ github.event.pull_request.base.sha || inputs.base_ref || 'main' }}
-          TEST_HEAD_REF: ${{ github.event.pull_request.head.sha || github.sha }}
-        run: |
-          git fetch --no-tags --depth=1 origin "$TEST_BASE_REF"
-          git fetch --no-tags --depth=1 origin "$TEST_HEAD_REF"
+          fetch-depth: 0
 
       - name: Setup Node
         uses: actions/setup-node@v4
