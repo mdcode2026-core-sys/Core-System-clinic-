@@ -1,0 +1,41 @@
+{
+  "contract_version": "1.0",
+  "contract_type": "workstream",
+  "workstream_id": "communications-wave-b",
+  "contract_path": "docs/COMMUNICATIONS-CHAT-PATIENT-PORTAL-WAVE-B-CLOSURE-2026-09-12.md",
+  "status": "binding",
+  "applicability": {
+    "match_any": [
+      "^src/features/workspace/GlobalChatHeaderControl\\.tsx$",
+      "^src/domain/communications/communications\\.actions\\.ts$",
+      "^supabase/migrations/.*communications.*attachment.*\\.sql$",
+      "^supabase/migrations/.*communications.*group.*\\.sql$",
+      "^docs/COMMUNICATIONS-CHAT-PATIENT-PORTAL-WAVE-B-CLOSURE-2026-09-12\\.md$",
+      "^docs/testing/workstream-contracts/communications-wave-b\\.execution\\.json$",
+      "^tools/communications-wave-b-audit\\.mjs$",
+      "^package\\.json$"
+    ]
+  },
+  "required_engineering": ["typecheck", "lint", "build"],
+  "required_suites": ["engineering", "authorization", "database-integrity"],
+  "regression_level": "R3",
+  "workstream_checks": [
+    {
+      "name": "communications-wave-b",
+      "command": "npm run test:communications-wave-b",
+      "required": true,
+      "execution_owner": "workstream-validation"
+    },
+    {
+      "name": "header-chat",
+      "command": "npm run test:header-chat",
+      "required": true,
+      "execution_owner": "workstream-validation"
+    }
+  ],
+  "notes": [
+    "Wave B validates Global Chat, internal group membership and Communications-owned attachments using existing authority.",
+    "No Chat-specific, group-specific or Portal-specific messaging/read store is permitted.",
+    "The Unified Test Execution Engine and runner remain unchanged."
+  ]
+}
