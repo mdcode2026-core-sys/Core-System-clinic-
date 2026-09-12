@@ -73,11 +73,7 @@ export function useDeletePatient() {
       return data;
     },
     onSuccess: (_, variables) => {
-      void queryClient.invalidateQueries({
-        queryKey: ["patients", variables.tenantId],
-        exact: true,
-        refetchType: "active",
-      });
+      void queryClient.refetchQueries({ queryKey: ["patients", variables.tenantId], type: "active" });
     },
   });
 }
@@ -87,31 +83,12 @@ export function useInvalidatePatients() {
 
   return {
     invalidateAll: (tenantId?: string) => {
-      if (tenantId) {
-        void queryClient.invalidateQueries({
-          queryKey: ["patients", tenantId],
-          exact: true,
-          refetchType: "active",
-        });
-        return;
-      }
-
-      void queryClient.invalidateQueries({
-        queryKey: ["patients"],
-        refetchType: "active",
-      });
+      const queryKey = tenantId ? ["patients", tenantId] : ["patients"];
+      void queryClient.refetchQueries({ queryKey, type: "active" });
     },
     invalidatePatient: (patientId: string) => {
-      void queryClient.invalidateQueries({
-        queryKey: ["patient", patientId],
-        exact: true,
-        refetchType: "active",
-      });
-      void queryClient.invalidateQueries({
-        queryKey: ["patient-history", patientId],
-        exact: true,
-        refetchType: "active",
-      });
+      void queryClient.invalidateQueries({ queryKey: ["patient", patientId] });
+      void queryClient.invalidateQueries({ queryKey: ["patient-history", patientId] });
     },
   };
 }
