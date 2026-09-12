@@ -95,13 +95,13 @@ export function PatientForm({ patient, isOpen, onClose, onSuccess }: PatientForm
         return;
       }
 
-      onSuccess?.();
-      onClose();
       try {
-        invalidateAll(tenantId);
+        await invalidateAll(tenantId);
       } catch (cacheError) {
         console.error("[PatientForm] cache invalidation failed after successful save", cacheError);
       }
+      onSuccess?.();
+      onClose();
     } catch {
       setServerError(t.unexpected);
     } finally {
