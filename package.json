@@ -13,6 +13,7 @@
     "test:header-technical-foundation": "node tools/header-technical-foundation-audit.mjs",
     "test:header-chat": "node tools/header-chat-audit.mjs",
     "test:communications-wave-b": "node tools/communications-wave-b-audit.mjs",
+    "test:communications-wave-c": "node tools/communications-wave-c-audit.mjs",
     "i18n:audit": "node tools/i18n-audit.mjs",
     "i18n:parity": "node tools/i18n-catalog-parity.mjs",
     "ux:widget-catalog": "node tools/widget-catalog-audit.mjs",
