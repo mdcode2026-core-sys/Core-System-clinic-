@@ -11,9 +11,13 @@ export function GlobalChatHeaderControl({ isArabic }: { isArabic: boolean }) {
   useEffect(() => {
     let active = true;
     const supabase = createClient();
+
     const loadUnread = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) return;
+
       const { data: clinicUser } = await supabase
         .from("clinic_users")
         .select("id,tenant_id")
@@ -23,14 +27,18 @@ export function GlobalChatHeaderControl({ isArabic }: { isArabic: boolean }) {
         .maybeSingle();
       if (!clinicUser) return;
 
-      const { data: conversations } = await supabase
-        .from("communication_conversations")
-        .select("id")
+      // Chat is a compact surface over Communications. Only conversations in
+      // which this clinic user is a participant are eligible for this user's
+      // personal unread state.
+      const { data: participations } = await supabase
+        .from("communication_conversation_participants")
+        .select("conversation_id")
         .eq("tenant_id", clinicUser.tenant_id)
-        .eq("kind", "internal")
-        .neq("status", "archived")
-        .limit(200);
-      const conversationIds = (conversations ?? []).map((c) => c.id);
+        .eq("clinic_user_id", clinicUser.id);
+
+      const conversationIds = Array.from(
+        new Set((participations ?? []).map((row) => row.conversation_id).filter(Boolean)),
+      );
       if (!conversationIds.length) {
         if (active) setUnread(0);
         return;
@@ -45,8 +53,8 @@ export function GlobalChatHeaderControl({ isArabic }: { isArabic: boolean }) {
         .neq("sender_clinic_user_id", clinicUser.id)
         .order("created_at", { ascending: false })
         .limit(200);
-      const ids = (messages ?? []).map((m) => m.id);
-      if (!ids.length) {
+      const messageIds = (messages ?? []).map((message) => message.id);
+      if (!messageIds.length) {
         if (active) setUnread(0);
         return;
       }
@@ -56,16 +64,21 @@ export function GlobalChatHeaderControl({ isArabic }: { isArabic: boolean }) {
         .select("message_id")
         .eq("tenant_id", clinicUser.tenant_id)
         .eq("clinic_user_id", clinicUser.id)
-        .in("message_id", ids);
-      const readIds = new Set((receipts ?? []).map((r) => r.message_id));
-      if (active) setUnread(ids.filter((id) => !readIds.has(id)).length);
+        .in("message_id", messageIds);
+      const readIds = new Set((receipts ?? []).map((receipt) => receipt.message_id));
+      const unreadCount = messageIds.filter((id) => !readIds.has(id)).length;
+
+      if (active) setUnread(unreadCount);
     };
 
     void loadUnread();
-    const refresh = () => { void loadUnread(); };
+    const refresh = () => {
+      void loadUnread();
+    };
     window.addEventListener("focus", refresh);
     document.addEventListener("visibilitychange", refresh);
     const interval = window.setInterval(loadUnread, 10000);
+
     return () => {
       active = false;
       window.removeEventListener("focus", refresh);
