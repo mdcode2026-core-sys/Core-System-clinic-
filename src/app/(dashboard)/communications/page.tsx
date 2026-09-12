@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { createClient } from "@/infrastructure/supabase/server";
 import { resolveTenantId } from "@/core/auth/resolveTenantId";
-import { createCommunicationRequest, createConversation, sendInternalMessage, updateCommunicationRequest } from "@/domain/communications/communications.actions";
+import { createCommunicationRequest, createConversation, markConversationRead, sendInternalMessage, updateCommunicationRequest } from "@/domain/communications/communications.actions";
 
 export default async function CommunicationsPage({ searchParams }: { searchParams: Promise<{ patientId?: string }> }) {
   const supabase = await createClient();
@@ -34,6 +34,16 @@ export default async function CommunicationsPage({ searchParams }: { searchParam
     patientScope,
   ]);
 
+  const convRows = conversations ?? [];
+  // The Chat header is a compact surface over Communications. This page renders
+  // the internal conversation history, so viewing it is the authoritative read
+  // action for those same conversations and receipts.
+  await Promise.all(
+    convRows
+      .filter((conversation: any) => conversation.kind === "internal" && conversation.status !== "archived")
+      .map((conversation: any) => markConversationRead(conversation.id)),
+  );
+
   async function addConversation(fd: FormData) {
     "use server";
     const kind = String(fd.get("kind") || "internal");
@@ -57,7 +67,6 @@ export default async function CommunicationsPage({ searchParams }: { searchParam
   }
 
   const patientRows = patients ?? [];
-  const convRows = conversations ?? [];
   const contextName = contextPatient ? `${contextPatient.first_name} ${contextPatient.last_name}`.trim() : null;
 
   return <div className="space-y-8" dir={ar ? "rtl" : "ltr"}>
@@ -68,8 +77,8 @@ export default async function CommunicationsPage({ searchParams }: { searchParam
       <section className="rounded-lg border bg-card p-5"><h2 className="mb-4 text-lg font-semibold">{ar ? "طلب تشغيلي" : "Operational request"}</h2><form action={addRequest} className="space-y-2"><input name="title" required placeholder={ar ? "عنوان الطلب" : "Request title"} className="w-full rounded border p-2"/><textarea name="details" rows={3} placeholder={ar ? "التفاصيل" : "Details"} className="w-full rounded border p-2"/><select name="patient" defaultValue={patientId ?? ""} className="w-full rounded border p-2"><option value="">Related patient</option>{patientRows.map((p: any) => <option key={p.id} value={p.id}>{p.first_name} {p.last_name}</option>)}</select><select name="assignee" className="w-full rounded border p-2"><option value="">Assign later</option>{(users ?? []).map((u: any) => <option key={u.id} value={u.id}>{u.full_name || u.email}</option>)}</select><select name="priority" className="w-full rounded border p-2"><option value="normal">Normal</option><option value="low">Low</option><option value="high">High</option><option value="urgent">Urgent</option></select><button className="w-full rounded bg-primary px-4 py-2 text-primary-foreground">{ar ? "إنشاء الطلب" : "Create request"}</button></form></section>
     </div>
     <div className="grid gap-6 lg:grid-cols-2">
-      <section className="rounded-lg border bg-card p-5"><h2 className="mb-4 text-lg font-semibold">{ar ? "سجل الاتصالات والرسائل" : "Communication history"}</h2><div className="divide-y">{convRows.map((c: any) => <div key={c.id} className="py-3"><div className="flex justify-between gap-3"><span className="font-medium">{c.subject || "No subject"}{c.patient && <span className="text-sm text-muted-foreground"> · {c.patient.first_name} {c.patient.last_name}</span>}</span><span className="text-sm text-muted-foreground">{c.kind} · {c.status}</span></div>{(messages ?? []).filter((m: any) => m.conversation_id === c.id).slice(0, 3).map((m: any) => <p key={m.id} className="mt-1 text-sm text-muted-foreground">{m.body}{m.message_kind === "internal_note" ? <span className="ml-2 text-xs font-medium">· {ar ? "ملاحظة داخلية" : "Internal note"}</span> : null}</p>)}</div>)}{!convRows.length && <p className="text-sm text-muted-foreground">{patientId ? (ar ? "لا توجد اتصالات لهذا المريض." : "No communications for this patient.") : (ar ? "لا توجد اتصالات بعد." : "No communications yet.")}</p>}</div></section>
-      <section className="rounded-lg border bg-card p-5"><h2 className="mb-4 text-lg font-semibold">{ar ? "الطلبات التشغيلية" : "Operational requests"}</h2><div className="space-y-3">{(requests ?? []).map((r: any) => <div key={r.id} className="rounded-lg border p-3"><div className="flex justify-between gap-3"><span>{r.title}{r.patient && <span className="text-sm text-muted-foreground"> · {r.patient.first_name} {r.patient.last_name}</span>}</span><span className="text-sm text-muted-foreground">{r.priority}</span></div><form action={changeRequest} className="mt-2 flex gap-2"><input type="hidden" name="id" value={r.id}/><select name="status" defaultValue={r.status} className="flex-1 rounded border p-2 text-sm"><option value="accepted">Accepted</option><option value="in_progress">In progress</option><option value="completed">Completed</option><option value="rejected">Rejected</option><option value="cancelled">Cancelled</option></select><input name="outcome" placeholder="Outcome" className="flex-1 rounded border p-2 text-sm"/><button className="rounded border px-3 text-sm">Update</button></form></div>)}{!(requests ?? []).length && <p className="text-sm text-muted-foreground">{patientId ? (ar ? "لا توجد طلبات لهذا المريض." : "No requests for this patient.") : (ar ? "لا توجد طلبات بعد." : "No requests yet.")}</p>}</div></section>
+      <section className="rounded-lg border bg-card p-5"><h2 className="mb-4 text-lg font-semibold">{ar ? "سجل الاتصالات والرسائل" : "Communication history"}</h2><div className="divide-y">{convRows.map((c: any) => <div key={c.id} className="py-3"><div className="flex justify-between gap-3"><span className="font-medium">{c.subject || "No subject"}{c.patient && <span className="text-sm text-muted-foreground"> · {c.patient.first_name} {c.patient.last_name}</span>}</span><span className="text-sm text-muted-foreground">{c.kind} · {c.status}</span></div>{(messages ?? []).filter((m: any) => m.conversation_id === c.id).slice(0, 3).map((m: any) => <p key={m.id} className="mt-1 text-sm text-muted-foreground">{m.body}{m.message_kind === "internal_note" ? <span className="ml-2 text-xs font-medium">· {ar ? "ملاحظة داخلية" : "Internal note"}</span> : null}</p>)}</div>)}{!convRows.length && <p className="text-sm text-muted-foreground">{patientId ? (ar ? "لا توجد اتصالات لهذا المريض." : "No communications for this patient.") : (ar ? "لا توجد اتصالات بعد." : "No communications yet.")}</div></section>
+      <section className="rounded-lg border bg-card p-5"><h2 className="mb-4 text-lg font-semibold">{ar ? "الطلبات التشغيلية" : "Operational requests"}</h2><div className="space-y-3">{(requests ?? []).map((r: any) => <div key={r.id} className="rounded-lg border p-3"><div className="flex justify-between gap-3"><span>{r.title}{r.patient && <span className="text-sm text-muted-foreground"> · {r.patient.first_name} {r.patient.last_name}</span>}</span><span className="text-sm text-muted-foreground">{r.priority}</span></div><form action={changeRequest} className="mt-2 flex gap-2"><input type="hidden" name="id" value={r.id}/><select name="status" defaultValue={r.status} className="flex-1 rounded border p-2 text-sm"><option value="accepted">Accepted</option><option value="in_progress">In progress</option><option value="completed">Completed</option><option value="rejected">Rejected</option><option value="cancelled">Cancelled</option></select><input name="outcome" placeholder="Outcome" className="flex-1 rounded border p-2 text-sm"/><button className="rounded border px-3 text-sm">Update</button></form></div>)}{!(requests ?? []).length && <p className="text-sm text-muted-foreground">{patientId ? (ar ? "لا توجد طلبات لهذا المريض." : "No requests for this patient.") : (ar ? "لا توجد طلبات بعد." : "No requests for this patient.")}</p>}</div></section>
     </div>
   </div>;
 }
