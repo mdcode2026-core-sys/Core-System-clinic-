@@ -12,6 +12,7 @@ import { useI18n } from "@/core/i18n/I18nProvider";
 import { GlobalSearch } from "@/core/search/GlobalSearch";
 import { GlobalHeader } from "./GlobalHeader";
 import { CommunicationsHeaderControl } from "./CommunicationsHeaderControl";
+import { GlobalChatHeaderControl } from "./GlobalChatHeaderControl";
 import { NotificationsHeaderControl } from "./NotificationsHeaderControl";
 import { QuickActionsHeaderControl } from "./QuickActionsHeaderControl";
 
@@ -40,28 +41,19 @@ export function WorkspaceShell({ children }: WorkspaceShellProps) {
 
   const filteredNav = getSidebarNavigation()
     .map(filterChildren)
-    .filter(
-      (item) =>
-        canSee(item) || (item.children && item.children.length > 0),
-    );
+    .filter((item) => canSee(item) || (item.children && item.children.length > 0));
 
   const getLabel = (item: NavItem) =>
-    item.label
-      ? item.label[locale]
-      : item.labelKey
-        ? messages.nav[item.labelKey]
-        : item.href;
+    item.label ? item.label[locale] : item.labelKey ? messages.nav[item.labelKey] : item.href;
 
   const isPathActive = (item: NavItem): boolean =>
-    pathname === item.href.split("?")[0] ||
-    (item.children?.some(isPathActive) ?? false);
+    pathname === item.href.split("?")[0] || (item.children?.some(isPathActive) ?? false);
 
   const groupContainsPath = (item: NavItem): boolean =>
-    item.children?.some(
-      (child) =>
-        pathname === child.href.split("?")[0] ||
-        pathname.startsWith(`${child.href.split("?")[0]}/`) ||
-        groupContainsPath(child),
+    item.children?.some((child) =>
+      pathname === child.href.split("?")[0] ||
+      pathname.startsWith(`${child.href.split("?")[0]}/`) ||
+      groupContainsPath(child),
     ) ?? false;
 
   const handleSignOut = async () => {
@@ -70,123 +62,54 @@ export function WorkspaceShell({ children }: WorkspaceShellProps) {
     router.refresh();
   };
 
-  const renderItem = (
-    item: NavItem,
-    nested = false,
-  ): React.ReactNode => {
+  const renderItem = (item: NavItem, nested = false): React.ReactNode => {
     const children = item.children ?? [];
     const expandable = children.length > 0;
     const active = isPathActive(item);
     const open = openGroups[item.href] ?? groupContainsPath(item);
     const Icon = item.icon;
-    const toggle = () =>
-      setOpenGroups((value) => ({ ...value, [item.href]: !open }));
+    const toggle = () => setOpenGroups((value) => ({ ...value, [item.href]: !open }));
     const closeOnMobile = () => setMobileSidebarOpen(false);
 
     return (
       <div key={`${item.href}-${nested ? "nested" : "root"}`}>
-        <div
-          className={cn(
-            "flex items-center rounded-lg text-sm font-medium transition-colors",
-            nested && (isArabic ? "mr-4" : "ml-4"),
-            active
-              ? "bg-blue-50 text-blue-700"
-              : "text-gray-700 hover:bg-gray-100 hover:text-gray-900",
-          )}
-        >
+        <div className={cn(
+          "flex items-center rounded-lg text-sm font-medium transition-colors",
+          nested && (isArabic ? "mr-4" : "ml-4"),
+          active ? "bg-blue-50 text-blue-700" : "text-gray-700 hover:bg-gray-100 hover:text-gray-900",
+        )}>
           {expandable ? (
-            <button
-              type="button"
-              onClick={toggle}
-              className="flex min-w-0 flex-1 items-center gap-3 px-3 py-2 text-start"
-              aria-expanded={open}
-            >
-              <Icon className="h-4 w-4 shrink-0" />
-              <span className="truncate">{getLabel(item)}</span>
+            <button type="button" onClick={toggle} className="flex min-w-0 flex-1 items-center gap-3 px-3 py-2 text-start" aria-expanded={open}>
+              <Icon className="h-4 w-4 shrink-0" /><span className="truncate">{getLabel(item)}</span>
             </button>
           ) : (
-            <Link
-              href={item.href}
-              prefetch
-              onClick={closeOnMobile}
-              className="flex min-w-0 flex-1 items-center gap-3 px-3 py-2"
-            >
-              <Icon className="h-4 w-4 shrink-0" />
-              <span className="truncate">{getLabel(item)}</span>
+            <Link href={item.href} prefetch onClick={closeOnMobile} className="flex min-w-0 flex-1 items-center gap-3 px-3 py-2">
+              <Icon className="h-4 w-4 shrink-0" /><span className="truncate">{getLabel(item)}</span>
             </Link>
           )}
-          {expandable && (
-            <button
-              type="button"
-              onClick={toggle}
-              className="p-2"
-              aria-label={open ? workspace.collapse : workspace.expand}
-            >
-              <ChevronDown
-                className={cn(
-                  "h-4 w-4 shrink-0 transition-transform",
-                  open && "rotate-180",
-                )}
-              />
-            </button>
-          )}
+          {expandable && <button type="button" onClick={toggle} className="p-2" aria-label={open ? workspace.collapse : workspace.expand}><ChevronDown className={cn("h-4 w-4 shrink-0 transition-transform", open && "rotate-180")} /></button>}
         </div>
-        {expandable && open && (
-          <div className="mt-1 space-y-0.5 border-l border-gray-200 pl-1 rtl:border-l-0 rtl:border-r rtl:pr-1">
-            {children.map((child) => renderItem(child, true))}
-          </div>
-        )}
+        {expandable && open && <div className="mt-1 space-y-0.5 border-l border-gray-200 pl-1 rtl:border-l-0 rtl:border-r rtl:pr-1">{children.map((child) => renderItem(child, true))}</div>}
       </div>
     );
   };
 
   return (
     <div className="flex min-h-screen w-full bg-gray-50">
-      {mobileSidebarOpen && (
-        <div
-          className="fixed inset-0 z-40 bg-black/50 lg:hidden"
-          onClick={() => setMobileSidebarOpen(false)}
-          aria-hidden="true"
-        />
-      )}
-
-      <aside
-        className={cn(
-          "fixed inset-y-0 z-50 w-72 bg-white shadow-lg transition-transform duration-200 ease-in-out lg:translate-x-0",
-          isArabic ? "right-0" : "left-0",
-          mobileSidebarOpen
-            ? "translate-x-0"
-            : isArabic
-              ? "translate-x-full"
-              : "-translate-x-full",
-        )}
-        aria-label={isArabic ? "القائمة الجانبية" : "Sidebar navigation"}
-      >
+      {mobileSidebarOpen && <div className="fixed inset-0 z-40 bg-black/50 lg:hidden" onClick={() => setMobileSidebarOpen(false)} aria-hidden="true" />}
+      <aside className={cn(
+        "fixed inset-y-0 z-50 w-72 bg-white shadow-lg transition-transform duration-200 ease-in-out lg:translate-x-0",
+        isArabic ? "right-0" : "left-0",
+        mobileSidebarOpen ? "translate-x-0" : isArabic ? "translate-x-full" : "-translate-x-full",
+      )} aria-label={isArabic ? "القائمة الجانبية" : "Sidebar navigation"}>
         <div className="flex h-full flex-col">
           <div className="flex items-center justify-between border-b px-6 py-4">
-            <Link
-              href="/"
-              className="text-xl font-bold text-blue-600"
-              onClick={() => setMobileSidebarOpen(false)}
-            >
-              ClinicSaaS™
-            </Link>
-            <button
-              type="button"
-              className="rounded p-2 hover:bg-gray-100"
-              onClick={() => setMobileSidebarOpen(false)}
-              aria-label={workspace.closeSidebar}
-            >
-              <X className="h-5 w-5" />
-            </button>
+            <Link href="/" className="text-xl font-bold text-blue-600" onClick={() => setMobileSidebarOpen(false)}>ClinicSaaS™</Link>
+            <button type="button" className="rounded p-2 hover:bg-gray-100" onClick={() => setMobileSidebarOpen(false)} aria-label={workspace.closeSidebar}><X className="h-5 w-5" /></button>
           </div>
-
-          <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4">
-            {filteredNav.map((item) => renderItem(item))}
-          </nav>
+          <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4">{filteredNav.map((item) => renderItem(item))}</nav>
         </div>
       </aside>
-
       <main className="min-w-0 flex-1 lg:ml-72 rtl:lg:ml-0 rtl:lg:mr-72">
         <GlobalHeader
           isArabic={isArabic}
@@ -196,11 +119,9 @@ export function WorkspaceShell({ children }: WorkspaceShellProps) {
           controls={
             <>
               <CommunicationsHeaderControl isArabic={isArabic} />
+              <GlobalChatHeaderControl isArabic={isArabic} />
               <NotificationsHeaderControl isArabic={isArabic} />
-              <QuickActionsHeaderControl
-                isArabic={isArabic}
-                onSignOut={handleSignOut}
-              />
+              <QuickActionsHeaderControl isArabic={isArabic} onSignOut={handleSignOut} />
             </>
           }
         />
