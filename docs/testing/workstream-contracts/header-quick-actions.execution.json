@@ -1,0 +1,32 @@
+{
+  "contract_version": "1.0",
+  "contract_type": "workstream",
+  "workstream_id": "header-quick-actions",
+  "contract_path": "docs/HEADER-QUICK-ACTIONS-EXECUTION-CONTRACT-2026-09-12.md",
+  "status": "binding",
+  "applicability": {
+    "match_any": [
+      "^src/features/workspace/QuickActionsHeaderControl\\.tsx$",
+      "^src/features/workspace/WorkspaceShell\\.tsx$",
+      "^tools/header-technical-foundation-audit\\.mjs$",
+      "^docs/HEADER-QUICK-ACTIONS-EXECUTION-CONTRACT-2026-09-12\\.md$",
+      "^docs/HEADER-QUICK-ACTIONS-INTEGRATION-REPORT-2026-09-12\\.md$"
+    ]
+  },
+  "required_engineering": ["typecheck", "lint", "build"],
+  "required_suites": ["engineering"],
+  "regression_level": "R1",
+  "workstream_checks": [
+    {
+      "name": "header-technical-foundation",
+      "command": "npm run test:header-technical-foundation",
+      "required": true,
+      "execution_owner": "workstream-validation"
+    }
+  ],
+  "notes": [
+    "This descriptor is consumed by SETUP only.",
+    "It does not modify the Unified Test Execution Engine or runner.",
+    "PR-level impact from other workstreams remains independently classified by SETUP."
+  ]
+}

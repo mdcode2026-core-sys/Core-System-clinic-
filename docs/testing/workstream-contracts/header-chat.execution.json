@@ -1,0 +1,32 @@
+{
+  "contract_version": "1.0",
+  "contract_type": "workstream",
+  "workstream_id": "header-chat",
+  "contract_path": "docs/HEADER-CHAT-INTEGRATION-REPORT-2026-09-12.md",
+  "status": "binding",
+  "applicability": {
+    "match_any": [
+      "^src/features/workspace/GlobalChatHeaderControl\\.tsx$",
+      "^src/app/\\(dashboard\\)/communications/page\\.tsx$",
+      "^src/domain/communications/communications\\.actions\\.ts$",
+      "^docs/HEADER-CHAT-INTEGRATION-REPORT-2026-09-12\\.md$",
+      "^docs/testing/workstream-contracts/header-chat\\.execution\\.json$"
+    ]
+  },
+  "required_engineering": ["typecheck", "lint", "build"],
+  "required_suites": ["engineering", "authorization"],
+  "regression_level": "R3",
+  "workstream_checks": [
+    {
+      "name": "header-chat",
+      "command": "npm run test:header-chat",
+      "required": true,
+      "execution_owner": "workstream-validation"
+    }
+  ],
+  "notes": [
+    "Chat is a compact surface over Communications and has no independent messaging authority.",
+    "Personal unread state is communication_message_reads and is scoped through conversation participation.",
+    "This descriptor is consumed by SETUP only; it does not modify the Unified Test Execution Engine or runner."
+  ]
+}

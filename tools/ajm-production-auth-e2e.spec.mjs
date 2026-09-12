@@ -19,13 +19,14 @@ const canonicalRoutes = [
 
 async function login(page, context) {
   let lastFailure = "";
-  for (let attempt = 1; attempt <= 2; attempt++) {
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    await context.clearCookies();
     const authResponse = page.waitForResponse(
       response => response.url().includes("/auth/v1/token"),
-      { timeout: 15000 }
+      { timeout: 20000 }
     ).catch(() => null);
 
-    await page.goto(`${baseUrl}/login`, { waitUntil: "networkidle", timeout: 60000 });
+    await page.goto(`${baseUrl}/login`, { waitUntil: "domcontentloaded", timeout: 60000 });
     const emailInput = page.locator('input[type="email"], input[name="email"]').first();
     const passwordInput = page.locator('input[type="password"], input[name="password"]').first();
     const submit = page.getByRole("button", { name: /sign in|login|log in|تسجيل الدخول|دخول/i }).first();
@@ -38,15 +39,21 @@ async function login(page, context) {
 
     const token = await authResponse;
     if (token) console.log(`AUTH_TOKEN_RESPONSE=${token.status()}`);
-    await page.waitForTimeout(5000);
+    await page.waitForTimeout(1500);
     const cookies = await context.cookies(baseUrl);
+    const hasAuthCookie = cookies.some(cookie => cookie.name.includes("auth-token"));
     const body = (await page.locator("body").innerText()).replace(/\s+/g, " ").slice(0, 1000);
-    console.log(`AUTH_ATTEMPT=${attempt} AUTH_COOKIE_NAMES=${cookies.map((c) => c.name).join(",")}`);
+    console.log(`AUTH_ATTEMPT=${attempt} AUTH_COOKIE=${hasAuthCookie} AUTH_COOKIE_NAMES=${cookies.map(c => c.name).join(",")}`);
     console.log(`AUTH_PAGE_URL=${page.url()}`);
     console.log(`AUTH_PAGE_BODY=${body}`);
-    if (!/\/login(?:[/?#]|$)/i.test(page.url())) return;
+    if (hasAuthCookie && !/\/login(?:[/?#]|$)/i.test(page.url())) return;
+    if (hasAuthCookie) {
+      await page.goto(`${baseUrl}/`, { waitUntil: "domcontentloaded", timeout: 60000 });
+      await page.waitForTimeout(1000);
+      if (!/\/login(?:[/?#]|$)/i.test(page.url())) return;
+    }
     lastFailure = `attempt=${attempt} url=${page.url()} body=${body}`;
-    if (attempt === 1) await page.reload({ waitUntil: "networkidle", timeout: 60000 });
+    if (attempt < 3) await page.waitForTimeout(1000);
   }
   throw new Error(`Production login did not establish an application session. ${lastFailure}`);
 }

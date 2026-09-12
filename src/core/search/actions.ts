@@ -148,16 +148,16 @@ export async function globalSearch(query: string): Promise<GlobalSearchResult[]>
     }
   }
 
-  if (permissions.has("patients:read")) {
+  if (permissions.has("communications:read")) {
     const { data } = await supabase
-      .from("patient_portal_messages")
-      .select("id, clinic_patient_id, body, sender_type, status, created_at")
+      .from("communication_messages")
+      .select("id, body, sender_type, created_at")
       .eq("tenant_id", tenantId)
       .ilike("body", pattern)
       .order("created_at", { ascending: false })
       .limit(MAX_PER_TYPE);
     for (const row of data ?? []) {
-      results.push({ id: row.id, type: "communication", title: row.body?.slice(0, 80) || "Communication", subtitle: [row.sender_type, row.status].filter(Boolean).join(" · "), href: row.clinic_patient_id ? `/patients/${row.clinic_patient_id}` : "/patients" });
+      results.push({ id: row.id, type: "communication", title: row.body?.slice(0, 80) || "Communication", subtitle: [row.sender_type, row.created_at ? new Date(row.created_at).toLocaleString() : ""].filter(Boolean).join(" · "), href: "/communications" });
     }
   }
 

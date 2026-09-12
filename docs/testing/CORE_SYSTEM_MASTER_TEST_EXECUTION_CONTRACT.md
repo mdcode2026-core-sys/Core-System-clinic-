@@ -19,6 +19,8 @@ SETUP is mandatory before downstream validation. It must identify:
 
 SETUP produces a machine-readable execution plan. Downstream jobs consume that plan rather than inventing scope independently.
 
+When a binding workstream execution descriptor under `docs/testing/workstream-contracts/` matches the changed files, SETUP resolves that workstream contract into the execution plan. This is the job-setup responsibility: the workstream contract supplies its applicable scope/requirements, while the existing Unified Test Execution Engine remains the downstream execution authority. A workstream descriptor must not require changes to the runner merely to express its scope.
+
 ## 3. Engineering Validation — before E2E
 Required baseline checks are selected from impact but the engineering integrity gate precedes Real-World E2E:
 - TypeScript, lint and production build;
