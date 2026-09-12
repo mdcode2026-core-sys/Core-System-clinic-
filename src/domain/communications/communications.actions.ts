@@ -148,9 +148,8 @@ export async function sendInternalMessage(input: { conversationId: string; body:
 export async function markConversationRead(conversationId: string) {
   const ctx = await getContext();
   if (!ctx) return;
-  const canRead = await hasEffectivePermission(ctx.user.id, "communications:read");
   const { data: conversation } = await ctx.supabase.from("communication_conversations").select("id,kind").eq("tenant_id", ctx.tenantId).eq("id", conversationId).maybeSingle();
-  if (!conversation || !canRead) return;
+  if (!conversation) return;
   const { data: participant } = await ctx.supabase.from("communication_conversation_participants").select("id").eq("tenant_id", ctx.tenantId).eq("conversation_id", conversationId).eq("clinic_user_id", ctx.clinicUser.id).maybeSingle();
   if (!participant && conversation.kind === "internal") return;
   const { data: messages } = await ctx.supabase.from("communication_messages").select("id").eq("tenant_id", ctx.tenantId).eq("conversation_id", conversationId);
