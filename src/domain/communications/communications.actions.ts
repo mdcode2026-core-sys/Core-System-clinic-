@@ -14,30 +14,72 @@ async function getContext() {
   return { supabase, user, clinicUser, tenantId: clinicUser.tenant_id };
 }
 
-export async function createConversation(input: { subject?: string; recipientUserId?: string; clinicPatientId?: string | null }) {
-  const ctx = await getContext(); if (!ctx || !(await hasEffectivePermission(ctx.user.id, "communications:send"))) return;
-  const { data: conversation } = await ctx.supabase.from("communication_conversations").insert({ tenant_id: ctx.tenantId, kind: input.clinicPatientId ? "patient" : "internal", subject: input.subject?.trim() || null, clinic_patient_id: input.clinicPatientId || null, created_by: ctx.clinicUser.id }).select("id").single();
+export async function createConversation(input: { subject?: string; recipientUserId?: string; recipientUserIds?: string[]; clinicPatientId?: string | null }) {
+  const ctx = await getContext();
+  if (!ctx || !(await hasEffectivePermission(ctx.user.id, "communications:send"))) return;
+  const recipientIds = Array.from(new Set([...(input.recipientUserIds ?? []), ...(input.recipientUserId ? [input.recipientUserId] : [])].filter(Boolean))).filter((id) => id !== ctx.clinicUser.id);
+  if (!input.clinicPatientId && recipientIds.length === 0) return;
+
+  const { data: conversation } = await ctx.supabase.from("communication_conversations").insert({
+    tenant_id: ctx.tenantId,
+    kind: input.clinicPatientId ? "patient" : "internal",
+    subject: input.subject?.trim() || null,
+    clinic_patient_id: input.clinicPatientId || null,
+    created_by: ctx.clinicUser.id,
+  }).select("id").single();
   if (!conversation) return;
-  await ctx.supabase.from("communication_conversation_participants").insert([{ tenant_id: ctx.tenantId, conversation_id: conversation.id, clinic_user_id: ctx.clinicUser.id, role: "owner" }, ...(input.recipientUserId ? [{ tenant_id: ctx.tenantId, conversation_id: conversation.id, clinic_user_id: input.recipientUserId, role: "participant" }] : [])]);
+
+  const participants = [
+    { tenant_id: ctx.tenantId, conversation_id: conversation.id, clinic_user_id: ctx.clinicUser.id, role: "owner" },
+    ...recipientIds.map((clinicUserId) => ({ tenant_id: ctx.tenantId, conversation_id: conversation.id, clinic_user_id: clinicUserId, role: "participant" })),
+  ];
+  if (participants.length) await ctx.supabase.from("communication_conversation_participants").insert(participants);
   revalidatePath("/communications");
 }
 
 export async function sendInternalMessage(input: { conversationId: string; body: string; internalNote?: boolean; relatedType?: string | null; relatedId?: string | null }) {
-  const ctx = await getContext(); if (!ctx || !(await hasEffectivePermission(ctx.user.id, "communications:send")) || !input.body.trim()) return;
+  const ctx = await getContext();
+  if (!ctx || !(await hasEffectivePermission(ctx.user.id, "communications:send")) || !input.body.trim()) return;
+
+  const { data: conversation } = await ctx.supabase
+    .from("communication_conversations")
+    .select("id,kind")
+    .eq("tenant_id", ctx.tenantId)
+    .eq("id", input.conversationId)
+    .maybeSingle();
+  if (!conversation) return;
+
   const { data: participant } = await ctx.supabase.from("communication_conversation_participants").select("id").eq("tenant_id", ctx.tenantId).eq("conversation_id", input.conversationId).eq("clinic_user_id", ctx.clinicUser.id).maybeSingle();
-  if (!participant) return;
-  await ctx.supabase.from("communication_messages").insert({ tenant_id: ctx.tenantId, conversation_id: input.conversationId, sender_clinic_user_id: ctx.clinicUser.id, body: input.body.trim(), message_kind: input.internalNote ? "internal_note" : "message", related_type: input.relatedType || null, related_id: input.relatedId || null });
+  const canSendTenantPatientReply = conversation.kind === "patient" && await hasEffectivePermission(ctx.user.id, "communications:send");
+  if (!participant && !canSendTenantPatientReply) return;
+
+  await ctx.supabase.from("communication_messages").insert({
+    tenant_id: ctx.tenantId,
+    conversation_id: input.conversationId,
+    sender_clinic_user_id: ctx.clinicUser.id,
+    sender_type: "clinic",
+    sender_patient_identity_id: null,
+    body: input.body.trim(),
+    message_kind: input.internalNote ? "internal_note" : "message",
+    related_type: input.relatedType || null,
+    related_id: input.relatedId || null,
+  });
   revalidatePath("/communications");
 }
 
-/**
- * Personal read-state contract for Communications.
- * A message is read for one clinic user only when that user records a receipt.
- * This never mutates a shared message-level read_at value.
- */
+/** Personal clinic-user read authority: communication_message_reads. */
 export async function markConversationRead(conversationId: string) {
   const ctx = await getContext();
   if (!ctx) return;
+
+  const canRead = await hasEffectivePermission(ctx.user.id, "communications:read");
+  const { data: conversation } = await ctx.supabase
+    .from("communication_conversations")
+    .select("id,kind")
+    .eq("tenant_id", ctx.tenantId)
+    .eq("id", conversationId)
+    .maybeSingle();
+  if (!conversation || !canRead) return;
 
   const { data: participant } = await ctx.supabase
     .from("communication_conversation_participants")
@@ -46,7 +88,7 @@ export async function markConversationRead(conversationId: string) {
     .eq("conversation_id", conversationId)
     .eq("clinic_user_id", ctx.clinicUser.id)
     .maybeSingle();
-  if (!participant) return;
+  if (!participant && conversation.kind === "internal") return;
 
   const { data: messages } = await ctx.supabase
     .from("communication_messages")
@@ -56,16 +98,10 @@ export async function markConversationRead(conversationId: string) {
 
   if (messages?.length) {
     await ctx.supabase.from("communication_message_reads").upsert(
-      messages.map((message) => ({
-        tenant_id: ctx.tenantId,
-        message_id: message.id,
-        clinic_user_id: ctx.clinicUser.id,
-        read_at: new Date().toISOString(),
-      })),
+      messages.map((message) => ({ tenant_id: ctx.tenantId, message_id: message.id, clinic_user_id: ctx.clinicUser.id, read_at: new Date().toISOString() })),
       { onConflict: "tenant_id,message_id,clinic_user_id" },
     );
   }
-
   revalidatePath("/communications");
 }
 
