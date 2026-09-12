@@ -61,9 +61,9 @@ export function useDeletePatient() {
     mutationFn: async ({ id, tenantId }: { id: string; tenantId: string }) => {
       const { data, error } = await supabase
         .from("clinic_patients")
-        .update({ 
-          deleted_at: new Date().toISOString(), 
-          updated_at: new Date().toISOString() 
+        .update({
+          deleted_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
         })
         .eq("id", id)
         .eq("tenant_id", tenantId)
@@ -73,24 +73,24 @@ export function useDeletePatient() {
       return data;
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["patients", variables.tenantId] });
+      void queryClient.invalidateQueries({ queryKey: ["patients", variables.tenantId], refetchType: "active" });
     },
   });
 }
 
 export function useInvalidatePatients() {
   const queryClient = useQueryClient();
-  
+
   return {
-    invalidateAll: (tenantId?: string) => {
-      queryClient.invalidateQueries({ queryKey: ["patients"] });
+    invalidateAll: async (tenantId?: string) => {
+      await queryClient.invalidateQueries({ queryKey: ["patients"], refetchType: "active" });
       if (tenantId) {
-        queryClient.invalidateQueries({ queryKey: ["patients", tenantId] });
+        await queryClient.invalidateQueries({ queryKey: ["patients", tenantId], refetchType: "active" });
       }
     },
-    invalidatePatient: (patientId: string) => {
-      queryClient.invalidateQueries({ queryKey: ["patient", patientId] });
-      queryClient.invalidateQueries({ queryKey: ["patient-history", patientId] });
+    invalidatePatient: async (patientId: string) => {
+      await queryClient.invalidateQueries({ queryKey: ["patient", patientId], refetchType: "active" });
+      await queryClient.invalidateQueries({ queryKey: ["patient-history", patientId], refetchType: "active" });
     },
   };
 }
