@@ -5,12 +5,10 @@
 
 create table if not exists public.communication_message_reads (
   tenant_id uuid not null references public.master_tenants(id) on delete cascade,
-  message_id uuid not null,
-  clinic_user_id uuid not null,
+  message_id uuid not null references public.communication_messages(id) on delete cascade,
+  clinic_user_id uuid not null references public.clinic_users(id) on delete cascade,
   read_at timestamptz not null default now(),
-  primary key (tenant_id, message_id, clinic_user_id),
-  foreign key (tenant_id, message_id) references public.communication_messages(tenant_id, id) on delete cascade,
-  foreign key (tenant_id, clinic_user_id) references public.clinic_users(tenant_id, id) on delete cascade
+  primary key (tenant_id, message_id, clinic_user_id)
 );
 
 create index if not exists communication_message_reads_user_idx
