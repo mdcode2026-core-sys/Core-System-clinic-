@@ -19,15 +19,23 @@ export async function createConversation(input: { subject?: string; recipientUse
   if (!ctx || !(await hasEffectivePermission(ctx.user.id, "communications:send"))) return;
   const recipientIds = Array.from(new Set([...(input.recipientUserIds ?? []), ...(input.recipientUserId ? [input.recipientUserId] : [])].filter(Boolean))).filter((id) => id !== ctx.clinicUser.id);
   if (!input.clinicPatientId && recipientIds.length === 0) return;
-  const { data: conversation } = await ctx.supabase.from("communication_conversations").insert({ tenant_id: ctx.tenantId, kind: input.clinicPatientId ? "patient" : "internal", subject: input.subject?.trim() || null, clinic_patient_id: input.clinicPatientId || null, created_by: ctx.clinicUser.id }).select("id").single();
-  if (!conversation) return;
-  const participants = [
-    { tenant_id: ctx.tenantId, conversation_id: conversation.id, clinic_user_id: ctx.clinicUser.id, role: "owner" },
-    ...recipientIds.map((clinicUserId) => ({ tenant_id: ctx.tenantId, conversation_id: conversation.id, clinic_user_id: clinicUserId, role: "participant" })),
-  ];
-  if (participants.length) await ctx.supabase.from("communication_conversation_participants").insert(participants);
+
+  const { data: conversationId, error: creationError } = await ctx.supabase.rpc("create_communication_conversation", {
+    p_subject: input.subject?.trim() || null,
+    p_recipient_user_ids: recipientIds,
+    p_clinic_patient_id: input.clinicPatientId || null,
+  });
+
+  if (creationError || !conversationId) {
+    console.error("Communications conversation creation failed", {
+      code: creationError?.code,
+      message: creationError?.message,
+    });
+    return;
+  }
+
   revalidatePath("/communications");
-  return conversation.id;
+  return conversationId as string;
 }
 
 export async function addConversationParticipant(input: { conversationId: string; clinicUserId: string }) {
