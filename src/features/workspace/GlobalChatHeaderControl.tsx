@@ -1,377 +1,46 @@
 "use client";
-
-import type { PointerEvent as ReactPointerEvent } from "react";
-import { useCallback, useEffect, useRef, useState } from "react";
-import { FileText, Grip, Loader2, MessageCircle, Minus, Paperclip, Plus, Search, Send, X } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { FileText, Loader2, MessageCircle, Minus, Paperclip, Plus, Search, Send, X } from "lucide-react";
 import { createClient } from "@/infrastructure/supabase/client";
 import { cn } from "@/shared/utils/cn";
 import { createCommunicationAttachmentUpload, createConversation, markConversationRead, sendInternalMessage } from "@/domain/communications/communications.actions";
 import { searchCommunicationUsers } from "@/domain/communications/communications.header.actions";
-
-interface Conversation { id: string; subject: string | null; kind: string; updated_at: string; }
-interface ChatAttachment { id: string; message_id: string; file_name: string; mime_type: string; byte_size: number; }
-interface ChatMessage { id: string; body: string; sender_clinic_user_id: string | null; created_at: string; message_kind: string; }
-interface DirectoryUser { id: string; full_name: string; email: string; role: string; }
-interface PanelGeometry { x: number; y: number; width: number; height: number; }
-interface MiniPosition { x: number; y: number; }
-interface DragState { mode: "panel" | "resize" | "mini"; edge?: ResizeEdge; pointerId: number; startX: number; startY: number; originX: number; originY: number; originWidth: number; originHeight: number; moved: boolean; }
-type ResizeEdge = "n" | "s" | "e" | "w" | "ne" | "nw" | "se" | "sw";
-
-const PANEL_MIN_WIDTH = 280;
-const PANEL_MIN_HEIGHT = 280;
-const PANEL_GAP = 12;
-const PANEL_TOP_GAP = 68;
-const MINI_SIZE = 58;
-const STORAGE_PREFIX = "core-system-global-chat-layout-v2";
-
-function getDefaultGeometry(): PanelGeometry {
-  if (typeof window === "undefined") return { x: 12, y: 68, width: 520, height: 560 };
-  const mobile = window.innerWidth < 768;
-  const width = mobile ? Math.max(PANEL_MIN_WIDTH, window.innerWidth - PANEL_GAP * 2) : Math.min(520, window.innerWidth - PANEL_GAP * 2);
-  const height = mobile ? Math.max(PANEL_MIN_HEIGHT, window.innerHeight - PANEL_TOP_GAP - PANEL_GAP) : Math.min(560, window.innerHeight - PANEL_TOP_GAP - PANEL_GAP);
-  return { x: mobile ? PANEL_GAP : Math.max(PANEL_GAP, window.innerWidth - width - PANEL_GAP), y: mobile ? PANEL_TOP_GAP : Math.max(PANEL_TOP_GAP, Math.round((window.innerHeight - height) / 2)), width, height };
-}
-
-function getDefaultMini(): MiniPosition {
-  if (typeof window === "undefined") return { x: 24, y: 80 };
-  return { x: Math.max(12, window.innerWidth - MINI_SIZE - 18), y: Math.max(72, window.innerHeight - MINI_SIZE - 24) };
-}
-
-function normalizeGeometry(value: PanelGeometry): PanelGeometry {
-  if (typeof window === "undefined") return value;
-  const maxWidth = Math.max(PANEL_MIN_WIDTH, window.innerWidth - PANEL_GAP * 2);
-  const maxHeight = Math.max(PANEL_MIN_HEIGHT, window.innerHeight - PANEL_TOP_GAP - PANEL_GAP);
-  const width = Math.min(value.width, maxWidth);
-  const height = Math.min(value.height, maxHeight);
-  const x = Math.min(Math.max(PANEL_GAP, value.x), Math.max(PANEL_GAP, window.innerWidth - width - PANEL_GAP));
-  const y = Math.min(Math.max(PANEL_TOP_GAP, value.y), Math.max(PANEL_TOP_GAP, window.innerHeight - height - PANEL_GAP));
-  return { x, y, width, height };
-}
-
-export function GlobalChatHeaderControl({ isArabic }: { isArabic: boolean }) {
-  const [unread, setUnread] = useState(0);
-  const [open, setOpen] = useState(false);
-  const [minimized, setMinimized] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [sending, setSending] = useState(false);
-  const [uploading, setUploading] = useState(false);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [conversations, setConversations] = useState<Conversation[]>([]);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [attachments, setAttachments] = useState<Record<string, ChatAttachment[]>>({});
-  const [draft, setDraft] = useState("");
-  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
-  const [geometry, setGeometry] = useState<PanelGeometry>(() => getDefaultGeometry());
-  const [miniPosition, setMiniPosition] = useState<MiniPosition>(() => getDefaultMini());
-  const [directoryOpen, setDirectoryOpen] = useState(true);
-  const [directoryQuery, setDirectoryQuery] = useState("");
-  const [directoryUsers, setDirectoryUsers] = useState<DirectoryUser[]>([]);
-  const [directoryLoading, setDirectoryLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const dragRef = useRef<DragState | null>(null);
-  const suppressMiniClickRef = useRef(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const triggerRef = useRef<HTMLButtonElement>(null);
-
-  const storageKey = currentUserId ? `${STORAGE_PREFIX}:${currentUserId}` : null;
-
-  const loadUnread = useCallback(async () => {
-    const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-    const { data: clinicUser } = await supabase.from("clinic_users").select("id,tenant_id").eq("auth_user_id", user.id).eq("is_active", true).is("deleted_at", null).maybeSingle();
-    if (!clinicUser) return;
-    setCurrentUserId(clinicUser.id);
-    const { data: participations } = await supabase.from("communication_conversation_participants").select("conversation_id").eq("tenant_id", clinicUser.tenant_id).eq("clinic_user_id", clinicUser.id);
-    const ids = Array.from(new Set((participations ?? []).map((row) => row.conversation_id).filter(Boolean)));
-    if (!ids.length) { setUnread(0); return; }
-    const { data: incoming } = await supabase.from("communication_messages").select("id").eq("tenant_id", clinicUser.tenant_id).in("conversation_id", ids).in("message_kind", ["message", "internal_note"]).neq("sender_clinic_user_id", clinicUser.id).order("created_at", { ascending: false }).limit(200);
-    const messageIds = (incoming ?? []).map((row) => row.id);
-    if (!messageIds.length) { setUnread(0); return; }
-    const { data: reads } = await supabase.from("communication_message_reads").select("message_id").eq("tenant_id", clinicUser.tenant_id).eq("clinic_user_id", clinicUser.id).in("message_id", messageIds);
-    const readIds = new Set((reads ?? []).map((row) => row.message_id));
-    setUnread(messageIds.filter((id) => !readIds.has(id)).length);
-  }, []);
-
-  const loadConversations = useCallback(async () => {
-    setLoading(true);
-    const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) { setLoading(false); return; }
-    const { data: clinicUser } = await supabase.from("clinic_users").select("id,tenant_id").eq("auth_user_id", user.id).eq("is_active", true).is("deleted_at", null).maybeSingle();
-    if (!clinicUser) { setLoading(false); return; }
-    setCurrentUserId(clinicUser.id);
-    const { data: participations } = await supabase.from("communication_conversation_participants").select("conversation_id").eq("tenant_id", clinicUser.tenant_id).eq("clinic_user_id", clinicUser.id);
-    const ids = Array.from(new Set((participations ?? []).map((row) => row.conversation_id).filter(Boolean)));
-    if (!ids.length) { setConversations([]); setLoading(false); return; }
-    const { data } = await supabase.from("communication_conversations").select("id,subject,kind,updated_at").eq("tenant_id", clinicUser.tenant_id).in("id", ids).neq("status", "archived").order("updated_at", { ascending: false }).limit(30);
-    setConversations((data ?? []) as Conversation[]);
-    setLoading(false);
-  }, []);
-
-  const loadDirectory = useCallback(async (query: string) => {
-    setDirectoryLoading(true);
-    const users = await searchCommunicationUsers(query);
-    setDirectoryUsers(users as DirectoryUser[]);
-    setDirectoryLoading(false);
-  }, []);
-
-  const loadMessages = useCallback(async (conversationId: string) => {
-    const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-    const { data: clinicUser } = await supabase.from("clinic_users").select("id,tenant_id").eq("auth_user_id", user.id).eq("is_active", true).is("deleted_at", null).maybeSingle();
-    if (!clinicUser) return;
-    const { data } = await supabase.from("communication_messages").select("id,body,sender_clinic_user_id,created_at,message_kind").eq("tenant_id", clinicUser.tenant_id).eq("conversation_id", conversationId).order("created_at", { ascending: true }).limit(100);
-    const nextMessages = (data ?? []) as ChatMessage[];
-    setMessages(nextMessages);
-    const ids = nextMessages.map((message) => message.id);
-    if (ids.length) {
-      const { data: nextAttachments } = await supabase.from("communication_message_attachments").select("id,message_id,file_name,mime_type,byte_size").eq("tenant_id", clinicUser.tenant_id).in("message_id", ids);
-      const grouped: Record<string, ChatAttachment[]> = {};
-      for (const attachment of nextAttachments ?? []) {
-        const item = attachment as ChatAttachment;
-        grouped[item.message_id] = [...(grouped[item.message_id] ?? []), item];
-      }
-      setAttachments(grouped);
-    } else setAttachments({});
-    await markConversationRead(conversationId);
-    void loadUnread();
-  }, [loadUnread]);
-
-  useEffect(() => {
-    const timer = window.setTimeout(() => void loadUnread(), 0);
-    const refresh = () => void loadUnread();
-    window.addEventListener("focus", refresh);
-    document.addEventListener("visibilitychange", refresh);
-    const interval = window.setInterval(refresh, 15000);
-    return () => { window.clearTimeout(timer); window.clearInterval(interval); window.removeEventListener("focus", refresh); document.removeEventListener("visibilitychange", refresh); };
-  }, [loadUnread]);
-
-  useEffect(() => {
-    if (!storageKey) return;
-    try {
-      const stored = window.localStorage.getItem(storageKey);
-      if (!stored) return;
-      const parsed = JSON.parse(stored) as { geometry?: PanelGeometry; miniPosition?: MiniPosition };
-      if (parsed.geometry) setGeometry(normalizeGeometry(parsed.geometry));
-      if (parsed.miniPosition) setMiniPosition(parsed.miniPosition);
-    } catch { /* ignore malformed local UI preferences */ }
-  }, [storageKey]);
-
-  useEffect(() => {
-    if (!storageKey) return;
-    const timer = window.setTimeout(() => {
-      try { window.localStorage.setItem(storageKey, JSON.stringify({ geometry, miniPosition })); } catch { /* ignore storage failures */ }
-    }, 150);
-    return () => window.clearTimeout(timer);
-  }, [storageKey, geometry, miniPosition]);
-
-  useEffect(() => {
-    if (!open || minimized) return;
-    const timer = window.setTimeout(() => void loadConversations(), 0);
-    return () => window.clearTimeout(timer);
-  }, [open, minimized, loadConversations]);
-
-  useEffect(() => {
-    if (!open || minimized || !directoryOpen) return;
-    const timer = window.setTimeout(() => void loadDirectory(directoryQuery), 120);
-    return () => window.clearTimeout(timer);
-  }, [open, minimized, directoryOpen, directoryQuery, loadDirectory]);
-
-  useEffect(() => {
-    if (!open || minimized || !selectedId) return;
-    const timer = window.setTimeout(() => void loadMessages(selectedId), 0);
-    return () => window.clearTimeout(timer);
-  }, [open, minimized, selectedId, loadMessages]);
-
-  useEffect(() => {
-    const onPointerMove = (event: PointerEvent) => {
-      const drag = dragRef.current;
-      if (!drag || event.pointerId !== drag.pointerId) return;
-      const dx = event.clientX - drag.startX;
-      const dy = event.clientY - drag.startY;
-      if (Math.abs(dx) + Math.abs(dy) > 4) drag.moved = true;
-
-      if (drag.mode === "panel") {
-        setGeometry((current) => ({ ...current, x: drag.originX + dx, y: drag.originY + dy }));
-      } else if (drag.mode === "resize") {
-        const edge = drag.edge ?? "se";
-        let x = drag.originX;
-        let y = drag.originY;
-        let width = drag.originWidth;
-        let height = drag.originHeight;
-        if (edge.includes("e")) width = Math.max(PANEL_MIN_WIDTH, drag.originWidth + dx);
-        if (edge.includes("s")) height = Math.max(PANEL_MIN_HEIGHT, drag.originHeight + dy);
-        if (edge.includes("w")) {
-          const nextWidth = Math.max(PANEL_MIN_WIDTH, drag.originWidth - dx);
-          width = nextWidth;
-          x = drag.originX + (drag.originWidth - nextWidth);
-        }
-        if (edge.includes("n")) {
-          const nextHeight = Math.max(PANEL_MIN_HEIGHT, drag.originHeight - dy);
-          height = nextHeight;
-          y = drag.originY + (drag.originHeight - nextHeight);
-        }
-        setGeometry(normalizeGeometry({ x, y, width, height }));
-      } else {
-        setMiniPosition({ x: drag.originX + dx, y: drag.originY + dy });
-      }
-    };
-    const onPointerUp = (event: PointerEvent) => {
-      const drag = dragRef.current;
-      if (!drag || event.pointerId !== drag.pointerId) return;
-      if (drag.mode === "mini") {
-        suppressMiniClickRef.current = drag.moved;
-        const rect = { left: miniPosition.x, top: miniPosition.y, right: miniPosition.x + MINI_SIZE, bottom: miniPosition.y + MINI_SIZE };
-        if (rect.right < 0 || rect.left > window.innerWidth || rect.bottom < 0 || rect.top > window.innerHeight) { setOpen(false); setMinimized(false); setSelectedId(null); }
-      }
-      dragRef.current = null;
-    };
-    window.addEventListener("pointermove", onPointerMove);
-    window.addEventListener("pointerup", onPointerUp);
-    window.addEventListener("pointercancel", onPointerUp);
-    return () => { window.removeEventListener("pointermove", onPointerMove); window.removeEventListener("pointerup", onPointerUp); window.removeEventListener("pointercancel", onPointerUp); };
-  }, [miniPosition]);
-
-  const openChat = () => { setOpen(true); setMinimized(false); setDirectoryOpen(true); setErrorMessage(null); };
-  const closeChat = () => { setOpen(false); setMinimized(false); setSelectedFile(null); setDraft(""); triggerRef.current?.focus(); };
-  const minimizeChat = () => setMinimized(true);
-  const restoreChat = () => { setMinimized(false); setOpen(true); };
-
-  const startPanelDrag = (event: ReactPointerEvent<HTMLDivElement>) => {
-    if (event.button !== 0) return;
-    event.preventDefault();
-    dragRef.current = { mode: "panel", pointerId: event.pointerId, startX: event.clientX, startY: event.clientY, originX: geometry.x, originY: geometry.y, originWidth: geometry.width, originHeight: geometry.height, moved: false };
-  };
-
-  const startResize = (event: ReactPointerEvent<HTMLDivElement>, edge: ResizeEdge) => {
-    if (event.button !== 0) return;
-    event.preventDefault();
-    event.stopPropagation();
-    dragRef.current = { mode: "resize", edge, pointerId: event.pointerId, startX: event.clientX, startY: event.clientY, originX: geometry.x, originY: geometry.y, originWidth: geometry.width, originHeight: geometry.height, moved: false };
-  };
-
-  const startMiniDrag = (event: ReactPointerEvent<HTMLButtonElement>) => {
-    if (event.button !== 0) return;
-    event.preventDefault();
-    dragRef.current = { mode: "mini", pointerId: event.pointerId, startX: event.clientX, startY: event.clientY, originX: miniPosition.x, originY: miniPosition.y, originWidth: MINI_SIZE, originHeight: MINI_SIZE, moved: false };
-    suppressMiniClickRef.current = false;
-  };
-
-  const startConversation = async (user: DirectoryUser) => {
-    setErrorMessage(null);
-    const conversationId = await createConversation({ subject: user.full_name || user.email, recipientUserId: user.id });
-    if (!conversationId) { setErrorMessage(isArabic ? "تعذر إنشاء المحادثة. تحقق من صلاحية المراسلة." : "Unable to create the conversation. Check messaging permission."); return; }
-    setSelectedId(conversationId);
-    setDirectoryOpen(false);
-    setDirectoryQuery("");
-    await loadConversations();
-  };
-
-  const send = async () => {
-    if (!selectedId || !draft.trim() || sending || uploading) return;
-    setSending(true);
-    setErrorMessage(null);
-    const body = draft.trim();
-    const messageId = await sendInternalMessage({ conversationId: selectedId, body });
-    if (!messageId) { setSending(false); setErrorMessage(isArabic ? "تعذر إرسال الرسالة." : "Unable to send the message."); return; }
-    setDraft("");
-    if (selectedFile) {
-      setUploading(true);
-      const file = selectedFile;
-      const upload = await createCommunicationAttachmentUpload({ messageId, fileName: file.name, mimeType: file.type, byteSize: file.size });
-      if (upload) {
-        const supabase = createClient();
-        const { error } = await supabase.storage.from(upload.attachment.storage_bucket).uploadToSignedUrl(upload.path, upload.uploadToken, file);
-        if (error) setErrorMessage(isArabic ? "تم إرسال الرسالة، لكن تعذر رفع الملف." : "Message sent, but the file upload failed.");
-      }
-      setUploading(false);
-      setSelectedFile(null);
-    }
-    setSending(false);
-    await loadMessages(selectedId);
-    await loadConversations();
-  };
-
-  const selectFile = (file: File | null) => {
-    if (!file) return;
-    if (file.size > 25 * 1024 * 1024) { setErrorMessage(isArabic ? "الحد الأقصى لحجم الملف 25 ميجابايت." : "Maximum file size is 25 MB."); return; }
-    setSelectedFile(file);
-    setErrorMessage(null);
-  };
-
-  const selectedConversation = conversations.find((conversation) => conversation.id === selectedId);
-
-  const resizeHandles: Array<{ edge: ResizeEdge; className: string; label: string }> = [
-    { edge: "n", className: "absolute inset-x-5 top-0 h-2 cursor-ns-resize", label: "Resize top" },
-    { edge: "s", className: "absolute inset-x-5 bottom-0 h-2 cursor-ns-resize", label: "Resize bottom" },
-    { edge: "e", className: "absolute inset-y-5 end-0 w-2 cursor-ew-resize", label: "Resize right" },
-    { edge: "w", className: "absolute inset-y-5 start-0 w-2 cursor-ew-resize", label: "Resize left" },
-    { edge: "ne", className: "absolute end-0 top-0 h-5 w-5 cursor-nesw-resize", label: "Resize top right" },
-    { edge: "nw", className: "absolute start-0 top-0 h-5 w-5 cursor-nwse-resize", label: "Resize top left" },
-    { edge: "se", className: "absolute bottom-0 end-0 h-5 w-5 cursor-nwse-resize", label: "Resize bottom right" },
-    { edge: "sw", className: "absolute bottom-0 start-0 h-5 w-5 cursor-nesw-resize", label: "Resize bottom left" },
-  ];
-
-  return (
-    <div className="relative">
-      <button ref={triggerRef} type="button" onClick={openChat} className="relative inline-flex h-9 w-9 items-center justify-center rounded-lg text-slate-600 transition-colors hover:bg-white hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1" aria-label={isArabic ? "المحادثة" : "Chat"} title={isArabic ? "المحادثة" : "Chat"} data-testid="global-header-chat">
-        <MessageCircle className="h-[19px] w-[19px]" aria-hidden="true" />
-        {unread > 0 ? <span className="absolute -end-0.5 -top-1 min-w-5 rounded-full bg-red-600 px-1.5 text-center text-[10px] font-bold leading-5 text-white ring-2 ring-slate-50">{unread > 99 ? "99+" : unread}</span> : null}
-      </button>
-
-      {open && minimized ? <button type="button" onPointerDown={startMiniDrag} onClick={() => { if (!suppressMiniClickRef.current) restoreChat(); suppressMiniClickRef.current = false; }} style={{ left: miniPosition.x, top: miniPosition.y, width: MINI_SIZE, height: MINI_SIZE }} className="fixed z-[100] inline-flex items-center justify-center rounded-full border border-slate-300 bg-white text-slate-700 shadow-2xl ring-1 ring-black/5 touch-none" aria-label={isArabic ? "استعادة المحادثة" : "Restore chat"}>
-        <MessageCircle className="h-7 w-7" />
-        {unread > 0 ? <span className="absolute -end-1 -top-1 min-w-5 rounded-full bg-red-600 px-1.5 text-[10px] font-bold leading-5 text-white">{unread > 99 ? "99+" : unread}</span> : null}
-      </button> : null}
-
-      {open && !minimized ? <section style={{ left: geometry.x, top: geometry.y, width: geometry.width, height: geometry.height }} className="fixed z-[100] flex max-w-[calc(100vw-24px)] min-w-0 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl" role="dialog" aria-label={isArabic ? "المحادثة" : "Chat"}>
-        <div onPointerDown={startPanelDrag} className="flex h-12 min-w-0 shrink-0 cursor-move items-center gap-2 border-b border-slate-200 bg-slate-50 px-3 touch-none">
-          <MessageCircle className="h-5 w-5 shrink-0 text-slate-600" aria-hidden="true" />
-          <strong className="min-w-0 flex-1 truncate text-sm text-slate-900">{selectedConversation?.subject || (isArabic ? "المحادثة" : "Chat")}</strong>
-          <div className="ms-auto flex shrink-0 items-center gap-1">
-            <button type="button" onPointerDown={(event) => event.stopPropagation()} onClick={minimizeChat} className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-white hover:text-slate-900" aria-label={isArabic ? "تصغير" : "Minimize"}><Minus className="h-4 w-4" /></button>
-            <button type="button" onPointerDown={(event) => event.stopPropagation()} onClick={closeChat} className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-white hover:text-slate-900" aria-label={isArabic ? "إغلاق" : "Close"}><X className="h-4 w-4" /></button>
-          </div>
-        </div>
-
-        <div className="flex min-h-0 min-w-0 flex-1 flex-col md:flex-row">
-          <aside className={cn("min-w-0 shrink-0 border-b border-slate-200 md:h-full md:w-56 md:border-b-0 md:border-e", directoryOpen ? "flex max-h-44 flex-col md:max-h-none" : "hidden md:flex md:flex-col")}>
-            <div className="flex shrink-0 items-center gap-2 border-b border-slate-100 p-2">
-              <Search className="h-4 w-4 shrink-0 text-slate-400" aria-hidden="true" />
-              <input value={directoryQuery} onChange={(event) => setDirectoryQuery(event.target.value)} placeholder={isArabic ? "ابحث عن مستخدم" : "Search users"} className="min-w-0 flex-1 bg-transparent py-1.5 text-sm outline-none placeholder:text-slate-400" aria-label={isArabic ? "البحث عن مستخدم" : "Search users"} />
-              <button type="button" onClick={() => setDirectoryOpen(false)} className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg hover:bg-slate-100 md:hidden" aria-label={isArabic ? "إغلاق المستخدمين" : "Close users"}><X className="h-4 w-4" /></button>
-            </div>
-            <div className="min-h-0 min-w-0 flex-1 overflow-y-auto p-1.5">
-              {directoryLoading ? <p className="p-3 text-xs text-slate-500">{isArabic ? "جارٍ البحث..." : "Searching..."}</p> : directoryUsers.map((user) => <button key={user.id} type="button" onClick={() => void startConversation(user)} className="flex w-full min-w-0 items-start gap-2 rounded-xl px-2.5 py-2 text-start hover:bg-slate-50"><span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-100 text-xs font-semibold text-slate-600">{(user.full_name || user.email).slice(0, 1).toUpperCase()}</span><span className="min-w-0 flex-1"><span className="block break-words text-xs font-semibold leading-4 text-slate-900">{user.full_name || user.email}</span><span className="block break-words text-[11px] leading-4 text-slate-500">{user.role || user.email}</span></span></button>)}
-              {!directoryLoading && directoryUsers.length === 0 ? <p className="p-3 text-xs text-slate-500">{isArabic ? "لا يوجد مستخدمون مطابقون." : "No matching users."}</p> : null}
-              {conversations.length > 0 ? <div className="mt-2 border-t border-slate-100 pt-2"><div className="px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-slate-400">{isArabic ? "المحادثات" : "Conversations"}</div>{conversations.map((conversation) => <button key={conversation.id} type="button" onClick={() => { setSelectedId(conversation.id); setDirectoryOpen(false); }} className={cn("flex w-full min-w-0 items-center gap-2 rounded-xl px-2.5 py-2 text-start", selectedId === conversation.id ? "bg-slate-100" : "hover:bg-slate-50")}><MessageCircle className="h-4 w-4 shrink-0 text-slate-400" /><span className="min-w-0 break-words text-xs font-medium leading-4 text-slate-800">{conversation.subject || (conversation.kind === "follow_up" ? (isArabic ? "متابعة آلية" : "Automated follow-up") : isArabic ? "محادثة" : "Conversation")}</span></button>)}</div> : null}
-            </div>
-          </aside>
-
-          <div className="flex min-h-0 min-w-0 flex-1 flex-col">
-            <div className="flex h-10 min-w-0 shrink-0 items-center gap-2 border-b border-slate-100 px-2.5 md:hidden">
-              {!directoryOpen ? <button type="button" onClick={() => setDirectoryOpen(true)} className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-lg px-2 text-xs font-medium text-slate-600 hover:bg-slate-100"><Plus className="h-4 w-4" />{isArabic ? "مستخدم / محادثة" : "User / conversation"}</button> : null}
-              {selectedConversation ? <span className="min-w-0 flex-1 break-words text-xs font-semibold leading-4 text-slate-700">{selectedConversation.subject}</span> : null}
-            </div>
-
-            <div className="min-h-0 min-w-0 flex-1 overflow-y-auto p-3">
-              {!selectedId ? <div className="flex h-full min-h-32 items-center justify-center text-center text-sm text-slate-500">{isArabic ? "اختر مستخدماً لبدء محادثة." : "Choose a user to start a conversation."}</div> : messages.length === 0 ? <div className="flex h-full min-h-32 items-center justify-center text-center text-sm text-slate-500">{isArabic ? "لا توجد رسائل بعد." : "No messages yet."}</div> : <div className="space-y-2">{messages.map((message) => <div key={message.id} className={cn("max-w-[88%] min-w-0 rounded-2xl px-3 py-2", message.sender_clinic_user_id === currentUserId ? "ms-auto bg-slate-100" : "me-auto bg-blue-50")}><p className="whitespace-pre-wrap break-words text-sm leading-5 text-slate-800">{message.body}</p>{attachments[message.id]?.length ? <div className="mt-2 space-y-1">{attachments[message.id].map((attachment) => <div key={attachment.id} className="flex min-w-0 items-center gap-2 rounded-lg bg-white/70 px-2 py-1.5 text-xs text-slate-600"><FileText className="h-3.5 w-3.5 shrink-0" /><span className="min-w-0 break-words">{attachment.file_name}</span></div>)}</div> : null}<time className="mt-1 block text-[10px] text-slate-400">{new Intl.DateTimeFormat(isArabic ? "ar" : "en", { hour: "2-digit", minute: "2-digit" }).format(new Date(message.created_at))}</time></div>)}</div>}
-            </div>
-
-            {errorMessage ? <p className="shrink-0 border-t border-amber-100 bg-amber-50 px-3 py-1.5 text-xs leading-4 text-amber-800">{errorMessage}</p> : null}
-            <form onSubmit={(event) => { event.preventDefault(); void send(); }} className="shrink-0 border-t border-slate-200 bg-white p-2.5">
-              {selectedFile ? <div className="mb-2 flex min-w-0 items-center gap-2 rounded-lg bg-slate-50 px-2.5 py-2 text-xs text-slate-600"><Paperclip className="h-3.5 w-3.5 shrink-0" /><span className="min-w-0 flex-1 break-words">{selectedFile.name}</span><button type="button" onClick={() => setSelectedFile(null)} className="shrink-0 text-slate-400 hover:text-slate-700" aria-label={isArabic ? "إزالة الملف" : "Remove file"}><X className="h-4 w-4" /></button></div> : null}
-              <textarea value={draft} onChange={(event) => setDraft(event.target.value)} placeholder={selectedId ? (isArabic ? "اكتب رسالتك..." : "Write a message...") : (isArabic ? "اختر محادثة أولاً" : "Choose a conversation first")} disabled={!selectedId || sending || uploading} rows={2} className="block min-h-14 max-h-28 w-full resize-none rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm leading-5 outline-none placeholder:text-slate-400 focus:border-blue-300 focus:bg-white focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed disabled:opacity-60" />
-              <div className="mt-2 flex min-w-0 items-center justify-between gap-2"><div className="flex min-w-0 items-center gap-2"><input ref={fileInputRef} type="file" className="hidden" onChange={(event) => { selectFile(event.target.files?.[0] ?? null); event.currentTarget.value = ""; }} accept="image/*,application/pdf,text/plain,.doc,.docx,.xls,.xlsx" /><button type="button" onClick={() => fileInputRef.current?.click()} disabled={!selectedId || sending || uploading} className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-900 disabled:opacity-40" aria-label={isArabic ? "رفع ملف" : "Attach file"}><Paperclip className="h-4 w-4" /></button><span className="min-w-0 truncate text-[11px] text-slate-400">{uploading ? (isArabic ? "جارٍ رفع الملف..." : "Uploading...") : isArabic ? "حد الملف 25 ميجابايت" : "25 MB max"}</span></div><button type="submit" disabled={!selectedId || !draft.trim() || sending || uploading} className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-lg bg-slate-900 px-3 text-xs font-semibold text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-40">{sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4 rtl:rotate-180" />}{isArabic ? "إرسال" : "Send"}</button></div>
-            </form>
-          </div>
-        </div>
-        {resizeHandles.map(({ edge, className, label }) => <div key={edge} role="separator" aria-label={label} onPointerDown={(event) => startResize(event, edge)} className={cn(className, "z-20 touch-none")} />)}
-        <div className="pointer-events-none absolute bottom-1 end-1 z-10 text-slate-300"><Grip className="h-3.5 w-3.5" /></div>
-      </section> : null}
-    </div>
-  );
+interface Conversation { id:string; subject:string|null; kind:string; updated_at:string }
+interface ChatAttachment { id:string; message_id:string; file_name:string; mime_type:string; byte_size:number }
+interface ChatMessage { id:string; body:string; sender_clinic_user_id:string|null; created_at:string; message_kind:string }
+interface DirectoryUser { id:string; full_name:string; email:string; role:string }
+interface PanelGeometry { x:number;y:number;width:number;height:number }
+interface MiniPosition { x:number;y:number }
+const MIN_W=280,MIN_H=280,GAP=12,TOP=68,MINI=58,STORAGE="core-system-global-chat-layout-v2";
+const defaults=()=>{if(typeof window==="undefined")return{x:12,y:68,width:520,height:560};const mobile=window.innerWidth<768,w=mobile?Math.max(MIN_W,window.innerWidth-GAP*2):Math.min(520,window.innerWidth-GAP*2),h=mobile?Math.max(MIN_H,window.innerHeight-TOP-GAP):Math.min(560,window.innerHeight-TOP-GAP);return{x:mobile?GAP:Math.max(GAP,window.innerWidth-w-GAP),y:mobile?TOP:Math.max(TOP,Math.round((window.innerHeight-h)/2)),width:w,height:h}};
+const miniDefault=()=>typeof window==="undefined"?{x:24,y:80}:{x:Math.max(12,window.innerWidth-MINI-18),y:Math.max(72,window.innerHeight-MINI-24)};
+const normalize=(v:PanelGeometry)=>{if(typeof window==="undefined")return v;const w=Math.min(v.width,Math.max(MIN_W,window.innerWidth-GAP*2)),h=Math.min(v.height,Math.max(MIN_H,window.innerHeight-TOP-GAP));return{x:Math.min(Math.max(GAP,v.x),Math.max(GAP,window.innerWidth-w-GAP)),y:Math.min(Math.max(TOP,v.y),Math.max(TOP,window.innerHeight-h-GAP)),width:w,height:h}};
+export function GlobalChatHeaderControl({isArabic}:{isArabic:boolean}){
+ const [unread,setUnread]=useState(0),[open,setOpen]=useState(false),[minimized,setMinimized]=useState(false),[sending,setSending]=useState(false),[uploading,setUploading]=useState(false),[selectedFile,setSelectedFile]=useState<File|null>(null),[conversations,setConversations]=useState<Conversation[]>([]),[selectedId,setSelectedId]=useState<string|null>(null),[messages,setMessages]=useState<ChatMessage[]>([]),[attachments,setAttachments]=useState<Record<string,ChatAttachment[]>>({}),[drafts,setDrafts]=useState<Record<string,string>>({}),[currentUserId,setCurrentUserId]=useState<string|null>(null),[geometry,setGeometry]=useState(defaults),[miniPosition,setMiniPosition]=useState(miniDefault),[directoryOpen,setDirectoryOpen]=useState(true),[directoryQuery,setDirectoryQuery]=useState(""),[directoryUsers,setDirectoryUsers]=useState<DirectoryUser[]>([]),[directoryLoading,setDirectoryLoading]=useState(false),[directoryError,setDirectoryError]=useState(false),[errorMessage,setErrorMessage]=useState<string|null>(null);
+ const drag=useRef<any>(null),suppress=useRef(false),fileInput=useRef<HTMLInputElement>(null),trigger=useRef<HTMLButtonElement>(null),storageKey=currentUserId?`${STORAGE}:${currentUserId}`:null;
+ const loadUnread=useCallback(async()=>{const s=createClient(),{data:{user}}=await s.auth.getUser();if(!user)return;const{data:cu}=await s.from("clinic_users").select("id,tenant_id").eq("auth_user_id",user.id).eq("is_active",true).is("deleted_at",null).maybeSingle();if(!cu)return;setCurrentUserId(cu.id);const{data:p}=await s.from("communication_conversation_participants").select("conversation_id").eq("tenant_id",cu.tenant_id).eq("clinic_user_id",cu.id);const ids=Array.from(new Set((p??[]).map(x=>x.conversation_id).filter(Boolean)));if(!ids.length){setUnread(0);return}const{data:m}=await s.from("communication_messages").select("id").eq("tenant_id",cu.tenant_id).in("conversation_id",ids).in("message_kind",["message","internal_note"]).neq("sender_clinic_user_id",cu.id).order("created_at",{ascending:false}).limit(200);const mids=(m??[]).map(x=>x.id);if(!mids.length){setUnread(0);return}const{data:r}=await s.from("communication_message_reads").select("message_id").eq("tenant_id",cu.tenant_id).eq("clinic_user_id",cu.id).in("message_id",mids);const read=new Set((r??[]).map(x=>x.message_id));setUnread(mids.filter(x=>!read.has(x)).length)},[]);
+ const loadConversations=useCallback(async()=>{try{const s=createClient(),{data:{user}}=await s.auth.getUser();if(!user)return;const{data:cu}=await s.from("clinic_users").select("id,tenant_id").eq("auth_user_id",user.id).eq("is_active",true).is("deleted_at",null).maybeSingle();if(!cu)return;setCurrentUserId(cu.id);const{data:p}=await s.from("communication_conversation_participants").select("conversation_id").eq("tenant_id",cu.tenant_id).eq("clinic_user_id",cu.id);const ids=Array.from(new Set((p??[]).map(x=>x.conversation_id).filter(Boolean)));if(!ids.length){setConversations([]);return}const{data}=await s.from("communication_conversations").select("id,subject,kind,updated_at").eq("tenant_id",cu.tenant_id).in("id",ids).neq("status","archived").order("updated_at",{ascending:false}).limit(30);setConversations((data??[]) as Conversation[])}catch(e){console.error("Communications conversation load failed",e)}},[]);
+ const loadDirectory=useCallback(async(q:string)=>{setDirectoryLoading(true);setDirectoryError(false);try{const users=await searchCommunicationUsers(q);setDirectoryUsers(users as DirectoryUser[])}catch(e){console.error("Communications user directory failed",e);setDirectoryUsers([]);setDirectoryError(true)}finally{setDirectoryLoading(false)}},[]);
+ const loadMessages=useCallback(async(id:string)=>{const s=createClient(),{data:{user}}=await s.auth.getUser();if(!user)return;const{data:cu}=await s.from("clinic_users").select("id,tenant_id").eq("auth_user_id",user.id).eq("is_active",true).is("deleted_at",null).maybeSingle();if(!cu)return;const{data}=await s.from("communication_messages").select("id,body,sender_clinic_user_id,created_at,message_kind").eq("tenant_id",cu.tenant_id).eq("conversation_id",id).order("created_at",{ascending:true}).limit(100);const ms=(data??[]) as ChatMessage[];setMessages(ms);const ids=ms.map(m=>m.id);if(ids.length){const{data:a}=await s.from("communication_message_attachments").select("id,message_id,file_name,mime_type,byte_size").eq("tenant_id",cu.tenant_id).in("message_id",ids);const grouped:Record<string,ChatAttachment[]>={};for(const x of a??[]){const z=x as ChatAttachment;grouped[z.message_id]=[...(grouped[z.message_id]??[]),z]}setAttachments(grouped)}else setAttachments({});await markConversationRead(id);void loadUnread()},[loadUnread]);
+ useEffect(()=>{const t=setTimeout(()=>void loadUnread(),0),r=()=>void loadUnread();window.addEventListener("focus",r);document.addEventListener("visibilitychange",r);const i=setInterval(r,15000);return()=>{clearTimeout(t);clearInterval(i);window.removeEventListener("focus",r);document.removeEventListener("visibilitychange",r)}},[loadUnread]);
+ useEffect(()=>{if(!storageKey)return;try{const x=JSON.parse(localStorage.getItem(storageKey)||"{}");if(x.geometry)setGeometry(normalize(x.geometry));if(x.miniPosition)setMiniPosition(x.miniPosition)}catch{}},[storageKey]);
+ useEffect(()=>{if(!storageKey)return;const t=setTimeout(()=>{try{localStorage.setItem(storageKey,JSON.stringify({geometry,miniPosition}))}catch{}},150);return()=>clearTimeout(t)},[storageKey,geometry,miniPosition]);
+ useEffect(()=>{if(!open||minimized)return;const t=setTimeout(()=>void loadConversations(),0);return()=>clearTimeout(t)},[open,minimized,loadConversations]);
+ useEffect(()=>{if(!open||minimized||!directoryOpen)return;const t=setTimeout(()=>void loadDirectory(directoryQuery),120);return()=>clearTimeout(t)},[open,minimized,directoryOpen,directoryQuery,loadDirectory]);
+ useEffect(()=>{if(!open||minimized||!selectedId)return;const t=setTimeout(()=>void loadMessages(selectedId),0);return()=>clearTimeout(t)},[open,minimized,selectedId,loadMessages]);
+ const selectedConversation=useMemo(()=>conversations.find(c=>c.id===selectedId)??null,[conversations,selectedId]);
+ const changeConversation=(id:string)=>{setSelectedId(id);setMessages([]);setAttachments({});setErrorMessage(null);setDirectoryOpen(false);setSelectedFile(null)};
+ const startConversation=async(u:DirectoryUser)=>{setErrorMessage(null);try{const id=await createConversation({subject:u.full_name||u.email,recipientUserId:u.id});if(!id){setErrorMessage(isArabic?"تعذر فتح المحادثة. يرجى المحاولة مرة أخرى.":"Unable to open the conversation. Please try again.");return}changeConversation(id);setDirectoryQuery("");await loadConversations();await loadMessages(id)}catch(e){console.error("Communications conversation start failed",e);setErrorMessage(isArabic?"تعذر فتح المحادثة. يرجى المحاولة مرة أخرى.":"Unable to open the conversation. Please try again.")}};
+ const draftForSelected=selectedId?drafts[selectedId]??"":"";const setDraftForSelected=(v:string)=>{if(selectedId)setDrafts(x=>({...x,[selectedId]:v}))};
+ const send=async()=>{const body=draftForSelected.trim();if(!selectedId||!body||sending||uploading)return;setSending(true);setErrorMessage(null);const id=await sendInternalMessage({conversationId:selectedId,body});if(!id){setSending(false);setErrorMessage(isArabic?"تعذر إرسال الرسالة. حاول مرة أخرى.":"Unable to send the message. Please try again.");return}setDrafts(x=>({...x,[selectedId]:""}));if(selectedFile){setUploading(true);const f=selectedFile,u=await createCommunicationAttachmentUpload({messageId:id,fileName:f.name,mimeType:f.type,byteSize:f.size});if(u){const s=createClient(),{error}=await s.storage.from(u.attachment.storage_bucket).uploadToSignedUrl(u.path,u.uploadToken,f);if(error)setErrorMessage(isArabic?"تم إرسال الرسالة، لكن تعذر رفع الملف.":"Message sent, but the file upload failed")}else setErrorMessage(isArabic?"تم إرسال الرسالة، لكن تعذر تجهيز الملف.":"Message sent, but the file could not be prepared.");setUploading(false);setSelectedFile(null)}setSending(false);await loadMessages(selectedId);await loadConversations()};
+ const openChat=()=>{setOpen(true);setMinimized(false);setDirectoryOpen(true);setErrorMessage(null)};const closeChat=()=>{setOpen(false);setMinimized(false);setSelectedFile(null);setErrorMessage(null);setSelectedId(null);setMessages([]);setAttachments({});trigger.current?.focus()};
+ useEffect(()=>{const move=(ev:PointerEvent)=>{const d=drag.current;if(!d||d.pointerId!==ev.pointerId)return;const dx=ev.clientX-d.sx,dy=ev.clientY-d.sy;if(d.mode==="panel")setGeometry(x=>({...x,x:d.ox+dx,y:d.oy+dy}));else if(d.mode==="mini")setMiniPosition({x:d.ox+dx,y:d.oy+dy});else{let x=d.ox,y=d.oy,w=d.ow,h=d.oh;if(d.e.includes("e"))w=Math.max(MIN_W,d.ow+dx);if(d.e.includes("s"))h=Math.max(MIN_H,d.oh+dy);if(d.e.includes("w")){w=Math.max(MIN_W,d.ow-dx);x=d.ox+d.ow-w}if(d.e.includes("n")){h=Math.max(MIN_H,d.oh-dy);y=d.oy+d.oh-h}setGeometry(normalize({x,y,width:w,height:h}))}};const up=(ev:PointerEvent)=>{if(!drag.current||drag.current.pointerId!==ev.pointerId)return;const d=drag.current;if(d.mode==="mini"){suppress.current=Math.abs(ev.clientX-d.sx)+Math.abs(ev.clientY-d.sy)>4;if(miniPosition.x+MINI<0||miniPosition.x>window.innerWidth||miniPosition.y+MINI<0||miniPosition.y>window.innerHeight){setOpen(false);setMinimized(false);setSelectedId(null)}}drag.current=null};window.addEventListener("pointermove",move);window.addEventListener("pointerup",up);window.addEventListener("pointercancel",up);return()=>{window.removeEventListener("pointermove",move);window.removeEventListener("pointerup",up);window.removeEventListener("pointercancel",up)}},[miniPosition]);
+ const beginPanel=(ev:React.PointerEvent<HTMLDivElement>,mode:"panel"|"resize",e?:string)=>{if(ev.button!==0)return;ev.preventDefault();ev.stopPropagation();drag.current={mode,pointerId:ev.pointerId,sx:ev.clientX,sy:ev.clientY,ox:geometry.x,oy:geometry.y,ow:geometry.width,oh:geometry.height,e:e??"se"}};
+ const resizeHandles=["n","s","e","w","ne","nw","se","sw"].map(e=>({e,c:e==="n"?"absolute inset-x-5 top-0 h-2 cursor-ns-resize":e==="s"?"absolute inset-x-5 bottom-0 h-2 cursor-ns-resize":e==="e"?"absolute inset-y-5 end-0 w-2 cursor-ew-resize":e==="w"?"absolute inset-y-5 start-0 w-2 cursor-ew-resize":e==="ne"?"absolute end-0 top-0 h-5 w-5 cursor-nesw-resize":e==="nw"?"absolute start-0 top-0 h-5 w-5 cursor-nwse-resize":e==="se"?"absolute bottom-0 end-0 h-5 w-5 cursor-nwse-resize":"absolute bottom-0 start-0 h-5 w-5 cursor-nesw-resize"}));
+ return <div className="relative"><button ref={trigger} type="button" onClick={openChat} className="relative inline-flex h-9 w-9 items-center justify-center rounded-lg text-slate-600 transition-colors hover:bg-white hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1" aria-label={isArabic?"المحادثة":"Chat"} title={isArabic?"المحادثة":"Chat"} data-testid="global-header-chat"><MessageCircle className="h-[19px] w-[19px]"/>{unread>0?<span className="absolute -end-0.5 -top-1 min-w-5 rounded-full bg-red-600 px-1.5 text-center text-[10px] font-bold leading-5 text-white">{unread>99?"99+":unread}</span>:null}</button>
+ {open&&minimized?<button type="button" onPointerDown={ev=>{ev.preventDefault();drag.current={mode:"mini",pointerId:ev.pointerId,sx:ev.clientX,sy:ev.clientY,ox:miniPosition.x,oy:miniPosition.y}}} onClick={()=>{if(!suppress.current)setMinimized(false);suppress.current=false}} style={{left:miniPosition.x,top:miniPosition.y,width:MINI,height:MINI}} className="fixed z-[100] inline-flex items-center justify-center rounded-full border border-slate-300 bg-white text-slate-700 shadow-2xl ring-1 ring-black/5 touch-none" aria-label={isArabic?"استعادة المحادثة":"Restore chat"}><MessageCircle className="h-7 w-7"/>{unread>0?<span className="absolute -end-1 -top-1 min-w-5 rounded-full bg-red-600 px-1.5 text-[10px] font-bold leading-5 text-white">{unread>99?"99+":unread}</span>:null}</button>:null}
+ {open&&!minimized?<section data-testid="global-chat-panel" style={{left:geometry.x,top:geometry.y,width:geometry.width,height:geometry.height}} className="fixed z-[100] flex max-w-[calc(100vw-24px)] min-w-0 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl" role="dialog" aria-label={isArabic?"المحادثة":"Chat"}>
+  <div onPointerDown={ev=>beginPanel(ev,"panel")} className="flex h-12 min-w-0 shrink-0 cursor-move items-center gap-2 border-b border-slate-200 bg-slate-50 px-3 touch-none"><MessageCircle className="h-5 w-5 shrink-0 text-slate-600"/><strong className="min-w-0 flex-1 truncate text-sm text-slate-900">{selectedConversation?.subject||(isArabic?"المحادثة":"Chat")}</strong><div className="ms-auto flex shrink-0 items-center gap-1"><button type="button" onPointerDown={ev=>ev.stopPropagation()} onClick={()=>setMinimized(true)} className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-white hover:text-slate-900" aria-label={isArabic?"تصغير":"Minimize"}><Minus className="h-4 w-4"/></button><button type="button" onPointerDown={ev=>ev.stopPropagation()} onClick={closeChat} className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-white hover:text-slate-900" aria-label={isArabic?"إغلاق":"Close"}><X className="h-4 w-4"/></button></div></div>
+  <div className="flex min-h-0 min-w-0 flex-1 flex-col md:flex-row"><aside className={cn("min-w-0 shrink-0 border-b border-slate-200 md:h-full md:w-56 md:border-b-0 md:border-e",directoryOpen?"flex max-h-44 flex-col md:max-h-none":"hidden md:flex md:flex-col")}><div className="flex shrink-0 items-center gap-2 border-b border-slate-100 p-2"><Search className="h-4 w-4 shrink-0 text-slate-400"/><input value={directoryQuery} onChange={ev=>setDirectoryQuery(ev.target.value)} placeholder={isArabic?"ابحث عن مستخدم":"Search users"} className="min-w-0 flex-1 bg-transparent py-1.5 text-sm outline-none placeholder:text-slate-400" aria-label={isArabic?"البحث عن مستخدم":"Search users"}/><button type="button" onClick={()=>setDirectoryOpen(false)} className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg hover:bg-slate-100 md:hidden" aria-label={isArabic?"إغلاق المستخدمين":"Close users"}><X className="h-4 w-4"/></button></div><div className="min-h-0 min-w-0 flex-1 overflow-y-auto p-1.5">{directoryLoading?<p className="p-3 text-xs text-slate-500">{isArabic?"جارٍ البحث...":"Searching..."}</p>:directoryError?<p className="p-3 text-xs leading-4 text-amber-700">{isArabic?"تعذر تحميل مستخدمي العيادة. حاول مرة أخرى.":"Unable to load clinic users. Please try again."}</p>:directoryUsers.map(u=><button key={u.id} type="button" onClick={()=>void startConversation(u)} className="flex w-full min-w-0 items-start gap-2 rounded-xl px-2.5 py-2 text-start hover:bg-slate-50"><span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-100 text-xs font-semibold text-slate-600">{(u.full_name||u.email).slice(0,1).toUpperCase()}</span><span className="min-w-0 flex-1"><span className="block break-words text-xs font-semibold leading-4 text-slate-900">{u.full_name||u.email}</span><span className="block break-words text-[11px] leading-4 text-slate-500">{u.role||u.email}</span></span></button>)}{!directoryLoading&&!directoryError&&!directoryUsers.length?<p className="p-3 text-xs text-slate-500">{directoryQuery?(isArabic?"لا يوجد مستخدم مطابق.":"No matching user found."):(isArabic?"لا يوجد مستخدمون متاحون.":"No users are available.")}</p>:null}{conversations.length?<div className="mt-2 border-t border-slate-100 pt-2"><div className="px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-slate-400">{isArabic?"المحادثات":"Conversations"}</div>{conversations.map(c=><button key={c.id} type="button" onClick={()=>changeConversation(c.id)} className={cn("flex w-full min-w-0 items-center gap-2 rounded-xl px-2.5 py-2 text-start",selectedId===c.id?"bg-slate-100":"hover:bg-slate-50")}><MessageCircle className="h-4 w-4 shrink-0 text-slate-400"/><span className="min-w-0 break-words text-xs font-medium leading-4 text-slate-800">{c.subject||(isArabic?"محادثة":"Conversation")}</span></button>)}</div>:null}</div></aside>
+  <div className="flex min-h-0 min-w-0 flex-1 flex-col"><div className="flex h-10 min-w-0 shrink-0 items-center gap-2 border-b border-slate-100 px-2.5 md:hidden">{!directoryOpen?<button type="button" onClick={()=>setDirectoryOpen(true)} className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-lg px-2 text-xs font-medium text-slate-600 hover:bg-slate-100"><Plus className="h-4 w-4"/>{isArabic?"مستخدم / محادثة":"User / conversation"}</button>:null}{selectedConversation?<span className="min-w-0 flex-1 break-words text-xs font-semibold leading-4 text-slate-700">{selectedConversation.subject}</span>:null}</div><div className="min-h-0 min-w-0 flex-1 overflow-y-auto p-3">{!selectedId?<div className="flex h-full min-h-32 items-center justify-center text-center text-sm text-slate-500">{isArabic?"اختر مستخدماً لبدء محادثة.":"Choose a user to start a conversation."}</div>:messages.length===0?<div className="flex h-full min-h-32 items-center justify-center text-center text-sm text-slate-500">{isArabic?"لا توجد رسائل بعد.":"No messages yet."}</div>:<div className="space-y-2">{messages.map(m=><div key={m.id} className={cn("max-w-[88%] min-w-0 rounded-2xl px-3 py-2",m.sender_clinic_user_id===currentUserId?"ms-auto bg-slate-100":"me-auto bg-blue-50")}><p className="whitespace-pre-wrap break-words text-sm leading-5 text-slate-800">{m.body}</p>{attachments[m.id]?.length?<div className="mt-2 space-y-1">{attachments[m.id].map(a=><div key={a.id} className="flex min-w-0 items-center gap-2 rounded-lg bg-white/70 px-2 py-1.5 text-xs text-slate-600"><FileText className="h-3.5 w-3.5 shrink-0"/><span className="min-w-0 break-words">{a.file_name}</span></div>)}</div>:null}<time className="mt-1 block text-[10px] text-slate-400">{new Intl.DateTimeFormat(isArabic?"ar":"en",{hour:"2-digit",minute:"2-digit"}).format(new Date(m.created_at))}</time></div>)}</div>}</div>{errorMessage?<p className="shrink-0 border-t border-amber-100 bg-amber-50 px-3 py-1.5 text-xs leading-4 text-amber-800">{errorMessage}</p>:null}<form onSubmit={ev=>{ev.preventDefault();void send()}} className="shrink-0 border-t border-slate-200 bg-white p-2.5">{selectedFile?<div className="mb-2 flex min-w-0 items-center gap-2 rounded-lg bg-slate-50 px-2.5 py-2 text-xs text-slate-600"><Paperclip className="h-3.5 w-3.5 shrink-0"/><span className="min-w-0 flex-1 break-words">{selectedFile.name}</span><button type="button" onClick={()=>setSelectedFile(null)} className="shrink-0 text-slate-400 hover:text-slate-700" aria-label={isArabic?"إزالة الملف":"Remove file"}><X className="h-4 w-4"/></button></div>:null}<textarea value={draftForSelected} onChange={ev=>setDraftForSelected(ev.target.value)} placeholder={selectedId?(isArabic?"اكتب رسالتك...":"Write a message..."):(isArabic?"اختر محادثة أولاً":"Choose a conversation first")} disabled={!selectedId||sending||uploading} rows={2} className="block min-h-14 max-h-28 w-full resize-none rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm leading-5 outline-none placeholder:text-slate-400 focus:border-blue-300 focus:bg-white focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed disabled:opacity-60"/><div className="mt-2 flex min-w-0 items-center justify-between gap-2"><div className="flex min-w-0 items-center gap-2"><button type="button" onClick={()=>fileInput.current?.click()} disabled={!selectedId||sending||uploading} className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-900 disabled:opacity-50" aria-label={isArabic?"إرفاق ملف":"Attach file"}><Paperclip className="h-4 w-4"/></button><input ref={fileInput} type="file" className="hidden" onChange={ev=>{const f=ev.target.files?.[0]??null;if(f){if(f.size>25*1024*1024){setErrorMessage(isArabic?"الحد الأقصى لحجم الملف 25 ميجابايت.":"Maximum file size is 25 MB.");return}setSelectedFile(f);setErrorMessage(null)}ev.currentTarget.value=""}} accept="image/*,application/pdf,text/plain,.doc,.docx,.xls,.xlsx"/></div><button type="submit" disabled={!selectedId||!draftForSelected.trim()||sending||uploading} className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-lg bg-slate-900 px-3 text-xs font-semibold text-white hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-50">{sending?<Loader2 className="h-4 w-4 animate-spin"/>:<Send className="h-4 w-4"/>}{isArabic?"إرسال":"Send"}</button></div></form></div></div>{resizeHandles.map(h=><div key={h.e} className={h.c} aria-label={`Resize ${h.e}`} onPointerDown={ev=>beginPanel(ev,"resize",h.e)}/>)}</section>:null}</div>;
 }
