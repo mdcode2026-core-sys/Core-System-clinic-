@@ -28,7 +28,7 @@ export function GlobalHeader({
   const defaultBrand = (
     <Link
       href="/"
-      className="inline-flex h-10 shrink-0 items-center rounded-xl px-0.5 transition-opacity hover:opacity-85 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+      className="inline-flex h-9 max-w-[7.25rem] shrink-0 items-center rounded-xl px-0.5 transition-opacity hover:opacity-85 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 sm:h-10 sm:max-w-[9rem]"
       aria-label={isArabic ? "الرئيسية — ClinicSaaS" : "Home — ClinicSaaS"}
       data-testid="global-header-brand"
     >
@@ -38,7 +38,7 @@ export function GlobalHeader({
         width={150}
         height={33}
         priority
-        className="h-8 w-auto max-w-[9rem]"
+        className="h-7 w-auto max-w-[7rem] sm:h-8 sm:max-w-[9rem]"
       />
     </Link>
   );
@@ -46,7 +46,7 @@ export function GlobalHeader({
   return (
     <header
       className={cn(
-        "sticky top-0 z-30 flex min-h-16 items-center gap-1.5 border-b border-slate-200/90 bg-white/95 px-2 py-2 shadow-[0_1px_8px_rgba(15,23,42,0.04)] backdrop-blur sm:gap-2 sm:px-3 md:gap-2.5 md:px-4 lg:px-5",
+        "sticky top-0 z-30 flex min-h-14 w-full min-w-0 items-center gap-1 overflow-visible border-b border-slate-200/90 bg-white/95 px-1.5 py-1.5 shadow-[0_1px_8px_rgba(15,23,42,0.04)] backdrop-blur sm:min-h-16 sm:gap-2 sm:px-3 sm:py-2 md:gap-2.5 md:px-4 lg:px-5",
         className,
       )}
       data-testid="global-header"
@@ -54,7 +54,7 @@ export function GlobalHeader({
       <button
         type="button"
         onClick={onOpenMobileSidebar}
-        className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 lg:hidden"
+        className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 sm:h-10 sm:w-10 sm:rounded-xl lg:hidden"
         aria-label={isArabic ? "فتح القائمة" : "Open navigation"}
         aria-expanded={mobileSidebarOpen}
         aria-controls="global-sidebar"
@@ -65,11 +65,13 @@ export function GlobalHeader({
 
       <div className="flex min-w-0 shrink-0 items-center">{brand ?? defaultBrand}</div>
 
-      <div className="min-w-0 flex-1 px-0 sm:px-0.5">{search}</div>
+      <div className="w-9 shrink-0 md:w-[min(30vw,28rem)] lg:w-[30rem]" data-testid="global-header-search-slot">
+        {search}
+      </div>
 
       {controls ? (
         <div
-          className="flex shrink-0 items-center gap-0.5 rounded-xl border border-slate-200/80 bg-slate-50/70 p-0.5 sm:gap-1 sm:p-1"
+          className="flex shrink-0 items-center gap-0 rounded-xl border border-slate-200/80 bg-slate-50/70 p-0 sm:gap-0.5 sm:p-0.5"
           data-testid="global-header-controls"
         >
           {controls}
