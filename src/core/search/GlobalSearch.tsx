@@ -69,7 +69,7 @@ export function GlobalSearch() {
   return (
     <div ref={wrapperRef} className="relative mx-auto w-full min-w-0 max-w-xl">
       <button type="button" onClick={() => setMobileOpen(true)} className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-slate-600 shadow-sm hover:bg-white hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 md:hidden" aria-label={messages.label} title={messages.label} data-testid="global-search-mobile-trigger"><Search className="h-4 w-4" aria-hidden="true" /></button>
-      <div className={cn("hidden md:block", mobileOpen && "block")}>{field}</div>
+      <div className="hidden md:block">{field}</div>
       {mobileOpen && <div className="absolute inset-x-0 top-11 z-50 md:hidden">{field}</div>}
 
       {open && (
