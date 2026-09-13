@@ -120,14 +120,17 @@ export async function deleteCommunicationAttachment(attachmentId: string) {
 
 export async function sendInternalMessage(input: { conversationId: string; body: string; internalNote?: boolean; relatedType?: string | null; relatedId?: string | null }) {
   const ctx = await getContext();
-  if (!ctx || !(await hasEffectivePermission(ctx.user.id, "communications:send")) || !input.body.trim()) return;
+  if (!ctx || !input.body.trim()) return;
   const { data: conversation } = await ctx.supabase.from("communication_conversations").select("id,kind").eq("tenant_id", ctx.tenantId).eq("id", input.conversationId).maybeSingle();
   if (!conversation) return;
   const { data: participant } = await ctx.supabase.from("communication_conversation_participants").select("id").eq("tenant_id", ctx.tenantId).eq("conversation_id", input.conversationId).eq("clinic_user_id", ctx.clinicUser.id).maybeSingle();
   const canSendTenantPatientReply = conversation.kind === "patient" && await hasEffectivePermission(ctx.user.id, "communications:send");
   if (!participant && !canSendTenantPatientReply) return;
-  const { data: message } = await ctx.supabase.from("communication_messages").insert({ tenant_id: ctx.tenantId, conversation_id: input.conversationId, sender_clinic_user_id: ctx.clinicUser.id, sender_type: "clinic", sender_patient_identity_id: null, body: input.body.trim(), message_kind: input.internalNote ? "internal_note" : "message", related_type: input.relatedType || null, related_id: input.relatedId || null }).select("id").single();
-  if (!message) return;
+  const { data: message, error: messageError } = await ctx.supabase.from("communication_messages").insert({ tenant_id: ctx.tenantId, conversation_id: input.conversationId, sender_clinic_user_id: ctx.clinicUser.id, sender_type: "clinic", sender_patient_identity_id: null, body: input.body.trim(), message_kind: input.internalNote ? "internal_note" : "message", related_type: input.relatedType || null, related_id: input.relatedId || null }).select("id").single();
+  if (!message) {
+    console.error("Communications message send failed", { code: messageError?.code, message: messageError?.message });
+    return;
+  }
   revalidatePath("/communications");
   return message.id;
 }
