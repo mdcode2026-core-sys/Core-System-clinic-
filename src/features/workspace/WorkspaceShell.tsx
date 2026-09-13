@@ -95,7 +95,7 @@ export function WorkspaceShell({ children }: WorkspaceShellProps) {
   };
 
   return (
-    <div className="flex min-h-screen w-full bg-gray-50">
+    <div className="flex min-h-screen w-full min-w-0 overflow-x-hidden bg-gray-50">
       {mobileSidebarOpen && <div className="fixed inset-0 z-40 bg-black/50 lg:hidden" onClick={() => setMobileSidebarOpen(false)} aria-hidden="true" />}
       <aside className={cn(
         "fixed inset-y-0 z-50 w-72 bg-white shadow-lg transition-transform duration-200 ease-in-out lg:translate-x-0",
@@ -110,7 +110,7 @@ export function WorkspaceShell({ children }: WorkspaceShellProps) {
           <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4">{filteredNav.map((item) => renderItem(item))}</nav>
         </div>
       </aside>
-      <main className="min-w-0 flex-1 lg:ml-72 rtl:lg:ml-0 rtl:lg:mr-72">
+      <main className="min-w-0 max-w-full flex-1 overflow-x-hidden lg:ml-72 rtl:lg:ml-0 rtl:lg:mr-72">
         <GlobalHeader
           isArabic={isArabic}
           mobileSidebarOpen={mobileSidebarOpen}
@@ -125,7 +125,7 @@ export function WorkspaceShell({ children }: WorkspaceShellProps) {
             </>
           }
         />
-        <div className="p-4 md:p-6">{children}</div>
+        <div className="min-w-0 max-w-full p-4 md:p-6">{children}</div>
       </main>
     </div>
   );
