@@ -70,6 +70,15 @@ as $$
           )
       ) as unread_count
     from public.communication_conversations cc
+    left join lateral (
+      select m.body, m.created_at
+      from public.communication_messages m
+      where m.tenant_id = staff.tenant_id
+        and m.conversation_id = cc.id
+        and m.message_kind = 'message'
+      order by m.created_at desc
+      limit 1
+    ) lm on true
     where cc.tenant_id = staff.tenant_id
       and cc.kind = 'internal'
       and cc.status <> 'archived'
@@ -93,15 +102,6 @@ as $$
         where exact_members.tenant_id = staff.tenant_id
           and exact_members.conversation_id = cc.id
       ) = 2
-    left join lateral (
-      select m.body, m.created_at
-      from public.communication_messages m
-      where m.tenant_id = staff.tenant_id
-        and m.conversation_id = cc.id
-        and m.message_kind = 'message'
-      order by m.created_at desc
-      limit 1
-    ) lm on true
     order by cc.updated_at desc
     limit 1
   ) chat on true
