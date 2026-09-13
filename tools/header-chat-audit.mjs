@@ -23,10 +23,14 @@ const checks = [
   ["Communications page uses the shared read action", page.includes("markConversationRead")],
   ["Read action writes communication_message_reads", communications.includes("communication_message_reads")],
   ["Read action verifies internal conversation participation", communications.includes('conversation.kind === "internal"') && communications.includes("communication_conversation_participants")],
-  ["Authorized chat creation validates tenant recipients before insert", communications.includes('from("clinic_users")') && communications.includes("validRecipients") && communications.includes("recipientLookupError")],
-  ["Authorized chat creation treats participant insert failure as failure", communications.includes("participantsError") && communications.includes("Communications conversation participant creation failed")],
-  ["Conversation creation migration preserves the existing read authority paths", creationMigration.includes("DROP POLICY IF EXISTS communications_conversations_read") && creationMigration.includes("created_by =") && creationMigration.includes("communication_conversation_participants")],
-  ["Conversation creation migration keeps tenant and active-user constraints", creationMigration.includes("tenant_id = get_current_tenant_id()") && creationMigration.includes("cu.is_active = true") && creationMigration.includes("cu.deleted_at IS NULL")],
+  ["Chat creation uses the canonical transactional Communications RPC", communications.includes('rpc("create_communication_conversation"')],
+  ["Chat creation reports RPC failures instead of false success", communications.includes("Communications conversation creation failed") && communications.includes("creationError")],
+  ["Creation migration defines the same-tenanted active clinic creator", creationMigration.includes("create_communication_conversation") && creationMigration.includes("cu.tenant_id = v_tenant_id") && creationMigration.includes("cu.is_active = true") && creationMigration.includes("cu.deleted_at IS NULL")],
+  ["Creation migration enforces communications:send", creationMigration.includes("has_tenant_permission(v_tenant_id, 'communications:send')")],
+  ["Creation migration validates recipient tenant and lifecycle", creationMigration.includes("COMMUNICATIONS_RECIPIENT_TENANT_OR_STATUS_INVALID") && creationMigration.includes("cu.tenant_id = v_tenant_id")],
+  ["Creation migration writes conversation and participants transactionally", creationMigration.includes("INSERT INTO public.communication_conversations") && creationMigration.includes("INSERT INTO public.communication_conversation_participants")],
+  ["Direct participant INSERT is restricted to communications:manage", creationMigration.includes("communications_participants_manage_insert") && creationMigration.includes("has_tenant_permission(tenant_id, 'communications:manage')")],
+  ["Creation migration removes the old permissive participant access policy", creationMigration.includes("DROP POLICY IF EXISTS communications_participants_access")],
   ["Binding contract prohibits parallel Chat storage", contract.includes("chat_conversations") && contract.includes("chat_message_reads")],
 ];
 
