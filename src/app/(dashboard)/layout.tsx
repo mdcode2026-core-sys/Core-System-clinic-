@@ -11,14 +11,23 @@ export default async function DashboardLayout({
   children: React.ReactNode;
 }) {
   const supabase = await createClient();
-
   const {
-    data: { user },
-  } = await supabase.auth.getUser();
+    data: { claims },
+    error,
+  } = await supabase.auth.getClaims();
 
-  if (!user) {
+  if (error || !claims?.sub || typeof claims.sub !== "string") {
     redirect("/login");
   }
+
+  const user = {
+    id: claims.sub,
+    email: typeof claims.email === "string" ? claims.email : undefined,
+    user_metadata:
+      claims.user_metadata && typeof claims.user_metadata === "object"
+        ? (claims.user_metadata as { full_name?: string; name?: string })
+        : undefined,
+  };
 
   const assignedWorkspace = await getAssignedWorkspace(user.id);
 
