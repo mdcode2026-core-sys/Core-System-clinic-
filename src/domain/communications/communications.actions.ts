@@ -16,7 +16,7 @@ async function getContext() {
 
 export async function createConversation(input: { subject?: string; recipientUserId?: string; recipientUserIds?: string[]; clinicPatientId?: string | null }) {
   const ctx = await getContext();
-  if (!ctx || !(await hasEffectivePermission(ctx.user.id, "communications:send"))) return;
+  if (!ctx) return;
   const recipientIds = Array.from(new Set([...(input.recipientUserIds ?? []), ...(input.recipientUserId ? [input.recipientUserId] : [])].filter(Boolean))).filter((id) => id !== ctx.clinicUser.id);
   if (!input.clinicPatientId && recipientIds.length === 0) return;
 
