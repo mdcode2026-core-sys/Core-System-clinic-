@@ -96,22 +96,31 @@ REVOKE ALL ON FUNCTION public.create_communication_conversation(text, uuid[], uu
 REVOKE ALL ON FUNCTION public.create_communication_conversation(text, uuid[], uuid) FROM anon;
 GRANT EXECUTE ON FUNCTION public.create_communication_conversation(text, uuid[], uuid) TO authenticated;
 
--- Remove only demonstrably empty duplicate 1:1 conversations produced by the
--- broken pre-reuse flow. Conversations containing messages are never touched.
-WITH pairs AS (
+-- Remove only empty duplicate direct 1:1 conversations produced by the old
+-- broken flow. Group conversations and every conversation containing a message
+-- are intentionally excluded from cleanup.
+WITH direct_pairs AS (
   SELECT cc.id,
          row_number() OVER (
            PARTITION BY cc.tenant_id,
-             (SELECT array_agg(cp.clinic_user_id ORDER BY cp.clinic_user_id) FROM public.communication_conversation_participants cp WHERE cp.conversation_id = cc.id)
+             (SELECT array_agg(cp.clinic_user_id ORDER BY cp.clinic_user_id)
+              FROM public.communication_conversation_participants cp
+              WHERE cp.tenant_id = cc.tenant_id
+                AND cp.conversation_id = cc.id)
            ORDER BY cc.updated_at DESC, cc.created_at DESC
          ) AS rn
   FROM public.communication_conversations cc
   WHERE cc.kind = 'internal'
     AND cc.status <> 'archived'
     AND NOT EXISTS (SELECT 1 FROM public.communication_messages cm WHERE cm.conversation_id = cc.id)
+    AND (SELECT count(*)
+         FROM public.communication_conversation_participants cp
+         WHERE cp.tenant_id = cc.tenant_id
+           AND cp.conversation_id = cc.id) = 2
 )
 DELETE FROM public.communication_conversations cc
-USING pairs p
-WHERE cc.id = p.id AND p.rn > 1;
+USING direct_pairs p
+WHERE cc.id = p.id
+  AND p.rn > 1;
 
 COMMIT;
