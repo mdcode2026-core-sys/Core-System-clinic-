@@ -19,22 +19,15 @@ export async function createConversation(input: { subject?: string; recipientUse
   if (!ctx || !(await hasEffectivePermission(ctx.user.id, "communications:send"))) return;
   const recipientIds = Array.from(new Set([...(input.recipientUserIds ?? []), ...(input.recipientUserId ? [input.recipientUserId] : [])].filter(Boolean))).filter((id) => id !== ctx.clinicUser.id);
   if (!input.clinicPatientId && recipientIds.length === 0) return;
-
-  const { data: conversation } = await ctx.supabase.from("communication_conversations").insert({
-    tenant_id: ctx.tenantId,
-    kind: input.clinicPatientId ? "patient" : "internal",
-    subject: input.subject?.trim() || null,
-    clinic_patient_id: input.clinicPatientId || null,
-    created_by: ctx.clinicUser.id,
-  }).select("id").single();
+  const { data: conversation } = await ctx.supabase.from("communication_conversations").insert({ tenant_id: ctx.tenantId, kind: input.clinicPatientId ? "patient" : "internal", subject: input.subject?.trim() || null, clinic_patient_id: input.clinicPatientId || null, created_by: ctx.clinicUser.id }).select("id").single();
   if (!conversation) return;
-
   const participants = [
     { tenant_id: ctx.tenantId, conversation_id: conversation.id, clinic_user_id: ctx.clinicUser.id, role: "owner" },
     ...recipientIds.map((clinicUserId) => ({ tenant_id: ctx.tenantId, conversation_id: conversation.id, clinic_user_id: clinicUserId, role: "participant" })),
   ];
   if (participants.length) await ctx.supabase.from("communication_conversation_participants").insert(participants);
   revalidatePath("/communications");
+  return conversation.id;
 }
 
 export async function addConversationParticipant(input: { conversationId: string; clinicUserId: string }) {
@@ -73,19 +66,16 @@ export async function createCommunicationAttachmentUpload(input: { messageId: st
   const safeName = input.fileName.trim().replace(/[^a-zA-Z0-9._-]/g, "_").slice(0, 180);
   const allowedMime = /^(image\/(jpeg|png|webp|gif)|application\/pdf|text\/plain|application\/msword|application\/vnd\.openxmlformats-officedocument\.(wordprocessingml\.document|spreadsheetml\.sheet|presentationml\.presentation))$/;
   if (!allowedMime.test(input.mimeType)) return;
-
   const { data: message } = await ctx.supabase.from("communication_messages").select("id,conversation_id,message_kind").eq("tenant_id", ctx.tenantId).eq("id", input.messageId).maybeSingle();
   if (!message) return;
   const { data: conversation } = await ctx.supabase.from("communication_conversations").select("id,kind,clinic_patient_id").eq("tenant_id", ctx.tenantId).eq("id", message.conversation_id).maybeSingle();
   if (!conversation) return;
-
   let uploader: { clinicUserId: string | null; patientIdentityId: string | null } = { clinicUserId: null, patientIdentityId: null };
   const canSend = await hasEffectivePermission(ctx.user.id, "communications:send");
   if (canSend) {
     const { data: participant } = await ctx.supabase.from("communication_conversation_participants").select("id").eq("tenant_id", ctx.tenantId).eq("conversation_id", conversation.id).eq("clinic_user_id", ctx.clinicUser.id).maybeSingle();
     if (participant || conversation.kind === "patient") uploader = { clinicUserId: ctx.clinicUser.id, patientIdentityId: null };
   }
-
   if (!uploader.clinicUserId && conversation.kind === "patient" && message.message_kind === "message") {
     const { data: identity } = await ctx.supabase.from("patient_identities").select("id").eq("auth_user_id", ctx.user.id).eq("status", "active").maybeSingle();
     const { data: relationship } = identity && conversation.clinic_patient_id ? await ctx.supabase.from("patient_clinic_relationships").select("clinic_patient_id").eq("patient_identity_id", identity.id).eq("tenant_id", ctx.tenantId).eq("clinic_patient_id", conversation.clinic_patient_id).eq("status", "active").maybeSingle() : { data: null };
@@ -93,21 +83,9 @@ export async function createCommunicationAttachmentUpload(input: { messageId: st
   }
   if (!uploader.clinicUserId && !uploader.patientIdentityId) return;
   if (uploader.patientIdentityId && message.message_kind !== "message") return;
-
   const path = `${ctx.tenantId}/${conversation.id}/${message.id}/${crypto.randomUUID()}-${safeName}`;
-  const { data: attachment, error: attachmentError } = await ctx.supabase.from("communication_message_attachments").insert({
-    tenant_id: ctx.tenantId,
-    message_id: message.id,
-    storage_bucket: "communications",
-    storage_path: path,
-    file_name: safeName,
-    mime_type: input.mimeType,
-    byte_size: input.byteSize,
-    uploaded_by_clinic_user_id: uploader.clinicUserId,
-    uploaded_by_patient_identity_id: uploader.patientIdentityId,
-  }).select("id,storage_path,storage_bucket,file_name,mime_type,byte_size").single();
+  const { data: attachment, error: attachmentError } = await ctx.supabase.from("communication_message_attachments").insert({ tenant_id: ctx.tenantId, message_id: message.id, storage_bucket: "communications", storage_path: path, file_name: safeName, mime_type: input.mimeType, byte_size: input.byteSize, uploaded_by_clinic_user_id: uploader.clinicUserId, uploaded_by_patient_identity_id: uploader.patientIdentityId }).select("id,storage_path,storage_bucket,file_name,mime_type,byte_size").single();
   if (attachmentError || !attachment) return;
-
   const { data: signed, error: signedError } = await ctx.supabase.storage.from("communications").createSignedUploadUrl(path);
   if (signedError || !signed) {
     await ctx.supabase.from("communication_message_attachments").delete().eq("tenant_id", ctx.tenantId).eq("id", attachment.id);
