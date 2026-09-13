@@ -43,16 +43,19 @@ The original implementation of the notification read actions could mark notifica
 
 This was corrected in commit `46e691d36369bd633e705663b5403bbf5e1dcefd` by aligning both single-read and mark-all-read behavior with the same effective-time/status eligibility semantics used by the authoritative personal notification feed.
 
-This correction is domain-consistency work. It does not suppress test failures, weaken authorization, or bypass the execution contract.
+After that correction, a real typecheck failure was found in the authenticated shell/workforce implementation: `supabase.auth.getClaims()` had been consumed as though the claims were returned directly. The implementation was corrected to consume `data.claims` in both affected files.
+
+The corrected implementation was then verified on candidate `bfc32cebaef5e7de7c3f1f08fd3ff67f986f4fa4` by the current Unified Test Execution Engine run recorded below.
+
+These corrections are domain/engineering consistency work. They do not suppress test failures, weaken authorization, or bypass the execution contract.
 
 ## 4. Authoritative execution evidence
 
-Candidate: `46e691d36369bd633e705663b5403bbf5e1dcefd`
+Candidate: `bfc32cebaef5e7de7c3f1f08fd3ff67f986f4fa4`
 
 Unified Test Execution Engine run:
-- Run number: `170`
-- Run ID: `34752425971`
-- Job: `103711088192`
+- Run number: `178`
+- Run ID: `34753186120`
 - Final decision: `PASS`
 - Tests: `6`
 - Passed: `6`
@@ -86,7 +89,7 @@ All Phase 1 repository/domain verification requirements are satisfied. The Heade
 `Read state → canonical receipt authority`  
 `Tenant scope → authenticated clinic_user context`
 
-**Phase 1 is therefore formally CLOSED.**
+**Phase 1 is formally CLOSED.**
 
 ## 7. Next phase
 
