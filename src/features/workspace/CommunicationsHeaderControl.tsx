@@ -21,15 +21,13 @@ export function CommunicationsHeaderControl({
     <Link
       href="/communications"
       prefetch
-      className="inline-flex h-10 items-center gap-2 rounded-lg px-3 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+      className="inline-flex h-9 items-center gap-2 rounded-lg px-2.5 text-sm font-medium text-slate-600 transition-colors hover:bg-white hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1 md:px-3"
       aria-label={isArabic ? "الاتصالات" : "Communications"}
       title={isArabic ? "الاتصالات" : "Communications"}
       data-testid="global-header-communications"
     >
-      <MessageSquare className="h-4 w-4" aria-hidden="true" />
-      <span className="hidden xl:inline">
-        {isArabic ? "الاتصالات" : "Communications"}
-      </span>
+      <MessageSquare className="h-[18px] w-[18px]" aria-hidden="true" />
+      <span className="hidden xl:inline">{isArabic ? "الاتصالات" : "Communications"}</span>
     </Link>
   );
 }

@@ -1,8 +1,9 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
+import { SUPABASE_ANON_KEY, SUPABASE_URL } from "@/infrastructure/supabase/config";
 import { getRequiredPermission } from "@/core/navigation/navigationRegistry";
 
-// المسارات العامة فقط — تسجيل الدخول وإنشاء الحساب
+// Public routes only — sign-in and registration.
 const publicRoutes = ["/login", "/register"];
 
 function redirectToLogin(request: NextRequest) {
@@ -45,29 +46,26 @@ export async function middleware(request: NextRequest) {
 
   if (publicRoutes.includes(path)) return response;
 
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll();
-        },
-        setAll(cookiesToSet: { name: string; value: string; options: Record<string, unknown> }[]) {
-          cookiesToSet.forEach(({ name, value, options }) => {
-            request.cookies.set(name, value);
-            response.cookies.set(name, value, options);
-          });
-        },
+  const supabase = createServerClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    cookies: {
+      getAll() {
+        return request.cookies.getAll();
       },
-    }
-  );
+      setAll(cookiesToSet: { name: string; value: string; options: Record<string, unknown> }[]) {
+        cookiesToSet.forEach(({ name, value, options }) => {
+          request.cookies.set(name, value);
+          response.cookies.set(name, value, options);
+        });
+      },
+    },
+  });
 
-  let user: { id: string } | null = null;
+  let userId: string | null = null;
 
   try {
-    const result = await supabase.auth.getUser();
-    user = result.data.user;
+    const { data, error } = await supabase.auth.getClaims();
+    if (error) throw error;
+    userId = typeof data?.claims?.sub === "string" ? data.claims.sub : null;
   } catch (error) {
     // An invalid/stale refresh token is an expected expired-session condition.
     // Clear the stale auth cookie and send the user through a clean login flow.
@@ -75,11 +73,11 @@ export async function middleware(request: NextRequest) {
       return redirectToLogin(request);
     }
 
-    // Do not hide unexpected authentication/service failures from production observability.
+    // Do not turn unexpected auth/service failures into a false authorization result.
     throw error;
   }
 
-  if (!user) {
+  if (!userId) {
     return redirectToLogin(request);
   }
 
@@ -94,7 +92,7 @@ export async function middleware(request: NextRequest) {
   const { data: clinicUsers, error: cuError } = await supabase
     .from("clinic_users")
     .select("role, tenant_id")
-    .eq("auth_user_id", user.id)
+    .eq("auth_user_id", userId)
     .limit(1);
 
   if (cuError || !clinicUsers || clinicUsers.length === 0) {

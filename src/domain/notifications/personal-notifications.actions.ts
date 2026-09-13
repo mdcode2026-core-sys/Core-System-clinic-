@@ -21,6 +21,12 @@ async function resolveClinicUser() {
   return { supabase, user, clinicUser };
 }
 
+function isEligibleNotification(row: { scheduled_at?: string | null; created_at?: string | null; status?: string | null }, nowMs: number) {
+  if (row.status === "failed" || row.status === "cancelled") return false;
+  const effectiveAt = row.scheduled_at ?? row.created_at;
+  return !effectiveAt || new Date(effectiveAt).getTime() <= nowMs;
+}
+
 export async function markNotificationRead(notificationId: string) {
   if (!notificationId) return { success: false, error: "Notification id is required" };
 
@@ -29,7 +35,7 @@ export async function markNotificationRead(notificationId: string) {
 
   const { data: notification } = await supabase
     .from("notification_queue")
-    .select("id")
+    .select("id,scheduled_at,created_at,status")
     .eq("id", notificationId)
     .eq("tenant_id", clinicUser.tenant_id)
     .eq("channel", "in_app")
@@ -37,7 +43,9 @@ export async function markNotificationRead(notificationId: string) {
     .eq("recipient_id", clinicUser.id)
     .maybeSingle();
 
-  if (!notification) return { success: false, error: "Notification not found" };
+  if (!notification || !isEligibleNotification(notification, Date.now())) {
+    return { success: false, error: "Notification not found" };
+  }
 
   const { error } = await supabase.from("notification_queue_read_receipts").upsert(
     {
@@ -61,9 +69,10 @@ export async function markAllNotificationsRead() {
   const { supabase, clinicUser } = await resolveClinicUser();
   if (!clinicUser) return { success: false, error: "Unauthorized" };
 
-  const { data: unread, error: unreadError } = await supabase
+  const now = new Date();
+  const { data: candidates, error: unreadError } = await supabase
     .from("notification_queue")
-    .select("id")
+    .select("id,scheduled_at,created_at,status")
     .eq("tenant_id", clinicUser.tenant_id)
     .eq("channel", "in_app")
     .eq("recipient_type", "clinic_user")
@@ -75,7 +84,8 @@ export async function markAllNotificationsRead() {
     return { success: false, error: "Failed to load notifications" };
   }
 
-  if (!unread?.length) return { success: true, error: null };
+  const eligible = (candidates ?? []).filter((row) => isEligibleNotification(row, now.getTime()));
+  if (!eligible.length) return { success: true, error: null };
 
   const { data: alreadyRead, error: receiptError } = await supabase
     .from("notification_queue_read_receipts")
@@ -89,13 +99,13 @@ export async function markAllNotificationsRead() {
   }
 
   const readIds = new Set((alreadyRead ?? []).map((row) => row.notification_id));
-  const rows = unread
+  const rows = eligible
     .filter((row) => !readIds.has(row.id))
     .map((row) => ({
       tenant_id: clinicUser.tenant_id,
       notification_id: row.id,
       clinic_user_id: clinicUser.id,
-      read_at: new Date().toISOString(),
+      read_at: now.toISOString(),
     }));
 
   if (!rows.length) return { success: true, error: null };
