@@ -1,11 +1,13 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Bell } from "lucide-react";
 import { cn } from "@/shared/utils/cn";
 import { useQueryClient } from "@tanstack/react-query";
 import { useInvalidatePersonalNotificationFeed, usePersonalNotificationFeed, type PersonalNotificationFeed } from "@/domain/notifications/personal-notifications.queries";
 import { markAllNotificationsRead, markNotificationRead } from "@/domain/notifications/personal-notifications.actions";
+import { resolveNotificationDestination } from "@/domain/notifications/notification-destination";
 
 interface NotificationsHeaderControlProps { isArabic: boolean; }
 function formatTime(value: string, isArabic: boolean) { try { return new Intl.DateTimeFormat(isArabic ? "ar" : "en", { dateStyle: "short", timeStyle: "short" }).format(new Date(value)); } catch { return value; } }
@@ -15,13 +17,18 @@ export function NotificationsHeaderControl({ isArabic }: NotificationsHeaderCont
   const { data, isLoading, isError } = usePersonalNotificationFeed();
   const invalidate = useInvalidatePersonalNotificationFeed();
   const queryClient = useQueryClient();
+  const router = useRouter();
   const unreadCount = data?.unread_count ?? 0;
 
   const handleRead = async (notificationId: string) => {
+    const item = data?.items.find((candidate) => candidate.id === notificationId);
     const result = await markNotificationRead(notificationId);
     if (!result.success) return;
-    queryClient.setQueryData<PersonalNotificationFeed>(["personal-notification-feed"], (current) => current ? { ...current, unread_count: Math.max(0, current.unread_count - (current.items.some((item) => item.id === notificationId && !item.is_read) ? 1 : 0)), items: current.items.map((item) => item.id === notificationId ? { ...item, is_read: true } : item) } : current);
+    queryClient.setQueryData<PersonalNotificationFeed>(["personal-notification-feed"], (current) => current ? { ...current, unread_count: Math.max(0, current.unread_count - (current.items.some((candidate) => candidate.id === notificationId && !candidate.is_read) ? 1 : 0)), items: current.items.map((candidate) => candidate.id === notificationId ? { ...candidate, is_read: true } : candidate) } : current);
     await invalidate();
+    const destination = resolveNotificationDestination(item?.destination_path);
+    setOpen(false);
+    if (destination) router.push(destination);
   };
 
   const handleReadAll = async () => {
