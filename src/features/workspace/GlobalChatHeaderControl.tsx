@@ -69,39 +69,22 @@ export function GlobalChatHeaderControl({ isArabic }: { isArabic: boolean }) {
   }, [loadUnread]);
 
   useEffect(() => {
-    let cancelled = false;
-    const run = async () => {
-      if (cancelled) return;
-      await loadUnread();
-    };
-    void run();
+    void loadUnread();
     const refresh = () => void loadUnread();
     window.addEventListener("focus", refresh);
     document.addEventListener("visibilitychange", refresh);
-    const interval = window.setInterval(() => { void loadUnread(); }, 15000);
-    return () => { cancelled = true; window.removeEventListener("focus", refresh); document.removeEventListener("visibilitychange", refresh); window.clearInterval(interval); };
+    const interval = window.setInterval(refresh, 15000);
+    return () => { window.removeEventListener("focus", refresh); document.removeEventListener("visibilitychange", refresh); window.clearInterval(interval); };
   }, [loadUnread]);
 
   useEffect(() => {
     if (!open || minimized) return;
-    let cancelled = false;
-    const run = async () => {
-      if (cancelled) return;
-      await loadConversations();
-    };
-    void run();
-    return () => { cancelled = true; };
+    void loadConversations();
   }, [open, minimized, loadConversations]);
 
   useEffect(() => {
     if (!open || minimized || !selectedId) return;
-    let cancelled = false;
-    const run = async () => {
-      if (cancelled) return;
-      await loadMessages(selectedId);
-    };
-    void run();
-    return () => { cancelled = true; };
+    void loadMessages(selectedId);
   }, [open, minimized, selectedId, loadMessages]);
 
   useEffect(() => {
@@ -117,7 +100,6 @@ export function GlobalChatHeaderControl({ isArabic }: { isArabic: boolean }) {
     return () => document.removeEventListener("keydown", onKeyDown);
   }, [open]);
 
-  const openChat = () => { setOpen(true); setMinimized(false); };
   const closeChat = () => { setOpen(false); setMinimized(false); setSelectedId(null); triggerRef.current?.focus(); };
   const send = async () => {
     if (!selectedId || !draft.trim()) return;
@@ -130,7 +112,7 @@ export function GlobalChatHeaderControl({ isArabic }: { isArabic: boolean }) {
 
   return (
     <div className="relative">
-      <button ref={triggerRef} type="button" onClick={openChat} className="relative inline-flex h-9 items-center gap-2 rounded-lg px-2.5 text-sm font-medium text-slate-600 transition-colors hover:bg-white hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1 md:px-3" aria-label={isArabic ? "المحادثات" : "Chat"} title={isArabic ? "المحادثات" : "Chat"} aria-expanded={open && !minimized} data-testid="global-header-chat">
+      <button ref={triggerRef} type="button" onClick={() => { setOpen(true); setMinimized(false); }} className="relative inline-flex h-9 items-center gap-2 rounded-lg px-2.5 text-sm font-medium text-slate-600 transition-colors hover:bg-white hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1 md:px-3" aria-label={isArabic ? "المحادثات" : "Chat"} title={isArabic ? "المحادثات" : "Chat"} aria-expanded={open && !minimized} data-testid="global-header-chat">
         <MessageCircle className="h-[18px] w-[18px]" aria-hidden="true" />
         <span className="hidden xl:inline">{isArabic ? "المحادثات" : "Chat"}</span>
         {unread > 0 && <span className="min-w-5 rounded-full bg-red-600 px-1.5 text-center text-[10px] font-bold leading-5 text-white ring-2 ring-slate-50" aria-label={isArabic ? `${unread} غير مقروءة` : `${unread} unread`}>{unread > 99 ? "99+" : unread}</span>}
@@ -138,13 +120,13 @@ export function GlobalChatHeaderControl({ isArabic }: { isArabic: boolean }) {
       {open && !minimized ? (
         <section role="dialog" aria-label={isArabic ? "المحادثات" : "Chat"} className={cn("fixed inset-x-3 bottom-3 z-[60] flex h-[min(38rem,calc(100vh-5rem))] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl md:absolute md:inset-x-auto md:bottom-auto md:top-11 md:h-[34rem] md:w-[32rem]", isArabic ? "md:start-0" : "md:end-0")} data-testid="global-chat-panel">
           <div className="flex w-36 shrink-0 flex-col border-e border-slate-200 bg-slate-50 md:w-44">
-            <div className="flex items-center justify-between border-b border-slate-200 px-3 py-3.5"><strong className="text-sm text-slate-900">{isArabic ? "المحادثات" : "Chat"}</strong><button type="button" onClick={() => setMinimized(true)} className="rounded-lg p-1.5 text-slate-500 hover:bg-white hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500" aria-label={isArabic ? "تصغير" : "Minimize"}><Minus className="h-4 w-4" /></button></div>
+            <div className="flex items-center justify-between border-b border-slate-200 px-3 py-3.5"><strong className="text-sm text-slate-900">{isArabic ? "المحادثات" : "Chat"}</strong><button type="button" onClick={() => setMinimized(true)} className="rounded-lg p-1.5 text-slate-500 hover:bg-white hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500" aria-label={isArabic ? "تصغير" : "Minimize"}><Minus className="h-4 w-4" aria-hidden="true" /></button></div>
             <div className="flex-1 overflow-y-auto p-1.5">{loading ? <p className="p-3 text-xs text-slate-500">{isArabic ? "جارٍ التحميل..." : "Loading..."}</p> : conversations.length ? conversations.map((conversation) => <button key={conversation.id} type="button" onClick={() => setSelectedId(conversation.id)} className={cn("w-full rounded-lg px-2.5 py-2.5 text-start text-xs transition-colors", selectedId === conversation.id ? "bg-white font-semibold text-slate-900 shadow-sm" : "text-slate-600 hover:bg-white/80")}>{conversation.subject || (conversation.kind === "patient" ? (isArabic ? "محادثة مريض" : "Patient conversation") : (isArabic ? "محادثة داخلية" : "Internal conversation"))}</button>) : <p className="p-3 text-xs text-slate-500">{isArabic ? "لا توجد محادثات" : "No conversations"}</p>}</div>
           </div>
           <div className="flex min-w-0 flex-1 flex-col">
-            <div className="flex items-center justify-between border-b border-slate-100 px-3 py-3.5"><strong className="truncate text-sm text-slate-900">{conversations.find((item) => item.id === selectedId)?.subject || (isArabic ? "محادثة" : "Conversation")}</strong><button type="button" onClick={closeChat} className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500" aria-label={isArabic ? "إغلاق" : "Close"><X className="h-4 w-4" /></button></div>
+            <div className="flex items-center justify-between border-b border-slate-100 px-3 py-3.5"><strong className="truncate text-sm text-slate-900">{conversations.find((item) => item.id === selectedId)?.subject || (isArabic ? "محادثة" : "Conversation")}</strong><button type="button" onClick={closeChat} className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500" aria-label={isArabic ? "إغلاق" : "Close"}><X className="h-4 w-4" aria-hidden="true" /></button></div>
             <div className="flex-1 space-y-2 overflow-y-auto bg-white p-3" aria-live="polite">{selectedId && messages.length ? messages.map((message) => <div key={message.id} className={cn("max-w-[85%] rounded-xl px-3 py-2 text-sm", message.sender_clinic_user_id === currentUserId ? "ms-auto bg-blue-600 text-white" : "bg-slate-100 text-slate-800")}><p className="whitespace-pre-wrap break-words">{message.body}</p></div>) : <p className="py-8 text-center text-sm text-slate-500">{isArabic ? "اختر محادثة لبدء العمل" : "Select a conversation to start"}</p>}</div>
-            {selectedId ? <form onSubmit={(event) => { event.preventDefault(); void send(); }} className="flex items-end gap-2 border-t border-slate-100 p-3"><textarea value={draft} onChange={(event) => setDraft(event.target.value)} rows={2} className="min-h-10 flex-1 resize-none rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none placeholder:text-slate-400 focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-100" placeholder={isArabic ? "اكتب رسالة..." : "Write a message..."} aria-label={isArabic ? "نص الرسالة" : "Message"} /><button type="submit" disabled={!draft.trim()} className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm transition-colors hover:bg-blue-700 disabled:opacity-40" aria-label={isArabic ? "إرسال" : "Send"><Send className="h-4 w-4" /></button></form> : null}
+            {selectedId ? <form onSubmit={(event) => { event.preventDefault(); void send(); }} className="flex items-end gap-2 border-t border-slate-100 p-3"><textarea value={draft} onChange={(event) => setDraft(event.target.value)} rows={2} className="min-h-10 flex-1 resize-none rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none placeholder:text-slate-400 focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-100" placeholder={isArabic ? "اكتب رسالة..." : "Write a message..."} aria-label={isArabic ? "نص الرسالة" : "Message"} /><button type="submit" disabled={!draft.trim()} className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm transition-colors hover:bg-blue-700 disabled:opacity-40" aria-label={isArabic ? "إرسال" : "Send"}><Send className="h-4 w-4" aria-hidden="true" /></button></form> : null}
           </div>
         </section>
       ) : null}
