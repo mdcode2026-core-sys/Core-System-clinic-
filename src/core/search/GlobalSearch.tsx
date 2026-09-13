@@ -21,7 +21,10 @@ export function GlobalSearch() {
 
   useEffect(() => {
     const value = query.trim();
-    if (value.length < 2) return;
+    if (value.length < 2) {
+      setResults([]);
+      return;
+    }
     const timer = window.setTimeout(() => {
       startTransition(async () => {
         const next = await globalSearch(value);
@@ -49,8 +52,13 @@ export function GlobalSearch() {
   const typeLabel = (type: GlobalSearchResult["type"]) => messages.types[type];
   const hasSearchQuery = query.trim().length >= 2;
 
-  const field = (
-    <div className={cn("flex min-w-0 items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 shadow-sm transition-colors", open && "border-blue-300 bg-white shadow-md", "focus-within:border-blue-300 focus-within:bg-white focus-within:ring-2 focus-within:ring-blue-100")}>
+  const field = (mobile = false) => (
+    <div className={cn(
+      "flex min-w-0 items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 shadow-sm transition-colors",
+      open && "border-blue-300 bg-white shadow-md",
+      "focus-within:border-blue-300 focus-within:bg-white focus-within:ring-2 focus-within:ring-blue-100",
+      mobile ? "w-full" : "w-full",
+    )}>
       <Search className="h-4 w-4 shrink-0 text-slate-400" aria-hidden="true" />
       <input
         ref={inputRef}
@@ -62,18 +70,26 @@ export function GlobalSearch() {
         className="h-10 min-w-0 flex-1 bg-transparent text-sm text-slate-900 outline-none placeholder:text-slate-400"
       />
       {isPending && <Loader2 className="h-4 w-4 shrink-0 animate-spin text-slate-400" aria-hidden="true" />}
-      {mobileOpen && <button type="button" onClick={() => { setMobileOpen(false); setOpen(false); }} className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-slate-500 hover:bg-white hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500" aria-label={locale === "ar" ? "إغلاق البحث" : "Close search"}><X className="h-4 w-4" aria-hidden="true" /></button>}
+      {mobile && <button type="button" onClick={() => { setMobileOpen(false); setOpen(false); }} className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-slate-500 hover:bg-white hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500" aria-label={locale === "ar" ? "إغلاق البحث" : "Close search"}><X className="h-4 w-4" aria-hidden="true" /></button>}
     </div>
   );
 
   return (
-    <div ref={wrapperRef} className="relative mx-auto w-full min-w-0 max-w-xl">
-      <button type="button" onClick={() => setMobileOpen(true)} className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-slate-600 shadow-sm hover:bg-white hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 md:hidden" aria-label={messages.label} title={messages.label} data-testid="global-search-mobile-trigger"><Search className="h-4 w-4" aria-hidden="true" /></button>
-      <div className="hidden md:block">{field}</div>
-      {mobileOpen && <div className="absolute inset-x-0 top-11 z-50 md:hidden">{field}</div>}
+    <div ref={wrapperRef} className="relative h-10 w-full min-w-0">
+      <button type="button" onClick={() => { setMobileOpen(true); setOpen(false); }} className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-slate-600 shadow-sm hover:bg-white hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 md:hidden" aria-label={messages.label} title={messages.label} data-testid="global-search-mobile-trigger"><Search className="h-4 w-4" aria-hidden="true" /></button>
+      <div className="hidden w-full md:block">{field()}</div>
 
-      {open && (
-        <div className="absolute inset-x-0 top-12 z-50 max-h-[min(70vh,32rem)] overflow-y-auto rounded-2xl border border-slate-200 bg-white p-2 shadow-2xl">
+      {mobileOpen ? (
+        <div className="fixed inset-x-2 top-14 z-[80] md:hidden" role="search">
+          {field(true)}
+        </div>
+      ) : null}
+
+      {open ? (
+        <div className={cn(
+          "z-[80] max-h-[min(70vh,32rem)] overflow-y-auto rounded-2xl border border-slate-200 bg-white p-2 shadow-2xl",
+          mobileOpen ? "fixed inset-x-2 top-[7rem]" : "absolute inset-x-0 top-12",
+        )}>
           {!hasSearchQuery ? (
             <p className="px-3 py-4 text-sm text-slate-500">{messages.minChars}</p>
           ) : isPending ? (
@@ -92,7 +108,7 @@ export function GlobalSearch() {
             </div>
           )}
         </div>
-      )}
+      ) : null}
     </div>
   );
 }
