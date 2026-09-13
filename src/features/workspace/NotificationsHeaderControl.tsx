@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Bell } from "lucide-react";
 import { cn } from "@/shared/utils/cn";
@@ -18,7 +18,25 @@ export function NotificationsHeaderControl({ isArabic }: NotificationsHeaderCont
   const invalidate = useInvalidatePersonalNotificationFeed();
   const queryClient = useQueryClient();
   const router = useRouter();
+  const triggerRef = useRef<HTMLButtonElement>(null);
   const unreadCount = data?.unread_count ?? 0;
+
+  useEffect(() => {
+    if (!open) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      event.preventDefault();
+      setOpen(false);
+      triggerRef.current?.focus();
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [open]);
+
+  const closePanel = () => {
+    setOpen(false);
+    triggerRef.current?.focus();
+  };
 
   const handleRead = async (notificationId: string) => {
     const item = data?.items.find((candidate) => candidate.id === notificationId);
@@ -27,7 +45,7 @@ export function NotificationsHeaderControl({ isArabic }: NotificationsHeaderCont
     queryClient.setQueryData<PersonalNotificationFeed>(["personal-notification-feed"], (current) => current ? { ...current, unread_count: Math.max(0, current.unread_count - (current.items.some((candidate) => candidate.id === notificationId && !candidate.is_read) ? 1 : 0)), items: current.items.map((candidate) => candidate.id === notificationId ? { ...candidate, is_read: true } : candidate) } : current);
     await invalidate();
     const destination = resolveNotificationDestination(item?.destination_path);
-    setOpen(false);
+    closePanel();
     if (destination) router.push(destination);
   };
 
@@ -40,11 +58,12 @@ export function NotificationsHeaderControl({ isArabic }: NotificationsHeaderCont
   };
 
   return <div className="relative">
-    <button type="button" onClick={() => setOpen((value) => !value)} className="relative inline-flex h-9 w-9 items-center justify-center rounded-lg text-slate-600 transition-colors hover:bg-white hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1 md:w-auto md:px-2.5" aria-label={isArabic ? unreadCount > 0 ? `الإشعارات، ${unreadCount} غير مقروء` : "الإشعارات" : unreadCount > 0 ? `Notifications, ${unreadCount} unread` : "Notifications"} aria-expanded={open} aria-haspopup="dialog" data-testid="notifications-header-control">
+    <button ref={triggerRef} type="button" onClick={() => setOpen((value) => !value)} className="relative inline-flex h-9 w-9 items-center justify-center rounded-lg text-slate-600 transition-colors hover:bg-white hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1 md:w-auto md:px-2.5" aria-label={isArabic ? unreadCount > 0 ? `الإشعارات، ${unreadCount} غير مقروء` : "الإشعارات" : unreadCount > 0 ? `Notifications, ${unreadCount} unread` : "Notifications"} aria-expanded={open} aria-haspopup="dialog" data-testid="notifications-header-control">
       <Bell className="h-[18px] w-[18px]" aria-hidden="true" /><span className="sr-only">{isArabic ? "الإشعارات" : "Notifications"}</span>
       {unreadCount > 0 && <span className="absolute -end-0.5 -top-0.5 min-w-4 rounded-full bg-red-600 px-1 text-center text-[10px] font-semibold leading-4 text-white ring-2 ring-slate-50" aria-label={isArabic ? `${unreadCount} غير مقروء` : `${unreadCount} unread`}>{unreadCount > 99 ? "99+" : unreadCount}</span>}
       <span className="hidden xl:inline ms-1 text-sm font-medium">{isArabic ? "الإشعارات" : "Notifications"}</span>
     </button>
+    <div aria-live="polite" aria-atomic="true" className="sr-only">{isArabic ? `عدد الإشعارات غير المقروءة: ${unreadCount}` : `Unread notifications: ${unreadCount}`}</div>
     {open && <section role="dialog" aria-label={isArabic ? "الإشعارات" : "Notifications"} className={cn("absolute top-11 z-50 w-[min(23rem,calc(100vw-1.5rem))] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl", isArabic ? "start-0" : "end-0")} data-testid="notifications-header-panel">
       <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3.5"><div><h2 className="font-semibold text-slate-900">{isArabic ? "الإشعارات" : "Notifications"}</h2><p className="mt-0.5 text-xs text-slate-500">{isArabic ? unreadCount > 0 ? `${unreadCount} غير مقروءة` : "لا توجد إشعارات غير مقروءة" : unreadCount > 0 ? `${unreadCount} unread` : "No unread notifications"}</p></div>{unreadCount > 0 && <button type="button" onClick={() => void handleReadAll()} className="rounded-lg px-2.5 py-1.5 text-xs font-semibold text-blue-600 hover:bg-blue-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500">{isArabic ? "تعليم الكل كمقروء" : "Mark all read"}</button>}</div>
       <div className="max-h-[min(28rem,70vh)] overflow-y-auto">
