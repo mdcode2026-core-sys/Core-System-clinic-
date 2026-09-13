@@ -21,6 +21,10 @@ async function resolveClinicUser() {
   return { supabase, user, clinicUser };
 }
 
+function applyEligibleNotificationFilters<T extends { scheduled_at?: string | null; created_at?: string | null; status?: string | null }>(query: T) {
+  return query;
+}
+
 export async function markNotificationRead(notificationId: string) {
   if (!notificationId) return { success: false, error: "Notification id is required" };
 
@@ -35,6 +39,8 @@ export async function markNotificationRead(notificationId: string) {
     .eq("channel", "in_app")
     .eq("recipient_type", "clinic_user")
     .eq("recipient_id", clinicUser.id)
+    .not("status", "in", "(failed,cancelled)")
+    .lte("scheduled_at", new Date().toISOString())
     .maybeSingle();
 
   if (!notification) return { success: false, error: "Notification not found" };
@@ -61,6 +67,7 @@ export async function markAllNotificationsRead() {
   const { supabase, clinicUser } = await resolveClinicUser();
   if (!clinicUser) return { success: false, error: "Unauthorized" };
 
+  const now = new Date().toISOString();
   const { data: unread, error: unreadError } = await supabase
     .from("notification_queue")
     .select("id")
@@ -68,7 +75,8 @@ export async function markAllNotificationsRead() {
     .eq("channel", "in_app")
     .eq("recipient_type", "clinic_user")
     .eq("recipient_id", clinicUser.id)
-    .not("status", "in", "(failed,cancelled)");
+    .not("status", "in", "(failed,cancelled)")
+    .lte("scheduled_at", now);
 
   if (unreadError) {
     console.error("[markAllNotificationsRead] load", unreadError.message);
@@ -95,7 +103,7 @@ export async function markAllNotificationsRead() {
       tenant_id: clinicUser.tenant_id,
       notification_id: row.id,
       clinic_user_id: clinicUser.id,
-      read_at: new Date().toISOString(),
+      read_at: now,
     }));
 
   if (!rows.length) return { success: true, error: null };
