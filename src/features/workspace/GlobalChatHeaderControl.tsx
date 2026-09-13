@@ -69,22 +69,24 @@ export function GlobalChatHeaderControl({ isArabic }: { isArabic: boolean }) {
   }, [loadUnread]);
 
   useEffect(() => {
-    void loadUnread();
+    const timer = window.setTimeout(() => { void loadUnread(); }, 0);
     const refresh = () => void loadUnread();
     window.addEventListener("focus", refresh);
     document.addEventListener("visibilitychange", refresh);
     const interval = window.setInterval(refresh, 15000);
-    return () => { window.removeEventListener("focus", refresh); document.removeEventListener("visibilitychange", refresh); window.clearInterval(interval); };
+    return () => { window.clearTimeout(timer); window.removeEventListener("focus", refresh); document.removeEventListener("visibilitychange", refresh); window.clearInterval(interval); };
   }, [loadUnread]);
 
   useEffect(() => {
     if (!open || minimized) return;
-    void loadConversations();
+    const timer = window.setTimeout(() => { void loadConversations(); }, 0);
+    return () => window.clearTimeout(timer);
   }, [open, minimized, loadConversations]);
 
   useEffect(() => {
     if (!open || minimized || !selectedId) return;
-    void loadMessages(selectedId);
+    const timer = window.setTimeout(() => { void loadMessages(selectedId); }, 0);
+    return () => window.clearTimeout(timer);
   }, [open, minimized, selectedId, loadMessages]);
 
   useEffect(() => {
