@@ -36,10 +36,10 @@ export function GlobalChatHeaderControl({ isArabic }: { isArabic: boolean }) {
   }, []);
   const loadContacts = useCallback(async (value = query) => {
     setLoadingContacts(true); setDirectoryError(false);
-    try { const rows = await getInternalChatDirectory(value); setContacts(rows); if (selected?.userId) { const fresh = rows.find(r => r.userId === selected.userId); if (fresh) setSelected(fresh); } }
+    try { const rows = await getInternalChatDirectory(value); setContacts(rows); }
     catch (error) { console.error("Internal chat directory load failed", error); setContacts([]); setDirectoryError(true); }
     finally { setLoadingContacts(false); }
-  }, [query, selected?.userId]);
+  }, [query]);
   const loadMessages = useCallback(async (conversationId: string) => {
     setLoadingMessages(true);
     try { const rows = await getInternalChatMessages(conversationId); setMessages(rows); void markInternalChatRead(conversationId); }
