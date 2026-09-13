@@ -19,10 +19,8 @@ const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", 
 
 export default async function WorkforcePage() {
   const supabase = await createClient();
-  const {
-    data: { claims },
-    error,
-  } = await supabase.auth.getClaims();
+  const { data, error } = await supabase.auth.getClaims();
+  const claims = data?.claims;
   const userId = typeof claims?.sub === "string" ? claims.sub : null;
 
   if (error || !userId) redirect("/login");
