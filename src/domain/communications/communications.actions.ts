@@ -19,13 +19,31 @@ export async function createConversation(input: { subject?: string; recipientUse
   if (!ctx || !(await hasEffectivePermission(ctx.user.id, "communications:send"))) return;
   const recipientIds = Array.from(new Set([...(input.recipientUserIds ?? []), ...(input.recipientUserId ? [input.recipientUserId] : [])].filter(Boolean))).filter((id) => id !== ctx.clinicUser.id);
   if (!input.clinicPatientId && recipientIds.length === 0) return;
-  const { data: conversation } = await ctx.supabase.from("communication_conversations").insert({ tenant_id: ctx.tenantId, kind: input.clinicPatientId ? "patient" : "internal", subject: input.subject?.trim() || null, clinic_patient_id: input.clinicPatientId || null, created_by: ctx.clinicUser.id }).select("id").single();
-  if (!conversation) return;
+
+  // Validate all explicit clinic recipients before creating the conversation row.
+  // This prevents a failed participant insert from leaving an orphan conversation.
+  if (recipientIds.length) {
+    const { data: validRecipients, error: recipientLookupError } = await ctx.supabase
+      .from("clinic_users")
+      .select("id")
+      .eq("tenant_id", ctx.tenantId)
+      .in("id", recipientIds)
+      .eq("is_active", true)
+      .is("deleted_at", null);
+    if (recipientLookupError || (validRecipients?.length ?? 0) !== recipientIds.length) return;
+  }
+
+  const { data: conversation, error: conversationError } = await ctx.supabase.from("communication_conversations").insert({ tenant_id: ctx.tenantId, kind: input.clinicPatientId ? "patient" : "internal", subject: input.subject?.trim() || null, clinic_patient_id: input.clinicPatientId || null, created_by: ctx.clinicUser.id }).select("id").single();
+  if (conversationError || !conversation) return;
   const participants = [
     { tenant_id: ctx.tenantId, conversation_id: conversation.id, clinic_user_id: ctx.clinicUser.id, role: "owner" },
     ...recipientIds.map((clinicUserId) => ({ tenant_id: ctx.tenantId, conversation_id: conversation.id, clinic_user_id: clinicUserId, role: "participant" })),
   ];
-  if (participants.length) await ctx.supabase.from("communication_conversation_participants").insert(participants);
+  const { error: participantsError } = await ctx.supabase.from("communication_conversation_participants").insert(participants);
+  if (participantsError) {
+    console.error("Communications conversation participant creation failed", { code: participantsError.code, message: participantsError.message });
+    return;
+  }
   revalidatePath("/communications");
   return conversation.id;
 }
