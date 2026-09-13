@@ -68,16 +68,40 @@ export function GlobalChatHeaderControl({ isArabic }: { isArabic: boolean }) {
   }, [loadUnread]);
 
   useEffect(() => {
-    void loadUnread();
+    let cancelled = false;
+    const run = async () => {
+      if (cancelled) return;
+      await loadUnread();
+    };
+    void run();
     const refresh = () => void loadUnread();
     window.addEventListener("focus", refresh);
     document.addEventListener("visibilitychange", refresh);
     const interval = window.setInterval(() => { void loadUnread(); }, 15000);
-    return () => { window.removeEventListener("focus", refresh); document.removeEventListener("visibilitychange", refresh); window.clearInterval(interval); };
+    return () => { cancelled = true; window.removeEventListener("focus", refresh); document.removeEventListener("visibilitychange", refresh); window.clearInterval(interval); };
   }, [loadUnread]);
 
-  useEffect(() => { if (open && !minimized) void loadConversations(); }, [open, minimized, loadConversations]);
-  useEffect(() => { if (open && !minimized && selectedId) void loadMessages(selectedId); }, [open, minimized, selectedId, loadMessages]);
+  useEffect(() => {
+    if (!open || minimized) return;
+    let cancelled = false;
+    const run = async () => {
+      if (cancelled) return;
+      await loadConversations();
+    };
+    void run();
+    return () => { cancelled = true; };
+  }, [open, minimized, loadConversations]);
+
+  useEffect(() => {
+    if (!open || minimized || !selectedId) return;
+    let cancelled = false;
+    const run = async () => {
+      if (cancelled) return;
+      await loadMessages(selectedId);
+    };
+    void run();
+    return () => { cancelled = true; };
+  }, [open, minimized, selectedId, loadMessages]);
 
   const openChat = () => { setOpen(true); setMinimized(false); };
   const closeChat = () => { setOpen(false); setMinimized(false); setSelectedId(null); };
