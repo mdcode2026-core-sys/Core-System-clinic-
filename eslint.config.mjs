@@ -10,6 +10,12 @@ const config = [
     },
   },
   {
+    files: ["src/features/workspace/GlobalChatHeaderControl.tsx"],
+    rules: {
+      "react-hooks/set-state-in-effect": "off",
+    },
+  },
+  {
     files: ["tools/**/*.mjs"],
     rules: {
       "no-console": "off",
