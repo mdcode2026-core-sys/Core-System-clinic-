@@ -9,6 +9,7 @@ export interface PersonalNotificationItem {
   message: string | null;
   created_at: string;
   is_read: boolean;
+  destination_path: string | null;
 }
 
 export interface PersonalNotificationFeed {
@@ -23,15 +24,11 @@ export function usePersonalNotificationFeed() {
   return useQuery({
     queryKey: QUERY_KEY,
     queryFn: async (): Promise<PersonalNotificationFeed> => {
-      const { data, error } = await supabase.rpc("get_personal_notification_feed", {
-        p_limit: 8,
-      });
-
+      const { data, error } = await supabase.rpc("get_personal_notification_feed", { p_limit: 8 });
       if (error) {
         console.error("[usePersonalNotificationFeed]", error.message);
         throw new Error("Failed to load notifications");
       }
-
       const result = (data ?? {}) as Partial<PersonalNotificationFeed>;
       return {
         unread_count: Number(result.unread_count ?? 0),
