@@ -19,11 +19,17 @@ const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", 
 
 export default async function WorkforcePage() {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
-  const tenantId = await resolveTenantId(user.id);
+  const {
+    data: { claims },
+    error,
+  } = await supabase.auth.getClaims();
+  const userId = typeof claims?.sub === "string" ? claims.sub : null;
+
+  if (error || !userId) redirect("/login");
+
+  const tenantId = await resolveTenantId(userId);
   if (!tenantId) redirect("/login");
-  const permissions = await getEffectivePermissions(user.id, tenantId);
+  const permissions = await getEffectivePermissions(userId, tenantId);
   const canRead = permissions.includes("workforce:read" as never) || permissions.includes("workforce:manage" as never);
   if (!canRead) redirect("/");
   const locale = (await cookies()).get("core-system-locale")?.value === "ar" ? "ar" : "en";
@@ -102,19 +108,20 @@ export default async function WorkforcePage() {
       <List rows={payrollEntryRows} render={(p: any) => <><span>{p.employee?.first_name} {p.employee?.last_name}</span><span className="text-sm text-muted-foreground">{(p.net_subunits / 100).toFixed(2)} · {p.status}</span></>} />
     </Section>
 
-    <Section title={ar ? "المزايا" : "Benefits"} description={ar ? "سجل بسيط للمزايا المرتبطة بالموظف." : "Simple employee benefit records."}>
-      <form action={submitBenefit} className="grid gap-2 md:grid-cols-6">{empSelect()}<input name="benefit_name" required placeholder={ar ? "اسم الميزة" : "Benefit"} className="rounded-md border p-2"/><input name="value" type="number" step="0.01" min="0" placeholder={ar ? "القيمة" : "Value"} className="rounded-md border p-2"/><input name="currency" defaultValue="JOD" className="rounded-md border p-2"/><input name="starts_on" type="date" className="rounded-md border p-2"/><button className="rounded-md bg-primary px-4 py-2 text-primary-foreground">{ar ? "إضافة" : "Add"}</button></form>
-      <List rows={benefitRows} render={(b: any) => <><span>{b.employee?.first_name} {b.employee?.last_name} · {ar ? (b.benefit_name_ar || b.benefit_name) : b.benefit_name}</span><span className="text-sm text-muted-foreground">{(b.value_subunits / 100).toFixed(2)} {b.currency}</span></>} />
+    <Section title={ar ? "المزايا" : "Benefits"} description={ar ? "سجل بسيط للمزايا المرتبطة بالموظف." : "Simple employee-linked benefits register."}>
+      <form action={submitBenefit} className="grid gap-2 md:grid-cols-6">{empSelect()}<input name="benefit_name" required placeholder={ar ? "اسم الميزة" : "Benefit"} className="rounded border p-2"/><input name="value" type="number" step="0.01" min="0" required placeholder={ar ? "القيمة" : "Value"} className="rounded border p-2"/><input name="currency" defaultValue="JOD" className="rounded border p-2"/><input name="starts_on" type="date" className="rounded border p-2"/><input name="ends_on" type="date" className="rounded border p-2"/><button className="rounded bg-primary px-4 py-2 text-primary-foreground md:col-span-2">{ar ? "حفظ الميزة" : "Save benefit"}</button></form>
+      <List rows={benefitRows} render={(b: any) => <><span>{b.employee?.first_name} {b.employee?.last_name} · {b.benefit_name_ar || b.benefit_name}</span><span className="text-sm text-muted-foreground">{(b.value_subunits / 100).toFixed(2)} {b.currency}</span></>} />
     </Section>
 
-    <Section title={ar ? "التوظيف" : "Recruitment"} description={ar ? "احتياج → مرشح → موظف فعلي، بدون ATS معقد." : "Need → candidate → real employee, without a complex ATS."}>
+    <Section title={ar ? "الاحتياج والتوظيف" : "Staffing & Recruitment"} description={ar ? "احتياجات التوظيف والمرشحون والترقية إلى موظف." : "Staffing needs, candidates and promotion to employee."}>
       <div className="grid gap-6 lg:grid-cols-2">
-        <div><form action={submitNeed} className="grid gap-2 md:grid-cols-3"><input name="title" required placeholder={ar ? "الاحتياج الوظيفي" : "Staffing need"} className="rounded-md border p-2"/><select name="position_id" className="rounded-md border bg-background p-2"><option value="">{ar ? "المنصب" : "Position"}</option>{positionRows.map((p: any) => <option key={p.id} value={p.id}>{ar ? (p.name_ar || p.name) : p.name}</option>)}</select><input name="quantity" type="number" min="1" defaultValue="1" className="rounded-md border p-2"/><button className="rounded-md bg-primary px-4 py-2 text-primary-foreground md:col-span-3">{ar ? "إضافة احتياج" : "Add staffing need"}</button></form><List rows={needRows} render={(n: any) => <><span>{n.title}</span><span className="text-sm text-muted-foreground">{n.quantity} · {n.status}</span></>} /></div>
-        <div><form action={submitCandidate} className="grid gap-2 md:grid-cols-2"><select name="staffing_need_id" className="rounded-md border bg-background p-2 md:col-span-2"><option value="">{ar ? "الاحتياج" : "Need"}</option>{needRows.map((n: any) => <option key={n.id} value={n.id}>{n.title}</option>)}</select><input name="first_name" required placeholder={ar ? "الاسم" : "First name"} className="rounded-md border p-2"/><input name="last_name" required placeholder={ar ? "العائلة" : "Last name"} className="rounded-md border p-2"/><input name="phone" placeholder={ar ? "الهاتف" : "Phone"} className="rounded-md border p-2"/><input name="email" type="email" placeholder={ar ? "البريد" : "Email"} className="rounded-md border p-2"/><button className="rounded-md bg-primary px-4 py-2 text-primary-foreground md:col-span-2">{ar ? "إضافة مرشح" : "Add candidate"}</button></form><List rows={candidateRows} render={(c: any) => <><span>{c.first_name} {c.last_name}</span><span className="flex items-center gap-2 text-sm"><span className="text-muted-foreground">{c.stage}</span>{c.stage !== "hired" && <form action={hireCandidate} className="flex gap-1"><input type="hidden" name="candidate_id" value={c.id}/><select name="position_id" className="rounded border bg-background p-1">{positionRows.map((p: any) => <option key={p.id} value={p.id}>{ar ? (p.name_ar || p.name) : p.name}</option>)}</select><input name="hire_date" type="date" className="rounded border p-1"/><button className="rounded border px-2 py-1">{ar ? "توظيف" : "Hire"}</button></form>}</span></>} /></div>
+        <form action={submitNeed} className="grid gap-2 md:grid-cols-3"><select name="position_id" className="rounded border p-2"><option value="">{ar ? "المسمى" : "Position"}</option>{positionRows.map((p:any)=><option key={p.id} value={p.id}>{ar ? (p.name_ar || p.name) : p.name}</option>)}</select><input name="title" required placeholder={ar ? "عنوان الاحتياج" : "Need title"} className="rounded border p-2"/><input name="quantity" type="number" min="1" defaultValue="1" className="rounded border p-2"/><button className="rounded bg-primary px-4 py-2 text-primary-foreground">{ar ? "إنشاء احتياج" : "Create need"}</button></form>
+        <form action={submitCandidate} className="grid gap-2 md:grid-cols-3"><select name="staffing_need_id" className="rounded border p-2"><option value="">{ar ? "الاحتياج" : "Staffing need"}</option>{needRows.map((n:any)=><option key={n.id} value={n.id}>{n.title}</option>)}</select><input name="first_name" required placeholder={ar ? "الاسم الأول" : "First name"} className="rounded border p-2"/><input name="last_name" required placeholder={ar ? "اسم العائلة" : "Last name"} className="rounded border p-2"/><input name="phone" placeholder={ar ? "الهاتف" : "Phone"} className="rounded border p-2"/><input name="email" type="email" placeholder="Email" className="rounded border p-2"/><button className="rounded bg-primary px-4 py-2 text-primary-foreground">{ar ? "إضافة مرشح" : "Add candidate"}</button></form>
       </div>
+      <List rows={candidateRows} render={(c:any) => <div className="grid gap-2 md:grid-cols-[1fr_auto_auto]"><div><div className="font-medium">{c.first_name} {c.last_name}</div><div className="text-sm text-muted-foreground">{c.email || c.phone || ""} · {c.stage}</div></div><form action={hireCandidate} className="flex gap-1"><input type="hidden" name="candidate_id" value={c.id}/><select name="position_id" className="rounded border p-2"><option value="">{ar ? "المسمى" : "Position"}</option>{positionRows.map((p:any)=><option key={p.id} value={p.id}>{ar ? (p.name_ar || p.name) : p.name}</option>)}</select><input name="hire_date" type="date" className="rounded border p-2"/><button className="rounded border px-2">{ar ? "ترقية" : "Hire"}</button></form></div>} />
     </Section>
   </div>;
 }
 
-function Section({ title, description, children }: { title: string; description?: string; children: React.ReactNode }) { return <section className="rounded-lg border bg-card p-5"><h2 className="text-lg font-semibold">{title}</h2>{description && <p className="mb-4 mt-1 text-sm text-muted-foreground">{description}</p>}<div className={description ? "" : "mt-4"}>{children}</div></section>; }
-function List({ rows, render }: { rows: any[]; render: (row: any) => React.ReactNode }) { return <div className="mt-5 divide-y">{rows.map(row => <div key={row.id} className="flex flex-wrap items-center justify-between gap-3 py-3">{render(row)}</div>)}{rows.length === 0 && <p className="py-3 text-sm text-muted-foreground">No records yet.</p>}</div>; }
+function Section({title,description,children}:{title:string;description:string;children:React.ReactNode}){return <section className="rounded-xl border bg-card p-5 space-y-4"><div><h2 className="text-lg font-semibold">{title}</h2><p className="mt-1 text-sm text-muted-foreground">{description}</p></div>{children}</section>}
+function List({rows,render}:{rows:any[];render:(r:any)=>React.ReactNode}){return <div className="space-y-2">{rows.map((row:any)=><div key={row.id} className="rounded border bg-background p-3">{render(row)}</div>)}</div>}
