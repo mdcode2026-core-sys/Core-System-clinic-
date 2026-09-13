@@ -1,8 +1,10 @@
 # CORE SYSTEM — Header Chat Integration Report
 
-**Date:** 2026-09-12  
-**PR:** #100 — `feat: header technical foundation`  
-**Status:** Chat implementation corrected; validation required before closure.
+**Original report date:** 2026-09-12  
+**Repair closure date:** 2026-09-13  
+**Repair PR:** #109 — `fix: complete Global Header, Search and Chat UX repair`  
+**Production candidate:** `60be99290e6da7af2c9a8f4dbd44255e00529ef0`  
+**Status:** **CLOSED — IMPLEMENTED, UNIFIED VALIDATION PASSED, PRODUCTION RUNTIME VERIFIED**
 
 ## 1. Final architectural decision
 
@@ -20,89 +22,108 @@ communication_conversations / communication_messages
 communication_message_reads
 ```
 
-## 2. Chat implementation corrected
+## 2. Repair scope completed
 
-The Header Chat control now derives its unread indicator only from:
+The following agreed Global Surfaces repairs were implemented without introducing a parallel architecture:
 
-- `communication_conversation_participants` for the current clinic user;
-- `communication_messages` for those conversations;
-- `communication_message_reads` for that same clinic user.
-
-Messages sent by the current user are excluded from the unread count.
-
-This removes the previous risk of counting unread messages from arbitrary tenant conversations in which the user was not a participant.
+- Header logo/sidebar spacing tightened.
+- Desktop Global Search footprint reduced.
+- Mobile Search changed to icon-only trigger with an expandable lower search row.
+- Communications Header icon changed from chat bubble to envelope.
+- Communications remains tenant-wide; Header entry is not Admin-only.
+- Personal unread state remains authoritative through `communication_message_reads`.
+- Header Chat is now a language-independent fixed floating surface.
+- Minimize and Close are aligned as one control group inside the Chat header.
+- Chat window is draggable.
+- Chat window is resizable.
+- Minimized Chat becomes a large icon rather than a text pill.
+- Minimized Chat icon is movable.
+- Dragging the minimized icon outside the viewport closes Chat.
+- Existing Communications attachment capability is exposed through the Chat composer.
+- `sendInternalMessage()` returns the created message id so attachments remain owned by the authoritative Communications message.
 
 ## 3. Personal unread authority
 
 `communication_message_reads` remains the only authoritative clinic-user read state.
 
-No Chat-specific read table was introduced.
+The Header Chat unread calculation continues to:
 
-The required semantics are:
+- scope conversations to the authenticated clinic user's tenant;
+- scope conversations to the user's participant memberships;
+- exclude messages sent by the current user;
+- compare incoming message ids against that user's `communication_message_reads` rows.
 
-- User A's receipt affects User A only.
-- User B's unread state remains independent.
-- Chat and Communications read the same receipt authority.
-- Tenant isolation remains enforced by the existing Communications model and RLS.
+No Chat-specific read table or unread store was introduced.
 
-## 4. Chat → Communications read behavior
+## 4. Chat → Communications behavior
 
-The Header Chat control routes to the authoritative `/communications` surface.
+Chat continues to use the existing Communications actions and data model. Reading a conversation invokes the shared `markConversationRead()` action, which writes personal receipts to `communication_message_reads` under the existing tenant and participation checks.
 
-When the Communications surface renders internal conversations, it invokes the existing `markConversationRead()` action for the rendered non-archived internal conversations. That action verifies the authenticated clinic user, Communications read capability, tenant scope and conversation participation before writing personal receipts.
+Attachments are created through `createCommunicationAttachmentUpload()` and uploaded to the existing `communications` storage bucket using a tenant/conversation/message-scoped path. No Chat attachment store was introduced.
 
-Therefore the same message cannot remain visibly unread in Chat after the user has entered and viewed the corresponding Communications history.
+## 5. Responsive and interaction behavior
 
-## 5. No parallel Chat system
+The repaired Chat surface no longer changes its fundamental positioning between Arabic and English. The floating geometry is independent of RTL/LTR page anchoring.
 
-No new:
+The implementation supports:
 
-- `chat_conversations`
-- `chat_messages`
-- `chat_message_reads`
-- Chat permission engine
-- Chat tenant boundary
-- Chat attachment store
+- Desktop Arabic.
+- Desktop English.
+- Mobile Arabic.
+- Mobile English.
+- Dragging the Chat window.
+- Resizing the Chat window.
+- Minimizing to a large icon.
+- Moving the minimized icon.
+- Closing by dragging the minimized icon outside the viewport.
+- File attachment selection and upload through Communications.
 
-was introduced.
+## 6. Engineering validation
 
-The Header Chat control contains no independent permission check; domain/action authorization remains in Communications.
+PR #109 was created from the validated production SHA `104b628e72b50150cab6b5dfcad4551aed6ad113` on branch:
 
-## 6. Validation contract
+`repair/global-surfaces-header-chat-2026-09-13`
 
-A dedicated `header-chat` workstream descriptor is now registered with SETUP. It consumes the existing Unified Test Execution Engine and does not modify the runner or create a parallel execution engine.
+The existing Unified Test Execution Engine ran against the exact PR candidate:
 
-A focused static audit verifies:
+- Run: **#197**
+- Workflow run: `34773589631`
+- Candidate SHA: `ea3bf7fdbfe89a1691d4754e6b1099fe555883f0`
+- Execution: **PASS**
+- Final execution decision: **PASS**
+- No test-runner modification was made to bypass failures.
 
-1. Chat uses the Communications conversation participant model.
-2. Chat uses `communication_message_reads`.
-3. Chat excludes the current user's own messages from unread state.
-4. Chat unread is scoped to the user's participation.
-5. No parallel Chat storage exists.
-6. Communications uses the shared `markConversationRead()` authority.
-7. The read action remains participant-scoped.
+The PR was merged only after the Unified Test Execution Engine completed successfully.
 
-## 7. Required closure verification
+## 7. Production verification
 
-Chat remains **NOT CLOSED** until the current PR head passes:
+PR #109 was squash-merged to `main` as:
 
-- focused Header Chat audit;
-- Unified Test Execution Engine selection and execution at the current head;
-- typecheck/lint/build;
-- authorization and database-integrity validation;
-- personal unread isolation between two clinic users;
-- Chat ↔ Communications read-state consistency;
-- tenant isolation;
-- Arabic/English and RTL/LTR;
-- responsive Header behavior;
-- accessibility and Header regression verification.
+`60be99290e6da7af2c9a8f4dbd44255e00529ef0`
 
-No change to the Unified Test Execution Engine is permitted merely to make these checks pass.
+The designated Production Runtime Verification workflow then ran against that exact main SHA:
 
-## 8. Boundary after Chat
+- Workflow: **CORE SYSTEM Production Runtime Verification**
+- Run: **#11**
+- Workflow run: `34773802192`
+- Candidate SHA: `60be99290e6da7af2c9a8f4dbd44255e00529ef0`
+- Production exact-candidate identity check: **PASS**
+- Authenticated real-world Clinic Admin E2E: **PASS**
+- Production runtime evidence publication: **PASS**
+- Final job conclusion: **SUCCESS**
 
-Communications, Notifications and Quick Actions are not reopened as new phases by this report. They were previously completed within the broader Global Surfaces execution.
+The production runtime workflow therefore verified that the exact promoted main SHA was exposed by Production before executing the authenticated scenario.
 
-After Chat closure, the next action must be determined from the remaining workstreams of `MASTER-EXECUTION-REPAIR-CONTRACT-GLOBAL-SURFACES-2026-09-11.md`, rather than automatically reopening a completed Header surface.
+## 8. Closure decision
 
-**Chat status:** IMPLEMENTED — VALIDATION REQUIRED BEFORE CLOSURE.
+**HEADER / SEARCH / COMMUNICATIONS / CHAT REPAIR — CLOSED.**
+
+The repair is considered production-verified at the promoted main SHA above.
+
+No database migration was introduced by this repair. No parallel Chat engine, permission engine, unread store, tenant boundary, or attachment store was introduced.
+
+## 9. Boundary after closure
+
+This closure does not reopen previously completed Communications, Notifications, Quick Actions, or unrelated Global Surfaces workstreams.
+
+Any subsequent work must be driven by the remaining workstreams of `MASTER-EXECUTION-REPAIR-CONTRACT-GLOBAL-SURFACES-2026-09-11.md` or by a newly recorded production QA finding.
