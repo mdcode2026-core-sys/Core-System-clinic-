@@ -72,7 +72,7 @@ export function GlobalChatHeaderControl({ isArabic }: { isArabic: boolean }) {
     const refresh = () => void loadUnread();
     window.addEventListener("focus", refresh);
     document.addEventListener("visibilitychange", refresh);
-    const interval = window.setInterval(loadUnread, 15000);
+    const interval = window.setInterval(() => { void loadUnread(); }, 15000);
     return () => { window.removeEventListener("focus", refresh); document.removeEventListener("visibilitychange", refresh); window.clearInterval(interval); };
   }, [loadUnread]);
 
