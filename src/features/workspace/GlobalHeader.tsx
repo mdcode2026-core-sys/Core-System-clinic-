@@ -25,7 +25,7 @@ export function GlobalHeader({ isArabic, mobileSidebarOpen, onOpenMobileSidebar,
   );
 
   return (
-    <header className={cn(styles.header, "sticky top-0 z-30 flex min-h-14 w-full min-w-0 items-center gap-1 overflow-visible border-b border-slate-200/90 bg-white/95 px-1.5 py-1.5 shadow-[0_1px_8px_rgba(15,23,42,0.04)] backdrop-blur sm:min-h-16 sm:gap-2 sm:px-3 sm:py-2 md:gap-2.5 md:px-4 lg:px-5", className)} data-testid="global-header">
+    <header className={cn(styles.geometry, "sticky top-0 z-30 flex min-h-14 w-full min-w-0 items-center gap-1 overflow-visible border-b border-slate-200/90 bg-white/95 px-1.5 py-1.5 shadow-[0_1px_8px_rgba(15,23,42,0.04)] backdrop-blur sm:min-h-16 sm:gap-2 sm:px-3 sm:py-2 md:gap-2.5 md:px-4 lg:px-5", className)} data-testid="global-header">
       <button type="button" onClick={onOpenMobileSidebar} className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 sm:h-10 sm:w-10 sm:rounded-xl lg:hidden" aria-label={isArabic ? "فتح القائمة" : "Open navigation"} aria-expanded={mobileSidebarOpen} aria-controls="global-sidebar" data-testid="global-header-mobile-nav">
         <Menu className="h-5 w-5" aria-hidden="true" />
       </button>
