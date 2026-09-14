@@ -45,6 +45,7 @@
 | EXP-026 | Product Owner alone approves product/visual decisions | APPROVED |
 | EXP-027 | No related governance document closes before execution obligations are verified | APPROVED |
 | EXP-028 | Inspect → Reuse → Extend → Create | APPROVED |
+| EXP-029 | Home Identity Banner includes lightweight Weather/ambient information as part of Home daily context | APPROVED |
 | VIS-001 | Concept 01 — Clinical Precision is the approved global visual foundation: deep ink + clinical azure + diagnostic cyan + quiet neutrals; calm, precise, professional, premium, clinical without clichés; light surfaces; typography/spacing-led hierarchy; restrained depth; disciplined radius; native RTL/LTR; intentional mobile behavior | APPROVED |
 | VIS-002 | The Visual Design Constitution, Visual Token Specification, Surface Visual Application Matrix, and Visual Execution Contract are the executable visual governance layer for F1–F4 and must remain subordinate to functional/surface contracts | APPROVED |
 
