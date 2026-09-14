@@ -3,8 +3,7 @@
 import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import Link from "next/link";
-import { ArrowUpRight } from "lucide-react";
+import { HomeWorkspaceTransitionLink } from "./HomeWorkspaceTransitionLink";
 
 const HOME_WELCOME_SEEN_KEY = "core-system-home-welcome-seen";
 
@@ -53,10 +52,7 @@ export function HomeIdentityBanner({ isArabic, clinicName, clinicLogoUrl, displa
 
         <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-center lg:max-w-[42rem] lg:justify-end">
           {weather}
-          {hasWorkspace ? <Link href="/workspace" className="cs-interactive inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-lg bg-[var(--cs-azure-600)] px-4 text-sm font-semibold text-white shadow-[var(--cs-shadow-xs)] hover:bg-[var(--cs-azure-700)]">
-            {isArabic ? "فتح مساحة العمل" : "Open Workspace"}
-            <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
-          </Link> : null}
+          {hasWorkspace ? <HomeWorkspaceTransitionLink /> : null}
         </div>
       </div>
     </section>
