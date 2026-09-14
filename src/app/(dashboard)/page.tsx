@@ -21,6 +21,7 @@ import {
   ExperienceIntro,
   ExperienceMetricLink,
   ExperiencePage,
+  ExperienceSection,
 } from "@/shared/components/ui/experience";
 
 export default async function HomePage() {
@@ -37,7 +38,11 @@ export default async function HomePage() {
     (await cookies()).get("core-system-locale")?.value === "ar" ? "ar" : "en";
   const ar = locale === "ar";
   const now = new Date();
-  const start = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
+  const start = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate(),
+  ).toISOString();
   const end = new Date(
     now.getFullYear(),
     now.getMonth(),
@@ -112,7 +117,7 @@ export default async function HomePage() {
       icon: Bell,
       title: ar ? "التنبيهات والتذكيرات" : "Notifications & reminders",
       description: ar
-        ? "معلومات مختصرة عن ما قد يحتاج انتباهك اليوم."
+        ? "ملخص خفيف لما قد يحتاج انتباهك اليوم."
         : "A lightweight summary of items that may need your attention today.",
       href: null,
       show: true,
@@ -121,7 +126,7 @@ export default async function HomePage() {
       icon: MessageCircle,
       title: ar ? "الاتصالات الداخلية" : "Internal communications",
       description: ar
-        ? "الوصول إلى الاتصالات المصرح بها داخل العيادة."
+        ? "الوصول إلى الاتصالات الداخلية المصرح بها داخل العيادة."
         : "Access authorized internal clinic communications.",
       href: "/communications",
       show: permissions.includes("communications:read"),
@@ -148,26 +153,24 @@ export default async function HomePage() {
 
   return (
     <ExperiencePage dir={ar ? "rtl" : "ltr"}>
-      <ExperienceIntro>
-        <p className="text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">
-          {ar ? "نظرة عامة" : "Overview"}
-        </p>
-        <h1 className="mt-1 text-2xl font-bold tracking-tight sm:text-3xl">
-          {ar ? "الرئيسية" : "Home"}
-        </h1>
-        <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">
-          {ar
-            ? "راجع أهم ما يخص يومك، ثم انتقل مباشرة إلى مساحة العمل أو المجال المناسب لتنفيذ المهمة."
-            : "Review what matters for your day, then go directly to the appropriate workspace or domain to do the work."}
-        </p>
-      </ExperienceIntro>
+      <ExperienceIntro
+        eyebrow={ar ? "نظرة عامة" : "Overview"}
+        title={ar ? "الرئيسية" : "Home"}
+        description={
+          ar
+            ? "راجع ما يهم يومك، ثم انتقل مباشرة إلى مساحة العمل أو المجال المناسب لتنفيذ المهمة."
+            : "Review what matters for your day, then go directly to the appropriate workspace or domain to do the work."
+        }
+      />
 
-      {cards.length > 0 && (
-        <section aria-labelledby="home-daily-context">
-          <h2 id="home-daily-context" className="mb-3 text-lg font-semibold">
-            {ar ? "اليوم" : "Today"}
-          </h2>
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      {cards.length > 0 ? (
+        <ExperienceSection
+          title={ar ? "اليوم" : "Today"}
+          description={
+            ar ? "أهم مؤشرات اليوم التي يمكنك الانتقال منها إلى العمل." : "Key signals for today with direct paths into the work."
+          }
+        >
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
             {cards.map((card) => {
               const Icon = card.icon;
               return (
@@ -181,14 +184,18 @@ export default async function HomePage() {
               );
             })}
           </div>
-        </section>
-      )}
+        </ExperienceSection>
+      ) : null}
 
-      <section aria-labelledby="home-context">
-        <h2 id="home-context" className="mb-3 text-lg font-semibold">
-          {ar ? "معلومات العمل" : "Work context"}
-        </h2>
-        <div className="grid gap-4 md:grid-cols-2">
+      <ExperienceSection
+        title={ar ? "الوصول السريع" : "Quick access"}
+        description={
+          ar
+            ? "انتقل إلى المعلومات أو الأدوات المصرح بها التي قد تحتاجها الآن."
+            : "Go directly to authorized information or tools you may need now."
+        }
+      >
+        <div className="grid gap-3 md:grid-cols-2">
           {contextLinks.map((item) => {
             const Icon = item.icon;
             return (
@@ -202,7 +209,7 @@ export default async function HomePage() {
             );
           })}
         </div>
-      </section>
+      </ExperienceSection>
     </ExperiencePage>
   );
 }
