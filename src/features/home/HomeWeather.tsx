@@ -10,7 +10,6 @@ interface GeocodeResult {
   latitude: number;
   longitude: number;
   name: string;
-  country_code?: string;
 }
 
 interface ForecastResult {
@@ -24,7 +23,7 @@ interface ForecastResult {
 
 function weatherText(code: number | undefined, ar: boolean) {
   if (code === undefined) return ar ? "الطقس" : "Weather";
-  if ([0, 1].includes(code)) return ar ? "صحفوة" : "Clear";
+  if ([0, 1].includes(code)) return ar ? "صحوة" : "Clear";
   if ([2, 3].includes(code)) return ar ? "غائم جزئيًا" : "Partly cloudy";
   if ([45, 48].includes(code)) return ar ? "ضباب" : "Foggy";
   if ([51, 53, 55, 56, 57].includes(code)) return ar ? "رذاذ" : "Drizzle";
