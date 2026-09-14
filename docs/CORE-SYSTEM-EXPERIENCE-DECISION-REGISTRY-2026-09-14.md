@@ -45,18 +45,20 @@
 | EXP-026 | Product Owner alone approves product/visual decisions | APPROVED |
 | EXP-027 | No related governance document closes before execution obligations are verified | APPROVED |
 | EXP-028 | Inspect → Reuse → Extend → Create | APPROVED |
+| VIS-001 | Concept 01 — Clinical Precision is the approved global visual foundation: deep ink + clinical azure + diagnostic cyan + quiet neutrals; calm, precise, professional, premium, clinical without clichés; light surfaces; typography/spacing-led hierarchy; restrained depth; disciplined radius; native RTL/LTR; intentional mobile behavior | APPROVED |
+| VIS-002 | The Visual Design Constitution, Visual Token Specification, Surface Visual Application Matrix, and Visual Execution Contract are the executable visual governance layer for F1–F4 and must remain subordinate to functional/surface contracts | APPROVED |
 
 ## 3. Explicit execution/open decisions
 
 | ID | Open decision | Required closure evidence |
 |---|---|---|
-| OPEN-001 | Exact Login visual language: colors, typography, spacing, dimensions, brand treatment | Product Owner approval + runtime verification |
-| OPEN-002 | Exact Header grouping, spacing, hierarchy, responsive visual treatment | Product Owner approval + runtime verification |
-| OPEN-003 | Exact Home ordering and final visual hierarchy | Product Owner approval + runtime verification |
-| OPEN-004 | Exact Home identity-banner visual treatment | Product Owner approval + runtime verification |
-| OPEN-005 | Exact Home daily-awareness composition without scattered card-grid behavior | Product Owner approval + runtime verification |
-| OPEN-006 | Home → Workspace transition treatment | Product Owner approval + runtime verification |
-| OPEN-007 | Shared semantic visual tokens/primitives after foundation surfaces are tuned | Evidence + explicit approval |
+| OPEN-001 | Exact Login runtime result and final visual acceptance | Product Owner approval + runtime verification |
+| OPEN-002 | Exact Header runtime result and final visual acceptance | Product Owner approval + runtime verification |
+| OPEN-003 | Exact Home runtime ordering/hierarchy acceptance | Product Owner approval + runtime verification |
+| OPEN-004 | Exact Home identity-banner runtime treatment | Product Owner approval + runtime verification |
+| OPEN-005 | Exact Home daily-awareness runtime composition | Product Owner approval + runtime verification |
+| OPEN-006 | Home → Workspace transition runtime treatment | Product Owner approval + runtime verification |
+| OPEN-007 | Final shared semantic visual tokens after foundation surfaces are tuned and visually accepted | Evidence + explicit approval |
 | OPEN-008 | Desktop/tablet/mobile/RTL/LTR visual verification | Runtime evidence |
 | OPEN-009 | Accessibility/focus/keyboard/touch-target verification | Objective test evidence |
 | OPEN-010 | Visual regression coverage for foundation surfaces | Test/verification evidence |
@@ -72,7 +74,15 @@ These are findings, not new product decisions:
 5. PR #123 is provisional/unmerged and is not the final visual foundation.
 6. Existing Work Center semantics are independent; removing it from Home does not authorize redesigning Work Center.
 
-## 5. Change-control rule
+## 5. Visual governance clarification
+
+`VIS-001` and `VIS-002` supersede any uncertainty about the **global visual direction**. They do not self-close runtime acceptance items.
+
+The approved visual foundation is now fixed. F1–F4 remain implementation work. Exact runtime acceptance, responsive verification, accessibility verification, and evidence-backed closure remain governed by the OPEN items above.
+
+The previous unapproved assistant-created Visual Constitution is not an authority. The current four visual documents are the active visual governance layer because the Product Owner has explicitly approved execution of this foundation.
+
+## 6. Change-control rule
 
 When implementation encounters a conflict:
 
@@ -83,7 +93,7 @@ When implementation encounters a conflict:
 5. Return product/visual judgment to the Product Owner when required.
 6. Update this Registry only after explicit approval.
 
-## 6. Closure rule
+## 7. Closure rule
 
 A decision may move to CLOSED only when:
 
