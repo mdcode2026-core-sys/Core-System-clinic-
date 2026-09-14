@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -22,6 +22,8 @@ interface WorkspaceShellProps {
   user: { email?: string } | null;
 }
 
+const HOME_WELCOME_SEEN_KEY = "core-system-home-welcome-seen";
+
 export function WorkspaceShell({ children }: WorkspaceShellProps) {
   const pathname = usePathname();
   const router = useRouter();
@@ -31,6 +33,10 @@ export function WorkspaceShell({ children }: WorkspaceShellProps) {
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
   const supabase = createClient();
   const isArabic = locale === "ar";
+
+  useEffect(() => {
+    if (pathname !== "/") sessionStorage.setItem(HOME_WELCOME_SEEN_KEY, "1");
+  }, [pathname]);
 
   const canSee = (item: NavItem) =>
     item.requiredPermission === null || hasPermission(item.requiredPermission);
