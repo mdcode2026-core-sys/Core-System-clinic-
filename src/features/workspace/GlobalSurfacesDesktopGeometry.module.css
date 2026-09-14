@@ -1,0 +1,17 @@
+@media (min-width: 768px) {
+  :global([data-testid="global-chat-panel"]) {
+    width: 520px !important;
+    height: 560px !important;
+    max-width: calc(100vw - 24px) !important;
+  }
+
+  :global([data-testid="notifications-header-panel"]) {
+    width: 368px !important;
+    max-width: calc(100vw - 24px) !important;
+  }
+
+  :global([role="dialog"][aria-label="تنبيهات وملاحظات الاتصالات"]) {
+    width: 352px !important;
+    max-width: calc(100vw - 24px) !important;
+  }
+}
