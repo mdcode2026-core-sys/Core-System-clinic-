@@ -18,19 +18,47 @@ interface GlobalHeaderProps {
 
 export function GlobalHeader({ isArabic, mobileSidebarOpen, onOpenMobileSidebar, brand, search, controls, className }: GlobalHeaderProps) {
   const defaultBrand = (
-    <Link href="/" className="inline-flex h-9 max-w-[7.25rem] shrink-0 items-center rounded-xl px-0.5 transition-opacity hover:opacity-85 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 sm:h-11 sm:max-w-[9.5rem]" aria-label={isArabic ? "الرئيسية — ClinicSaaS" : "Home — ClinicSaaS"} data-testid="global-header-brand">
-      <Image src="/brand/clinicsaas-header.svg" alt="ClinicSaaS™" width={150} height={33} priority className="h-7 w-auto max-w-[7.25rem] sm:h-9 sm:max-w-[9.5rem]" />
+    <Link
+      href="/"
+      className="cs-interactive inline-flex h-10 max-w-[8.25rem] shrink-0 items-center rounded-lg px-0.5 transition-opacity hover:opacity-85 sm:h-11 sm:max-w-[9.5rem]"
+      aria-label={isArabic ? "الرئيسية — ClinicSaaS" : "Home — ClinicSaaS"}
+      data-testid="global-header-brand"
+    >
+      <Image src="/brand/clinicsaas-header.svg" alt="ClinicSaaS™" width={150} height={33} priority className="h-7 w-auto max-w-[8.25rem] sm:h-8 sm:max-w-[9.5rem]" />
     </Link>
   );
 
   return (
-    <header className={cn("sticky top-0 z-30 flex min-h-14 w-full min-w-0 items-center gap-1 overflow-visible border-b border-slate-200/90 bg-white/95 px-1.5 py-1.5 shadow-[0_1px_8px_rgba(15,23,42,0.04)] backdrop-blur sm:min-h-16 sm:gap-2 sm:px-3 sm:py-2 md:gap-2.5 md:px-4 lg:px-5", className)} data-testid="global-header">
-      <button type="button" onClick={onOpenMobileSidebar} className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 sm:h-10 sm:w-10 sm:rounded-xl lg:hidden" aria-label={isArabic ? "فتح القائمة" : "Open navigation"} aria-expanded={mobileSidebarOpen} aria-controls="global-sidebar" data-testid="global-header-mobile-nav">
+    <header
+      className={cn(
+        "sticky top-0 z-30 flex min-h-14 w-full min-w-0 items-center gap-1 overflow-visible border-b border-[var(--cs-slate-200)] bg-white px-2 py-2 sm:min-h-16 sm:gap-2 sm:px-3 md:gap-2.5 md:px-4 lg:px-5",
+        className,
+      )}
+      data-testid="global-header"
+    >
+      <button
+        type="button"
+        onClick={onOpenMobileSidebar}
+        className="cs-interactive inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-[var(--cs-slate-700)] transition-colors hover:bg-[var(--cs-slate-100)] hover:text-[var(--cs-ink-950)] lg:hidden"
+        aria-label={isArabic ? "فتح القائمة" : "Open navigation"}
+        aria-expanded={mobileSidebarOpen}
+        aria-controls="global-sidebar"
+        data-testid="global-header-mobile-nav"
+      >
         <Menu className="h-5 w-5" aria-hidden="true" />
       </button>
+
       <div className="min-w-0 shrink items-center overflow-hidden">{brand ?? defaultBrand}</div>
-      <div className="h-9 w-9 shrink-0 md:h-10 md:w-[min(26vw,24rem)] lg:w-[28rem]" data-testid="global-header-search-slot">{search}</div>
-      {controls ? <div className="ms-auto flex min-w-0 shrink items-center justify-end gap-0 rounded-xl border border-slate-200/80 bg-slate-50/70 p-0 sm:gap-0.5 sm:p-0.5" data-testid="global-header-controls">{controls}</div> : null}
+
+      <div className="h-10 min-w-0 shrink-0 md:w-[min(30vw,24rem)] lg:w-[28rem]" data-testid="global-header-search-slot">
+        {search}
+      </div>
+
+      {controls ? (
+        <div className="ms-auto flex min-w-0 shrink items-center justify-end gap-0.5 sm:gap-1" data-testid="global-header-controls">
+          {controls}
+        </div>
+      ) : null}
     </header>
   );
 }
