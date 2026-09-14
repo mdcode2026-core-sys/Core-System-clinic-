@@ -38,30 +38,13 @@ export function WorkspaceShell({ children }: WorkspaceShellProps) {
     if (pathname !== "/") sessionStorage.setItem(HOME_WELCOME_SEEN_KEY, "1");
   }, [pathname]);
 
-  const canSee = (item: NavItem) =>
-    item.requiredPermission === null || hasPermission(item.requiredPermission);
+  const canSee = (item: NavItem) => item.requiredPermission === null || hasPermission(item.requiredPermission);
 
-  const filterChildren = (item: NavItem): NavItem => ({
-    ...item,
-    children: item.children?.filter(canSee).map(filterChildren),
-  });
-
-  const filteredNav = getSidebarNavigation()
-    .map(filterChildren)
-    .filter((item) => canSee(item) || (item.children && item.children.length > 0));
-
-  const getLabel = (item: NavItem) =>
-    item.label ? item.label[locale] : item.labelKey ? messages.nav[item.labelKey] : item.href;
-
-  const isPathActive = (item: NavItem): boolean =>
-    pathname === item.href.split("?")[0] || (item.children?.some(isPathActive) ?? false);
-
-  const groupContainsPath = (item: NavItem): boolean =>
-    item.children?.some((child) =>
-      pathname === child.href.split("?")[0] ||
-      pathname.startsWith(`${child.href.split("?")[0]}/`) ||
-      groupContainsPath(child),
-    ) ?? false;
+  const filterChildren = (item: NavItem): NavItem => ({ ...item, children: item.children?.filter(canSee).map(filterChildren) });
+  const filteredNav = getSidebarNavigation().map(filterChildren).filter((item) => canSee(item) || (item.children && item.children.length > 0));
+  const getLabel = (item: NavItem) => item.label ? item.label[locale] : item.labelKey ? messages.nav[item.labelKey] : item.href;
+  const isPathActive = (item: NavItem): boolean => pathname === item.href.split("?")[0] || (item.children?.some(isPathActive) ?? false);
+  const groupContainsPath = (item: NavItem): boolean => item.children?.some((child) => pathname === child.href.split("?")[0] || pathname.startsWith(`${child.href.split("?")[0]}/`) || groupContainsPath(child)) ?? false;
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -82,21 +65,21 @@ export function WorkspaceShell({ children }: WorkspaceShellProps) {
       <div key={`${item.href}-${nested ? "nested" : "root"}`}>
         <div className={cn(
           "flex items-center rounded-lg text-sm font-medium transition-colors",
-          nested && (isArabic ? "mr-4" : "ml-4"),
-          active ? "bg-blue-50 text-blue-700" : "text-gray-700 hover:bg-gray-100 hover:text-gray-900",
+          nested && "ms-4",
+          active ? "bg-[var(--cs-azure-100)] text-[var(--cs-azure-700)]" : "text-[var(--cs-slate-700)] hover:bg-[var(--cs-slate-100)] hover:text-[var(--cs-ink-950)]",
         )}>
           {expandable ? (
-            <button type="button" onClick={toggle} className="flex min-w-0 flex-1 items-center gap-3 px-3 py-2 text-start" aria-expanded={open}>
-              <Icon className="h-4 w-4 shrink-0" /><span className="truncate">{getLabel(item)}</span>
+            <button type="button" onClick={toggle} className="cs-interactive flex min-w-0 flex-1 items-center gap-3 rounded-lg px-3 py-2.5 text-start" aria-expanded={open}>
+              <Icon className="h-4 w-4 shrink-0" aria-hidden="true" /><span className="truncate">{getLabel(item)}</span>
             </button>
           ) : (
-            <Link href={item.href} prefetch onClick={closeOnMobile} className="flex min-w-0 flex-1 items-center gap-3 px-3 py-2">
-              <Icon className="h-4 w-4 shrink-0" /><span className="truncate">{getLabel(item)}</span>
+            <Link href={item.href} prefetch onClick={closeOnMobile} className="cs-interactive flex min-w-0 flex-1 items-center gap-3 rounded-lg px-3 py-2.5 text-start">
+              <Icon className="h-4 w-4 shrink-0" aria-hidden="true" /><span className="truncate">{getLabel(item)}</span>
             </Link>
           )}
-          {expandable && <button type="button" onClick={toggle} className="p-2" aria-label={open ? workspace.collapse : workspace.expand}><ChevronDown className={cn("h-4 w-4 shrink-0 transition-transform", open && "rotate-180")} /></button>}
+          {expandable && <button type="button" onClick={toggle} className="cs-interactive shrink-0 rounded-lg p-2" aria-label={open ? workspace.collapse : workspace.expand} aria-expanded={open}><ChevronDown className={cn("h-4 w-4 shrink-0 transition-transform", open && "rotate-180")} aria-hidden="true" /></button>}
         </div>
-        {expandable && open && <div className="mt-1 space-y-0.5 border-l border-[var(--cs-slate-200)] pl-1 rtl:border-l-0 rtl:border-r rtl:pr-1">{children.map((child) => renderItem(child, true))}</div>}
+        {expandable && open && <div className="mt-1 space-y-0.5 border-s border-[var(--cs-slate-200)] ps-1">{children.map((child) => renderItem(child, true))}</div>}
       </div>
     );
   };
@@ -104,22 +87,26 @@ export function WorkspaceShell({ children }: WorkspaceShellProps) {
   return (
     <div className="cs-page-canvas flex min-h-screen w-full min-w-0 overflow-x-hidden">
       {mobileSidebarOpen && <div className="fixed inset-0 z-40 bg-black/50 lg:hidden" onClick={() => setMobileSidebarOpen(false)} aria-hidden="true" />}
-      <aside className={cn(
-        "fixed inset-y-0 z-50 w-72 border-e border-[var(--cs-slate-200)] bg-white shadow-[var(--cs-shadow-sm)] transition-transform duration-200 ease-in-out lg:translate-x-0",
-        isArabic ? "right-0" : "left-0",
-        mobileSidebarOpen ? "translate-x-0" : isArabic ? "translate-x-full" : "-translate-x-full",
-      )} aria-label={isArabic ? "القائمة الجانبية" : "Sidebar navigation"}>
+      <aside
+        id="global-sidebar"
+        className={cn(
+          "fixed inset-y-0 z-50 w-72 border-e border-[var(--cs-slate-200)] bg-white shadow-[var(--cs-shadow-sm)] transition-transform duration-200 ease-in-out lg:translate-x-0",
+          isArabic ? "right-0" : "left-0",
+          mobileSidebarOpen ? "translate-x-0" : isArabic ? "translate-x-full" : "-translate-x-full",
+        )}
+        aria-label={isArabic ? "القائمة الجانبية" : "Sidebar navigation"}
+      >
         <div className="flex h-full flex-col">
           <div className="flex items-center justify-between border-b border-[var(--cs-slate-200)] px-5 py-4">
             <Link href="/" className="cs-interactive inline-flex items-center rounded-lg" onClick={() => setMobileSidebarOpen(false)} aria-label={isArabic ? "الرئيسية — ClinicSaaS" : "Home — ClinicSaaS"}>
               <Image src="/brand/clinicsaas-header.svg" alt="ClinicSaaS™" width={150} height={33} className="h-7 w-auto" />
             </Link>
-            <button type="button" className="cs-interactive rounded-lg p-2 text-[var(--cs-slate-700)] hover:bg-[var(--cs-slate-100)]" onClick={() => setMobileSidebarOpen(false)} aria-label={workspace.closeSidebar}><X className="h-5 w-5" /></button>
+            <button type="button" className="cs-interactive rounded-lg p-2 text-[var(--cs-slate-700)]" onClick={() => setMobileSidebarOpen(false)} aria-label={workspace.closeSidebar}><X className="h-5 w-5" aria-hidden="true" /></button>
           </div>
           <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4">{filteredNav.map((item) => renderItem(item))}</nav>
         </div>
       </aside>
-      <main className="min-w-0 max-w-full flex-1 overflow-x-hidden lg:ml-72 rtl:lg:ml-0 rtl:lg:mr-72">
+      <main className={cn("min-w-0 max-w-full flex-1 overflow-x-hidden", pathname.startsWith("/workspace") && "cs-work-mode", isArabic ? "lg:mr-72" : "lg:ml-72")}>
         <GlobalHeader
           isArabic={isArabic}
           mobileSidebarOpen={mobileSidebarOpen}
