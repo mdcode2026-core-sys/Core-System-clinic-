@@ -95,9 +95,9 @@ export function PatientForm({ patient, isOpen, onClose, onSuccess }: PatientForm
         return;
       }
 
+      await invalidateAll(tenantId);
       onSuccess?.();
       onClose();
-      invalidateAll(tenantId);
     } catch {
       setServerError(t.unexpected);
     } finally {
