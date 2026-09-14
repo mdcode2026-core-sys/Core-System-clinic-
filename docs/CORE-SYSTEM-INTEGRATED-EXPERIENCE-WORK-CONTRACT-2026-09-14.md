@@ -1,15 +1,22 @@
 # CORE SYSTEM — Integrated Experience Work Contract
 ## 2026-09-14
 
-**Status:** BINDING EXECUTION CONTRACT — OPEN
-**Scope:** Login + Header + Home + Home→Workspace transition + shared experience foundation
-**Authority:** Experience Constitution + Decision Registry
+**Status:** BINDING EXECUTION CONTRACT — OPEN  
+**Scope:** Login + Header + Home + Home→Workspace transition + shared experience foundation  
+**Authority:** Experience Constitution + Decision Registry + approved Clinical Precision Visual Design Constitution
 
 ## 1. Purpose
 
 This contract turns the approved experience foundation into an executable control system. It exists to prevent the recurring failure mode where established UX/architecture decisions are rediscovered but lost during implementation.
 
-It does not close the work. It remains OPEN until its obligations are implemented and verified.
+The visual execution layer is now explicitly governed by:
+
+- `docs/CORE-SYSTEM-VISUAL-DESIGN-CONSTITUTION.md`
+- `docs/CORE-SYSTEM-VISUAL-TOKEN-SPEC.md`
+- `docs/CORE-SYSTEM-SURFACE-VISUAL-APPLICATION-MATRIX.md`
+- `docs/CORE-SYSTEM-VISUAL-EXECUTION-CONTRACT.md`
+
+The visual layer may express the experience but may not replace or override functional/surface contracts.
 
 ## 2. Mandatory lifecycle
 
@@ -29,13 +36,14 @@ Before implementation, record:
 - authoritative existing systems to reuse;
 - duplicate-engine risks;
 - explicit non-changes;
-- whether any Product Owner decision is required.
+- whether any Product Owner decision is required;
+- applicable Clinical Precision visual tokens and surface rules.
 
-An OPEN product/visual decision may not be invented by implementation.
+An OPEN product/visual decision may not be invented by implementation. The approved Clinical Precision foundation is fixed, while runtime acceptance and evidence remain open.
 
 ## 4. Workstream F1 — Login
 
-Target: simple, calm, clear, confident Horizon-dominant Login.
+Target: simple, calm, clear, confident Horizon-dominant Login under Clinical Precision.
 
 Preserve authentication authority, language selection, reset/register behavior where applicable, accessibility, and keyboard behavior.
 
@@ -45,7 +53,7 @@ Do not import authenticated Header/Sidebar or create a second auth architecture.
 
 ## 5. Workstream F2 — Header
 
-Target: polished, persistent global shell that is modern, professional, clean, calm, usable, and medically credible.
+Target: polished, persistent global shell that is modern, professional, clean, calm, usable, and medically credible, expressed through Clinical Precision.
 
 Preserve Search, Communications, Chat, Notifications, Quick Actions, authorization, RTL/LTR, and responsive behavior.
 
@@ -55,7 +63,7 @@ Do not turn Header into a dashboard, module directory, second communication/noti
 
 ## 6. Workstream F3 — Home
 
-Target: coherent **Simple + Contextual** global starting/awareness surface.
+Target: coherent **Simple + Contextual** global starting/awareness surface under Clinical Precision.
 
 Remove from Home:
 
@@ -73,9 +81,9 @@ Home must not duplicate specialist work engines or become a scattered dashboard/
 
 ## 7. Workstream F4 — Home → Workspace transition
 
-Target: entering Workspace should feel like entering work mode.
+Target: entering Workspace should feel like entering work mode, expressed with a subtle visual transition under Clinical Precision.
 
-The exact visual treatment is OPEN and requires Product Owner approval before closure.
+The functional destination and authorization behavior remain authoritative and unchanged.
 
 **Status: OPEN.**
 
@@ -87,20 +95,20 @@ Agenda remains authoritative. No second scheduling engine may be introduced.
 
 ## 9. Visual implementation boundary
 
-Infrastructure may be made reusable when neutral and compatible with the approved model.
+The approved Clinical Precision Visual Design Constitution now supplies the shared visual baseline.
 
-Implementation must not silently lock final:
+Implementation must not change:
 
-- colors,
-- typography,
-- spacing,
-- dimensions,
-- radius/border/elevation language,
-- Home ordering,
-- Header grouping,
-- token semantics,
+- functional content or destination ownership;
+- authorization semantics;
+- data ownership;
+- workflow transitions;
+- Home removals;
+- Communications scope;
+- Agenda authority;
+- Patient Flow / Patient Journey boundaries.
 
-unless explicitly approved.
+Shared visual primitives may be introduced/extended when neutral and reusable.
 
 ## 10. Required evidence
 
@@ -108,6 +116,7 @@ For each workstream record:
 
 - changed files and reason;
 - satisfied Decision IDs;
+- applicable visual constitution/token rules;
 - decisions intentionally left OPEN;
 - exact automated validation results;
 - runtime evidence;
@@ -121,8 +130,8 @@ For each workstream record:
 
 | Area | Acceptance condition |
 |---|---|
-| Login | Clear, calm, aligned, accessible, authentication unchanged |
-| Header | Persistent, coherent global shell; functions remain semantically distinct |
+| Login | Clear, calm, Clinical Precision aligned, accessible, authentication unchanged |
+| Header | Persistent, coherent global shell; functions remain semantically distinct; no mega-pill |
 | Home | Simple + Contextual; approved removals absent; authoritative routing preserved |
 | Home identity | Clinic/user identity is clear without dominating work |
 | Daily awareness | Coherent hierarchy, not scattered dashboard |
@@ -131,7 +140,7 @@ For each workstream record:
 | Tablet | Conceptual hierarchy preserved |
 | RTL/LTR | Semantic and visual order correct |
 | Accessibility | Focus, keyboard, labels, touch targets, and state communication verified |
-| Shared foundation | No duplicate engines or unauthorized semantics |
+| Shared foundation | Clinical Precision tokens/rules used; no duplicate engines or unauthorized semantics |
 
 ## 12. Prohibited shortcuts
 
@@ -161,8 +170,8 @@ If implementation conflicts with an approved decision:
 
 The Experience Foundation cannot close until:
 
-- required Product Owner visual decisions are approved;
-- Login/Header/Home match approved decisions;
+- required Product Owner visual acceptance is complete;
+- Login/Header/Home match the approved Clinical Precision visual foundation and their surface contracts;
 - Home → Workspace transition is verified;
 - automated validation passes;
 - runtime desktop/tablet/mobile verification passes;
