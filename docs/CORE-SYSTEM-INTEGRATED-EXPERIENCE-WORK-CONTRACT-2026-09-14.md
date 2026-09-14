@@ -65,6 +65,15 @@ Do not turn Header into a dashboard, module directory, second communication/noti
 
 Target: coherent **Simple + Contextual** global starting/awareness surface under Clinical Precision.
 
+Required composition is contextual rather than dashboard-like:
+
+- Identity / Context;
+- Today / daily situation;
+- Attention only when there is a genuinely actionable condition;
+- Next Destinations.
+
+The Identity Banner includes clinic identity, user identity, Welcome behavior, and lightweight Weather/ambient context.
+
 Remove from Home:
 
 - Notifications
@@ -133,8 +142,8 @@ For each workstream record:
 | Login | Clear, calm, Clinical Precision aligned, accessible, authentication unchanged |
 | Header | Persistent, coherent global shell; functions remain semantically distinct; no mega-pill |
 | Home | Simple + Contextual; approved removals absent; authoritative routing preserved |
-| Home identity | Clinic/user identity is clear without dominating work |
-| Daily awareness | Coherent hierarchy, not scattered dashboard |
+| Home identity | Clinic/user identity + approved Weather context are clear without dominating work |
+| Daily awareness | Coherent hierarchy with contextual Attention, not a scattered dashboard |
 | Appointment routing | Relevant context preserved entering Agenda |
 | Mobile | Focused work surface, not desktop shrink |
 | Tablet | Conceptual hierarchy preserved |
