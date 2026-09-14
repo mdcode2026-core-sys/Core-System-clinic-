@@ -5,11 +5,12 @@
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import Link from "next/link";
-import { ArrowUpRight, CalendarDays, CheckCircle2, Clock3, UsersRound } from "lucide-react";
+import { CalendarDays, CheckCircle2, Clock3, UsersRound } from "lucide-react";
 import { createClient } from "@/infrastructure/supabase/server";
 import { resolveTenantId } from "@/core/auth/resolveTenantId";
 import { getEffectivePermissions } from "@/core/permissions/permissionEngine";
 import { getQueueStats } from "@/domain/queue/queue.queries";
+import { HomeIdentityBanner } from "@/features/home/HomeIdentityBanner";
 
 export default async function HomePage() {
   const supabase = await createClient();
@@ -94,26 +95,7 @@ export default async function HomePage() {
 
   return (
     <div className="cs-page-canvas mx-auto w-full max-w-[1600px] space-y-6" dir={ar ? "rtl" : "ltr"}>
-      <section className="cs-surface-raised rounded-2xl p-5 sm:p-6" aria-labelledby="home-identity-title">
-        <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex min-w-0 items-center gap-4">
-            <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-[var(--cs-slate-200)] bg-white p-2">
-              <img src="/brand/clinicsaas-header.svg" alt="ClinicSaaS™" className="h-auto w-full" />
-            </div>
-            <div className="min-w-0">
-              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--cs-slate-500)]">{clinicName}</p>
-              <h1 id="home-identity-title" className="mt-1 text-2xl font-bold tracking-tight text-[var(--cs-ink-950)] sm:text-[1.75rem]">{ar ? `مرحبًا ${displayName}` : `Welcome, ${displayName}`}</h1>
-              <p className="mt-1 text-sm leading-6 text-[var(--cs-slate-500)]">{ar ? "هذه هي نقطة الانطلاق لمعرفة ما يهمك اليوم." : "Your starting point for what matters today."}</p>
-            </div>
-          </div>
-          {hasWorkspace ? (
-            <Link href="/workspace" className="cs-interactive inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-lg bg-[var(--cs-azure-600)] px-4 text-sm font-semibold text-white shadow-[var(--cs-shadow-xs)] transition-colors hover:bg-[var(--cs-azure-700)]">
-              {ar ? "فتح مساحة العمل" : "Open Workspace"}
-              <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
-            </Link>
-          ) : null}
-        </div>
-      </section>
+      <HomeIdentityBanner isArabic={ar} clinicName={clinicName} displayName={displayName} hasWorkspace={hasWorkspace} />
 
       {metrics.length > 0 ? (
         <section aria-labelledby="home-today-title">
@@ -142,7 +124,7 @@ export default async function HomePage() {
                   </span>
                   <span className="flex shrink-0 items-center gap-3">
                     <span className="text-2xl font-bold tabular-nums text-[var(--cs-ink-950)]">{metric.value}</span>
-                    <ArrowUpRight className="hidden h-4 w-4 text-[var(--cs-slate-500)] transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5 sm:block" aria-hidden="true" />
+                    <span aria-hidden="true" className="hidden text-sm font-semibold text-[var(--cs-azure-600)] sm:block">→</span>
                   </span>
                 </Link>
               );
@@ -164,7 +146,7 @@ export default async function HomePage() {
                 <p className="text-sm font-semibold text-[var(--cs-ink-950)]">{ar ? "الجدول المرتبط بك" : "Your agenda context"}</p>
                 <p className="mt-2 text-sm leading-6 text-[var(--cs-slate-500)]">{ar ? "عرض المواعيد داخل Agenda مع الحفاظ على سياقك الحالي." : "Open Agenda while preserving your current user context."}</p>
               </div>
-              <ArrowUpRight className="h-5 w-5 shrink-0 text-[var(--cs-azure-600)] transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" aria-hidden="true" />
+              <span aria-hidden="true" className="text-sm font-semibold text-[var(--cs-azure-600)]">→</span>
             </div>
           </Link>
         ) : null}
