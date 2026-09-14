@@ -1,7 +1,7 @@
 # CORE SYSTEM — Integrated Work / Execution Contract
 ## Version 1.0 — 2026-09-14
 
-**Status:** DRAFT — requires explicit Product Owner approval.
+**Status:** APPROVED — Product Owner approval recorded 2026-09-14.
 **Scope:** UX, architecture, frontend, backend, database, tests, documentation and release work.
 **Mandatory lifecycle:** VERIFY → PLAN → IMPLEMENT → BUILD → VERIFY → REVIEW → DOCUMENT → CLOSE
 
@@ -273,5 +273,7 @@ CLOSE
 ```
 
 The sequence may iterate inside a stage, but stages are not skipped merely for convenience.
+
+**Approval:** Product Owner explicitly approved this Contract on 2026-09-14. The approval authorizes the execution rules; it does not authorize implementation scope that has not separately been planned/approved.
 
 **End of Integrated Work / Execution Contract.**
