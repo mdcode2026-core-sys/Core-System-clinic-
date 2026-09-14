@@ -8,7 +8,7 @@ This matrix applies the shared Visual Design Constitution to surfaces without ch
 |---|---|---:|---|---|
 | Login | Authentication | Low | Calm light canvas, focused auth surface, restrained Azure, strong hierarchy | No authenticated Header/Sidebar; no auth engine change |
 | Header | Global access | Low / compact | Flat/light shell, independent controls, strong focus/unread states | No dashboard, no new engines, no business-action expansion |
-| Home | Awareness / entry | Low / contextual | Identity → Today → Attention → Destinations; whitespace-led hierarchy | No Notifications, Communications, Work Center, Quick Actions, Portal info, or widgets |
+| Home | Awareness / entry | Low / contextual | Identity + lightweight Weather → Today → contextual Attention → Destinations; whitespace-led hierarchy | No Notifications, Communications, Work Center, Quick Actions, Portal info, or widgets |
 | Home → Workspace | Entry into execution | Low → Medium transition | Subtle visual shift from awareness to work; preserve route semantics | No duplicate workspace layer |
 | My Workspace | Personal execution | Medium | Contextual, configurable presentation within permissions | No authorization changes |
 | Role Workspace | Primary professional work | Medium–High | Vertex-capable density with Horizon clarity and Zenith context | No role reclassification |
@@ -31,7 +31,7 @@ The Header must read as a set of global capabilities rather than a single toolba
 
 ## F3 — Home application
 
-Home uses the constitution to replace the old card-wall presentation with visual hierarchy through section spacing, typography, a compact identity/context surface, and a coherent daily-awareness presentation. The functional Home removals are mandatory and independent of visual decisions.
+Home uses the constitution to establish a compact identity/context surface containing clinic identity, user identity, approved welcome behavior, and lightweight Weather/ambient information. Today remains a coherent daily-awareness surface; Attention appears only when a genuinely actionable condition exists; Destinations remain direct paths into authoritative work. The functional Home removals are mandatory and independent of visual decisions.
 
 ## F4 — Transition application
 
