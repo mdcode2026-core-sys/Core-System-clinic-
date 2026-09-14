@@ -25,7 +25,6 @@
     --ring: 222.2 84% 4.9%;
     --radius: 0.5rem;
 
-    /* CORE SYSTEM — Clinical Precision */
     --cs-ink-950: #0f172a;
     --cs-ink-900: #172033;
     --cs-slate-700: #334155;
@@ -94,7 +93,9 @@
 [dir="rtl"] { direction: rtl; text-align: right; }
 [dir="ltr"] { direction: ltr; text-align: left; }
 
-/* Header-hosted Chat is a compact surface over Communications, not a second messaging system. */
+.cs-header-tools { scrollbar-width: none; -ms-overflow-style: none; }
+.cs-header-tools::-webkit-scrollbar { display: none; }
+
 [data-testid="global-header-chat"] {
   display: inline-flex;
   height: 2.5rem;
