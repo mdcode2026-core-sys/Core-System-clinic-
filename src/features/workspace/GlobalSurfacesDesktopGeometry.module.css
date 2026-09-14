@@ -1,3 +1,5 @@
+.geometry {}
+
 @media (min-width: 768px) {
   :global([data-testid="global-chat-panel"]) {
     width: 520px !important;
