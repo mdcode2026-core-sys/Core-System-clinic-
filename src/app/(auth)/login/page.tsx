@@ -55,9 +55,9 @@ function LoginForm() {
       </CardHeader>
 
       <CardContent className="p-6 pt-1 sm:p-8 sm:pt-2">
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form onSubmit={handleSubmit} className="space-y-5" noValidate>
           {error && (
-            <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-center text-sm leading-6 text-red-700" role="alert">
+            <div className="cs-login-error rounded-lg border p-3 text-center text-sm leading-6" role="alert">
               {error}
             </div>
           )}
@@ -68,6 +68,8 @@ function LoginForm() {
               id="email"
               name="email"
               type="email"
+              autoComplete="email"
+              aria-invalid={Boolean(error)}
               placeholder={t.emailPlaceholder}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -88,6 +90,8 @@ function LoginForm() {
                 id="password"
                 name="password"
                 type={showPassword ? "text" : "password"}
+                autoComplete="current-password"
+                aria-invalid={Boolean(error)}
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -96,11 +100,11 @@ function LoginForm() {
               />
               <button
                 type="button"
-                aria-label={showPassword ? "Hide password" : "Show password"}
+                aria-label={locale === "ar" ? (showPassword ? "إخفاء كلمة المرور" : "إظهار كلمة المرور") : (showPassword ? "Hide password" : "Show password")}
                 onClick={() => setShowPassword((value) => !value)}
                 className="cs-interactive absolute inset-y-0 end-0 flex w-11 items-center justify-center rounded-e-lg text-[var(--cs-slate-700)] hover:bg-[var(--cs-slate-100)]"
               >
-                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                {showPassword ? <EyeOff className="h-4 w-4" aria-hidden="true" /> : <Eye className="h-4 w-4" aria-hidden="true" />}
               </button>
             </div>
           </div>
