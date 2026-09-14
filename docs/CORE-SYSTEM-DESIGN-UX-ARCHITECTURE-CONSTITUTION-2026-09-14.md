@@ -1,7 +1,7 @@
 # CORE SYSTEM — Design / UX / Architecture Constitution
 ## Version 1.0 — 2026-09-14
 
-**Status:** DRAFT — requires explicit Product Owner approval before implementation.
+**Status:** APPROVED — Product Owner approval recorded 2026-09-14.
 **Authority:** Governing semantic/product/UX/architecture constitution derived from the closed 2026-09-14 investigation and reconciled against current PJ/AJM/UX/repository evidence.
 
 > This document defines governing meaning. It does not claim runtime or production closure.
@@ -218,6 +218,6 @@ A genuine product/architecture contradiction must STOP implementation and be pre
 No full rebuild; no Home/My Workspace collapse; no My Workspace/Role Workspace collapse; no Role Workspace for every role; no conversion of Administrative Workspace into a normal Role Workspace; no Calendar scheduling engine; no doctor-only Communications; no independent Chat engine; no permission/workspace coupling; no mandatory Treatment Plan; no giant Patient Journey domain; no revival of dead permission systems.
 
 ## 25. Constitutional Status
-This Constitution becomes governing only after explicit Product Owner approval. Approval authorizes governance, not implementation of every open item.
+This Constitution is **APPROVED** by explicit Product Owner decision recorded on 2026-09-14. Approval authorizes governance, not implementation of every open item.
 
 **End of Constitution.**
