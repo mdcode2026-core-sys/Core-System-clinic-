@@ -5,7 +5,7 @@
 **Authority:** Product Owner-approved decisions
 **Scope:** Login, Header, Home, Workspace transition, shared experience foundation, and their governing boundaries.
 
-> This is the durable foundation. It is not a completed visual specification. Exact visual values remain OPEN unless explicitly approved.
+> This is the durable experience foundation. Detailed visual execution is governed by the approved Clinical Precision Visual Design Constitution.
 
 ## 1. Purpose
 
@@ -31,7 +31,36 @@ Plain-language model:
 
 > **Horizon controls simplicity. Vertex provides capability. Zenith adapts the experience.**
 
-## 3. Visual Foundation Surfaces
+## 3. Approved Visual Foundation — Clinical Precision
+
+The Product Owner approved **Concept 01 — Clinical Precision** as the visual foundation for the entire CORE SYSTEM.
+
+The visual language is defined as:
+
+- deep ink + clinical azure + diagnostic cyan + quiet neutrals;
+- calm, precise, professional, premium;
+- clinical without medical clichés;
+- light and visually quiet surfaces;
+- hierarchy led by typography and spacing;
+- restrained borders and purposeful depth;
+- disciplined radius;
+- density that follows work complexity;
+- native RTL/LTR;
+- intentional mobile transformation;
+- independent Header capabilities rather than a single mega-pill;
+- cards used selectively;
+- gradients, glass, glow, and decorative treatment are not the default identity.
+
+The executable visual rules live in:
+
+- `docs/CORE-SYSTEM-VISUAL-DESIGN-CONSTITUTION.md`
+- `docs/CORE-SYSTEM-VISUAL-TOKEN-SPEC.md`
+- `docs/CORE-SYSTEM-SURFACE-VISUAL-APPLICATION-MATRIX.md`
+- `docs/CORE-SYSTEM-VISUAL-EXECUTION-CONTRACT.md`
+
+These documents govern visual expression; they do not override functional or surface contracts.
+
+## 4. Visual Foundation Surfaces
 
 The system's visual foundation is established through:
 
@@ -41,17 +70,15 @@ The system's visual foundation is established through:
 
 They must be tuned as one experience foundation before the resulting language is propagated broadly.
 
-This does not silently approve exact colors, typography, dimensions, spacing, component shapes, Home ordering, or Header grouping. Those remain OPEN unless explicitly approved.
-
-## 4. Login
+## 5. Login
 
 Login is Horizon-dominant: simple, calm, clear, confident, and easy to understand.
 
-It must align with the authenticated product language without importing Header/Sidebar into authentication or creating a second authentication architecture.
+It must remain a dedicated authentication experience; do not put the authenticated Header/Sidebar into authentication or create a second authentication architecture.
 
-**Status: OPEN for execution/visual approval.**
+**Status: OPEN for execution/visual approval/runtime verification.**
 
-## 5. Header
+## 6. Header
 
 Header is a persistent global shell, not a dashboard, module directory, workspace, or universal business-action launcher.
 
@@ -65,7 +92,7 @@ Quick Actions remain narrow and global; current approved scope is Language + Log
 
 **Status: OPEN for visual refinement/runtime verification.**
 
-## 6. Home
+## 7. Home
 
 Home is the global starting/awareness surface.
 
@@ -81,8 +108,6 @@ Home is distinct from:
 - Agenda / Calendar
 - Patient Flow
 - module/domain work surfaces
-
-Home must not become a full operational dashboard or duplicate specialist engines.
 
 ### Explicit Home removals
 
@@ -106,7 +131,7 @@ Today's appointments must preserve relevant user/context when entering Agenda. A
 
 **Status: OPEN for execution/visual approval/runtime verification.**
 
-## 7. Protected Surface Boundaries
+## 8. Protected Surface Boundaries
 
 | Surface | Meaning | Must not become |
 |---|---|---|
@@ -122,7 +147,7 @@ Today's appointments must preserve relevant user/context when entering Agenda. A
 | Calendar | Visual/operational scheduling representation | Second scheduling engine |
 | Patient Flow | Internal workflow concept | Ordinary standalone sidebar domain |
 
-## 8. Responsive / Accessibility Foundation
+## 9. Responsive / Accessibility Foundation
 
 Mobile is a focused work surface, not a shrunken desktop.
 
@@ -133,11 +158,11 @@ Mobile is a focused work surface, not a shrunken desktop.
 
 **Status: OPEN pending runtime verification.**
 
-## 9. Personalization and Authorization
+## 10. Personalization and Authorization
 
 Personalization never grants authorization, changes Primary Work Context, changes Role Workspace, or creates another workspace membership.
 
-## 10. Governance Rules
+## 11. Governance Rules
 
 1. Product Owner alone moves product/visual decisions from OPEN/PROPOSED to APPROVED.
 2. Assistant recommendations must never be silently converted into product decisions.
@@ -149,27 +174,25 @@ Personalization never grants authorization, changes Primary Work Context, change
 8. A governance foundation can remain active while execution remains OPEN.
 9. If an implementation conflict requires product/visual judgment, do not invent the decision; return it to the Product Owner.
 
-## 11. Mandatory Records
+## 12. Mandatory Records
 
 Before implementation within this scope, the execution owner MUST read:
 
 - `docs/CORE-SYSTEM-EXPERIENCE-DECISION-REGISTRY-2026-09-14.md`
 - `docs/CORE-SYSTEM-INTEGRATED-EXPERIENCE-WORK-CONTRACT-2026-09-14.md`
 - `docs/CORE-SYSTEM-EXPERIENCE-EXECUTION-GATE-2026-09-14.md`
+- `docs/CORE-SYSTEM-VISUAL-DESIGN-CONSTITUTION.md`
+- `docs/CORE-SYSTEM-VISUAL-TOKEN-SPEC.md`
+- `docs/CORE-SYSTEM-SURFACE-VISUAL-APPLICATION-MATRIX.md`
+- `docs/CORE-SYSTEM-VISUAL-EXECUTION-CONTRACT.md`
 
-## 12. Current Closure State
+## 13. Current Closure State
 
-**Foundation:** APPROVED.
+**Experience foundation:** APPROVED FOUNDATION / EXECUTION OPEN.
 
-**Detailed visual system:** OPEN.
+**Visual foundation:** APPROVED — Clinical Precision.
 
-**Login:** OPEN.
-
-**Header:** OPEN.
-
-**Home:** OPEN.
-
-**Home → Workspace transition:** OPEN.
+**Detailed F1–F4 implementation:** OPEN.
 
 **Runtime visual verification:** OPEN.
 
