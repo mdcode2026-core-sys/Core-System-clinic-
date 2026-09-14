@@ -82,9 +82,9 @@ export function useInvalidatePatients() {
   const queryClient = useQueryClient();
 
   return {
-    invalidateAll: (tenantId?: string) => {
+    invalidateAll: async (tenantId?: string) => {
       const queryKey = tenantId ? ["patients", tenantId] : ["patients"];
-      void queryClient.refetchQueries({ queryKey, type: "active" });
+      await queryClient.refetchQueries({ queryKey, type: "active" });
     },
     invalidatePatient: (patientId: string) => {
       void queryClient.invalidateQueries({ queryKey: ["patient", patientId] });
