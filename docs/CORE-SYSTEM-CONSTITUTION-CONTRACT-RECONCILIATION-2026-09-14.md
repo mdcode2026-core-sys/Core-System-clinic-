@@ -1,10 +1,10 @@
 # CORE SYSTEM — Constitution & Contract Reconciliation Record
 ## 2026-09-14
 
-**Status:** VERIFICATION COMPLETED — no implementation authorized by this record.
+**Status:** APPROVED — Product Owner approval recorded 2026-09-14; next work proceeds through the approved VERIFY → PLAN lifecycle.
 
 ## 1. Purpose
-This record documents the independent reconciliation performed before establishing the Constitution and Integrated Work / Execution Contract.
+This record documents the independent reconciliation performed before establishing the Constitution and Integrated Work / Execution Contract, followed by the explicit Product Owner approval that makes them governing for subsequent work.
 
 ## 2. Sources Reconciled
 - 2026-09-14 UX / Architecture Investigation Final Handoff.
@@ -50,9 +50,19 @@ The following remain explicitly OPEN and must not be invented during implementat
 - Visual regression tooling.
 - Super Admin Workspace scope/modules.
 
-## 7. Result
-The Constitution and Integrated Work / Execution Contract are prepared as **DRAFTS FOR EXPLICIT PRODUCT-OWNER APPROVAL**.
+## 7. Product Owner Approval
+On 2026-09-14 the Product Owner explicitly approved:
+- `CORE-SYSTEM-DESIGN-UX-ARCHITECTURE-CONSTITUTION-2026-09-14.md`
+- `CORE-SYSTEM-INTEGRATED-WORK-EXECUTION-CONTRACT-2026-09-14.md`
 
-No product implementation, DB migration, test modification or production deployment is authorized by this reconciliation record.
+This approval makes the Constitution and Contract governing documents for subsequent work. It does **not** authorize implementation of every open product decision, and it does not constitute runtime or production verification.
+
+## 8. Next Stage
+The next authorized stage is **VERIFY**, followed by **PLAN**. The first implementation target must be identified from verified current product need and repository reality; implementation does not begin merely because the Constitution and Contract are approved.
+
+## 9. Result
+Constitution and Integrated Work / Execution Contract are **APPROVED AND GOVERNING** as of 2026-09-14.
+
+No product implementation, DB migration, test modification or production deployment is authorized by this record until the applicable VERIFY and PLAN stages are completed under the approved Contract.
 
 **End of Reconciliation Record.**
