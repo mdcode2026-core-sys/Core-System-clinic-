@@ -24,21 +24,38 @@
     --input: 214.3 31.8% 91.4%;
     --ring: 222.2 84% 4.9%;
     --radius: 0.5rem;
+
+    /* CORE SYSTEM — Clinical Precision */
+    --cs-ink-950: #0f172a;
+    --cs-ink-900: #172033;
+    --cs-slate-700: #334155;
+    --cs-slate-500: #64748b;
+    --cs-slate-300: #cbd5e1;
+    --cs-slate-200: #e2e8f0;
+    --cs-slate-100: #f1f5f9;
+    --cs-slate-50: #f8fafc;
+    --cs-white: #ffffff;
+    --cs-azure-700: #1d4ed8;
+    --cs-azure-600: #2563eb;
+    --cs-azure-100: #dbeafe;
+    --cs-cyan-700: #0e7490;
+    --cs-cyan-600: #0891b2;
+    --cs-cyan-100: #cffafe;
+    --cs-success-700: #15803d;
+    --cs-warning-700: #a16207;
+    --cs-danger-700: #b91c1c;
+    --cs-shadow-xs: 0 1px 2px rgb(15 23 42 / 0.04);
+    --cs-shadow-sm: 0 2px 8px rgb(15 23 42 / 0.06);
+    --cs-shadow-md: 0 8px 24px rgb(15 23 42 / 0.1);
   }
 
   .dark {
     --background: 222.2 84% 4.9%;
     --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
     --primary: 210 40% 98%;
     --primary-foreground: 222.2 47.4% 11.2%;
     --secondary: 217.2 32.6% 17.5%;
     --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
     --accent: 217.2 32.6% 17.5%;
     --accent-foreground: 210 40% 98%;
     --destructive: 0 62.8% 30.6%;
@@ -54,6 +71,30 @@
   html, body { min-width: 0; }
   body { @apply bg-background text-foreground; direction: rtl; overflow-x: clip; }
   img, video, canvas { max-width: 100%; }
+}
+
+@layer components {
+  .cs-page-canvas {
+    background: var(--cs-slate-50);
+    color: var(--cs-ink-950);
+  }
+
+  .cs-surface {
+    background: var(--cs-white);
+    border: 1px solid var(--cs-slate-200);
+    box-shadow: var(--cs-shadow-xs);
+  }
+
+  .cs-surface-raised {
+    background: var(--cs-white);
+    border: 1px solid var(--cs-slate-200);
+    box-shadow: var(--cs-shadow-sm);
+  }
+
+  .cs-interactive:focus-visible {
+    outline: 2px solid var(--cs-azure-600);
+    outline-offset: 2px;
+  }
 }
 
 [dir="rtl"] { direction: rtl; text-align: right; }
