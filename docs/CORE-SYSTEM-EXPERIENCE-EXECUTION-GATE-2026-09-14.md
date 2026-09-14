@@ -1,7 +1,7 @@
 # CORE SYSTEM — Experience Execution Gate
 ## 2026-09-14
 
-**Status:** ACTIVE — MANDATORY GATE
+**Status:** ACTIVE — MANDATORY GATE  
 **Applies to:** Login, Header, Home, Home→Workspace transition, shared experience primitives, and future surfaces explicitly governed by the Experience Constitution.
 
 ## 1. Gate A — Decision lock
@@ -11,11 +11,14 @@ Before implementation:
 - read the Experience Constitution;
 - read the Decision Registry;
 - read the Integrated Experience Work Contract;
+- read the Visual Design Constitution and Visual Execution Contract;
 - list applicable Decision IDs;
 - list OPEN decisions separately;
 - confirm no recommendation has been silently promoted to APPROVED.
 
-**PASS:** scope is traceable to the Registry.
+The approved visual foundation is **Concept 01 — Clinical Precision**. It must not be reopened during F1–F4 execution.
+
+**PASS:** scope is traceable to the Registry and Visual Constitution.
 
 ## 2. Gate B — Authority inspection
 
@@ -29,7 +32,8 @@ Inspect existing authoritative implementations for:
 - Notifications;
 - Agenda/Calendar;
 - Workspace resolution;
-- shared visual primitives.
+- shared visual primitives;
+- existing brand assets.
 
 Use:
 
@@ -54,6 +58,9 @@ Verify:
 - Calendar does not become a second scheduling engine.
 - Mobile remains a focused work surface.
 - RTL/LTR and accessibility semantics remain correct.
+- Clinical Precision remains the shared visual foundation; no alternate visual theme is introduced.
+- Cards are not treated as the universal layout language.
+- Decorative gradients/glass/glow are not introduced as default identity.
 
 ## 4. Gate D — Diff review
 
@@ -64,7 +71,8 @@ Before acceptance:
 - identify unrelated changes;
 - verify no new data/routing engine;
 - verify no hidden authorization change;
-- verify no silent product decision encoded in generic primitives.
+- verify no silent product decision encoded in generic primitives;
+- verify shared visual tokens are used consistently.
 
 ## 5. Gate E — Automated validation
 
@@ -74,7 +82,8 @@ Run applicable:
 - lint;
 - unit/integration tests;
 - authorization/RLS tests where affected;
-- build.
+- build;
+- relevant existing UX execution audits.
 
 Record exact run/evidence identifiers.
 
@@ -96,16 +105,15 @@ Retain screenshots or equivalent objective evidence when visual approval is requ
 
 ## 7. Gate G — Product Owner decision gate
 
-Implementation cannot self-approve:
+The Product Owner has already approved the global visual foundation as Concept 01 — Clinical Precision. During F1–F4 execution, do not reopen that decision.
 
-- final Login visual language;
-- final Header grouping/hierarchy;
-- final Home ordering/hierarchy;
-- final token system;
-- major visual identity changes;
-- any unresolved product/visual choice.
+Implementation still requires Product Owner acceptance for any genuinely new visual/product decision that falls outside the approved constitution, including:
 
-OPEN remains OPEN until explicit approval.
+- material change to global visual identity;
+- new visual language not covered by Clinical Precision;
+- functional/product behavior disguised as visual work.
+
+Final runtime acceptance of F1–F4 remains a closure gate.
 
 ## 8. Gate H — Documentation reconciliation
 
@@ -133,6 +141,7 @@ Scope:
 Applicable Decision IDs:
 OPEN Decisions:
 Authoritative Existing Implementations:
+Approved Visual Foundation:
 Planned Changes:
 Explicit Non-Changes:
 Duplicate-Engine Check:
