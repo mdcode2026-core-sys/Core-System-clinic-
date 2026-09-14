@@ -44,7 +44,6 @@ export default async function HomePage() {
         .gte("scheduled_start", start)
         .lt("scheduled_start", end)
         .neq("status", "cancelled")
-        .neq("status", "no_show")
     : null;
 
   const appointmentsCount = appointmentQuery ? (await appointmentQuery).count ?? 0 : 0;
