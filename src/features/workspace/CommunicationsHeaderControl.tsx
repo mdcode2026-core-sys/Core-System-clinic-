@@ -54,19 +54,9 @@ export function CommunicationsHeaderControl({ isArabic }: CommunicationsHeaderCo
 
   return (
     <div className="relative shrink-0">
-      <button
-        ref={triggerRef}
-        type="button"
-        onClick={() => { setOpen((value) => !value); if (!open) void refresh(); }}
-        className="cs-interactive inline-flex h-9 w-9 items-center justify-center rounded-lg text-[var(--cs-slate-700)] sm:h-10 sm:w-10"
-        aria-label={isArabic ? "الاتصالات الداخلية" : "Communications"}
-        title={isArabic ? "الاتصالات الداخلية" : "Communications"}
-        aria-expanded={open}
-        aria-haspopup="dialog"
-        data-testid="global-header-communications"
-      >
+      <button ref={triggerRef} type="button" onClick={() => { setOpen((value) => !value); if (!open) void refresh(); }} className="cs-interactive inline-flex h-9 w-9 items-center justify-center rounded-lg text-[var(--cs-slate-700)] sm:h-10 sm:w-10" aria-label={isArabic ? "الاتصالات الداخلية" : "Communications"} title={isArabic ? "الاتصالات الداخلية" : "Communications"} aria-expanded={open} aria-haspopup="dialog" data-testid="global-header-communications">
         <Mail className="h-[18px] w-[18px]" aria-hidden="true" />
-        {utilityCount > 0 ? <span className="absolute -end-0.5 -top-1 min-w-5 rounded-full bg-[var(--cs-danger)] px-1.5 text-center text-[10px] font-bold leading-5 text-white ring-2 ring-white" aria-label={isArabic ? `${utilityCount} جديد` : `${utilityCount} new`}>{utilityCount > 99 ? "99+" : utilityCount}</span> : null}
+        {utilityCount > 0 ? <span className="absolute -end-0.5 -top-1 min-w-5 rounded-full bg-[var(--cs-danger-700)] px-1.5 text-center text-[10px] font-bold leading-5 text-white ring-2 ring-white" aria-label={isArabic ? `${utilityCount} جديد` : `${utilityCount} new`}>{utilityCount > 99 ? "99+" : utilityCount}</span> : null}
       </button>
 
       {open ? <div role="dialog" aria-label={isArabic ? "الاتصالات" : "Communications"} className="fixed inset-x-2 top-[4.25rem] z-[80] w-auto overflow-hidden rounded-xl border border-[var(--cs-slate-200)] bg-white shadow-[var(--cs-shadow-md)] md:absolute md:inset-x-auto md:end-0 md:top-11 md:w-[min(22rem,calc(100vw-1rem))]">
