@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { X, ChevronDown } from "lucide-react";
@@ -89,23 +90,25 @@ export function WorkspaceShell({ children }: WorkspaceShellProps) {
           )}
           {expandable && <button type="button" onClick={toggle} className="p-2" aria-label={open ? workspace.collapse : workspace.expand}><ChevronDown className={cn("h-4 w-4 shrink-0 transition-transform", open && "rotate-180")} /></button>}
         </div>
-        {expandable && open && <div className="mt-1 space-y-0.5 border-l border-gray-200 pl-1 rtl:border-l-0 rtl:border-r rtl:pr-1">{children.map((child) => renderItem(child, true))}</div>}
+        {expandable && open && <div className="mt-1 space-y-0.5 border-l border-[var(--cs-slate-200)] pl-1 rtl:border-l-0 rtl:border-r rtl:pr-1">{children.map((child) => renderItem(child, true))}</div>}
       </div>
     );
   };
 
   return (
-    <div className="flex min-h-screen w-full min-w-0 overflow-x-hidden bg-gray-50">
+    <div className="cs-page-canvas flex min-h-screen w-full min-w-0 overflow-x-hidden">
       {mobileSidebarOpen && <div className="fixed inset-0 z-40 bg-black/50 lg:hidden" onClick={() => setMobileSidebarOpen(false)} aria-hidden="true" />}
       <aside className={cn(
-        "fixed inset-y-0 z-50 w-72 bg-white shadow-lg transition-transform duration-200 ease-in-out lg:translate-x-0",
+        "fixed inset-y-0 z-50 w-72 border-e border-[var(--cs-slate-200)] bg-white shadow-[var(--cs-shadow-sm)] transition-transform duration-200 ease-in-out lg:translate-x-0",
         isArabic ? "right-0" : "left-0",
         mobileSidebarOpen ? "translate-x-0" : isArabic ? "translate-x-full" : "-translate-x-full",
       )} aria-label={isArabic ? "القائمة الجانبية" : "Sidebar navigation"}>
         <div className="flex h-full flex-col">
-          <div className="flex items-center justify-between border-b px-6 py-4">
-            <Link href="/" className="text-xl font-bold text-blue-600" onClick={() => setMobileSidebarOpen(false)}>ClinicSaaS™</Link>
-            <button type="button" className="rounded p-2 hover:bg-gray-100" onClick={() => setMobileSidebarOpen(false)} aria-label={workspace.closeSidebar}><X className="h-5 w-5" /></button>
+          <div className="flex items-center justify-between border-b border-[var(--cs-slate-200)] px-5 py-4">
+            <Link href="/" className="cs-interactive inline-flex items-center rounded-lg" onClick={() => setMobileSidebarOpen(false)} aria-label={isArabic ? "الرئيسية — ClinicSaaS" : "Home — ClinicSaaS"}>
+              <Image src="/brand/clinicsaas-header.svg" alt="ClinicSaaS™" width={150} height={33} className="h-7 w-auto" />
+            </Link>
+            <button type="button" className="cs-interactive rounded-lg p-2 text-[var(--cs-slate-700)] hover:bg-[var(--cs-slate-100)]" onClick={() => setMobileSidebarOpen(false)} aria-label={workspace.closeSidebar}><X className="h-5 w-5" /></button>
           </div>
           <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4">{filteredNav.map((item) => renderItem(item))}</nav>
         </div>
