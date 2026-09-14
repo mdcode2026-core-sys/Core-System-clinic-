@@ -43,19 +43,20 @@ function WeatherIcon({ code }: { code?: number }) {
   return <Cloud className="h-5 w-5" aria-hidden="true" />;
 }
 
-async function getWeather(address: string | null | undefined, countryCode: string | null | undefined): Promise<{ location: string; temperature: number; humidity?: number; wind?: number; code?: number } | null> {
+async function getWeather(address: string | null | undefined, countryCode: string | null | undefined, isArabic: boolean): Promise<{ location: string; temperature: number; humidity?: number; wind?: number; code?: number } | null> {
   const candidates = (address ?? "")
     .split(",")
     .map((value) => value.trim())
     .filter((value) => value.length >= 2)
     .slice(-3)
     .reverse();
+  if (!candidates.length) return null;
 
   for (const candidate of candidates) {
     try {
-      const params = new URLSearchParams({ name: candidate, count: "1", language: "en", format: "json" });
+      const params = new URLSearchParams({ name: candidate, count: "1", language: isArabic ? "ar" : "en", format: "json" });
       if (countryCode) params.set("countryCode", countryCode.toLowerCase());
-      const geoResponse = await fetch(`https://geocoding-api.open-meteo.com/v1/search?${params.toString()}`, { next: { revalidate: 86400 } });
+      const geoResponse = await fetch(`https://geocoding-api.open-meteo.com/v1/search?${params.toString()}`, { next: { revalidate: 86400 }, signal: AbortSignal.timeout(5000) });
       if (!geoResponse.ok) continue;
       const geo = (await geoResponse.json()) as { results?: GeocodeResult[] };
       const location = geo.results?.[0];
@@ -68,7 +69,7 @@ async function getWeather(address: string | null | undefined, countryCode: strin
         temperature_unit: "celsius",
         wind_speed_unit: "kmh",
       });
-      const forecastResponse = await fetch(`https://api.open-meteo.com/v1/forecast?${forecastParams.toString()}`, { next: { revalidate: 900 } });
+      const forecastResponse = await fetch(`https://api.open-meteo.com/v1/forecast?${forecastParams.toString()}`, { next: { revalidate: 900 }, signal: AbortSignal.timeout(5000) });
       if (!forecastResponse.ok) continue;
       const forecast = (await forecastResponse.json()) as ForecastResult;
       const current = forecast.current;
@@ -83,7 +84,7 @@ async function getWeather(address: string | null | undefined, countryCode: strin
 }
 
 export async function HomeWeather({ address, countryCode, isArabic }: HomeWeatherProps) {
-  const weather = await getWeather(address, countryCode);
+  const weather = await getWeather(address, countryCode, isArabic);
   if (!weather) {
     return (
       <div className="flex min-w-0 items-center gap-3 rounded-xl border border-[var(--cs-slate-200)] bg-[var(--cs-slate-50)] px-3 py-2.5" aria-label={isArabic ? "معلومات الطقس غير متاحة" : "Weather information unavailable"}>
