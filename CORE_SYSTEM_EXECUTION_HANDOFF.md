@@ -3,10 +3,11 @@
 **Date:** 2026-09-15
 **Current Branch:** `feat/visual-design-constitution-f1-f4-2026-09-15`
 **Base:** `docs/ux-experience-governance-foundation-2026-09-14`
-**Current Candidate:** PR #125 / `6197b251730b645d25b50d631e68c00868df0260`
+**Current Candidate:** PR #125 / `84da2d1371ebc231f78cc6bedd2c671b198ce379`
+**Latest implementation commit before handoff reconciliation:** `84da2d1371ebc231f78cc6bedd2c671b198ce379`
 
 ## Current Objective
-Implement the Product Owner-approved **Concept 01 — Clinical Precision** visual foundation and apply it to F1–F4 without reopening closed product decisions.
+Implement the Product Owner-approved **Experience Foundation** across F1–F4 as one adaptive experience system, using Clinical Precision as its approved visual language and without reopening closed decisions.
 
 ## Authority
 The active authority stack is:
@@ -19,61 +20,107 @@ The active authority stack is:
 7. Surface Visual Application Matrix
 8. Visual Execution Contract
 
-`VIS-001` and `VIS-002` record Concept 01 and the visual governance layer as APPROVED. Runtime acceptance remains OPEN.
+`EXP-001`–`EXP-029` and `VIS-001`–`VIS-002` govern approved product/experience decisions. Runtime acceptance remains subject to the execution gates.
 
-## F1–F4 Scope
-- **F1 Login:** Clinical Precision visual translation; authentication architecture and behavior preserved.
-- **F2 Header:** independent Brand/Home, Search, Communications, Chat, Notifications, Quick Actions; mega-pill treatment removed; functional surfaces preserved.
-- **F3 Home:** Simple + Contextual; Identity/Context → Today → Destinations; prohibited Home content removed; Today appointments preserve user context.
-- **F4 Home → Workspace:** explicit transition; Agenda entry preserves authenticated clinic-user context through existing `doctor_id` semantics.
+## F1–F4 Implementation
+
+### F1 — Login
+- Dedicated authentication experience; authenticated Header/Sidebar are not imported.
+- Clinical Precision light/calm presentation with existing ClinicSaaS brand asset.
+- Authentication behavior, redirect, language, forgot-password, register, password visibility, error handling, and loading behavior preserved.
+- Native browser validation retained; email/password autocomplete and accessible error association added.
+
+### F2 — Header
+- Persistent global shell with independent Brand/Home, Global Search, Communications, Chat, Notifications, and Quick Actions.
+- Mega-pill/container treatment removed.
+- Desktop/tablet use a single compact row; mobile intentionally transforms to a two-row shell so authorized capabilities remain accessible rather than being squeezed or hidden.
+- Mobile utility row is horizontally scrollable without visible scrollbar when necessary.
+- Communications remains clinic-wide for authorized clinic accounts.
+- Chat remains a compact surface over Communications.
+- Notifications remain independent.
+- Quick Actions remain limited to Language + Logout.
+- Existing Search/Communications/Chat/Notifications engines were reused rather than duplicated.
+- Escape/focus behavior and explicit interactive states are applied to header controls.
+
+### F3 — Home
+Home is implemented as a simple contextual awareness surface, not a dashboard/card wall:
+
+`Identity / Context → Today → Attention when actionable → Next Destinations`
+
+Identity Banner now contains:
+- clinic identity;
+- clinic logo when available, otherwise the authoritative ClinicSaaS brand asset;
+- user identity;
+- Welcome behavior (first entry, then hidden after first navigation);
+- lightweight current Weather/ambient context tied to clinic address/location.
+
+Today now contains:
+- user-context-aware Today's Appointments;
+- waiting patients;
+- current clinical work;
+- completed today;
+- a single coherent list/surface rather than four scattered cards.
+
+Today's Appointments use the authenticated `clinic_users.id` with the existing `master_agenda_events.doctor_id` relationship and route to Agenda with `doctorId` preserved.
+
+Attention is contextual and only renders when a genuinely actionable waiting condition exists; it routes into Workspace rather than creating a second work engine.
+
+The following remain intentionally absent from Home under approved decisions:
+- Notifications;
+- Communications;
+- Work Center;
+- Quick Actions;
+- Patient Portal information;
+- widgets/personalized widgets.
+
+### F4 — Home → Workspace
+- Workspace entry is explicit from Home.
+- The transition now provides lightweight entering-work feedback while preserving the existing `/workspace` destination and authorization behavior.
+- Workspace shell records the transition away from Home for Welcome behavior without introducing a second workspace layer.
+- `cs-work-mode` provides a subtle shell-level visual distinction once inside Workspace.
 
 ## Functional Boundary
-Today's appointment context uses the authenticated `clinic_users.id` and the existing Agenda `master_agenda_events.doctor_id` relationship. Agenda remains the authoritative scheduling engine. No second scheduling engine was introduced.
-
-No database migration, permission-model rewrite, duplicate domain engine, Vercel deployment, or Work Center redesign is in scope.
+Agenda remains the authoritative scheduling/planning engine. No second scheduling engine was introduced. No database migration or permission-model rewrite was introduced. Work Center itself was not redesigned.
 
 ## Documentation State
-Visual governance documents are present in `docs/` and referenced by the Experience Constitution, Decision Registry, Work Contract, and Execution Gate.
+The current Experience and Visual governance documents are reconciled with the latest Home Weather/Attention requirements. The registry now records `EXP-029` for the approved Weather/ambient Home identity context.
 
-**Important reconciliation item:** the root `CORE_SYSTEM_EXECUTION_LEDGER.md` still contains the historical 2026-09-09 ledger and has not yet been safely reconciled because the available GitHub file interface cannot append to a large existing file without replacing its full contents. Do not treat that historical ledger as current-cycle evidence. A current-cycle ledger reconciliation must be completed before final closure.
+The historical root `CORE_SYSTEM_EXECUTION_LEDGER.md` still requires a safe current-cycle append/reconciliation before final closure.
 
-## Verification State — NOT CLOSED
+## Verification Execution
+A validation-only PR was created against `main` so the repository's mandatory unified execution workflow can execute against the exact candidate:
 
-### Automated validation
-**NOT VERIFIED.**
+- Validation PR: #126
+- Validation branch: `verify/experience-foundation-f1-f4-2026-09-15`
+- Latest validation head: `344a2ebe453a8218e34c56b675bde19fc4a60070`
+- Latest unified workflow run observed: Run #243 / `34903128292`
+- Workflow performs the repository execution contract and Playwright runtime validation.
 
-The candidate commit currently has **no GitHub Actions PR workflow run**. The repository's unified test workflow is configured for pull requests targeting `main`; PR #125 targets the governance branch, so the workflow does not automatically execute for this PR. This is an execution/infrastructure condition, not a test pass.
+The validation workflow has successfully completed setup prerequisites in observed runs, but the final execution result for the final candidate is not yet recorded here until the run reaches a terminal conclusion.
 
-### Runtime visual verification
-**NOT VERIFIED.**
+No Vercel deployment is used as validation evidence for this phase.
 
-No runtime browser evidence has yet been captured for Login, Header, Home, or Home → Workspace on the candidate. Vercel has intentionally not been used because this phase does not authorize production deployment.
+## Required Final Evidence
+Before final closure the current candidate must have:
+- automated engineering/execution pass;
+- runtime verification for Login, Header, Home, Home→Workspace;
+- desktop/tablet/mobile verification;
+- RTL/LTR verification;
+- accessibility/focus/keyboard/touch verification;
+- authorization/data-scope confirmation for Home and Agenda context;
+- exact reviewed implementation head recorded;
+- execution ledger reconciliation;
+- Product Owner runtime acceptance.
 
-### Accessibility / responsive verification
-**NOT VERIFIED.**
-
-Desktop/tablet/mobile, RTL/LTR, keyboard/focus, and touch-target verification still require objective evidence.
-
-### Product Owner gate
-**PENDING.**
-
-Concept 01 itself is already APPROVED and must not be reopened. Final runtime acceptance of F1–F4 remains a closure gate.
-
-## Known Review Points
-1. Home currently excludes `no_show` from the appointment count in addition to `cancelled`; this must be confirmed against the existing Agenda/Home contract during validation rather than silently assumed.
-2. Agenda's `doctorId` context is applied to the existing loaded Agenda events client-side; this must be verified for authorization and data-scope correctness during automated/runtime testing.
-3. The Home welcome state is implemented with a session-storage marker and WorkspaceShell pathname transition; runtime verification must confirm first-entry versus subsequent navigation behavior.
+## Current Review Points
+1. Confirm Weather resolves to the intended clinic locality from the available tenant address, with graceful unavailable fallback.
+2. Confirm Agenda `doctorId` context matches the intended authorized clinic-user scope at runtime.
+3. Confirm the Home Welcome state changes exactly once per session/navigation path as intended.
+4. Confirm the mobile two-row Header remains usable at narrow widths and that no authorized control becomes inaccessible.
 
 These are verification points, not new product decisions.
 
 ## Closure Rule
-F1–F4 are **NOT CLOSED** until:
-- automated engineering/execution validation passes;
-- runtime visual evidence passes;
-- responsive and RTL/LTR checks pass;
-- accessibility/focus/touch checks pass;
-- no authorization/data-scope regression is found;
-- execution handoff and ledger are reconciled with current evidence;
-- Product Owner accepts the final runtime result.
+F1–F4 close only after all required evidence above passes and the supporting registry/ledger/handoff are reconciled with the exact reviewed implementation head.
 
-**Current status: IMPLEMENTATION PRESENT / VERIFICATION OPEN / NOT CLOSED.**
+**Current implementation state: F1–F4 rebuilt across the Experience Foundation; final automated/runtime acceptance remains pending evidence.**
