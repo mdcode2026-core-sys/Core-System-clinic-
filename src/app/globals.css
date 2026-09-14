@@ -29,6 +29,7 @@
     --cs-ink-950: #0f172a;
     --cs-ink-900: #172033;
     --cs-slate-700: #334155;
+    --cs-slate-600: #475569;
     --cs-slate-500: #64748b;
     --cs-slate-300: #cbd5e1;
     --cs-slate-200: #e2e8f0;
@@ -44,6 +45,8 @@
     --cs-success-700: #15803d;
     --cs-warning-700: #a16207;
     --cs-danger-700: #b91c1c;
+    --cs-danger-100: #fee2e2;
+    --cs-danger-50: #fef2f2;
     --cs-shadow-xs: 0 1px 2px rgb(15 23 42 / 0.04);
     --cs-shadow-sm: 0 2px 8px rgb(15 23 42 / 0.06);
     --cs-shadow-md: 0 8px 24px rgb(15 23 42 / 0.1);
@@ -80,31 +83,36 @@
 }
 
 @layer components {
-  .cs-page-canvas {
-    background: var(--cs-slate-50);
-    color: var(--cs-ink-950);
-  }
-
-  .cs-surface {
-    background: var(--cs-white);
-    border: 1px solid var(--cs-slate-200);
-    box-shadow: var(--cs-shadow-xs);
-  }
-
-  .cs-surface-raised {
-    background: var(--cs-white);
-    border: 1px solid var(--cs-slate-200);
-    box-shadow: var(--cs-shadow-sm);
-  }
-
-  .cs-interactive:focus-visible {
-    outline: 2px solid var(--cs-azure-600);
-    outline-offset: 2px;
-  }
+  .cs-page-canvas { background: var(--cs-slate-50); color: var(--cs-ink-950); }
+  .cs-surface { background: var(--cs-white); border: 1px solid var(--cs-slate-200); box-shadow: var(--cs-shadow-xs); }
+  .cs-surface-raised { background: var(--cs-white); border: 1px solid var(--cs-slate-200); box-shadow: var(--cs-shadow-sm); }
+  .cs-interactive:focus-visible { outline: 2px solid var(--cs-azure-600); outline-offset: 2px; }
+  .cs-login-error { border-color: var(--cs-danger-100); background: var(--cs-danger-50); color: var(--cs-danger-700); }
+  .cs-work-mode > header { border-bottom-color: var(--cs-slate-300); }
 }
 
 [dir="rtl"] { direction: rtl; text-align: right; }
 [dir="ltr"] { direction: ltr; text-align: left; }
+
+/* Header-hosted Chat is a compact surface over Communications, not a second messaging system. */
+[data-testid="global-header-chat"] {
+  display: inline-flex;
+  height: 2.5rem;
+  width: 2.5rem;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.5rem;
+  color: var(--cs-slate-700);
+}
+[data-testid="global-header-chat"]:hover { background: var(--cs-slate-100); color: var(--cs-ink-950); }
+[data-testid="global-header-chat"]:focus-visible { outline: 2px solid var(--cs-azure-600); outline-offset: 2px; }
+[data-testid="global-chat-panel"] { border-color: var(--cs-slate-200); box-shadow: var(--cs-shadow-md); }
+[data-testid="global-chat-panel"] > header { border-bottom-color: var(--cs-slate-200); background: var(--cs-slate-50); }
+[data-testid="global-chat-panel"] button:focus-visible,
+[data-testid="global-chat-panel"] input:focus-visible,
+[data-testid="global-chat-panel"] textarea:focus-visible { outline: 2px solid var(--cs-azure-600); outline-offset: 1px; }
+[data-testid="global-chat-panel"] form { border-top-color: var(--cs-slate-200); }
 
 ::-webkit-scrollbar { width: 8px; height: 8px; }
 ::-webkit-scrollbar-track { background: hsl(var(--muted)); }
