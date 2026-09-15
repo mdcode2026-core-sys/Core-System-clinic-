@@ -1,12 +1,6 @@
 .geometry {}
 
 @media (min-width: 768px) {
-  .geometry :global([data-testid="global-chat-panel"]) {
-    width: 520px !important;
-    height: 560px !important;
-    max-width: calc(100vw - 24px) !important;
-  }
-
   .geometry :global([data-testid="notifications-header-panel"]) {
     width: 368px !important;
     max-width: calc(100vw - 24px) !important;
