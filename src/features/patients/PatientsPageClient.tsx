@@ -31,6 +31,7 @@ export default function PatientsPageClient({ tenantId, userId, canCreate }: Pati
   const roomOptions = rooms.map((r) => ({ id: r.id, name: r.room_name }));
   const procedureOptions = procedures.map((p) => ({ id: p.id, name: p.procedure_name, duration: p.standard_duration_minutes }));
   const patientOptions = patients.map((p) => ({ id: p.id, name: `${p.first_name} ${p.last_name}`, phone: p.phone_primary }));
+
   function handleBookAppointment(patientId: string) {
     setAgendaPatientId(patientId);
     setIsAgendaOpen(true);
@@ -47,7 +48,7 @@ export default function PatientsPageClient({ tenantId, userId, canCreate }: Pati
           </Button>
         )}
       </div>
-      <PatientList onBookAppointment={handleBookAppointment} />
+      <PatientList tenantId={tenantId} onBookAppointment={handleBookAppointment} />
       <PatientForm tenantId={tenantId} isOpen={isFormOpen} onClose={() => setIsFormOpen(false)} onSuccess={() => setIsFormOpen(false)} />
       <AgendaEventForm
         isOpen={isAgendaOpen}
