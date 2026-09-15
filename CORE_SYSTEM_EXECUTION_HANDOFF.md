@@ -2,28 +2,37 @@
 
 **Date:** 2026-09-15
 **Current Branch:** `feat/visual-design-constitution-f1-f4-2026-09-15`
-**Current Implementation Head:** `a23761bebd9b23869ff1afcc1a1a0ca193aed5a3`
-**Base:** `docs/ux-experience-governance-foundation-2026-09-14`
+**Current Implementation Head:** `2b2ab162b50ac1ef2b9aaa7b183f0cfddfddf6d8`
+**Base:** `main` (`d85a5de23051919fb347e1482bc28f5fe70c0e14`)
 
 ## Objective
 Implement the Product Owner-approved **Experience Foundation** across F1–F4 as one adaptive experience system, using Clinical Precision as its visual language and preserving all functional/surface boundaries.
 
-## Current F1–F4 Implementation
+## Governing scope
+- F1 — Login
+- F2 — Header
+- F3 — Home
+- F4 — Home → Workspace
+- Experience model: Horizon + Vertex + Zenith.
+- Visual language: Concept 01 — Clinical Precision.
+- Canonical workflow: `VERIFY → PLAN → IMPLEMENT → BUILD → VERIFY → REVIEW → DOCUMENT → CLOSE`.
+
+## Current F1–F4 implementation
 
 ### F1 — Login
 - Dedicated authentication experience; authenticated Header/Sidebar are not imported.
-- Calm Clinical Precision presentation with existing authentication behavior preserved.
+- Clinical Precision presentation with existing authentication behavior preserved.
 - Redirect, language, reset/register, password visibility, loading/error behavior, native validation, autocomplete and accessible error association preserved/implemented.
 
 ### F2 — Header
 - Canonical capabilities remain: Brand/Home, Global Search, Communications, Chat, Notifications, Quick Actions.
 - No mega-pill and no duplicate domain engines.
-- Three deliberate viewport compositions are implemented rather than one desktop layout merely reordered/scaled:
+- Three deliberate viewport compositions:
   - Mobile: navigation/identity/tools row + dedicated search row.
   - Tablet: navigation/identity/search row + dedicated utility row.
   - Desktop: single compact global row.
-- Header controls use a consistent 40px interaction geometry.
-- Mobile Quick Actions menu is viewport-anchored so it cannot be clipped by the utility row.
+- Header controls use consistent 40px interaction geometry.
+- Mobile Quick Actions is viewport-anchored.
 - Communications is clinic-wide for authorized accounts; Chat remains a compact Communications surface; Notifications remain independent; Quick Actions remain Language + Logout.
 - RTL/LTR uses logical positioning and independent control order.
 
@@ -31,61 +40,49 @@ Implement the Product Owner-approved **Experience Foundation** across F1–F4 as
 Home composition:
 `Identity / Context → Today → Attention when actionable → Next Destinations`
 
-Identity Banner contains clinic identity, clinic logo/brand fallback, user identity, approved Welcome lifecycle, and Weather/ambient context. Weather is presented as open identity context rather than a nested compressed card.
-
-Today's appointments preserve `clinic_users.id → master_agenda_events.doctor_id` and pass `doctorId` into the existing authoritative Agenda/Calendar representation.
-
-Today is a compact action surface: four relevant states remain directly actionable through their icons/tiles without explanatory arrows or a large replacement card wall.
-
-Next destinations contain Workspace and **Calendar**. Calendar routes to the existing Agenda calendar representation; no second scheduling engine or `/calendar` engine was invented.
-
-The following remain absent from Home: Notifications, Communications, Work Center, Quick Actions, Patient Portal information, and personalized widgets.
-
-Workspace is intentionally not duplicated inside the Identity Banner; its entry remains in the dedicated Next/Attention destinations.
+- Identity Banner contains clinic identity, logo/brand fallback, user identity, approved Welcome lifecycle, and Weather/ambient context.
+- Weather is open identity context rather than a compressed nested card and uses clinic address/country rather than browser/user location.
+- Today's appointments preserve `clinic_users.id → master_agenda_events.doctor_id` and pass `doctorId` into the existing authoritative Agenda/Calendar representation.
+- Today is a compact actionable surface: appointments, waiting, in clinical work, completed.
+- Next destinations contain Workspace and Calendar; Calendar reuses the existing Agenda representation and does not create a second scheduling engine.
+- Home remains free of Notifications, Communications, Work Center, Quick Actions, Patient Portal information, and personalized widgets.
+- Workspace is not duplicated inside Identity Banner.
 
 ### F4 — Home → Workspace
-- Workspace entry is explicit in the Home destination/Attention surfaces.
+- Workspace entry is explicit in Next/Attention destinations.
 - Entering-work feedback is retained.
 - Existing `/workspace` and authorization semantics remain authoritative.
-- Workspace shell uses the transition state for Welcome lifecycle and a subtle work-mode distinction.
-- No second workspace layer.
+- WorkspaceShell records navigation away from Home for Welcome lifecycle and provides a subtle work-mode distinction.
+- No duplicate Workspace layer.
 
-## Review Corrections Applied
-- Fixed mobile Quick Actions interaction/clipping.
-- Rebuilt Header as three viewport-specific compositions.
-- Normalized Communications/Notifications control geometry.
-- Removed duplicate Identity Banner Workspace action.
-- Replaced the unintended Home Agenda destination presentation with Calendar terminology and the existing Agenda calendar representation.
-- Reworked Weather placement and presentation.
-- Reworked Today from a large descriptive container into a compact actionable surface.
-- Removed obsolete Identity Banner workspace prop.
+## Review corrections applied
+1. Mobile Quick Actions interaction/clipping corrected.
+2. Header rebuilt as three viewport-specific compositions.
+3. Communications/Notifications/Chat control geometry normalized.
+4. Duplicate Identity Banner Workspace action removed.
+5. Home scheduling destination presented as Calendar while reusing the existing Agenda representation.
+6. Weather placement changed to dedicated Identity context.
+7. Today changed from a large descriptive container to a compact actionable surface.
+8. Obsolete Identity Banner workspace prop removed.
 
-## Verification
-A validation-only PR is used against `main` so the mandatory unified execution workflow runs against the exact candidate without deploying to production.
+## Scope and validation freeze
+The current work cycle is restricted to Experience Foundation F1–F4. Unrelated technical-debt, patient/RLS, runtime-error, database, and cross-domain investigations are frozen until F1–F4 closure.
 
-- Validation PR: #127
-- Validation branch: `verify/experience-foundation-f1-f4-2026-09-15-r2`
-- Validation head: `a23761bebd9b23869ff1afcc1a1a0ca193aed5a3`
-- Unified workflow run: #245 / `34945623748`
+**No new automated test execution or unrelated investigation is initiated during the current freeze.** Historical validation runs remain historical only and do not authorize closure.
 
-Observed successful prerequisites for run #245:
-- exact candidate checkout;
-- Node setup;
-- Playwright cache setup.
+Validation PR #127 was deliberately closed and not merged. It is not an active execution path.
 
-At the latest observation the workflow was still installing dependencies; therefore no final test result is claimed yet.
+No Vercel deployment is used as validation evidence for this phase.
 
-No Vercel deployment is used as validation evidence.
-
-## Required Final Evidence
-- terminal automated execution result;
-- runtime Login/Header/Home/Home→Workspace checks;
-- Mobile/Tablet/Desktop checks;
-- RTL/LTR checks;
-- accessibility/focus/keyboard/touch checks;
+## Required closure evidence after the freeze is lifted
+- authoritative automated execution against the final Experience Foundation head;
+- runtime Login/Header/Home/Home→Workspace verification;
+- Desktop/Tablet/Mobile;
+- RTL/LTR;
+- accessibility/focus/keyboard/touch;
 - Home/Agenda authorization and context confirmation;
 - exact reviewed implementation head;
-- current-cycle ledger reconciliation;
+- repository documentation and ledger reconciliation;
 - Product Owner runtime acceptance.
 
-**Implementation head is source-verified after the current review corrections; final acceptance remains dependent on the required runtime/automated evidence.**
+**Current status: EXPERIENCE FOUNDATION NOT CLOSED — implementation/source review is advanced, but required closure evidence is intentionally deferred by the active freeze.**
