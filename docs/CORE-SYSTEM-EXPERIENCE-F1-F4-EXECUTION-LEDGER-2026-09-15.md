@@ -8,6 +8,8 @@
 - Visual language: Concept 01 — Clinical Precision.
 - Canonical workflow: VERIFY → PLAN → IMPLEMENT → BUILD → VERIFY → REVIEW → DOCUMENT → CLOSE.
 - Functional boundaries, authorization, data ownership, Communications scope, Agenda authority, and Home boundaries remain protected.
+- **Scope freeze:** unrelated technical-debt, patient/RLS, runtime-error, and non-Experience investigations are paused until F1–F4 closure.
+- **Validation freeze:** no new automated test execution is initiated during this freeze. Existing validation evidence is retained as historical evidence only and does not authorize closure.
 
 ## F1 — Login
 
@@ -95,33 +97,23 @@ Product Owner runtime review identified concrete defects. The following were imp
 7. Today was an oversized replacement container → converted to compact directly actionable metric tiles with icon targets and no arrows.
 8. Obsolete Identity Banner workspace prop → removed and verified.
 
-## Automated validation
+## Validation state during scope freeze
 
-Validation-only PR: #127  
-Validation branch: `verify/experience-foundation-f1-f4-2026-09-15-r2`  
-Unified workflow: `CORE SYSTEM Unified Test Execution Engine`  
-Run: #245 / `34945623748`  
-Latest validation head: `f94f3d356537a880638368abbaa43ad783c421c1`
+Validation-only PR #127 was closed deliberately to stop further automated executions while the Experience Foundation is completed. It was not merged and remains historical only.
 
-Observed run #245 gates:
-- checkout exact candidate — PASS;
-- Node setup — PASS;
-- dependency install — PASS;
-- execution-contract setup — PASS;
-- contract completeness — PASS;
-- Playwright runtime install — PASS;
-- selected execution — IN PROGRESS at latest observation.
+Run #247 (`34945834228`) completed with failure on 2026-09-15. The run was attached to an earlier state of the verification branch; the branch subsequently moved to `0a3bca...`. Therefore that run is **not evidence for the current implementation head** and is not being repaired or rerun during the freeze.
 
-The implementation feature head contains the current code plus documentation reconciliation; the validation branch was fast-forwarded to the same current documentation head before execution.
+A dedicated implementation PR #128 now contains the Experience Foundation feature branch only and is intentionally draft while the closure work continues.
 
-## Final evidence still required
+## Final closure evidence still required after the freeze is lifted
 
-- terminal automated execution result;
+- authoritative automated execution against the final Experience Foundation head;
 - runtime visual verification of F1–F4;
 - Desktop/Tablet/Mobile;
 - RTL/LTR;
 - accessibility/focus/keyboard/touch;
 - Home/Agenda authorization and context;
-- Product Owner runtime acceptance.
+- Product Owner runtime acceptance;
+- final repository documentation and closure record.
 
 No Vercel deployment is used as validation evidence for this phase.
