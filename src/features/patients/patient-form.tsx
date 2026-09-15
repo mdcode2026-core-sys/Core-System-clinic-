@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { useAuth } from "@/core/auth/AuthContext";
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
@@ -16,6 +15,7 @@ import { useI18n } from "@/core/i18n/I18nProvider";
 
 interface PatientFormProps {
   patient?: Patient | null;
+  tenantId: string;
   isOpen: boolean;
   onClose: () => void;
   onSuccess?: () => void;
@@ -26,8 +26,7 @@ interface PatientApiResult {
   error?: string;
 }
 
-export function PatientForm({ patient, isOpen, onClose, onSuccess }: PatientFormProps) {
-  const { tenantId } = useAuth();
+export function PatientForm({ patient, tenantId, isOpen, onClose, onSuccess }: PatientFormProps) {
   const queryClient = useQueryClient();
   const { invalidateAll } = useInvalidatePatients();
   const [isSubmitting, setIsSubmitting] = useState(false);
