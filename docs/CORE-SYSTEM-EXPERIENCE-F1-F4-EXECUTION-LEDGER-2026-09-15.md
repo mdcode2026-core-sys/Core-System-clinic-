@@ -9,7 +9,7 @@
 - Canonical workflow: VERIFY → PLAN → IMPLEMENT → BUILD → VERIFY → REVIEW → DOCUMENT → CLOSE.
 - Functional boundaries, authorization, data ownership, Communications scope, Agenda authority, and Home boundaries remain protected.
 - **Scope freeze:** unrelated technical-debt, patient/RLS, runtime-error, and non-Experience investigations are paused until F1–F4 closure.
-- **Validation freeze:** no new automated test execution is initiated during this freeze. Existing validation evidence is retained as historical evidence only and does not authorize closure.
+- **Important clarification:** the scope freeze does **not** freeze testing, investigation, fixes, build verification, runtime verification, accessibility verification, responsive verification, or documentation that directly belongs to Experience Foundation F1–F4.
 
 ## F1 — Login
 
@@ -98,27 +98,48 @@ Product Owner runtime review identified concrete defects. The following were imp
 8. Obsolete Identity Banner workspace prop → removed and verified.
 9. Undefined Home hover token `--cs-azure-200` → replaced with the defined `--cs-azure-100` token to keep the Concept 01 visual token system internally valid.
 
-## Validation state during scope freeze
+## Authoritative automated validation — Run #280
 
-Validation-only PR #127 was closed deliberately to stop further automated executions while the Experience Foundation is completed. It was not merged and remains historical only.
+Run **#280** / GitHub Actions ID `35004429741` executed against the PR merge candidate generated from head `0bfbfb5cf684aa77331bfa7c043ac506b9418e01` before the latest lint correction.
 
-Run #247 (`34945834228`) completed with failure on 2026-09-15. The run was attached to an earlier state of the verification branch; the branch subsequently moved to `0a3bca...`. Therefore that run is **not evidence for the current implementation head** and is not being repaired or rerun during the freeze.
+Results:
+- execution contract: PASS;
+- typecheck: PASS;
+- build: PASS;
+- authenticated-route E2E: PASS (2/2);
+- authorization runtime: PASS;
+- cross-domain runtime: PASS;
+- database-integrity suite: PASS;
+- patient-journey suite: FAIL;
+- lint: FAIL.
 
-A dedicated implementation PR #128 now contains the Experience Foundation feature branch only and is intentionally draft while the closure work continues.
+The lint failure was directly within F1–F4 scope: `src/features/home/HomeIdentityBanner.tsx` called `setShowWelcome(...)` synchronously inside `useEffect`, triggering the React `set-state-in-effect` rule. This was corrected on the Experience Foundation branch in commit `31bac2e7547fa0cf05b48200ce374b6f9e09251c` by replacing the effect-driven state update with `useSyncExternalStore`, preserving the approved Welcome lifecycle without the lint violation.
 
-The current implementation head at the time of this ledger reconciliation is `8a8037f84d66c354e69e496e18ec56bd34b95212`, which contains the handoff reconciliation and ledger update. The prior implementation correction head was `acc765047d95ffb18caf0f409aaef1b484285011`.
+The Patient Journey failure is **not being treated as an Experience Foundation implementation defect**. Its failure was in the broader real-world clinic journey test while waiting for the Patient entry/add-patient control on `/patients`; `/patients` is outside F1–F4 and remains quarantined under the scope freeze. It must not be silently marked resolved or used to claim Experience Foundation closure.
 
-## Final closure evidence still required after the freeze is lifted
+Run #280 also emitted the pre-existing/repeated `destination stream closed early` runtime error across multiple routes. That broader runtime investigation remains frozen because it is not established as an F1–F4 defect by this run. The affected route checks still recorded PASS where their explicit route assertions completed.
 
-- authoritative automated execution against the final Experience Foundation head;
-- runtime visual verification of F1–F4;
+## Current implementation head
+
+The Experience Foundation branch currently points to `31bac2e7547fa0cf05b48200ce374b6f9e09251c`, which contains the HomeIdentityBanner lint correction. PR #128 remains OPEN/DRAFT and unmerged.
+
+## Validation continuation
+
+The phase is **not closed**. The next required action is a fresh authoritative execution against the exact current head `31bac2e7547fa0cf05b48200ce374b6f9e09251c` so the lint correction is actually evidenced. Testing is explicitly active within F1–F4 despite the unrelated-work freeze.
+
+After the engineering gate is green, continue with the remaining F1–F4 runtime evidence:
+- Login;
+- Header;
+- Home;
+- Home → Workspace;
 - Desktop/Tablet/Mobile;
 - RTL/LTR;
 - accessibility/focus/keyboard/touch;
 - Home/Agenda authorization and context;
+- final visual comparison against Concept 01;
 - Product Owner runtime acceptance;
-- final repository documentation and closure record.
+- repository documentation and closure record.
 
 No Vercel deployment is used as validation evidence for this phase.
 
-**Current status: EXPERIENCE FOUNDATION NOT CLOSED — implementation/source review is advanced, but required closure evidence is intentionally deferred by the active freeze.**
+**Current status: EXPERIENCE FOUNDATION NOT CLOSED — active verification continues.**
