@@ -3,7 +3,6 @@
 import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { HomeWorkspaceTransitionLink } from "./HomeWorkspaceTransitionLink";
 
 const HOME_WELCOME_SEEN_KEY = "core-system-home-welcome-seen";
 
@@ -16,7 +15,7 @@ interface HomeIdentityBannerProps {
   weather: ReactNode;
 }
 
-export function HomeIdentityBanner({ isArabic, clinicName, clinicLogoUrl, displayName, hasWorkspace, weather }: HomeIdentityBannerProps) {
+export function HomeIdentityBanner({ isArabic, clinicName, clinicLogoUrl, displayName, weather }: HomeIdentityBannerProps) {
   const [showWelcome, setShowWelcome] = useState(true);
 
   useEffect(() => {
@@ -25,9 +24,9 @@ export function HomeIdentityBanner({ isArabic, clinicName, clinicLogoUrl, displa
 
   return (
     <section className="cs-surface-raised rounded-2xl p-4 sm:p-5" aria-labelledby="home-identity-title">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-        <div className="flex min-w-0 items-start gap-3 sm:gap-4">
-          <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-[var(--cs-slate-200)] bg-white p-2">
+      <div className="grid min-w-0 gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,0.55fr)] lg:items-center lg:gap-8">
+        <div className="flex min-w-0 items-center gap-3 sm:gap-4">
+          <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-[var(--cs-slate-200)] bg-white p-2 sm:h-16 sm:w-16">
             <Image
               src={clinicLogoUrl || "/brand/clinicsaas-header.svg"}
               alt={clinicLogoUrl ? clinicName : "ClinicSaaS™"}
@@ -44,15 +43,15 @@ export function HomeIdentityBanner({ isArabic, clinicName, clinicLogoUrl, displa
             </h1>
             <p className="mt-1 text-sm leading-6 text-[var(--cs-slate-500)]">
               {showWelcome
-                ? (isArabic ? "هذه هي نقطة الانطلاق لمعرفة ما يهمك اليوم." : "Your starting point for what matters today.")
+                ? (isArabic ? "نظرة سريعة على ما يهمك اليوم." : "A quick view of what matters today.")
                 : (isArabic ? "تابع ما يهمك اليوم وانتقل مباشرة إلى العمل." : "Stay oriented to today and move directly into work.")}
             </p>
           </div>
         </div>
 
-        <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-center lg:max-w-[42rem] lg:justify-end">
-          {weather}
-          {hasWorkspace ? <HomeWorkspaceTransitionLink /> : null}
+        <div className="min-w-0 lg:border-s lg:border-[var(--cs-slate-200)] lg:ps-6">
+          <div className="mb-2 text-xs font-semibold uppercase tracking-[0.12em] text-[var(--cs-slate-500)]">{isArabic ? "الموقع والطقس" : "Location & weather"}</div>
+          <div className="min-w-0">{weather}</div>
         </div>
       </div>
     </section>
