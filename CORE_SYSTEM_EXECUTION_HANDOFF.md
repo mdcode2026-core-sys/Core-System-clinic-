@@ -2,7 +2,7 @@
 
 **Date:** 2026-09-15
 **Current Branch:** `feat/visual-design-constitution-f1-f4-2026-09-15`
-**Current Implementation Head:** `2b2ab162b50ac1ef2b9aaa7b183f0cfddfddf6d8`
+**Current Implementation Head:** `acc765047d95ffb18caf0f409aaef1b484285011`
 **Base:** `main` (`d85a5de23051919fb347e1482bc28f5fe70c0e14`)
 
 ## Objective
@@ -64,6 +64,7 @@ Home composition:
 6. Weather placement changed to dedicated Identity context.
 7. Today changed from a large descriptive container to a compact actionable surface.
 8. Obsolete Identity Banner workspace prop removed.
+9. Undefined Home hover token corrected from `--cs-azure-200` to the defined `--cs-azure-100` token.
 
 ## Scope and validation freeze
 The current work cycle is restricted to Experience Foundation F1–F4. Unrelated technical-debt, patient/RLS, runtime-error, database, and cross-domain investigations are frozen until F1–F4 closure.
