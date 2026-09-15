@@ -1,0 +1,40 @@
+{
+  "contract_version": "1.0",
+  "contract_type": "workstream",
+  "workstream_id": "global-experience-presentation",
+  "contract_path": "docs/CORE-SYSTEM-GLOBAL-EXPERIENCE-PRESENTATION-EXECUTION-STATUS-2026-09-16.md",
+  "status": "binding",
+  "applicability": {
+    "match_any": [
+      "^src/features/workspace/GlobalHeader\\.tsx$",
+      "^src/features/workspace/WorkspaceShell\\.tsx$",
+      "^src/features/workspace/CommunicationsHeaderControl\\.tsx$",
+      "^src/features/workspace/NotificationsHeaderControl\\.tsx$",
+      "^src/features/workspace/QuickActionsHeaderControl\\.tsx$",
+      "^src/features/workspace/GlobalChatHeaderControl\\.tsx$",
+      "^src/features/workspace/GlobalOverlayPortal\\.tsx$",
+      "^docs/CORE-SYSTEM-GLOBAL-EXPERIENCE-PRESENTATION-EXECUTION-STATUS-2026-09-16\\.md$",
+      "^docs/testing/workstream-contracts/global-experience-presentation\\.execution\\.json$"
+    ]
+  },
+  "required_engineering": ["typecheck", "lint", "build"],
+  "required_suites": ["engineering", "authorization"],
+  "excluded_suites": ["authenticated-e2e", "patient-journey"],
+  "regression_level": "R3",
+  "workstream_checks": [],
+  "exclusion_reasons": [
+    {
+      "suite": "patient-journey",
+      "reason": "Patient Journey E2E is outside the approved Global Experience Presentation phase; its related work is frozen and must not block this phase."
+    },
+    {
+      "suite": "authenticated-e2e",
+      "reason": "The authenticated-route financial-installments E2E is outside this presentation phase; unrelated authentication/runtime issues are frozen for later work."
+    }
+  ],
+  "notes": [
+    "This is a stage-scope descriptor consumed by the Unified Test Execution Engine setup/runner.",
+    "Excluding a suite here does not weaken the in-scope authorization-runtime gate; it prevents unrelated historical branch triggers from becoming blockers for this stage.",
+    "No Patient Journey implementation or unrelated authentication remediation is authorized by this stage contract."
+  ]
+}
