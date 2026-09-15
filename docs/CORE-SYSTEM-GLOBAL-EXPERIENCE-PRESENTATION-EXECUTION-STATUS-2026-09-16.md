@@ -6,7 +6,7 @@
 **Single execution branch:** `fix/global-surfaces-desktop-box-geometry-2026-09-14`
 **Pull Request:** #122
 **Stacked base:** `feat/visual-design-constitution-f1-f4-2026-09-15` (PR #128)
-**Current reviewed head:** `1f3ee3b47608d971badd47e90f9c08c70eeb44a2`
+**Current reviewed head:** `8a07800cff7af61ada887e7b1600082443c4a7ee`
 
 ## Branch discipline
 
@@ -20,7 +20,7 @@ The Global Experience Presentation phase covers the global shell, Header, Sideba
 
 **Patient Journey E2E is outside this phase.** Patient Journey implementation and its related failures remain frozen for its later execution stream and must not block this phase.
 
-The authenticated-route E2E currently points at a protected financial-installments route and is likewise outside this presentation phase. Unrelated authentication/runtime remediation remains frozen; the in-scope `authorization-runtime` gate remains required.
+The authenticated-route E2E currently targets a protected financial-installments route and is likewise outside this presentation phase. Unrelated authentication/runtime remediation remains frozen; the in-scope `authorization-runtime` gate remains required.
 
 This scope is encoded in `docs/testing/workstream-contracts/global-experience-presentation.execution.json`. The Unified Test Execution Engine now records excluded suites explicitly rather than silently treating them as passes.
 
@@ -42,50 +42,53 @@ This scope is encoded in `docs/testing/workstream-contracts/global-experience-pr
 - Adaptive Hybrid Experience Model (Horizon + Vertex + Zenith) was not changed.
 - Approved functional ownership, authorization, Communications scope, Agenda authority, Patient Flow / Patient Journey boundaries, and other settled UX decisions were not changed.
 
-## Exact automated verification evidence
+## Automated verification evidence
 
-The latest completed Unified Test Execution Engine run previously available was **Run #296**. It executed against head `d3ce47476ed44362bfa5f31bd49d06408bf692e8`, before the later scope/test-engine changes.
+The latest completed Unified Test Execution Engine run previously available was **Run #296**. It executed against head `d3ce47476ed44362bfa5f31bd49d06408bf692e8`, before the stage-scope test-engine changes.
 
-Engineering gates on Run #296:
+Run #296:
 - `typecheck` — PASS
 - `lint` — PASS
 - `build` — PASS
-- i18n catalog parity — PASS
-
-Runtime/domain suites on Run #296:
+- i18n parity — PASS
 - `authorization-runtime` — PASS
 - `cross-domain-runtime` — PASS
 - `database-integrity` — PASS
-- `authenticated-route-e2e` — FAIL
-- `real-world-clinic-journey-e2e` — FAIL
+- `authenticated-route-e2e` — FAIL (out-of-scope financial-installments route)
+- `real-world-clinic-journey-e2e` — FAIL (out-of-scope Patient Journey appointment booking)
 
-The authenticated-route failure was the unrelated financial-installments authorization flow described above.
+No Unified Test Execution Engine run has been generated for current head `8a07800cff7af61ada887e7b1600082443c4a7ee` in the connected GitHub environment. The repository-API commit path used here does not create a pull-request workflow run through the available connector, so no current-head automated PASS/FAIL is claimed.
 
-The Patient Journey failure occurred during appointment booking. That suite is now explicitly excluded from this phase by contract scope, so it is not an in-scope closure gate.
-
-There is currently **no Unified Test Execution Engine run for reviewed head `1f3ee3b47608d971badd47e90f9c08c70eeb44a2`**. The GitHub connector has not produced a pull-request workflow run for the commits written through the connected repository API, so no current-head automated test result is claimed.
+The stage-scope contract is now explicitly represented in `docs/testing/workstream-contracts/global-experience-presentation.execution.json`: `patient-journey` and `authenticated-e2e` are excluded from this phase, while `authorization-runtime` remains required.
 
 ## Deployment verification state
 
-Vercel created a preview deployment for the updated PR branch after the scope changes. The latest observed deployment is for head `1f3ee3b47608d971badd47e90f9c08c70eeb44a2`; its deployment was still queued at the latest status check. A previous deployment for head `818fc8a7c998129f8afadc31d353b25bea79bb87` reached `READY` and completed a production build successfully, including TypeScript compilation and static generation. This is build evidence only, not runtime closure evidence.
+Vercel preview deployment for current head `8a07800cff7af61ada887e7b1600082443c4a7ee`:
+- Deployment: `dpl_6wMASjX9PEGK2KxTmd8Xghu3n7xE`
+- State: `READY`
+- Build: completed successfully
+- i18n catalog parity: PASS
+- TypeScript compilation: completed
+- Static generation: 55/55 pages completed
+- Deployment output completed successfully
+- Vercel preview runtime error query for the inspected hour returned no `error`/`fatal` logs.
+
+This is deployment/build evidence only. Interactive browser/device/PWA verification was not completed because the connected environment could not obtain an interactive browser session for the protected preview deployment; therefore those contract gates remain open.
 
 ## Open gates — NOT CLOSED
 
-- Obtain exact-current-head unified test evidence after the scope exclusion is applied.
-- Verify Chat geometry and RTL/LTR movement/resizing at runtime.
-- Verify Chat Tablet and Mobile interaction flows at runtime.
-- Verify shared overlay positioning in Desktop, Tablet, and Mobile modes.
-- Verify desktop/tablet/mobile browser and standalone/PWA presentation.
-- Verify RTL and LTR across all global surfaces.
-- Verify Touch behavior, including scroll-vs-drag and drag-vs-resize.
-- Verify Keyboard navigation, focus-visible behavior, focus restoration, Escape, and logical tab order.
-- Verify safe-area behavior across browser/PWA environments and device orientations.
-- Verify Brand dimensions/aspect/clickable area and Sidebar-trigger relationship.
-- Verify Global Search regression behavior.
-- Complete current-head Build/typecheck/lint/test evidence.
-- Complete runtime/deployment verification.
-- Complete no-regression verification.
-- Complete final contract checklist with objective evidence for every item.
+- Exact-current-head Unified Test Execution Engine evidence.
+- Runtime verification of Chat movement/resize and responsive compositions.
+- Runtime verification of shared overlay boundaries and RTL/LTR behavior.
+- Desktop/tablet/mobile browser verification.
+- Standalone/PWA verification.
+- Touch verification, especially scroll-vs-drag and drag-vs-resize.
+- Keyboard navigation, focus-visible behavior, focus restoration, Escape, and logical tab order verification.
+- Safe-area behavior across browser/PWA environments and device orientations.
+- Brand dimensions/aspect/clickable area and Sidebar-trigger relationship verification.
+- Global Search regression verification.
+- No-regression verification.
+- Final contract checklist with objective evidence for every item.
 
 ## Contract checklist
 
@@ -119,4 +122,4 @@ Vercel created a preview deployment for the updated PR branch after the scope ch
 
 ## Closure
 
-**NOT CLOSED.** Excluded suites are explicitly out of scope; they are not recorded as passes and do not alter the in-scope contract. PR #122 remains the single execution path until every applicable contract item is implemented and objectively verified.
+**NOT CLOSED.** The phase-scoped exclusions are explicit and do not count as passes. PR #122 remains the single execution path until every applicable contract item has objective verification evidence.
