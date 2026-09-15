@@ -1,7 +1,7 @@
 "use client";
 
 import { Cloud, CloudFog, CloudLightning, CloudRain, CloudSun, Droplets, Sun, Wind } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 
 interface HomeWeatherProps {
   address?: string | null;
@@ -116,26 +116,19 @@ async function fetchWeather(
 }
 
 export function HomeWeather({ address, countryCode, isArabic }: HomeWeatherProps) {
-  const [weather, setWeather] = useState<WeatherData | null>(null);
-  const [loading, setLoading] = useState(Boolean(address?.trim()));
+  const hasAddress = Boolean(address?.trim());
+  const query = useQuery({
+    queryKey: ["home-weather", address?.trim() ?? "", countryCode?.trim().toUpperCase() ?? "", isArabic],
+    queryFn: ({ signal }) => fetchWeather(address, countryCode, isArabic, signal),
+    enabled: hasAddress,
+    staleTime: 10 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    retry: false,
+  });
 
-  useEffect(() => {
-    const controller = new AbortController();
-    if (!address?.trim()) {
-      setWeather(null);
-      setLoading(false);
-      return () => controller.abort();
-    }
-
-    setLoading(true);
-    void fetchWeather(address, countryCode, isArabic, controller.signal)
-      .then(setWeather)
-      .finally(() => {
-        if (!controller.signal.aborted) setLoading(false);
-      });
-
-    return () => controller.abort();
-  }, [address, countryCode, isArabic]);
+  const weather = query.data ?? null;
+  const loading = hasAddress && query.isPending;
 
   if (loading) {
     return (
