@@ -6,17 +6,63 @@ import type { Patient, PatientHistory } from "./patients.types";
 
 const supabase = createClient();
 
+/**
+ * TanStack Query can cancel a query by aborting its signal. The pinned
+ * Supabase client version used by this repository does not expose the
+ * PostgREST `.abortSignal()` modifier in its TypeScript surface, so we
+ * consume the signal at the Promise boundary instead. This prevents a
+ * superseded read from publishing its result back into the query cache.
+ */
+function withAbortSignal<T>(promise: PromiseLike<T>, signal: AbortSignal): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    let settled = false;
+
+    const cleanup = () => {
+      signal.removeEventListener("abort", onAbort);
+    };
+
+    const onAbort = () => {
+      if (settled) return;
+      settled = true;
+      cleanup();
+      reject(new DOMException("The operation was aborted.", "AbortError"));
+    };
+
+    if (signal.aborted) {
+      onAbort();
+      return;
+    }
+
+    signal.addEventListener("abort", onAbort, { once: true });
+
+    Promise.resolve(promise).then(
+      (value) => {
+        if (settled) return;
+        settled = true;
+        cleanup();
+        resolve(value);
+      },
+      (error) => {
+        if (settled) return;
+        settled = true;
+        cleanup();
+        reject(error);
+      },
+    );
+  });
+}
+
 export function usePatients(tenantId: string | null) {
   return useQuery({
     queryKey: ["patients", tenantId],
     queryFn: async ({ signal }) => {
-      const { data, error } = await supabase
+      const result = supabase
         .from("clinic_patients")
         .select("*")
         .eq("tenant_id", tenantId)
         .is("deleted_at", null)
-        .order("created_at", { ascending: false })
-        .abortSignal(signal);
+        .order("created_at", { ascending: false });
+      const { data, error } = await withAbortSignal(result, signal);
       if (error) throw error;
       return data as Patient[];
     },
@@ -28,12 +74,12 @@ export function usePatientById(patientId: string | null) {
   return useQuery({
     queryKey: ["patient", patientId],
     queryFn: async ({ signal }) => {
-      const { data, error } = await supabase
+      const result = supabase
         .from("clinic_patients")
         .select("*")
         .eq("id", patientId)
-        .single()
-        .abortSignal(signal);
+        .single();
+      const { data, error } = await withAbortSignal(result, signal);
       if (error) throw error;
       return data as Patient;
     },
@@ -45,12 +91,12 @@ export function usePatientHistory(patientId: string | null) {
   return useQuery({
     queryKey: ["patient-history", patientId],
     queryFn: async ({ signal }) => {
-      const { data, error } = await supabase
+      const result = supabase
         .from("patient_history")
         .select("*")
         .eq("patient_id", patientId)
-        .single()
-        .abortSignal(signal);
+        .single();
+      const { data, error } = await withAbortSignal(result, signal);
       if (error) throw error;
       return data as PatientHistory;
     },
