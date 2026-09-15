@@ -49,8 +49,10 @@ const runtimeSuites = new Set([
   "procurement-inventory-finance",
 ]);
 
+const excludedSuites = new Set(Array.isArray(plan.excluded_suites) ? plan.excluded_suites : []);
 const required = [...new Set([...(plan.required_suites || []), "engineering"])]
-  .filter((suite) => commands[suite]);
+  .filter((suite) => commands[suite] && !excludedSuites.has(suite));
+const excludedRequiredSuites = [...new Set(plan.required_suites || [])].filter((suite) => excludedSuites.has(suite));
 
 const ordered = [
   "engineering",
@@ -118,6 +120,14 @@ function addBlockedResult(suite, test, command, reason) {
 }
 
 try {
+  if (excludedRequiredSuites.length) {
+    console.log(`\n=== EXCLUDED SUITES=${excludedRequiredSuites.join(",")} ===`);
+    for (const suite of excludedRequiredSuites) {
+      const reasons = (plan.exclusion_reasons || []).filter((item) => item.suite === suite);
+      for (const reason of reasons) console.log(`EXCLUSION suite=${suite} reason=${reason.reason}`);
+    }
+  }
+
   for (const suite of ordered) {
     const needsRuntime = runtimeSuites.has(suite);
     if (needsRuntime && !startServer()) {
@@ -159,8 +169,13 @@ const report = {
   contract_version: plan.contract_version,
   baseline: plan.baseline,
   candidate: plan.candidate,
-  regression_level: plan.regression_level,
+  changed_files: plan.changed_files,
+  impact: plan.impact,
+  roles: plan.roles,
+  required_engineering: plan.required_engineering,
   required_suites: required,
+  excluded_suites: excludedRequiredSuites,
+  exclusion_reasons: plan.exclusion_reasons || [],
   execution_order: ordered,
   results,
   summary: {
