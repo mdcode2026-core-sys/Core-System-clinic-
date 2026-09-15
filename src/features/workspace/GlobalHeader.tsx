@@ -1,36 +1,93 @@
 "use client";
 
-import type { ReactNode } from "react";
+import type { ReactNode, RefObject } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Menu } from "lucide-react";
 import { cn } from "@/shared/utils/cn";
+import styles from "./GlobalSurfacesDesktopGeometry.module.css";
 
 interface GlobalHeaderProps {
   isArabic: boolean;
   mobileSidebarOpen: boolean;
   onOpenMobileSidebar: () => void;
+  mobileSidebarTriggerRef?: RefObject<HTMLButtonElement | null>;
   brand?: ReactNode;
   search?: ReactNode;
   controls?: ReactNode;
   className?: string;
 }
 
-export function GlobalHeader({ isArabic, mobileSidebarOpen, onOpenMobileSidebar, brand, search, controls, className }: GlobalHeaderProps) {
+export function GlobalHeader({
+  isArabic,
+  mobileSidebarOpen,
+  onOpenMobileSidebar,
+  mobileSidebarTriggerRef,
+  brand,
+  search,
+  controls,
+  className,
+}: GlobalHeaderProps) {
   const defaultBrand = (
-    <Link href="/" className="inline-flex h-9 max-w-[7.25rem] shrink-0 items-center rounded-xl px-0.5 transition-opacity hover:opacity-85 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 sm:h-11 sm:max-w-[9.5rem]" aria-label={isArabic ? "الرئيسية — ClinicSaaS" : "Home — ClinicSaaS"} data-testid="global-header-brand">
-      <Image src="/brand/clinicsaas-header.svg" alt="ClinicSaaS™" width={150} height={33} priority className="h-7 w-auto max-w-[7.25rem] sm:h-9 sm:max-w-[9.5rem]" />
+    <Link
+      href="/"
+      className="inline-flex min-h-10 max-w-[9.5rem] shrink-0 items-center rounded-lg px-0.5 transition-opacity hover:opacity-85 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 sm:min-h-11"
+      aria-label={isArabic ? "الرئيسية — ClinicSaaS" : "Home — ClinicSaaS"}
+      data-testid="global-header-brand"
+    >
+      <Image
+        src="/brand/clinicsaas-header.svg"
+        alt="ClinicSaaS™"
+        width={150}
+        height={33}
+        priority
+        className="h-7 w-auto max-w-[8rem] sm:h-8 sm:max-w-[9.5rem]"
+      />
     </Link>
   );
 
   return (
-    <header className={cn("sticky top-0 z-30 flex min-h-14 w-full min-w-0 items-center gap-1 overflow-visible border-b border-slate-200/90 bg-white/95 px-1.5 py-1.5 shadow-[0_1px_8px_rgba(15,23,42,0.04)] backdrop-blur sm:min-h-16 sm:gap-2 sm:px-3 sm:py-2 md:gap-2.5 md:px-4 lg:px-5", className)} data-testid="global-header">
-      <button type="button" onClick={onOpenMobileSidebar} className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 sm:h-10 sm:w-10 sm:rounded-xl lg:hidden" aria-label={isArabic ? "فتح القائمة" : "Open navigation"} aria-expanded={mobileSidebarOpen} aria-controls="global-sidebar" data-testid="global-header-mobile-nav">
-        <Menu className="h-5 w-5" aria-hidden="true" />
-      </button>
-      <div className="min-w-0 shrink items-center overflow-hidden">{brand ?? defaultBrand}</div>
-      <div className="h-9 w-9 shrink-0 md:h-10 md:w-[min(26vw,24rem)] lg:w-[28rem]" data-testid="global-header-search-slot">{search}</div>
-      {controls ? <div className="ms-auto flex min-w-0 shrink items-center justify-end gap-0 rounded-xl border border-slate-200/80 bg-slate-50/70 p-0 sm:gap-0.5 sm:p-0.5" data-testid="global-header-controls">{controls}</div> : null}
+    <header
+      dir={isArabic ? "rtl" : "ltr"}
+      className={cn(
+        styles.geometry,
+        "sticky top-0 z-30 grid min-h-14 w-full min-w-0 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 overflow-visible border-b border-slate-200 bg-white px-2 pt-[env(safe-area-inset-top)] pb-2 shadow-[0_1px_8px_rgba(15,23,42,0.04)] sm:min-h-16 sm:px-3 md:grid-cols-[auto_minmax(18rem,1fr)_auto] md:gap-3 md:px-4 lg:px-5",
+        className,
+      )}
+      data-testid="global-header"
+    >
+      <div className="flex min-w-0 items-center gap-2" data-testid="global-header-identity">
+        <button
+          ref={mobileSidebarTriggerRef}
+          type="button"
+          onClick={onOpenMobileSidebar}
+          className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 lg:hidden"
+          aria-label={isArabic ? "فتح القائمة" : "Open navigation"}
+          aria-expanded={mobileSidebarOpen}
+          aria-controls="global-sidebar"
+          data-testid="global-header-mobile-nav"
+        >
+          <Menu className="h-5 w-5" aria-hidden="true" />
+        </button>
+        <div className="min-w-0 shrink">{brand ?? defaultBrand}</div>
+      </div>
+
+      <div
+        className="min-w-0 justify-self-stretch md:mx-auto md:w-full md:max-w-[34rem]"
+        data-testid="global-header-search-slot"
+      >
+        {search}
+      </div>
+
+      {controls ? (
+        <div
+          className="flex min-w-0 max-w-full items-center justify-end gap-0.5 overflow-x-auto overscroll-x-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          data-testid="global-header-controls"
+          aria-label={isArabic ? "أدوات النظام العامة" : "Global controls"}
+        >
+          {controls}
+        </div>
+      ) : null}
     </header>
   );
 }

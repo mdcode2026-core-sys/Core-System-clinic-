@@ -1,0 +1,13 @@
+.geometry {}
+
+@media (min-width: 768px) {
+  .geometry :global([data-testid="notifications-header-panel"]) {
+    width: 368px !important;
+    max-width: calc(100vw - 24px) !important;
+  }
+
+  .geometry :global([role="dialog"][aria-label="تنبيهات وملاحظات الاتصالات"]) {
+    width: 352px !important;
+    max-width: calc(100vw - 24px) !important;
+  }
+}
