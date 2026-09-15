@@ -57,18 +57,16 @@ export function PatientForm({ patient, tenantId, isOpen, onClose, onSuccess }: P
     return Object.keys(nextErrors).length === 0;
   };
 
-  const localizeServerError = (code: string) =>
-    ({
-      PATIENT_TENANT_MISSING: t.clinicNotFound,
-      PATIENT_DATABASE_ERROR: t.unexpected,
-      PATIENT_INVALID_REQUEST: t.unexpected,
-    }[code] || t.unexpected);
+  const localizeServerError = (code: string) => ({
+    PATIENT_TENANT_MISSING: t.clinicNotFound,
+    PATIENT_DATABASE_ERROR: t.unexpected,
+    PATIENT_INVALID_REQUEST: t.unexpected,
+  }[code] || t.unexpected);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setServerError(null);
     if (!validate()) return;
-
     setIsSubmitting(true);
     try {
       const response = await fetch("/api/patients", {
@@ -77,34 +75,31 @@ export function PatientForm({ patient, tenantId, isOpen, onClose, onSuccess }: P
         credentials: "same-origin",
         body: JSON.stringify({ ...formData, ...(patient ? { id: patient.id } : {}) }),
       });
-
       let result: PatientApiResult = {};
-      try {
-        result = (await response.json()) as PatientApiResult;
-      } catch {
-        result = { error: "PATIENT_DATABASE_ERROR" };
-      }
-
+      try { result = (await response.json()) as PatientApiResult; } catch { result = { error: "PATIENT_DATABASE_ERROR" }; }
       if (!response.ok || result.error || !result.data) {
         setServerError(localizeServerError(result.error || "PATIENT_DATABASE_ERROR"));
         return;
       }
 
       const updatedPatient = result.data;
-      queryClient.setQueryData<Patient[]>(["patients", tenantId], (currentPatients = []) => {
-        if (patient) {
-          return currentPatients.map((currentPatient) =>
-            currentPatient.id === updatedPatient.id ? updatedPatient : currentPatient,
-          );
-        }
+      const patientListKey = ["patients", tenantId] as const;
+      const mergeAuthoritativePatient = (currentPatients: Patient[] = []) => {
+        if (patient) return currentPatients.map((currentPatient) => currentPatient.id === updatedPatient.id ? updatedPatient : currentPatient);
         return [updatedPatient, ...currentPatients.filter((currentPatient) => currentPatient.id !== updatedPatient.id)];
-      });
+      };
+
+      // The POST/PATCH response is authoritative. Update the active list immediately,
+      // attempt a fresh read, then re-apply the authoritative row so a transient
+      // read-after-write/cache race cannot hide a successful save from the user.
+      queryClient.setQueryData<Patient[]>(patientListKey, mergeAuthoritativePatient);
+      await queryClient.refetchQueries({ queryKey: patientListKey, type: "active" }).catch(() => undefined);
+      queryClient.setQueryData<Patient[]>(patientListKey, mergeAuthoritativePatient);
 
       if (patient) {
         void queryClient.invalidateQueries({ queryKey: ["patient", updatedPatient.id] });
         void queryClient.invalidateQueries({ queryKey: ["patient-history", updatedPatient.id] });
       }
-
       onSuccess?.();
       onClose();
     } catch {
@@ -116,58 +111,23 @@ export function PatientForm({ patient, tenantId, isOpen, onClose, onSuccess }: P
 
   const handleChange = (field: string, value: string) => {
     setFormData((previous) => ({ ...previous, [field]: value }));
-    if (errors[field]) {
-      setErrors((previous) => {
-        const next = { ...previous };
-        delete next[field];
-        return next;
-      });
-    }
+    if (errors[field]) setErrors((previous) => { const next = { ...previous }; delete next[field]; return next; });
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="w-[calc(100vw-1rem)] max-w-2xl max-h-[90dvh] overflow-y-auto p-3 sm:w-[calc(100vw-2rem)] sm:p-6">
-        <DialogHeader>
-          <DialogTitle>{patient ? t.editTitle : t.newTitle}</DialogTitle>
-          <DialogDescription>{patient ? t.editDescription : t.newDescription}</DialogDescription>
-        </DialogHeader>
+        <DialogHeader><DialogTitle>{patient ? t.editTitle : t.newTitle}</DialogTitle><DialogDescription>{patient ? t.editDescription : t.newDescription}</DialogDescription></DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           {serverError && <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive text-center">{serverError}</div>}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Field id="first_name" label={t.firstName} required value={formData.first_name} error={errors.first_name} onChange={(value) => handleChange("first_name", value)} />
-            <Field id="last_name" label={t.lastName} required value={formData.last_name} error={errors.last_name} onChange={(value) => handleChange("last_name", value)} />
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Field id="first_name_ar" label={t.firstNameAr} value={formData.first_name_ar} onChange={(value) => handleChange("first_name_ar", value)} />
-            <Field id="last_name_ar" label={t.lastNameAr} value={formData.last_name_ar} onChange={(value) => handleChange("last_name_ar", value)} />
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Field id="phone_primary" label={t.primaryPhone} required value={formData.phone_primary} error={errors.phone_primary} onChange={(value) => handleChange("phone_primary", value)} type="tel" />
-            <Field id="phone_secondary" label={t.secondaryPhone} value={formData.phone_secondary} onChange={(value) => handleChange("phone_secondary", value)} type="tel" />
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Field id="email" label={t.email} value={formData.email} onChange={(value) => handleChange("email", value)} type="email" />
-            <Field id="date_of_birth" label={t.dob} value={formData.date_of_birth} onChange={(value) => handleChange("date_of_birth", value)} type="date" />
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <SelectField label={t.gender} placeholder={t.chooseGender} value={formData.gender} onChange={(value) => handleChange("gender", value)} items={[["male", t.male], ["female", t.female], ["other", t.other]]} />
-            <SelectField label={t.preferredChannel} placeholder={t.chooseChannel} value={formData.preferred_channel} onChange={(value) => handleChange("preferred_channel", value)} items={[["whatsapp", t.whatsapp], ["sms", t.sms], ["email", t.emailChannel], ["phone", t.phoneChannel]]} />
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Field id="referral_source" label={t.referralSource} value={formData.referral_source} onChange={(value) => handleChange("referral_source", value)} placeholder={t.referralPlaceholder} />
-            <SelectField label={t.status} placeholder={t.chooseStatus} value={formData.patient_status} onChange={(value) => handleChange("patient_status", value)} items={[["active", t.active], ["inactive", t.inactive], ["archived", t.archived], ["blocked", t.blocked]]} />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="notes">{t.notes}</Label>
-            <Textarea id="notes" value={formData.notes} onChange={(event) => handleChange("notes", event.target.value)} placeholder={t.notesPlaceholder} rows={3} />
-          </div>
-          <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 pt-4">
-            <Button variant="outline" onClick={onClose} type="button" disabled={isSubmitting}>{t.cancel}</Button>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? <><Loader2 className="w-4 h-4 ml-2 animate-spin" />{t.saving}</> : <><Save className="w-4 h-4 ml-2" />{t.save}</>}
-            </Button>
-          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4"><Field id="first_name" label={t.firstName} required value={formData.first_name} error={errors.first_name} onChange={(value) => handleChange("first_name", value)} /><Field id="last_name" label={t.lastName} required value={formData.last_name} error={errors.last_name} onChange={(value) => handleChange("last_name", value)} /></div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4"><Field id="first_name_ar" label={t.firstNameAr} value={formData.first_name_ar} onChange={(value) => handleChange("first_name_ar", value)} /><Field id="last_name_ar" label={t.lastNameAr} value={formData.last_name_ar} onChange={(value) => handleChange("last_name_ar", value)} /></div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4"><Field id="phone_primary" label={t.primaryPhone} required value={formData.phone_primary} error={errors.phone_primary} onChange={(value) => handleChange("phone_primary", value)} type="tel" /><Field id="phone_secondary" label={t.secondaryPhone} value={formData.phone_secondary} onChange={(value) => handleChange("phone_secondary", value)} type="tel" /></div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4"><Field id="email" label={t.email} value={formData.email} onChange={(value) => handleChange("email", value)} type="email" /><Field id="date_of_birth" label={t.dob} value={formData.date_of_birth} onChange={(value) => handleChange("date_of_birth", value)} type="date" /></div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4"><SelectField label={t.gender} placeholder={t.chooseGender} value={formData.gender} onChange={(value) => handleChange("gender", value)} items={[["male", t.male], ["female", t.female], ["other", t.other]]} /><SelectField label={t.preferredChannel} placeholder={t.chooseChannel} value={formData.preferred_channel} onChange={(value) => handleChange("preferred_channel", value)} items={[["whatsapp", t.whatsapp], ["sms", t.sms], ["email", t.emailChannel], ["phone", t.phoneChannel]]} /></div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4"><Field id="referral_source" label={t.referralSource} value={formData.referral_source} onChange={(value) => handleChange("referral_source", value)} placeholder={t.referralPlaceholder} /><SelectField label={t.status} placeholder={t.chooseStatus} value={formData.patient_status} onChange={(value) => handleChange("patient_status", value)} items={[["active", t.active], ["inactive", t.inactive], ["archived", t.archived], ["blocked", t.blocked]]} /></div>
+          <div className="space-y-2"><Label htmlFor="notes">{t.notes}</Label><Textarea id="notes" value={formData.notes} onChange={(event) => handleChange("notes", event.target.value)} placeholder={t.notesPlaceholder} rows={3} /></div>
+          <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 pt-4"><Button variant="outline" onClick={onClose} type="button" disabled={isSubmitting}>{t.cancel}</Button><Button type="submit" disabled={isSubmitting}>{isSubmitting ? <><Loader2 className="w-4 h-4 ml-2 animate-spin" />{t.saving}</> : <><Save className="w-4 h-4 ml-2" />{t.save}</>}</Button></div>
         </form>
       </DialogContent>
     </Dialog>
