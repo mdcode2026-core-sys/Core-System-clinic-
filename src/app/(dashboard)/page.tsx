@@ -42,7 +42,7 @@ export default async function HomePage() {
   ].filter((item) => item.show);
   return (
     <div className="cs-page-canvas mx-auto w-full max-w-[1600px] space-y-6" dir={ar ? "rtl" : "ltr"}>
-      <HomeIdentityBanner isArabic={ar} clinicName={clinicName} clinicLogoUrl={tenant?.logo_url} displayName={displayName} hasWorkspace={hasWorkspace} weather={<HomeWeather address={tenant?.address} countryCode={tenant?.country_code} isArabic={ar} />} />
+      <HomeIdentityBanner isArabic={ar} clinicName={clinicName} clinicLogoUrl={tenant?.logo_url} displayName={displayName} weather={<HomeWeather address={tenant?.address} countryCode={tenant?.country_code} isArabic={ar} />} />
       {metrics.length > 0 ? (
         <section aria-labelledby="home-today-title">
           <div className="mb-2 flex items-baseline justify-between gap-3"><h2 id="home-today-title" className="text-lg font-semibold tracking-tight text-[var(--cs-ink-950)]">{ar ? "اليوم" : "Today"}</h2><span className="text-xs text-[var(--cs-slate-500)]">{ar ? "نظرة يومية" : "Daily view"}</span></div>
