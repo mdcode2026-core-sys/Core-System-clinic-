@@ -9,13 +9,14 @@ const supabase = createClient();
 export function usePatients(tenantId: string | null) {
   return useQuery({
     queryKey: ["patients", tenantId],
-    queryFn: async () => {
+    queryFn: async ({ signal }) => {
       const { data, error } = await supabase
         .from("clinic_patients")
         .select("*")
         .eq("tenant_id", tenantId)
         .is("deleted_at", null)
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: false })
+        .abortSignal(signal);
       if (error) throw error;
       return data as Patient[];
     },
@@ -26,12 +27,13 @@ export function usePatients(tenantId: string | null) {
 export function usePatientById(patientId: string | null) {
   return useQuery({
     queryKey: ["patient", patientId],
-    queryFn: async () => {
+    queryFn: async ({ signal }) => {
       const { data, error } = await supabase
         .from("clinic_patients")
         .select("*")
         .eq("id", patientId)
-        .single();
+        .single()
+        .abortSignal(signal);
       if (error) throw error;
       return data as Patient;
     },
@@ -42,12 +44,13 @@ export function usePatientById(patientId: string | null) {
 export function usePatientHistory(patientId: string | null) {
   return useQuery({
     queryKey: ["patient-history", patientId],
-    queryFn: async () => {
+    queryFn: async ({ signal }) => {
       const { data, error } = await supabase
         .from("patient_history")
         .select("*")
         .eq("patient_id", patientId)
-        .single();
+        .single()
+        .abortSignal(signal);
       if (error) throw error;
       return data as PatientHistory;
     },
