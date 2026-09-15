@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 import Image from "next/image";
 
 const HOME_WELCOME_SEEN_KEY = "core-system-home-welcome-seen";
@@ -14,12 +14,24 @@ interface HomeIdentityBannerProps {
   weather: ReactNode;
 }
 
-export function HomeIdentityBanner({ isArabic, clinicName, clinicLogoUrl, displayName, weather }: HomeIdentityBannerProps) {
-  const [showWelcome, setShowWelcome] = useState(true);
+function subscribeToHomeWelcome() {
+  return () => undefined;
+}
 
-  useEffect(() => {
-    setShowWelcome(sessionStorage.getItem(HOME_WELCOME_SEEN_KEY) !== "1");
-  }, []);
+function getHomeWelcomeSnapshot() {
+  return typeof window !== "undefined" && sessionStorage.getItem(HOME_WELCOME_SEEN_KEY) !== "1";
+}
+
+function getHomeWelcomeServerSnapshot() {
+  return true;
+}
+
+export function HomeIdentityBanner({ isArabic, clinicName, clinicLogoUrl, displayName, weather }: HomeIdentityBannerProps) {
+  const showWelcome = useSyncExternalStore(
+    subscribeToHomeWelcome,
+    getHomeWelcomeSnapshot,
+    getHomeWelcomeServerSnapshot,
+  );
 
   return (
     <section className="cs-surface-raised rounded-2xl p-4 sm:p-5" aria-labelledby="home-identity-title">
