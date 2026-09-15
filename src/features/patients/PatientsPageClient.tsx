@@ -48,7 +48,7 @@ export default function PatientsPageClient({ tenantId, userId, canCreate }: Pati
         )}
       </div>
       <PatientList onBookAppointment={handleBookAppointment} />
-      <PatientForm isOpen={isFormOpen} onClose={() => setIsFormOpen(false)} onSuccess={() => setIsFormOpen(false)} />
+      <PatientForm tenantId={tenantId} isOpen={isFormOpen} onClose={() => setIsFormOpen(false)} onSuccess={() => setIsFormOpen(false)} />
       <AgendaEventForm
         isOpen={isAgendaOpen}
         onClose={() => {
