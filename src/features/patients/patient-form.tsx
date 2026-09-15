@@ -89,10 +89,14 @@ export function PatientForm({ patient, tenantId, isOpen, onClose, onSuccess }: P
         return [updatedPatient, ...currentPatients.filter((currentPatient) => currentPatient.id !== updatedPatient.id)];
       };
 
-      // The POST/PATCH response is authoritative. Update the active list immediately,
-      // attempt a fresh read, then re-apply the authoritative row so a transient
-      // read-after-write/cache race cannot hide a successful save from the user.
+      // The POST/PATCH response is authoritative. Cancel any list read that was
+      // already in flight before the save, otherwise that older response can
+      // overwrite the successful mutation result after the form closes.
+      await queryClient.cancelQueries({ queryKey: patientListKey });
       queryClient.setQueryData<Patient[]>(patientListKey, mergeAuthoritativePatient);
+
+      // Re-read the authoritative tenant-scoped list, then restore the mutation
+      // result because a transient read-after-write race must not hide a success.
       await queryClient.refetchQueries({ queryKey: patientListKey, type: "active" }).catch(() => undefined);
       queryClient.setQueryData<Patient[]>(patientListKey, mergeAuthoritativePatient);
 
