@@ -6,12 +6,23 @@
 **Single execution branch:** `fix/global-surfaces-desktop-box-geometry-2026-09-14`
 **Pull Request:** #122
 **Stacked base:** `feat/visual-design-constitution-f1-f4-2026-09-15` (PR #128)
+**Current reviewed head:** `1f3ee3b47608d971badd47e90f9c08c70eeb44a2`
 
 ## Branch discipline
 
 This contract is executed only on PR #122. No parallel implementation branch is being used. The temporary branch `repair/global-experience-presentation-rebuild-2026-09-16` and PR #129 were closed without merge after reconciliation; its implementation history was retained on this branch.
 
 PR #122 is intentionally stacked on PR #128 so the repair diff is the delta above the approved F1–F4 Experience Foundation rather than a second implementation of the same foundation.
+
+## Stage execution scope
+
+The Global Experience Presentation phase covers the global shell, Header, Sidebar, global overlays, Communications/Notifications/Quick Actions presentation, Chat presentation, responsive compositions, RTL/LTR, touch, keyboard/focus/Escape, safe areas, accessibility, and no-regression verification required by the approved contract.
+
+**Patient Journey E2E is outside this phase.** Patient Journey implementation and its related failures remain frozen for its later execution stream and must not block this phase.
+
+The authenticated-route E2E currently points at a protected financial-installments route and is likewise outside this presentation phase. Unrelated authentication/runtime remediation remains frozen; the in-scope `authorization-runtime` gate remains required.
+
+This scope is encoded in `docs/testing/workstream-contracts/global-experience-presentation.execution.json`. The Unified Test Execution Engine now records excluded suites explicitly rather than silently treating them as passes.
 
 ## Implemented in the current execution path
 
@@ -33,33 +44,34 @@ PR #122 is intentionally stacked on PR #128 so the repair diff is the delta abov
 
 ## Exact automated verification evidence
 
-The latest completed Unified Test Execution Engine run was **Run #296**. It executed against the then-current PR merge candidate based on head `d3ce47476ed44362bfa5f31bd49d06408bf692e8`, not the later documentation-only head.
+The latest completed Unified Test Execution Engine run previously available was **Run #296**. It executed against head `d3ce47476ed44362bfa5f31bd49d06408bf692e8`, before the later scope/test-engine changes.
 
-Engineering gates on that run:
+Engineering gates on Run #296:
 - `typecheck` — PASS
 - `lint` — PASS
 - `build` — PASS
 - i18n catalog parity — PASS
 
-Runtime/domain suites:
+Runtime/domain suites on Run #296:
 - `authorization-runtime` — PASS
 - `cross-domain-runtime` — PASS
 - `database-integrity` — PASS
 - `authenticated-route-e2e` — FAIL
 - `real-world-clinic-journey-e2e` — FAIL
 
-The authenticated-route failure was an existing authentication/runtime gate: the E2E authentication request returned HTTP 200 and cookies were issued, but a protected financial-installments route redirected to `/login`.
+The authenticated-route failure was the unrelated financial-installments authorization flow described above.
 
-The patient-journey failure occurred during appointment booking: the POST to `/api/agenda/events` produced no response at the attempted slot and the E2E runner stopped instead of accepting it as a retryable conflict.
+The Patient Journey failure occurred during appointment booking. That suite is now explicitly excluded from this phase by contract scope, so it is not an in-scope closure gate.
 
-Therefore Run #296 concluded **FAIL: 6 passed / 2 failed**. These failures are objective verification blockers and are not being reclassified as successful merely because the engineering gates passed.
+There is currently **no Unified Test Execution Engine run for reviewed head `1f3ee3b47608d971badd47e90f9c08c70eeb44a2`**. The GitHub connector has not produced a pull-request workflow run for the commits written through the connected repository API, so no current-head automated test result is claimed.
 
-A new verification run for the exact current head is still required. No current-head test result is claimed until such a run completes.
+## Deployment verification state
+
+Vercel created a preview deployment for the updated PR branch after the scope changes. The latest observed deployment is for head `1f3ee3b47608d971badd47e90f9c08c70eeb44a2`; its deployment was still queued at the latest status check. A previous deployment for head `818fc8a7c998129f8afadc31d353b25bea79bb87` reached `READY` and completed a production build successfully, including TypeScript compilation and static generation. This is build evidence only, not runtime closure evidence.
 
 ## Open gates — NOT CLOSED
 
-- Fix/reconcile the failed authenticated-route E2E gate and verify the protected route remains authorized.
-- Fix/reconcile the appointment-booking E2E failure and rerun Patient Journey.
+- Obtain exact-current-head unified test evidence after the scope exclusion is applied.
 - Verify Chat geometry and RTL/LTR movement/resizing at runtime.
 - Verify Chat Tablet and Mobile interaction flows at runtime.
 - Verify shared overlay positioning in Desktop, Tablet, and Mobile modes.
@@ -107,4 +119,4 @@ A new verification run for the exact current head is still required. No current-
 
 ## Closure
 
-**NOT CLOSED.** Successful engineering gates, partial runtime passes, implementation commits, or a non-terminal workflow state are not closure evidence. PR #122 remains the single execution path until every contract item is implemented and objectively verified.
+**NOT CLOSED.** Excluded suites are explicitly out of scope; they are not recorded as passes and do not alter the in-scope contract. PR #122 remains the single execution path until every applicable contract item is implemented and objectively verified.
