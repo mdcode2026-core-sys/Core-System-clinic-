@@ -9,7 +9,6 @@ import { Textarea } from "@/shared/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/shared/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/components/ui/select";
 import { Save, Loader2 } from "lucide-react";
-import { useInvalidatePatients } from "@/domain/patients/patients.queries";
 import type { Patient } from "@/domain/patients/patients.types";
 import { useI18n } from "@/core/i18n/I18nProvider";
 
@@ -28,7 +27,6 @@ interface PatientApiResult {
 
 export function PatientForm({ patient, tenantId, isOpen, onClose, onSuccess }: PatientFormProps) {
   const queryClient = useQueryClient();
-  const { invalidateAll } = useInvalidatePatients();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [serverError, setServerError] = useState<string | null>(null);
@@ -70,10 +68,6 @@ export function PatientForm({ patient, tenantId, isOpen, onClose, onSuccess }: P
     event.preventDefault();
     setServerError(null);
     if (!validate()) return;
-    if (!tenantId) {
-      setServerError(t.clinicNotFound);
-      return;
-    }
 
     setIsSubmitting(true);
     try {
@@ -106,9 +100,13 @@ export function PatientForm({ patient, tenantId, isOpen, onClose, onSuccess }: P
         return [updatedPatient, ...currentPatients.filter((currentPatient) => currentPatient.id !== updatedPatient.id)];
       });
 
+      if (patient) {
+        void queryClient.invalidateQueries({ queryKey: ["patient", updatedPatient.id] });
+        void queryClient.invalidateQueries({ queryKey: ["patient-history", updatedPatient.id] });
+      }
+
       onSuccess?.();
       onClose();
-      invalidateAll(tenantId);
     } catch {
       setServerError(t.unexpected);
     } finally {
