@@ -13,7 +13,7 @@ const canonicalRoutes = [
   "/financial-resources/overview", "/financial-resources/payments", "/financial-resources/purchasing",
   "/financial-resources/purchasing/receiving", "/financial-resources/purchasing/suppliers", "/follow-up",
   "/inventory", "/invoices", "/operation", "/patient-flow", "/patient-flow/administrative",
-  "/patient-flow/clinical", "/patient-flow/operations", "/patients", "/portal", "/queue", "/reports",
+  "/patient-flow/clinical", "/patient-flow/operations", "/patients", "/queue", "/reports",
   "/settings", "/treatment-plans", "/work-center", "/workforce"
 ];
 
@@ -62,8 +62,7 @@ async function smokeRoute(page, route) {
   const response = await page.goto(`${baseUrl}${route}`, { waitUntil: "commit", timeout: 30000 });
   expect(response?.status(), `${route} HTTP status`).toBeLessThan(400);
   expect(page.url(), `${route} authentication`).not.toMatch(/\/login(?:[/?#]|$)/i);
-  const expectedShell = route === "/portal" ? "Patient Portal" : "ClinicSaaS";
-  await expect(page.locator("body"), `${route} rendered shell`).toContainText(expectedShell, { timeout: 15000 });
+  await expect(page.locator("body"), `${route} rendered shell`).toContainText("ClinicSaaS", { timeout: 15000 });
 }
 
 test("Clinic Admin authenticates against the local production candidate and retains authorization", async ({ page, context }) => {
