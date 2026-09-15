@@ -142,4 +142,49 @@ After the engineering gate is green, continue with the remaining F1–F4 runtime
 
 No Vercel deployment is used as validation evidence for this phase.
 
+## System-wide presentation specification recorded
+
+A system-wide presentation specification has now been added:
+
+`docs/CORE-SYSTEM-EXPERIENCE-PRESENTATION-SYSTEM-2026-09-15.md`
+
+This is an extension of the approved Concept 01 visual foundation, not a replacement or a new visual concept. It records how the same Clinical Precision language should be composed differently across the entire CORE SYSTEM according to work purpose and information density.
+
+The specification establishes reusable presentation patterns including:
+
+- Focused Surface;
+- Global Control Rail;
+- Context + KPI + Destination;
+- Personal Launchpad;
+- Work Surface;
+- Record List + Context;
+- Scheduling Workbench;
+- Process / Queue;
+- Longitudinal Clinical Surface;
+- Clinical Workbench;
+- Conversation Workspace;
+- Compact Interaction Surface;
+- Attention Feed;
+- Execution Queue;
+- Operations Dashboard;
+- Financial Work Surface;
+- Control Workbench;
+- Process + List;
+- Case Management;
+- Evidence Surface;
+- Analytical Surface;
+- Executive Overview;
+- Control Center;
+- Configuration Workspace.
+
+It also records the system-wide rules for compact indicators/KPIs, actionable status presentation, contextual panels, record/table/list transformation, queue presentation, calendar presentation, clinical presentation, financial/resource presentation, Analytics vs Dashboard vs Reports, mobile/tablet transformation, RTL/LTR and accessibility.
+
+The reference systems supplied by the Product Owner are treated as **composition/presentation references only**. Their branding, styling, information architecture or product behavior are not adopted automatically.
+
+The target is explicitly:
+
+> **Reference-grade information presentation inside Concept 01 — Clinical Precision.**
+
+This documentation update does not mean all surfaces have already been visually refactored. It establishes the presentation authority that future surface work must follow while preserving each surface's existing functional contract.
+
 **Current status: EXPERIENCE FOUNDATION NOT CLOSED — active verification continues.**
