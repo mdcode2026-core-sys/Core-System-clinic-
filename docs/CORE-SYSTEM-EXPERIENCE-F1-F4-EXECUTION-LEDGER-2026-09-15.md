@@ -1,159 +1,127 @@
 # CORE SYSTEM — Experience Foundation F1–F4 Execution Ledger
 ## 2026-09-15
 
-This file records the current Experience Foundation execution cycle separately from the historical root execution ledger. Each work item is recorded only after its implementation was inspected again from the repository branch.
-
 ## Governing scope
 
 - Experience Foundation: F1 Login, F2 Header, F3 Home, F4 Home → Workspace.
 - Experience model: Horizon + Vertex + Zenith.
 - Visual language: Concept 01 — Clinical Precision.
 - Canonical workflow: VERIFY → PLAN → IMPLEMENT → BUILD → VERIFY → REVIEW → DOCUMENT → CLOSE.
-- Product meaning, authorization, data ownership, workflow ownership, Communications scope, Agenda authority, and Home surface boundaries are preserved.
+- Functional boundaries, authorization, data ownership, Communications scope, Agenda authority, and Home boundaries remain protected.
 
 ## F1 — Login
 
-### Implementation
-- Reworked the auth presentation into a calm light Clinical Precision surface.
-- Kept authentication architecture and existing redirect behavior.
-- Kept language selection, forgot-password, register, password visibility, error, and loading behavior.
-- Reused the authoritative ClinicSaaS brand asset.
-- Added native email/password autocomplete and accessible association of authentication errors.
-- Preserved browser-native required/type validation.
+Implemented and source-verified:
+- dedicated authentication experience without authenticated Header/Sidebar;
+- calm Clinical Precision presentation;
+- preserved auth/redirect/language/reset/register/password visibility/loading/error behavior;
+- native validation, autocomplete and accessible error association.
 
-### Verification after implementation
-- Re-read `src/app/(auth)/layout.tsx` and `src/app/(auth)/login/page.tsx` from the feature branch.
-- Confirmed no authenticated Header/Sidebar is imported into the auth surface.
-- Confirmed password visibility remains an explicit button with localized accessible labels.
-- Confirmed Login uses only approved Clinical Precision tokens and no medical-cliché imagery.
-
-### Runtime evidence
-- Automated Playwright/runtime verification is being executed by unified workflow run #243 against the implementation commit `344a2ebe453a8218e34c56b675bde19fc4a60070`.
+Post-implementation verification: re-read auth layout and Login source; confirmed authentication architecture and required behaviors remain intact.
 
 ## F2 — Header
 
-### Implementation
-- Rebuilt the global Header composition rather than only changing colors.
-- Preserved Brand/Home, Global Search, Communications, Chat, Notifications, and Quick Actions as independent capabilities.
-- Removed the enclosing mega-pill treatment.
-- Desktop/tablet use a compact single-row shell.
-- Mobile intentionally transforms to two rows: identity/search row followed by a horizontally scrollable utility row, so capabilities are not squeezed or hidden.
-- Added shared interaction/focus treatment.
-- Added Escape handling and focus restoration in Communications, Notifications, and Quick Actions.
-- Preserved existing Search/Communications/Chat/Notifications engines; no duplicate messaging or notification engine introduced.
-- Quick Actions remain Language + Logout.
-- Chat remains a compact surface over Communications.
+Implemented and source-verified:
+- independent Brand/Home, Global Search, Communications, Chat, Notifications, Quick Actions;
+- no mega-pill and no duplicate engines;
+- **three deliberate viewport compositions**, not one layout merely reordered/scaled:
+  - Mobile: navigation/identity/tools row + dedicated search row;
+  - Tablet: navigation/identity/search row + dedicated utility row;
+  - Desktop: single compact global row;
+- consistent 40px header control geometry;
+- mobile Quick Actions menu viewport-anchored so it cannot be clipped by the utility row;
+- Communications remains clinic-wide; Chat remains a compact Communications surface; Notifications remain independent; Quick Actions remain Language + Logout;
+- Escape/focus restoration preserved for interactive panels;
+- RTL/LTR uses logical positioning/order.
 
-### Verification after implementation
-- Re-read `src/features/workspace/GlobalHeader.tsx` and the current header control implementations.
-- Confirmed `aria-controls="global-sidebar"` resolves to the actual Sidebar ID.
-- Confirmed mobile controls are deliberately moved to a second row rather than allowed to overflow the page.
-- Confirmed hidden scrollbar affects presentation only; controls remain horizontally accessible.
-- Confirmed Chat and Notifications use the approved semantic tokens for interactive/failure states.
-
-### Runtime evidence
-- Unified workflow run #243 executes Playwright/runtime suites for the exact implementation revision.
+Post-implementation verification: re-read GlobalHeader, Quick Actions, Communications, Notifications, Chat and WorkspaceShell; confirmed mobile sidebar control targets the actual `global-sidebar` element and header controls have independent hit targets.
 
 ## F3 — Home
 
-### Implementation
-Home composition is:
+Implemented and source-verified:
 
-`Identity / Context → Today → Attention when actionable → Next Destinations`
-
-Identity Banner contains:
-- clinic identity;
-- clinic logo when available, otherwise authoritative ClinicSaaS brand asset;
+### Identity / Context
+- clinic identity and logo/brand fallback;
 - user identity;
-- approved Welcome-on-entry behavior;
-- lightweight Weather/ambient context tied to clinic location;
-- Workspace entry.
+- approved Welcome lifecycle;
+- **Weather/ambient context inside Identity Banner**;
+- Weather is now an open context presentation, not a compressed nested card;
+- Identity Banner no longer contains an Open Workspace action, preventing duplicate Workspace entry.
 
-Today contains:
-- context-preserving user's appointments;
-- waiting patients;
-- active clinical work;
-- completed today;
-- one coherent list/surface rather than a scattered four-card dashboard.
+### Weather behavior
+Weather uses the clinic address/country information, resolves the best available locality through Open-Meteo geocoding, retrieves current weather, localizes the condition text, uses bounded request timeouts/revalidation, and shows a clear fallback when the clinic address cannot resolve. No browser/user location is used as a substitute for clinic location.
 
-Attention is conditional and only rendered when there is an actionable waiting condition.
+### Today
+The previous large four-card presentation was replaced with a compact actionable surface:
+- Today's appointments;
+- Waiting;
+- In clinical work;
+- Completed.
 
-Next Destinations contain direct Workspace and Agenda paths.
+Each item is a direct link; the icon is part of the actionable target. Decorative navigation arrows were removed. The layout is compact 2×2 on narrow screens and four compact columns on wider screens.
 
-Explicit Home exclusions remain absent:
-- Notifications;
-- Communications;
-- Work Center;
-- Quick Actions;
-- Patient Portal information;
-- widgets/personalized widgets.
+### Destinations
+- Workspace remains a direct execution destination.
+- **Calendar** is presented as the visual scheduling destination and uses the existing Agenda calendar representation with preserved `doctorId` context.
+- No `/calendar` scheduling engine or second calendar engine was introduced.
 
-### Weather implementation
-- Added `src/features/home/HomeWeather.tsx` as a server-rendered lightweight weather context.
-- Uses clinic address/country information, geocodes the best available clinic locality, retrieves current weather, applies bounded request timeouts/revalidation, localizes condition text for Arabic/English, and gracefully renders an unavailable state.
+### Protected removals
+Home remains free of Notifications, Communications, Work Center, Quick Actions, Patient Portal information and personalized widgets.
 
-### Verification after implementation
-- Re-read `src/app/(dashboard)/page.tsx`, `src/features/home/HomeIdentityBanner.tsx`, and `src/features/home/HomeWeather.tsx`.
-- Confirmed Home no longer contains the approved-removed surfaces.
-- Confirmed `no_show` is not silently excluded; only `cancelled` is excluded from today's appointment count.
-- Confirmed Today's appointments use `clinic_users.id → master_agenda_events.doctor_id` and preserve `doctorId` when entering Agenda.
-- Confirmed Weather is rendered through Identity Banner rather than being omitted or moved into Header.
-- Confirmed Weather location candidate resolution does not blindly prioritize the country segment over the clinic locality.
-- Confirmed Attention is conditional rather than a duplicate Notifications feed.
+### Appointment context
+Today's appointments continue to use `clinic_users.id → master_agenda_events.doctor_id`; only cancelled appointments are excluded from the Home count. No-show is not silently excluded.
 
-### Runtime evidence
-- Unified workflow run #243 includes the applicable runtime suites against the implementation revision.
+Post-implementation verification: re-read Home, Identity Banner and Weather source; confirmed the above structures and exclusions directly in the current branch.
 
 ## F4 — Home → Workspace
 
-### Implementation
-- Added `src/features/home/HomeWorkspaceTransitionLink.tsx` for explicit awareness-to-work transition feedback.
-- Existing `/workspace` route remains authoritative.
-- Existing permission resolution remains authoritative.
-- Workspace shell records navigation away from Home for the approved Welcome lifecycle and exposes a subtle `cs-work-mode` visual distinction inside Workspace.
+Implemented and source-verified:
+- explicit Workspace entry in the Next/Attention destinations;
+- lightweight entering-work feedback;
+- existing `/workspace` and authorization semantics preserved;
+- WorkspaceShell records navigation away from Home for Welcome lifecycle;
+- subtle work-mode distinction inside Workspace;
+- no duplicate Workspace layer.
 
-### Verification after implementation
-- Re-read Home, `HomeWorkspaceTransitionLink.tsx`, and `WorkspaceShell.tsx`.
-- Confirmed the transition does not create a new workspace layer or alter authorization.
-- Confirmed existing Workspace navigation registry remains the destination authority.
-- Confirmed mobile sidebar control is now correctly associated with `global-sidebar`.
+## Cross-F1–F4 correction cycle
 
-### Runtime evidence
-- Unified workflow run #243 includes the transition-related application/runtime suites.
+Product Owner runtime review identified concrete defects. The following were implemented and individually source-verified after each change:
+1. Mobile Quick Actions not opening/usable → menu changed to viewport-anchored mobile presentation.
+2. Mobile/tablet/desktop were previously treated too similarly → Header rebuilt with three viewport-specific compositions.
+3. Header Communications/Notifications/Chat control geometry inconsistent → normalized control sizing and spacing.
+4. Identity Workspace action duplicated the lower Workspace destination → removed from Identity Banner.
+5. Home destination incorrectly introduced as Agenda → changed to Calendar terminology while reusing the existing Agenda calendar representation.
+6. Weather was visually compressed under identity content → moved to a dedicated Identity context column/row and removed nested-card treatment.
+7. Today was an oversized replacement container → converted to compact directly actionable metric tiles with icon targets and no arrows.
+8. Obsolete Identity Banner workspace prop → removed and verified.
 
-## Cross-F1–F4 verification
+## Automated validation
 
-- Home removals are implemented as explicit exclusions, not merely hidden styling.
-- Search, Communications, Chat, Notifications, and Quick Actions remain global Header capabilities.
-- Communications remains clinic-wide for authorized accounts and is not doctor-only.
-- Chat remains a compact Communications surface.
-- Agenda remains the authoritative scheduling domain.
-- No DB migration was introduced for this experience cycle.
-- No permission model rewrite was introduced.
-- No duplicate domain engine was introduced.
-- No Work Center redesign was introduced.
-- No Patient Flow / Patient Journey boundary was changed.
-- Clinical Precision tokens are used as shared visual language rather than separate themes per Horizon/Vertex/Zenith.
+Validation-only PR: #127  
+Validation branch: `verify/experience-foundation-f1-f4-2026-09-15-r2`  
+Unified workflow: `CORE SYSTEM Unified Test Execution Engine`  
+Run: #245 / `34945623748`  
+Latest validation head: `f94f3d356537a880638368abbaa43ad783c421c1`
 
-## Automated verification
-
-Validation-only PR: #126  
-Validation branch: `verify/experience-foundation-f1-f4-2026-09-15`  
-Workflow: `CORE SYSTEM Unified Test Execution Engine`  
-Run: #243 / `34903128292`  
-Implementation revision tested: `344a2ebe453a8218e34c56b675bde19fc4a60070`
-
-Observed completed steps before the final suite result:
+Observed run #245 gates:
 - checkout exact candidate — PASS;
 - Node setup — PASS;
 - dependency install — PASS;
-- SETUP execution contract — PASS;
-- contract completeness validation — PASS;
+- execution-contract setup — PASS;
+- contract completeness — PASS;
 - Playwright runtime install — PASS;
-- selected test execution — IN PROGRESS at the time of this ledger update.
+- selected execution — IN PROGRESS at latest observation.
 
-The tested implementation revision is the code-equivalent revision of the current feature head; later feature commits are documentation reconciliation only.
+The implementation feature head contains the current code plus documentation reconciliation; the validation branch was fast-forwarded to the same current documentation head before execution.
 
-## Final acceptance gate
+## Final evidence still required
 
-Do not treat source inspection alone as runtime closure. The remaining evidence required by the Execution Gate is the terminal automated/runtime result plus desktop/tablet/mobile, RTL/LTR, accessibility/focus/keyboard/touch validation and Product Owner runtime acceptance.
+- terminal automated execution result;
+- runtime visual verification of F1–F4;
+- Desktop/Tablet/Mobile;
+- RTL/LTR;
+- accessibility/focus/keyboard/touch;
+- Home/Agenda authorization and context;
+- Product Owner runtime acceptance.
+
+No Vercel deployment is used as validation evidence for this phase.
