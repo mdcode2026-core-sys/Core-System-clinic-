@@ -106,7 +106,6 @@ export function PatientForm({ patient, isOpen, onClose, onSuccess }: PatientForm
         }
         return [updatedPatient, ...currentPatients.filter((currentPatient) => currentPatient.id !== updatedPatient.id)];
       });
-      await queryClient.refetchQueries({ queryKey: ["patients", tenantId], type: "active" });
 
       onSuccess?.();
       onClose();
