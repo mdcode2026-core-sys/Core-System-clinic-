@@ -6,7 +6,7 @@
 **Single execution branch:** `fix/global-surfaces-desktop-box-geometry-2026-09-14`
 **Pull Request:** #122
 **Stacked base:** `feat/visual-design-constitution-f1-f4-2026-09-15` (PR #128)
-**Current reviewed head:** `8a07800cff7af61ada887e7b1600082443c4a7ee`
+**Current reviewed head:** `9503edf19f69d4e4137a0548dfb306526f310eaf`
 
 ## Branch discipline
 
@@ -20,9 +20,19 @@ The Global Experience Presentation phase covers the global shell, Header, Sideba
 
 **Patient Journey E2E is outside this phase.** Patient Journey implementation and its related failures remain frozen for its later execution stream and must not block this phase.
 
-The authenticated-route E2E currently targets a protected financial-installments route and is likewise outside this presentation phase. Unrelated authentication/runtime remediation remains frozen; the in-scope `authorization-runtime` gate remains required.
+The phase scope is applied in the GitHub Actions **job setup** after the normal Unified Test Execution Engine plan is generated: `patient-journey` is removed from the selected suites for this phase only. This does not modify the engine's suite-discovery or execution logic.
 
-This scope is encoded in `docs/testing/workstream-contracts/global-experience-presentation.execution.json`. The Unified Test Execution Engine now records excluded suites explicitly rather than silently treating them as passes.
+## Unified Test Execution Engine integrity
+
+The Unified Test Execution Engine itself has been restored to its pre-scope-change behavior:
+- `tools/test-execution-setup.mjs` restored to the behavior present at `d3ce47476ed44362bfa5f31bd49d06408bf692e8`.
+- `tools/test-execution-runner.mjs` restored to the behavior present at `d3ce47476ed44362bfa5f31bd49d06408bf692e8`.
+- Unauthorized `docs/testing/workstream-contracts/global-experience-presentation.execution.json` was removed.
+- No engine-level excluded-suite handling is used.
+- No test is converted from FAIL to PASS by the phase setup. Out-of-scope Patient Journey is simply not selected for this phase's execution job.
+- `authenticated-e2e` has **not** been excluded by this correction and remains subject to the normal engine selection logic.
+
+The workflow job setup is therefore the only phase-specific test selection layer added for this workstream.
 
 ## Implemented in the current execution path
 
@@ -44,7 +54,7 @@ This scope is encoded in `docs/testing/workstream-contracts/global-experience-pr
 
 ## Automated verification evidence
 
-The latest completed Unified Test Execution Engine run previously available was **Run #296**. It executed against head `d3ce47476ed44362bfa5f31bd49d06408bf692e8`, before the stage-scope test-engine changes.
+The latest completed Unified Test Execution Engine run previously available was **Run #296**. It executed against head `d3ce47476ed44362bfa5f31bd49d06408bf692e8`, before the unauthorized phase-scope modifications were introduced.
 
 Run #296:
 - `typecheck` — PASS
@@ -54,30 +64,24 @@ Run #296:
 - `authorization-runtime` — PASS
 - `cross-domain-runtime` — PASS
 - `database-integrity` — PASS
-- `authenticated-route-e2e` — FAIL (out-of-scope financial-installments route)
-- `real-world-clinic-journey-e2e` — FAIL (out-of-scope Patient Journey appointment booking)
+- `authenticated-route-e2e` — FAIL
+- `real-world-clinic-journey-e2e` — FAIL; this is the frozen/out-of-scope Patient Journey stream and is not being remediated here.
 
-No Unified Test Execution Engine run has been generated for current head `8a07800cff7af61ada887e7b1600082443c4a7ee` in the connected GitHub environment. The repository-API commit path used here does not create a pull-request workflow run through the available connector, so no current-head automated PASS/FAIL is claimed.
+The current corrected head is `9503edf19f69d4e4137a0548dfb306526f310eaf`.
 
-The stage-scope contract is now explicitly represented in `docs/testing/workstream-contracts/global-experience-presentation.execution.json`: `patient-journey` and `authenticated-e2e` are excluded from this phase, while `authorization-runtime` remains required.
+A direct compare against the pre-scope-change head confirms the current delta contains the approved workflow job-scope adjustment and execution-status documentation changes; the Unified Test Execution Engine setup/runner files themselves are restored to their prior versions.
+
+No current-head Unified Test Execution Engine workflow run has been generated in the connected GitHub environment yet. Therefore no current-head automated PASS/FAIL is claimed.
 
 ## Deployment verification state
 
-Vercel preview deployment for current head `8a07800cff7af61ada887e7b1600082443c4a7ee`:
-- Deployment: `dpl_6wMASjX9PEGK2KxTmd8Xghu3n7xE`
-- State: `READY`
-- Build: completed successfully
-- i18n catalog parity: PASS
-- TypeScript compilation: completed
-- Static generation: 55/55 pages completed
-- Deployment output completed successfully
-- Vercel preview runtime error query for the inspected hour returned no `error`/`fatal` logs.
+Vercel has queued a new preview deployment for the corrected head `9503edf19f69d4e4137a0548dfb306526f310eaf`. The previous preview for `8a07800cff7af61ada887e7b1600082443c4a7ee` reached READY successfully, but it predates the current correction and is not treated as current-head closure evidence.
 
-This is deployment/build evidence only. Interactive browser/device/PWA verification was not completed because the connected environment could not obtain an interactive browser session for the protected preview deployment; therefore those contract gates remain open.
+Interactive browser/device/PWA verification remains open. No production deployment or production closure is claimed.
 
 ## Open gates — NOT CLOSED
 
-- Exact-current-head Unified Test Execution Engine evidence.
+- Exact-current-head Unified Test Execution Engine evidence with Patient Journey excluded only by approved phase job setup.
 - Runtime verification of Chat movement/resize and responsive compositions.
 - Runtime verification of shared overlay boundaries and RTL/LTR behavior.
 - Desktop/tablet/mobile browser verification.
@@ -122,4 +126,4 @@ This is deployment/build evidence only. Interactive browser/device/PWA verificat
 
 ## Closure
 
-**NOT CLOSED.** The phase-scoped exclusions are explicit and do not count as passes. PR #122 remains the single execution path until every applicable contract item has objective verification evidence.
+**NOT CLOSED.** Patient Journey is frozen and excluded only at the phase job setup; it is not treated as a pass and the Unified Test Execution Engine remains unchanged. PR #122 remains the single execution path until every applicable contract item has objective verification evidence.
