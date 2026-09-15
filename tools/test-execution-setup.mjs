@@ -25,12 +25,10 @@ const plan = {
   roles: new Set(),
   required_engineering: new Set(["typecheck", "lint", "build"]),
   required_suites: new Set(["engineering"]),
-  excluded_suites: new Set(),
   required_e2e: new Set(),
   regression_level: "R0",
   workstream_contracts: [],
   workstream_checks: [],
-  exclusion_reasons: [],
 };
 
 const add = (impact, ...suites) => {
@@ -80,19 +78,10 @@ function loadWorkstreamContracts() {
     for (const suite of contract.required_suites || []) {
       plan.required_suites.add(suite);
     }
-    for (const suite of contract.excluded_suites || []) {
-      plan.excluded_suites.add(suite);
-    }
     for (const check of contract.workstream_checks || []) {
       plan.workstream_checks.push({
         workstream_id: contract.workstream_id,
         ...check,
-      });
-    }
-    for (const reason of contract.exclusion_reasons || []) {
-      plan.exclusion_reasons.push({
-        workstream_id: contract.workstream_id,
-        ...reason,
       });
     }
 
