@@ -54,6 +54,21 @@ jobs:
           TEST_EXECUTION_PLAN: test-execution-plan.json
         run: node tools/test-execution-setup.mjs
 
+      - name: SETUP — apply approved Global Experience phase scope
+        run: |
+          node - <<'NODE'
+          const fs = require('fs');
+          const path = 'test-execution-plan.json';
+          const plan = JSON.parse(fs.readFileSync(path, 'utf8'));
+          const frozenOutOfScopeSuite = 'patient-journey';
+          plan.required_suites = (plan.required_suites || []).filter((suite) => suite !== frozenOutOfScopeSuite);
+          plan.required_e2e = (plan.required_e2e || []).filter((suite) => suite !== frozenOutOfScopeSuite);
+          fs.writeFileSync(path, `${JSON.stringify(plan, null, 2)}\n`);
+          console.log(`PHASE_SCOPE=global-experience-presentation`);
+          console.log(`FROZEN_OUT_OF_SCOPE_SUITE=${frozenOutOfScopeSuite}`);
+          console.log(`REQUIRED_SUITES=${plan.required_suites.join(',')}`);
+          NODE
+
       - name: Validate contract completeness
         run: |
           node - <<'NODE'
@@ -63,6 +78,7 @@ jobs:
             if (p[key] === undefined || p[key] === null) throw new Error(`CONTRACT_MISSING_FIELD=${key}`);
           }
           if (!Array.isArray(p.required_suites) || !p.required_suites.includes('engineering')) throw new Error('CONTRACT_MISSING_ENGINEERING_GATE');
+          if (p.required_suites.includes('patient-journey')) throw new Error('PHASE_SCOPE_VIOLATION=patient-journey');
           console.log(`EXECUTION_CONTRACT=VALID version=${p.contract_version} regression=${p.regression_level}`);
           console.log(`REQUIRED_SUITES=${p.required_suites.join(',')}`);
           NODE
