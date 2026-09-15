@@ -46,7 +46,12 @@ export function QuickActionsHeaderControl({ isArabic, onSignOut }: QuickActionsH
       </button>
 
       {open ? (
-        <div role="menu" aria-label={isArabic ? "الإجراءات السريعة" : "Quick actions"} className="absolute end-0 top-11 z-50 min-w-56 rounded-xl border border-[var(--cs-slate-200)] bg-white p-2 shadow-[var(--cs-shadow-md)]" data-testid="quick-actions-menu">
+        <div
+          role="menu"
+          aria-label={isArabic ? "الإجراءات السريعة" : "Quick actions"}
+          className="fixed end-2 top-[4.5rem] z-[80] min-w-56 rounded-xl border border-[var(--cs-slate-200)] bg-white p-2 shadow-[var(--cs-shadow-md)] sm:absolute sm:end-0 sm:top-11 sm:z-50"
+          data-testid="quick-actions-menu"
+        >
           <div className="px-2.5 py-2 text-xs font-semibold text-[var(--cs-slate-500)]">{isArabic ? "إجراءات عامة" : "Global actions"}</div>
           <div role="menuitem" className="rounded-lg px-2 py-2"><LanguageSwitcher /></div>
           <button type="button" role="menuitem" onClick={handleSignOut} className="cs-interactive flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-sm text-[var(--cs-slate-700)]">
