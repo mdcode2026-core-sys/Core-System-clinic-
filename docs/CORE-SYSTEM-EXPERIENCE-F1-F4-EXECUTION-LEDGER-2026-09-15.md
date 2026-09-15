@@ -96,6 +96,7 @@ Product Owner runtime review identified concrete defects. The following were imp
 6. Weather was visually compressed under identity content → moved to a dedicated Identity context column/row and removed nested-card treatment.
 7. Today was an oversized replacement container → converted to compact directly actionable metric tiles with icon targets and no arrows.
 8. Obsolete Identity Banner workspace prop → removed and verified.
+9. Undefined Home hover token `--cs-azure-200` → replaced with the defined `--cs-azure-100` token to keep the Concept 01 visual token system internally valid.
 
 ## Validation state during scope freeze
 
@@ -104,6 +105,8 @@ Validation-only PR #127 was closed deliberately to stop further automated execut
 Run #247 (`34945834228`) completed with failure on 2026-09-15. The run was attached to an earlier state of the verification branch; the branch subsequently moved to `0a3bca...`. Therefore that run is **not evidence for the current implementation head** and is not being repaired or rerun during the freeze.
 
 A dedicated implementation PR #128 now contains the Experience Foundation feature branch only and is intentionally draft while the closure work continues.
+
+The current implementation head at the time of this ledger reconciliation is `8a8037f84d66c354e69e496e18ec56bd34b95212`, which contains the handoff reconciliation and ledger update. The prior implementation correction head was `acc765047d95ffb18caf0f409aaef1b484285011`.
 
 ## Final closure evidence still required after the freeze is lifted
 
@@ -117,3 +120,5 @@ A dedicated implementation PR #128 now contains the Experience Foundation featur
 - final repository documentation and closure record.
 
 No Vercel deployment is used as validation evidence for this phase.
+
+**Current status: EXPERIENCE FOUNDATION NOT CLOSED — implementation/source review is advanced, but required closure evidence is intentionally deferred by the active freeze.**
