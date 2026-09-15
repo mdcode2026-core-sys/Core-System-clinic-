@@ -341,4 +341,30 @@ Administrative Workspace remains a separate future/ongoing product work item and
 
 No database or runtime change is authorized merely by this documentation reconciliation.
 
+## 20. Experience Governance Synchronization — 2026-09-14
+
+This canonical reconciliation is now governed by the following active records:
+
+- `docs/CORE-SYSTEM-EXPERIENCE-CONSTITUTION-AND-GOVERNANCE-2026-09-14.md`
+- `docs/CORE-SYSTEM-EXPERIENCE-DECISION-REGISTRY-2026-09-14.md`
+- `docs/CORE-SYSTEM-INTEGRATED-EXPERIENCE-WORK-CONTRACT-2026-09-14.md`
+- `docs/CORE-SYSTEM-EXPERIENCE-EXECUTION-GATE-2026-09-14.md`
+
+The 2026-09-14 synchronization makes the following later decisions explicit within this canonical surface model:
+
+1. Home is **Simple + Contextual**.
+2. Work Center is explicitly removed from Home. This removal is an independent Product Owner decision and does not authorize redesigning Work Center.
+3. Notifications, Communications, Quick Actions, and Patient Portal information are removed from Home under the current approved direction.
+4. Widgets/personalized widgets are deferred from the current Home execution.
+5. Communications is clinic-wide internal communication across authorized clinic accounts, not doctor-only communication.
+6. Chat remains a compact interaction surface over Communications and does not create a second messaging engine.
+7. Login, Header, and Home are the current visual foundation surfaces; their exact final visual details remain OPEN until explicitly approved and verified.
+8. Mobile is a focused work surface rather than a shrunken desktop.
+9. Documentation and execution must use the Decision Registry and Execution Gate; recommendations may not be silently promoted into product decisions.
+10. No related governance document may be marked CLOSED while its execution obligations remain incomplete.
+
+The reconciliation remains authoritative for product boundaries. The 2026-09-14 governance records are authoritative for decision status, execution control, and closure criteria.
+
+**Current overall Experience Foundation status: NOT CLOSED.**
+
 **End of Canonical Reconciliation.**

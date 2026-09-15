@@ -16,21 +16,89 @@ interface GlobalHeaderProps {
   className?: string;
 }
 
-export function GlobalHeader({ isArabic, mobileSidebarOpen, onOpenMobileSidebar, brand, search, controls, className }: GlobalHeaderProps) {
-  const defaultBrand = (
-    <Link href="/" className="inline-flex h-9 max-w-[7.25rem] shrink-0 items-center rounded-xl px-0.5 transition-opacity hover:opacity-85 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 sm:h-11 sm:max-w-[9.5rem]" aria-label={isArabic ? "الرئيسية — ClinicSaaS" : "Home — ClinicSaaS"} data-testid="global-header-brand">
-      <Image src="/brand/clinicsaas-header.svg" alt="ClinicSaaS™" width={150} height={33} priority className="h-7 w-auto max-w-[7.25rem] sm:h-9 sm:max-w-[9.5rem]" />
+function DefaultBrand({ isArabic, compact = false }: { isArabic: boolean; compact?: boolean }) {
+  return (
+    <Link
+      href="/"
+      className={cn("cs-interactive inline-flex shrink-0 items-center rounded-lg", compact ? "h-10 max-w-[7rem]" : "h-11 max-w-[10rem]")}
+      aria-label={isArabic ? "الرئيسية — ClinicSaaS" : "Home — ClinicSaaS"}
+      data-testid="global-header-brand"
+    >
+      <Image
+        src="/brand/clinicsaas-header.svg"
+        alt="ClinicSaaS™"
+        width={150}
+        height={33}
+        priority
+        className={cn("h-auto w-auto max-w-full", compact ? "max-h-7" : "max-h-8")}
+      />
     </Link>
   );
+}
+
+export function GlobalHeader({ isArabic, mobileSidebarOpen, onOpenMobileSidebar, brand, search, controls, className }: GlobalHeaderProps) {
+  const renderedBrand = brand ?? <DefaultBrand isArabic={isArabic} />;
 
   return (
-    <header className={cn("sticky top-0 z-30 flex min-h-14 w-full min-w-0 items-center gap-1 overflow-visible border-b border-slate-200/90 bg-white/95 px-1.5 py-1.5 shadow-[0_1px_8px_rgba(15,23,42,0.04)] backdrop-blur sm:min-h-16 sm:gap-2 sm:px-3 sm:py-2 md:gap-2.5 md:px-4 lg:px-5", className)} data-testid="global-header">
-      <button type="button" onClick={onOpenMobileSidebar} className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 sm:h-10 sm:w-10 sm:rounded-xl lg:hidden" aria-label={isArabic ? "فتح القائمة" : "Open navigation"} aria-expanded={mobileSidebarOpen} aria-controls="global-sidebar" data-testid="global-header-mobile-nav">
-        <Menu className="h-5 w-5" aria-hidden="true" />
-      </button>
-      <div className="min-w-0 shrink items-center overflow-hidden">{brand ?? defaultBrand}</div>
-      <div className="h-9 w-9 shrink-0 md:h-10 md:w-[min(26vw,24rem)] lg:w-[28rem]" data-testid="global-header-search-slot">{search}</div>
-      {controls ? <div className="ms-auto flex min-w-0 shrink items-center justify-end gap-0 rounded-xl border border-slate-200/80 bg-slate-50/70 p-0 sm:gap-0.5 sm:p-0.5" data-testid="global-header-controls">{controls}</div> : null}
+    <header
+      className={cn(
+        "sticky top-0 z-30 w-full min-w-0 border-b border-[var(--cs-slate-200)] bg-white",
+        className,
+      )}
+      data-testid="global-header"
+    >
+      {/* Mobile: deliberately separate composition — navigation/identity/tools first, search second. */}
+      <div className="flex min-w-0 flex-col gap-2 px-2.5 py-2 sm:hidden">
+        <div className="flex min-w-0 items-center gap-1.5">
+          <button
+            type="button"
+            onClick={onOpenMobileSidebar}
+            className="cs-interactive inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-[var(--cs-slate-700)]"
+            aria-label={isArabic ? "فتح القائمة" : "Open navigation"}
+            aria-expanded={mobileSidebarOpen}
+            aria-controls="global-sidebar"
+            data-testid="global-header-mobile-nav"
+          >
+            <Menu className="h-5 w-5" aria-hidden="true" />
+          </button>
+          <div className="min-w-0 flex-1">{brand ?? <DefaultBrand isArabic={isArabic} compact />}</div>
+          <nav aria-label={isArabic ? "أدوات النظام" : "System tools"} className="flex shrink-0 items-center gap-0.5" data-testid="global-header-mobile-controls">
+            {controls}
+          </nav>
+        </div>
+        <div className="min-w-0" data-testid="global-header-mobile-search">{search}</div>
+      </div>
+
+      {/* Tablet: deliberate two-zone composition with search and tools given their own row. */}
+      <div className="hidden min-w-0 flex-col gap-2 px-3 py-2 sm:flex lg:hidden">
+        <div className="flex min-w-0 items-center gap-2">
+          <button
+            type="button"
+            onClick={onOpenMobileSidebar}
+            className="cs-interactive inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-[var(--cs-slate-700)]"
+            aria-label={isArabic ? "فتح القائمة" : "Open navigation"}
+            aria-expanded={mobileSidebarOpen}
+            aria-controls="global-sidebar"
+            data-testid="global-header-tablet-nav"
+          >
+            <Menu className="h-5 w-5" aria-hidden="true" />
+          </button>
+          <div className="min-w-0 flex-1">{brand ?? <DefaultBrand isArabic={isArabic} />}</div>
+          <div className="min-w-0 w-[min(52vw,28rem)]" data-testid="global-header-tablet-search">{search}</div>
+        </div>
+        <nav aria-label={isArabic ? "أدوات النظام" : "System tools"} className="flex min-w-0 items-center justify-end gap-1 overflow-x-auto py-0.5" data-testid="global-header-tablet-controls">
+          {controls}
+        </nav>
+      </div>
+
+      {/* Desktop: single-row composition with explicit independent zones. */}
+      <div className="hidden min-w-0 items-center gap-3 px-5 py-2.5 lg:flex">
+        <div className="min-w-0 shrink-0">{renderedBrand}</div>
+        <div className="min-w-[16rem] max-w-[34rem] flex-1" data-testid="global-header-desktop-search">{search}</div>
+        <nav aria-label={isArabic ? "أدوات النظام" : "System tools"} className="flex shrink-0 items-center gap-1" data-testid="global-header-desktop-controls">
+          {controls}
+        </nav>
+      </div>
     </header>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { LogOut, MoreHorizontal } from "lucide-react";
 import { LanguageSwitcher } from "@/core/i18n/LanguageSwitcher";
 
@@ -9,18 +9,21 @@ interface QuickActionsHeaderControlProps {
   onSignOut: () => Promise<void>;
 }
 
-/**
- * Bounded global Header Quick Actions surface.
- *
- * Initial scope is intentionally limited to approved global utilities:
- * language selection and logout. Business/domain actions must not be added
- * here without an explicit architecture decision.
- */
-export function QuickActionsHeaderControl({
-  isArabic,
-  onSignOut,
-}: QuickActionsHeaderControlProps) {
+export function QuickActionsHeaderControl({ isArabic, onSignOut }: QuickActionsHeaderControlProps) {
   const [open, setOpen] = useState(false);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      event.preventDefault();
+      setOpen(false);
+      triggerRef.current?.focus();
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [open]);
 
   const handleSignOut = async () => {
     setOpen(false);
@@ -28,11 +31,12 @@ export function QuickActionsHeaderControl({
   };
 
   return (
-    <div className="relative">
+    <div className="relative shrink-0">
       <button
+        ref={triggerRef}
         type="button"
         onClick={() => setOpen((value) => !value)}
-        className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-slate-600 transition-colors hover:bg-white hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1"
+        className="cs-interactive inline-flex h-9 w-9 items-center justify-center rounded-lg text-[var(--cs-slate-700)] sm:h-10 sm:w-10"
         aria-label={isArabic ? "الإجراءات السريعة" : "Quick actions"}
         aria-expanded={open}
         aria-haspopup="menu"
@@ -45,23 +49,12 @@ export function QuickActionsHeaderControl({
         <div
           role="menu"
           aria-label={isArabic ? "الإجراءات السريعة" : "Quick actions"}
-          className="absolute end-0 top-11 z-50 min-w-56 rounded-2xl border border-slate-200 bg-white p-2 shadow-2xl"
+          className="fixed end-2 top-[4.5rem] z-[80] min-w-56 rounded-xl border border-[var(--cs-slate-200)] bg-white p-2 shadow-[var(--cs-shadow-md)] sm:absolute sm:end-0 sm:top-11 sm:z-50"
           data-testid="quick-actions-menu"
         >
-          <div className="px-2.5 py-2 text-xs font-semibold uppercase tracking-wide text-slate-400">
-            {isArabic ? "إجراءات عامة" : "Global actions"}
-          </div>
-
-          <div role="menuitem" className="rounded-lg px-2 py-2 focus-within:bg-slate-50">
-            <LanguageSwitcher />
-          </div>
-
-          <button
-            type="button"
-            role="menuitem"
-            onClick={handleSignOut}
-            className="flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-sm text-slate-700 transition-colors hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
-          >
+          <div className="px-2.5 py-2 text-xs font-semibold text-[var(--cs-slate-500)]">{isArabic ? "إجراءات عامة" : "Global actions"}</div>
+          <div role="menuitem" className="rounded-lg px-2 py-2"><LanguageSwitcher /></div>
+          <button type="button" role="menuitem" onClick={handleSignOut} className="cs-interactive flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-sm text-[var(--cs-slate-700)]">
             <LogOut className="h-4 w-4" aria-hidden="true" />
             {isArabic ? "تسجيل الخروج" : "Log out"}
           </button>
