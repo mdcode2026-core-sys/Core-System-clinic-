@@ -1,25 +1,8 @@
 import { Cloud, CloudFog, CloudLightning, CloudRain, CloudSun, Droplets, Sun, Wind } from "lucide-react";
 
-interface HomeWeatherProps {
-  address?: string | null;
-  countryCode?: string | null;
-  isArabic: boolean;
-}
-
-interface GeocodeResult {
-  latitude: number;
-  longitude: number;
-  name: string;
-}
-
-interface ForecastResult {
-  current?: {
-    temperature_2m?: number;
-    relative_humidity_2m?: number;
-    wind_speed_10m?: number;
-    weather_code?: number;
-  };
-}
+interface HomeWeatherProps { address?: string | null; countryCode?: string | null; isArabic: boolean; }
+interface GeocodeResult { latitude: number; longitude: number; name: string; }
+interface ForecastResult { current?: { temperature_2m?: number; relative_humidity_2m?: number; wind_speed_10m?: number; weather_code?: number; }; }
 
 function weatherText(code: number | undefined, ar: boolean) {
   if (code === undefined) return ar ? "الطقس" : "Weather";
@@ -43,32 +26,28 @@ function WeatherIcon({ code }: { code?: number }) {
   return <Cloud className="h-5 w-5" aria-hidden="true" />;
 }
 
-async function getWeather(address: string | null | undefined, countryCode: string | null | undefined, isArabic: boolean): Promise<{ location: string; temperature: number; humidity?: number; wind?: number; code?: number } | null> {
+async function getWeather(address: string | null | undefined, countryCode: string | null | undefined, isArabic: boolean) {
   const raw = (address ?? "").trim();
   const parts = raw.split(",").map((value) => value.trim()).filter((value) => value.length >= 2);
-  const candidates = [raw, parts[0], parts[1], ...parts.slice(-1)].filter((value, index, array): value is string => Boolean(value) && array.indexOf(value) === index).slice(0, 4);
+  const candidates = [...parts.slice(0, 3).reverse(), ...parts.slice(-2), raw].filter((value, index, array) => Boolean(value) && array.indexOf(value) === index).slice(0, 6);
   if (!candidates.length) return null;
-
   for (const candidate of candidates) {
     try {
       const params = new URLSearchParams({ name: candidate, count: "1", language: isArabic ? "ar" : "en", format: "json" });
-      if (countryCode) params.set("countryCode", countryCode.toLowerCase());
-      const geoResponse = await fetch(`https://geocoding-api.open-meteo.com/v1/search?${params.toString()}`, { next: { revalidate: 86400 }, signal: AbortSignal.timeout(5000) });
+      const code = countryCode?.trim();
+      if (code) params.set("countryCode", code.toUpperCase());
+      const geoResponse = await fetch(`https://geocoding-api.open-meteo.com/v1/search?${params}`, { next: { revalidate: 86400 }, signal: AbortSignal.timeout(5000) });
       if (!geoResponse.ok) continue;
       const geo = (await geoResponse.json()) as { results?: GeocodeResult[] };
       const location = geo.results?.[0];
       if (!location) continue;
-
       const forecastParams = new URLSearchParams({ latitude: String(location.latitude), longitude: String(location.longitude), current: "temperature_2m,relative_humidity_2m,wind_speed_10m,weather_code", temperature_unit: "celsius", wind_speed_unit: "kmh" });
-      const forecastResponse = await fetch(`https://api.open-meteo.com/v1/forecast?${forecastParams.toString()}`, { next: { revalidate: 900 }, signal: AbortSignal.timeout(5000) });
+      const forecastResponse = await fetch(`https://api.open-meteo.com/v1/forecast?${forecastParams}`, { next: { revalidate: 900 }, signal: AbortSignal.timeout(5000) });
       if (!forecastResponse.ok) continue;
-      const forecast = (await forecastResponse.json()) as ForecastResult;
-      const current = forecast.current;
+      const current = ((await forecastResponse.json()) as ForecastResult).current;
       if (typeof current?.temperature_2m !== "number") continue;
       return { location: location.name, temperature: current.temperature_2m, humidity: current.relative_humidity_2m, wind: current.wind_speed_10m, code: current.weather_code };
-    } catch {
-      continue;
-    }
+    } catch { continue; }
   }
   return null;
 }
@@ -76,16 +55,13 @@ async function getWeather(address: string | null | undefined, countryCode: strin
 export async function HomeWeather({ address, countryCode, isArabic }: HomeWeatherProps) {
   const weather = await getWeather(address, countryCode, isArabic);
   if (!weather) {
-    return <div className="flex min-w-0 items-center gap-3 rounded-xl border border-[var(--cs-slate-200)] bg-[var(--cs-slate-50)] px-3 py-2.5" aria-label={isArabic ? "معلومات الطقس غير متاحة" : "Weather information unavailable"}>
-      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white text-[var(--cs-slate-500)]"><Cloud className="h-5 w-5" aria-hidden="true" /></span>
-      <div className="min-w-0"><p className="text-xs font-semibold text-[var(--cs-ink-950)]">{isArabic ? "الطقس" : "Weather"}</p><p className="mt-0.5 text-xs text-[var(--cs-slate-500)]">{isArabic ? "غير متاح حاليًا" : "Currently unavailable"}</p></div>
+    return <div className="flex min-w-0 items-center gap-3 py-1" aria-label={isArabic ? "معلومات الطقس غير متاحة" : "Weather information unavailable"}>
+      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[var(--cs-slate-100)] text-[var(--cs-slate-500)]"><Cloud className="h-5 w-5" aria-hidden="true" /></span>
+      <div className="min-w-0"><p className="text-sm font-semibold text-[var(--cs-ink-950)]">{isArabic ? "الطقس غير متاح" : "Weather unavailable"}</p><p className="mt-0.5 text-xs text-[var(--cs-slate-500)]">{isArabic ? "تحقق من عنوان العيادة في بيانات الملف." : "Check the clinic address in the clinic profile."}</p></div>
     </div>;
   }
-
-  return <div className="flex min-w-0 items-center gap-3 rounded-xl border border-[var(--cs-slate-200)] bg-[var(--cs-slate-50)] px-3 py-2.5" aria-label={isArabic ? `الطقس في ${weather.location}` : `Weather in ${weather.location}`}>
-    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[var(--cs-cyan-100)] text-[var(--cs-cyan-700)]"><WeatherIcon code={weather.code} /></span>
-    <div className="min-w-0"><div className="flex items-baseline gap-2"><span className="text-lg font-bold tabular-nums text-[var(--cs-ink-950)]">{Math.round(weather.temperature)}°</span><span className="truncate text-xs font-medium text-[var(--cs-slate-700)]">{weatherText(weather.code, isArabic)}</span></div>
-      <p className="mt-0.5 truncate text-xs text-[var(--cs-slate-500)]">{weather.location}{typeof weather.humidity === "number" ? <><span aria-hidden="true"> · </span><span className="inline-flex items-center gap-1"><Droplets className="h-3 w-3" aria-hidden="true" />{weather.humidity}%</span></> : null}{typeof weather.wind === "number" ? <><span aria-hidden="true"> · </span><span className="inline-flex items-center gap-1"><Wind className="h-3 w-3" aria-hidden="true" />{Math.round(weather.wind)} km/h</span></> : null}</p>
-    </div>
+  return <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2 py-1" aria-label={isArabic ? `الطقس في ${weather.location}` : `Weather in ${weather.location}`}>
+    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[var(--cs-cyan-100)] text-[var(--cs-cyan-700)]"><WeatherIcon code={weather.code} /></span>
+    <div className="min-w-0"><div className="flex items-baseline gap-2"><span className="text-2xl font-bold tabular-nums text-[var(--cs-ink-950)]">{Math.round(weather.temperature)}°C</span><span className="text-sm font-medium text-[var(--cs-slate-700)]">{weatherText(weather.code, isArabic)}</span></div><p className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-[var(--cs-slate-500)]"><span>{weather.location}</span>{typeof weather.humidity === "number" ? <span className="inline-flex items-center gap-1"><Droplets className="h-3 w-3" aria-hidden="true" />{weather.humidity}%</span> : null}{typeof weather.wind === "number" ? <span className="inline-flex items-center gap-1"><Wind className="h-3 w-3" aria-hidden="true" />{Math.round(weather.wind)} km/h</span> : null}</p></div>
   </div>;
 }
