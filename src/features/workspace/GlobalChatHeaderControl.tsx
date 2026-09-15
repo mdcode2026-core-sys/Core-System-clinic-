@@ -15,7 +15,7 @@ const MIN_W = 300;
 const MIN_H = 360;
 const GAP = 12;
 const TOP = 68;
-const STORAGE = "core-system-global-chat-layout-v4";
+const STORAGE = "core-system-global-chat-layout-v5";
 
 const getViewportMode = (): ViewportMode => {
   if (typeof window === "undefined") return "desktop";
@@ -31,11 +31,11 @@ const defaults = (): PanelGeometry => {
   if (mode === "tablet") {
     const width = Math.min(720, window.innerWidth - GAP * 2);
     const height = Math.min(620, window.innerHeight - GAP * 2);
-    return { x: Math.max(GAP, Math.round((window.innerWidth - width) / 2)), y: Math.max(TOP, window.innerHeight - height - GAP), width, height };
+    return { x: GAP, y: Math.max(TOP, window.innerHeight - height - GAP), width, height };
   }
   const width = Math.min(520, window.innerWidth - GAP * 2);
   const height = Math.min(560, window.innerHeight - TOP - GAP);
-  return { x: Math.max(GAP, window.innerWidth - width - GAP), y: Math.max(TOP, Math.round((window.innerHeight - height) / 2)), width, height };
+  return { x: GAP, y: Math.max(TOP, Math.round((window.innerHeight - height) / 2)), width, height };
 };
 
 const normalize = (value: PanelGeometry): PanelGeometry => {
