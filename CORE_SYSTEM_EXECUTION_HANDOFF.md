@@ -2,123 +2,90 @@
 
 **Date:** 2026-09-15
 **Current Branch:** `feat/visual-design-constitution-f1-f4-2026-09-15`
+**Current Implementation Head:** `a23761bebd9b23869ff1afcc1a1a0ca193aed5a3`
 **Base:** `docs/ux-experience-governance-foundation-2026-09-14`
-**Current Candidate:** PR #125 / `b6f4f2cd865e8e3be34f1195412c16862f18ee86`
-**Code-equivalent implementation revision verified by unified workflow:** `344a2ebe453a8218e34c56b675bde19fc4a60070`
 
-## Current Objective
-Implement the Product Owner-approved **Experience Foundation** across F1–F4 as one adaptive experience system, using Clinical Precision as its approved visual language and without reopening closed decisions.
+## Objective
+Implement the Product Owner-approved **Experience Foundation** across F1–F4 as one adaptive experience system, using Clinical Precision as its visual language and preserving all functional/surface boundaries.
 
-## Authority
-The active authority stack is:
-1. Experience Constitution & Governance
-2. Experience Decision Registry
-3. Integrated Experience Work Contract
-4. Experience Execution Gate
-5. Visual Design Constitution
-6. Visual Token Specification
-7. Surface Visual Application Matrix
-8. Visual Execution Contract
-
-The repository also contains the current-cycle execution ledger:
-`docs/CORE-SYSTEM-EXPERIENCE-F1-F4-EXECUTION-LEDGER-2026-09-15.md`.
-
-## F1–F4 Implementation
+## Current F1–F4 Implementation
 
 ### F1 — Login
 - Dedicated authentication experience; authenticated Header/Sidebar are not imported.
-- Clinical Precision light/calm presentation with authoritative ClinicSaaS brand asset.
-- Authentication behavior, redirect, language, forgot-password, register, password visibility, error handling, loading behavior, and native validation preserved.
-- Email/password autocomplete and accessible authentication-error association added.
+- Calm Clinical Precision presentation with existing authentication behavior preserved.
+- Redirect, language, reset/register, password visibility, loading/error behavior, native validation, autocomplete and accessible error association preserved/implemented.
 
 ### F2 — Header
-- Persistent global shell with independent Brand/Home, Global Search, Communications, Chat, Notifications, and Quick Actions.
-- Mega-pill/container treatment removed.
-- Desktop/tablet use a compact single row.
-- Mobile intentionally transforms to a second utility row with horizontal capability access instead of squeezing/hiding controls.
-- Existing Search/Communications/Chat/Notifications authorities are reused; no duplicate engines.
-- Communications remains clinic-wide for authorized clinic accounts.
-- Chat remains a compact Communications surface.
-- Notifications remain distinct.
-- Quick Actions remain Language + Logout.
-- Focus-visible and Escape/focus-restoration behavior added to relevant header controls.
+- Canonical capabilities remain: Brand/Home, Global Search, Communications, Chat, Notifications, Quick Actions.
+- No mega-pill and no duplicate domain engines.
+- Three deliberate viewport compositions are implemented rather than one desktop layout merely reordered/scaled:
+  - Mobile: navigation/identity/tools row + dedicated search row.
+  - Tablet: navigation/identity/search row + dedicated utility row.
+  - Desktop: single compact global row.
+- Header controls use a consistent 40px interaction geometry.
+- Mobile Quick Actions menu is viewport-anchored so it cannot be clipped by the utility row.
+- Communications is clinic-wide for authorized accounts; Chat remains a compact Communications surface; Notifications remain independent; Quick Actions remain Language + Logout.
+- RTL/LTR uses logical positioning and independent control order.
 
 ### F3 — Home
-Home composition is:
+Home composition:
 `Identity / Context → Today → Attention when actionable → Next Destinations`
 
-Identity Banner contains:
-- clinic identity;
-- clinic logo when available, otherwise authoritative ClinicSaaS asset;
-- user identity;
-- approved Welcome behavior;
-- lightweight current Weather/ambient context based on clinic location;
-- Workspace entry.
+Identity Banner contains clinic identity, clinic logo/brand fallback, user identity, approved Welcome lifecycle, and Weather/ambient context. Weather is presented as open identity context rather than a nested compressed card.
 
-Today contains a coherent awareness list with:
-- user-context-aware Today's Appointments;
-- patients waiting;
-- current clinical work;
-- completed today.
+Today's appointments preserve `clinic_users.id → master_agenda_events.doctor_id` and pass `doctorId` into the existing authoritative Agenda/Calendar representation.
 
-Today's Appointments use `clinic_users.id → master_agenda_events.doctor_id` and preserve `doctorId` into Agenda.
+Today is a compact action surface: four relevant states remain directly actionable through their icons/tiles without explanatory arrows or a large replacement card wall.
 
-Attention is conditional and only appears when a genuinely actionable waiting condition exists.
+Next destinations contain Workspace and **Calendar**. Calendar routes to the existing Agenda calendar representation; no second scheduling engine or `/calendar` engine was invented.
 
-The following remain absent from Home:
-- Notifications;
-- Communications;
-- Work Center;
-- Quick Actions;
-- Patient Portal information;
-- widgets/personalized widgets.
+The following remain absent from Home: Notifications, Communications, Work Center, Quick Actions, Patient Portal information, and personalized widgets.
 
-Weather is an explicit approved Home decision recorded as `EXP-029`.
+Workspace is intentionally not duplicated inside the Identity Banner; its entry remains in the dedicated Next/Attention destinations.
 
 ### F4 — Home → Workspace
-- Workspace entry is explicit from Home.
-- Entry provides lightweight entering-work feedback.
-- Existing `/workspace` destination and authorization behavior remain authoritative.
-- Workspace shell records navigation away from Home for Welcome lifecycle and applies a subtle work-mode distinction.
-- No second workspace layer was introduced.
+- Workspace entry is explicit in the Home destination/Attention surfaces.
+- Entering-work feedback is retained.
+- Existing `/workspace` and authorization semantics remain authoritative.
+- Workspace shell uses the transition state for Welcome lifecycle and a subtle work-mode distinction.
+- No second workspace layer.
 
-## Functional Boundary
-Agenda remains the authoritative scheduling/planning engine. Calendar remains a representation, not a second engine.
+## Review Corrections Applied
+- Fixed mobile Quick Actions interaction/clipping.
+- Rebuilt Header as three viewport-specific compositions.
+- Normalized Communications/Notifications control geometry.
+- Removed duplicate Identity Banner Workspace action.
+- Replaced the unintended Home Agenda destination presentation with Calendar terminology and the existing Agenda calendar representation.
+- Reworked Weather placement and presentation.
+- Reworked Today from a large descriptive container into a compact actionable surface.
+- Removed obsolete Identity Banner workspace prop.
 
-No database migration or permission-model rewrite was introduced by the Experience Foundation work. Work Center was not redesigned. Patient Flow and Patient Journey boundaries were not changed.
+## Verification
+A validation-only PR is used against `main` so the mandatory unified execution workflow runs against the exact candidate without deploying to production.
 
-## Documentation State
-- Experience Constitution, Decision Registry, Integrated Work Contract, Execution Gate, Visual Constitution, Token Spec, Visual Matrix, and Visual Execution Contract are reconciled with current implementation.
-- Current-cycle F1–F4 execution evidence is recorded in `docs/CORE-SYSTEM-EXPERIENCE-F1-F4-EXECUTION-LEDGER-2026-09-15.md`.
-- The historical root `CORE_SYSTEM_EXECUTION_LEDGER.md` remains unchanged to preserve its historical record; the current-cycle ledger is the authoritative detailed execution supplement for this F1–F4 cycle.
+- Validation PR: #127
+- Validation branch: `verify/experience-foundation-f1-f4-2026-09-15-r2`
+- Validation head: `a23761bebd9b23869ff1afcc1a1a0ca193aed5a3`
+- Unified workflow run: #245 / `34945623748`
 
-## Verification Execution
-Validation-only PR: #126  
-Validation branch: `verify/experience-foundation-f1-f4-2026-09-15`  
-Unified workflow: `CORE SYSTEM Unified Test Execution Engine`  
-Observed run: #243 / `34903128292`  
-Implementation revision executed: `344a2ebe453a8218e34c56b675bde19fc4a60070`
-
-Observed passed gates before final suite completion:
+Observed successful prerequisites for run #245:
 - exact candidate checkout;
 - Node setup;
-- dependencies;
-- execution-contract setup;
-- contract completeness validation;
-- Playwright runtime installation.
+- Playwright cache setup.
 
-Final selected test execution was still running at the latest observation. No terminal pass/fail is claimed until GitHub reports it.
+At the latest observation the workflow was still installing dependencies; therefore no final test result is claimed yet.
 
-No Vercel deployment is used as validation evidence for this phase.
+No Vercel deployment is used as validation evidence.
 
 ## Required Final Evidence
-The remaining objective gates are:
 - terminal automated execution result;
-- runtime visual checks for Login/Header/Home/Home→Workspace;
-- Desktop/Tablet/Mobile verification;
-- RTL/LTR verification;
-- accessibility/focus/keyboard/touch verification;
-- authorization/data-scope confirmation for Home and Agenda context;
+- runtime Login/Header/Home/Home→Workspace checks;
+- Mobile/Tablet/Desktop checks;
+- RTL/LTR checks;
+- accessibility/focus/keyboard/touch checks;
+- Home/Agenda authorization and context confirmation;
+- exact reviewed implementation head;
+- current-cycle ledger reconciliation;
 - Product Owner runtime acceptance.
 
-**Current implementation state: F1–F4 rebuilt and source-verified; final automated/runtime acceptance awaits terminal evidence.**
+**Implementation head is source-verified after the current review corrections; final acceptance remains dependent on the required runtime/automated evidence.**
