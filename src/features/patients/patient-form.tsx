@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/core/auth/AuthContext";
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
@@ -21,12 +22,13 @@ interface PatientFormProps {
 }
 
 interface PatientApiResult {
-  data?: { id: string };
+  data?: Patient;
   error?: string;
 }
 
 export function PatientForm({ patient, isOpen, onClose, onSuccess }: PatientFormProps) {
   const { tenantId } = useAuth();
+  const queryClient = useQueryClient();
   const { invalidateAll } = useInvalidatePatients();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -90,10 +92,21 @@ export function PatientForm({ patient, isOpen, onClose, onSuccess }: PatientForm
         result = { error: "PATIENT_DATABASE_ERROR" };
       }
 
-      if (!response.ok || result.error) {
+      if (!response.ok || result.error || !result.data) {
         setServerError(localizeServerError(result.error || "PATIENT_DATABASE_ERROR"));
         return;
       }
+
+      const updatedPatient = result.data;
+      queryClient.setQueryData<Patient[]>(["patients", tenantId], (currentPatients = []) => {
+        if (patient) {
+          return currentPatients.map((currentPatient) =>
+            currentPatient.id === updatedPatient.id ? updatedPatient : currentPatient,
+          );
+        }
+        return [updatedPatient, ...currentPatients.filter((currentPatient) => currentPatient.id !== updatedPatient.id)];
+      });
+      await queryClient.refetchQueries({ queryKey: ["patients", tenantId], type: "active" });
 
       onSuccess?.();
       onClose();
