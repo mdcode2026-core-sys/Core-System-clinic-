@@ -13,6 +13,7 @@ This document is the implementation-ready token layer for the approved Clinical 
 --cs-ink-950: #0F172A;
 --cs-ink-900: #172033;
 --cs-slate-700: #334155;
+--cs-slate-600: #475569;
 --cs-slate-500: #64748B;
 --cs-slate-300: #CBD5E1;
 --cs-slate-200: #E2E8F0;
@@ -28,27 +29,31 @@ This document is the implementation-ready token layer for the approved Clinical 
 --cs-success-700: #15803D;
 --cs-warning-700: #A16207;
 --cs-danger-700: #B91C1C;
+--cs-danger-100: #FEE2E2;
+--cs-danger-50: #FEF2F2;
 ```
 
 Semantic tokens are mapped separately from primitives so components use meaning rather than raw hex values.
 
 ## Semantic color aliases
 
+CORE SYSTEM already has an existing Tailwind/shadcn HSL variable layer (`--background`, `--foreground`, `--primary`, etc.). The Clinical Precision semantic layer therefore uses the `--cs-*` namespace to avoid changing the value contract expected by existing utilities.
+
 ```css
---background: var(--cs-slate-50);
---foreground: var(--cs-ink-950);
---surface: var(--cs-white);
---surface-subtle: var(--cs-slate-100);
---border: var(--cs-slate-200);
---border-strong: var(--cs-slate-300);
---primary: var(--cs-azure-600);
---primary-strong: var(--cs-azure-700);
---primary-soft: var(--cs-azure-100);
---info: var(--cs-cyan-700);
---info-soft: var(--cs-cyan-100);
---success: var(--cs-success-700);
---warning: var(--cs-warning-700);
---danger: var(--cs-danger-700);
+--cs-background: var(--cs-slate-50);
+--cs-foreground: var(--cs-ink-950);
+--cs-surface: var(--cs-white);
+--cs-surface-subtle: var(--cs-slate-100);
+--cs-border: var(--cs-slate-200);
+--cs-border-strong: var(--cs-slate-300);
+--cs-primary: var(--cs-azure-600);
+--cs-primary-strong: var(--cs-azure-700);
+--cs-primary-soft: var(--cs-azure-100);
+--cs-info: var(--cs-cyan-700);
+--cs-info-soft: var(--cs-cyan-100);
+--cs-success: var(--cs-success-700);
+--cs-warning: var(--cs-warning-700);
+--cs-danger: var(--cs-danger-700);
 ```
 
 ## Typography tokens
@@ -111,6 +116,14 @@ Use shadows only where an element is intentionally elevated. Avoid decorative sh
 
 ## Control tokens
 
+```css
+--cs-control-height: 40px;
+--cs-control-height-dense: 36px;
+--cs-control-radius: var(--cs-radius-lg);
+--cs-focus-width: 2px;
+--cs-focus-offset: 2px;
+```
+
 - Minimum target size: 40px for compact header controls and 44px for primary mobile interaction where space permits.
 - Standard control height: 40px.
 - Dense control height: 36px only when surrounding information density requires it.
@@ -120,15 +133,15 @@ Use shadows only where an element is intentionally elevated. Avoid decorative sh
 
 ## Surface token usage
 
-- Page canvas → `background`.
-- Primary content region → `surface`.
-- Secondary grouping → `surface-subtle`.
-- Dividing boundary → `border`.
-- Primary action → `primary`.
-- Informational highlight → `info`.
-- Positive outcome → `success`.
-- Caution → `warning`.
-- Failure/destructive → `danger`.
+- Page canvas → `--cs-background`.
+- Primary content region → `--cs-surface`.
+- Secondary grouping → `--cs-surface-subtle`.
+- Dividing boundary → `--cs-border`.
+- Primary action → `--cs-primary`.
+- Informational highlight → `--cs-info`.
+- Positive outcome → `--cs-success`.
+- Caution → `--cs-warning`.
+- Failure/destructive → `--cs-danger`.
 
 ## Dark mode
 
@@ -136,4 +149,4 @@ Dark mode remains supported by the existing system architecture, but F1–F4 imp
 
 ## Token rule
 
-Components should consume semantic tokens where possible. Raw primitive values are appropriate only in token definitions or tightly controlled brand asset work.
+Components should consume semantic `--cs-*` tokens where possible. Raw primitive values are appropriate only in token definitions or tightly controlled brand asset work. Existing Tailwind/shadcn HSL variables remain untouched for compatibility with the current utility/component architecture.
