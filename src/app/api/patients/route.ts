@@ -70,12 +70,16 @@ export async function POST(request: Request) {
     last_name: lastName,
     phone_primary: phone,
   };
-  const { error } = await supabase.from("clinic_patients").insert({ ...patient, id });
+  const { data, error } = await supabase
+    .from("clinic_patients")
+    .insert({ ...patient, id })
+    .select("*")
+    .single();
   if (error) {
     console.error("[patients/api] create failed", { message: error.message, code: error.code });
     return NextResponse.json({ error: DATABASE_ERROR }, { status: 500 });
   }
-  return NextResponse.json({ data: { id } }, { status: 201 });
+  return NextResponse.json({ data }, { status: 201 });
 }
 
 export async function PATCH(request: Request) {
@@ -86,16 +90,18 @@ export async function PATCH(request: Request) {
   if (!tenantId) return NextResponse.json({ error: TENANT_MISSING }, { status: 401 });
 
   const update = normalizedPayload(body) as PatientUpdate;
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from("clinic_patients")
     .update({ ...update, updated_at: new Date().toISOString() })
     .eq("id", body.id as string)
-    .eq("tenant_id", tenantId);
+    .eq("tenant_id", tenantId)
+    .select("*")
+    .single();
   if (error) {
     console.error("[patients/api] update failed", { message: error.message, code: error.code });
     return NextResponse.json({ error: DATABASE_ERROR }, { status: 500 });
   }
-  return NextResponse.json({ data: { id: body.id } });
+  return NextResponse.json({ data });
 }
 
 export async function DELETE(request: Request) {
