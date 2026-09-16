@@ -3,7 +3,7 @@
 **Date:** 2026-09-16
 **Canonical Branch:** `repair/global-experience-presentation-rebuild-2026-09-16`
 **Canonical PR:** #129
-**Current Canonical Head:** `c055edc10cbd8e0cddc2bf2eea94db0bad28e29e`
+**Current Canonical Head:** `405ef28993bcf76837a9f0174c35f5d62e369ab4`
 **Main Baseline:** `d85a5de23051919fb347e1482bc28f5fe70c0e14`
 **Status:** HISTORICAL RECOVERY INTEGRATED — IMPLEMENTATION / VERIFICATION NOT CLOSED
 
@@ -111,7 +111,7 @@ The current canonical line now protects, either as active authority or historica
 - Surface Visual Application Matrix.
 - Experience Presentation System.
 - Insights engineering blueprint recovery.
-- Branch reconciliation decision log.
+- Branch reconciliation decision log, including the final v2 sync record from 2026-09-08.
 - Terminology Governance, Application Register and Historical Reconciliation.
 
 Exact historical source artifacts are preserved under:
@@ -197,7 +197,7 @@ Confirmed examples of content already represented in main/current form include m
 Confirmed unique/recovered sources include:
 
 - Insights Engineering Blueprint.
-- Branch Reconciliation Decision Log.
+- Branch Reconciliation Decision Log including final-v2 security/migration reconciliation evidence.
 - 2026-09-14 Constitution/Contract source artifacts.
 - 2026-09-14 UX Architecture Investigation Handoff.
 - 2026-08-29 Terminology Governance source set.
@@ -209,7 +209,7 @@ The audit remains open for remaining independent refs and for direct comparison 
 
 #129 is **NOT CLOSED**.
 
-No merge to `main` is authorized until applicable gates are evidenced for the current canonical head `c055edc10cbd8e0cddc2bf2eea94db0bad28e29e`.
+No merge to `main` is authorized until applicable gates are evidenced for the current canonical head `405ef28993bcf76837a9f0174c35f5d62e369ab4`.
 
 Required current-cycle evidence includes, as applicable:
 
@@ -231,7 +231,7 @@ CI/build/deployment success alone does not establish product closure.
 
 ## 11. Immediate Next Execution
 
-1. Run and review the current #129 automated execution gates on the exact head `c055edc10cbd8e0cddc2bf2eea94db0bad28e29e`.
+1. Run and review the current #129 automated execution gates on the exact head `405ef28993bcf76837a9f0174c35f5d62e369ab4`.
 2. Perform targeted runtime verification of Login, Header, Home, Home→Workspace, Agenda-context routing and Global Search in desktop/tablet/mobile and Arabic/English.
 3. Review remaining independent documentation/implementation refs against #129 by actual changed content, not ref names.
 4. Promote additional compatible work only after content-level review and applicable tests.
