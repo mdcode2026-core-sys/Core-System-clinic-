@@ -1,0 +1,25 @@
+{
+  "workstream_id": "GLOBAL-EXPERIENCE-PRESENTATION",
+  "contract_version": "1.0",
+  "contract_path": "docs/CORE-SYSTEM-GLOBAL-EXPERIENCE-PRESENTATION-REBUILD-REPAIR-CONTRACT-2026-09-16.md",
+  "applicability": {
+    "match_any": [
+      "^src/features/workspace/",
+      "^src/core/search/",
+      "^src/core/navigation/",
+      "^src/app/\\(dashboard\\)/layout\\.tsx$",
+      "^tools/global-experience-presentation-contract-audit\\.mjs$",
+      "^docs/CORE-SYSTEM-GLOBAL-EXPERIENCE-PRESENTATION-REBUILD-REPAIR-CONTRACT-2026-09-16\\.md$"
+    ]
+  },
+  "regression_level": "R3",
+  "required_engineering": ["typecheck", "lint", "build"],
+  "required_suites": ["global-experience-presentation", "authenticated-e2e", "i18n"],
+  "workstream_checks": [
+    {
+      "id": "presentation-contract-static-audit",
+      "command": "npm run test:global-experience-presentation",
+      "required": true
+    }
+  ]
+}
