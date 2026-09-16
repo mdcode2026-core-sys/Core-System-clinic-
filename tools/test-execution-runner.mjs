@@ -36,7 +36,7 @@ const commands = {
   "database-integrity": [["database-integrity", "npm", ["run", "test:cross-domain-runtime"]]],
   authorization: [["authorization-runtime", "npm", ["run", "test:cross-domain-runtime"]]],
   "authenticated-e2e": [["authenticated-route-e2e", "npx", ["playwright", "test", "tools/ajm-production-auth-e2e.spec.mjs", "--reporter=line"]]],
-  "global-experience-presentation-runtime": [["global-experience-presentation-runtime", "npx", ["playwright", "test", "tools/global-experience-presentation-runtime.spec.mjs", "--reporter=line"]]],
+  "global-experience-presentation-runtime": [["global-experience-presentation-runtime", "node", ["tools/global-experience-presentation-runtime.spec.mjs"]]],
   "patient-journey": [["real-world-clinic-journey-e2e", "node", ["tools/clinic-admin-real-world-e2e-v2.mjs"]]],
   "procurement-inventory-finance": [["procurement-inventory-finance-runtime", "npm", ["run", "test:cross-domain-runtime"]]],
 };
