@@ -17,6 +17,7 @@ import { CommunicationsHeaderControl } from "./CommunicationsHeaderControl";
 import { GlobalChatHeaderControl } from "./GlobalChatHeaderControl";
 import { NotificationsHeaderControl } from "./NotificationsHeaderControl";
 import { QuickActionsHeaderControl } from "./QuickActionsHeaderControl";
+import styles from "./GlobalSurfacesDesktopGeometry.module.css";
 
 interface WorkspaceShellProps {
   children: React.ReactNode;
@@ -94,7 +95,7 @@ export function EntitlementAwareWorkspaceShell({ children, user, assignedWorkspa
             aria-controls={`sidebar-group-${item.href.replace(/[^a-zA-Z0-9_-]/g, "-")}`}
             className={cn(
               "flex min-h-10 w-full items-center gap-3 rounded-lg px-3 py-2 text-start text-sm font-medium transition-colors",
-              nested && (isArabic ? "pr-4" : "pl-4"),
+              nested && "ps-4",
               active ? "bg-blue-50 text-blue-700" : "text-gray-700 hover:bg-gray-100 hover:text-gray-900",
             )}
           >
@@ -105,7 +106,7 @@ export function EntitlementAwareWorkspaceShell({ children, user, assignedWorkspa
           {open && (
             <div
               id={`sidebar-group-${item.href.replace(/[^a-zA-Z0-9_-]/g, "-")}`}
-              className="mt-1 space-y-0.5 border-l border-gray-200 pl-1 rtl:border-l-0 rtl:border-r rtl:pr-1"
+              className="mt-1 space-y-0.5 border-s border-gray-200 ps-1 rtl:border-s-0 rtl:border-e rtl:pe-1"
             >
               {children.map((child) => renderItem(child, true))}
             </div>
@@ -123,7 +124,7 @@ export function EntitlementAwareWorkspaceShell({ children, user, assignedWorkspa
           aria-current={pathMatches(item.href) ? "page" : undefined}
           className={cn(
             "flex min-h-10 items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
-            nested && (isArabic ? "mr-4" : "ml-4"),
+            nested && "ps-4",
             active ? "bg-blue-50 text-blue-700" : "text-gray-700 hover:bg-gray-100 hover:text-gray-900",
           )}
         >
@@ -131,7 +132,7 @@ export function EntitlementAwareWorkspaceShell({ children, user, assignedWorkspa
           <span className="min-w-0 truncate">{getLabel(item)}</span>
         </Link>
         {children.length > 0 && (
-          <div className="mt-1 space-y-0.5 border-l border-gray-200 pl-1 rtl:border-l-0 rtl:border-r rtl:pr-1">
+          <div className="mt-1 space-y-0.5 border-s border-gray-200 ps-1 rtl:border-s-0 rtl:border-e rtl:pe-1">
             {children.map((child) => renderItem(child, true))}
           </div>
         )}
@@ -140,16 +141,21 @@ export function EntitlementAwareWorkspaceShell({ children, user, assignedWorkspa
   };
 
   return (
-    <div className="flex h-screen w-full min-w-0 overflow-hidden bg-gray-50">
+    <div dir={isArabic ? "rtl" : "ltr"} className="flex h-[100dvh] w-full min-w-0 overflow-hidden bg-gray-50">
       {sidebarOpen && (
-        <div className="fixed inset-0 z-40 bg-black/50 lg:hidden" onClick={closeSidebar} aria-hidden="true" />
+        <button
+          type="button"
+          className="fixed inset-0 z-40 cursor-default bg-black/50 lg:hidden"
+          onClick={closeSidebar}
+          aria-label={isArabic ? "إغلاق القائمة" : "Close navigation"}
+        />
       )}
       <aside
         id="global-sidebar"
         className={cn(
-          "fixed inset-y-0 z-50 w-64 max-w-[85vw] transform bg-white shadow-lg transition-transform duration-200 ease-in-out",
-          isArabic ? "right-0" : "left-0",
-          sidebarOpen ? "translate-x-0" : isArabic ? "translate-x-full" : "-translate-x-full",
+          styles.sidebar,
+          "fixed inset-y-0 z-50 w-64 max-w-[85vw] -translate-x-full bg-white shadow-lg transition-transform duration-200 ease-in-out rtl:translate-x-full",
+          sidebarOpen && "translate-x-0 rtl:translate-x-0",
         )}
       >
         <div className="flex h-full min-w-0 flex-col">
@@ -160,7 +166,7 @@ export function EntitlementAwareWorkspaceShell({ children, user, assignedWorkspa
             <button
               type="button"
               onClick={closeSidebar}
-              className="inline-flex min-h-10 min-w-10 shrink-0 items-center justify-center rounded-md p-1.5 hover:bg-gray-100"
+              className="inline-flex min-h-10 min-w-10 shrink-0 items-center justify-center rounded-md p-1.5 hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
               aria-label={messages.shell.closeMenu}
               title={messages.shell.closeMenu}
             >
@@ -172,7 +178,8 @@ export function EntitlementAwareWorkspaceShell({ children, user, assignedWorkspa
           </nav>
         </div>
       </aside>
-      <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
+
+      <div className={cn(styles.content, "flex min-w-0 flex-1 flex-col overflow-hidden")}>
         <GlobalHeader
           isArabic={isArabic}
           mobileSidebarOpen={sidebarOpen}
