@@ -64,11 +64,11 @@ export function GlobalOverlayPortal({
       const viewportWidth = window.innerWidth;
       const viewportHeight = window.innerHeight;
       const anchor = anchorRef.current?.getBoundingClientRect();
-      const safeTop = Math.max(HEADER_OFFSET, Number.parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--sat") || "0") || 0);
-      const safeBottom = Number.parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--sab") || "0") || 0;
 
       if (viewportWidth < MOBILE_BREAKPOINT || !anchor) {
-        const top = mobilePlacement === "top" ? Math.max(MOBILE_EDGE, safeTop) : undefined;
+        const safeTop = 0;
+        const safeBottom = 0;
+        const top = mobilePlacement === "top" ? Math.max(MOBILE_EDGE, HEADER_OFFSET, safeTop) : undefined;
         const bottom = mobilePlacement === "bottom" ? Math.max(MOBILE_EDGE, safeBottom) : undefined;
         const reserved = (top ?? 0) + (bottom ?? 0) + MOBILE_EDGE * 2;
         setPosition({
@@ -176,7 +176,6 @@ export function GlobalOverlayPortal({
       ref={panelRef}
       id={id}
       role={role}
-      aria-modal={role === "dialog" ? true : undefined}
       aria-label={ariaLabel}
       dir={dir}
       style={style}
