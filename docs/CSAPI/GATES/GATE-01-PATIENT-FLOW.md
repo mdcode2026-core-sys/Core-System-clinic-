@@ -24,20 +24,39 @@ Additional established principles:
 - Follow-up is a downstream/cross-domain process, not a duplicate Patient Flow engine.
 - Reception owns the reception workflow portion where the product decision requires reception action.
 
-## 3. What must be verified now
+## 3. Evidence reconciliation started
 
-The next investigation must inspect current repository and live reality for:
+The first repository + live Supabase evidence pass is recorded in:
+
+`docs/CSAPI/GATES/GATE-01-PATIENT-FLOW-EVIDENCE-2026-09-17.md`
+
+Initial evidence establishes that the approved lifecycle is materially represented by the current Queue Engine and server-side transition actions. Clinical completion delegates to the canonical pending-close transition, and the live database currently has 138 completed sessions plus one stale waiting session.
+
+Initial gaps requiring further verification are:
+
+1. Existing-session arrival/reset behavior can write `waiting` without passing through the transition validator.
+2. `buffer_window_expires_at` / `auto_close_at` semantics are not yet fully reconciled with application completion timestamps.
+3. Semantic completeness of lifecycle audit coverage is not yet established.
+4. The exact automatic follow-up trigger point remains unverified.
+5. Transition-by-transition permission/actor coverage still requires a complete matrix.
+6. Full scheduled and walk-in runtime verification has not yet been completed.
+
+No Product Owner decision has been proposed from these findings yet.
+
+## 4. What must be verified now
 
 ### Entry
 - How a patient enters Queue/Patient Flow.
 - What data establishes the patient/visit relationship.
 - How appointment/arrival/no-show/reschedule context enters the flow.
+- Whether an existing session may ever legitimately be reset to `waiting` and under what constraints.
 
 ### Queue
 - Queue record/state ownership.
 - Provider/clinic/resource context.
 - Permissions for queue actions.
 - Transition rules.
+- Whether presentation-level target maps remain exactly aligned with server authority.
 
 ### Clinical Visit
 - Visit/session identity.
@@ -51,12 +70,14 @@ The next investigation must inspect current repository and live reality for:
 - Which actor owns it.
 - What must be complete before reception workflow.
 - Whether the state is a true domain state or only UI behavior.
+- Exact meaning of buffer and auto-close timestamps.
 
 ### Reception Workflow
 - Reception responsibilities.
 - Financial/administrative completion actions.
 - Next appointment/next action behavior.
 - Payment/insurance dependencies where applicable.
+- Exact completion authority.
 
 ### Completed
 - What actually makes a visit completed.
@@ -75,7 +96,7 @@ The next investigation must inspect current repository and live reality for:
 - Tenant/branch isolation.
 - Permission/role/entitlement boundaries.
 
-## 4. Required reconciliation questions
+## 5. Required reconciliation questions
 
 1. Does the live implementation actually express the approved lifecycle?
 2. Are there competing lifecycle engines or duplicate state machines?
@@ -90,7 +111,7 @@ The next investigation must inspect current repository and live reality for:
 11. Are automated side effects intentional, documented, and idempotent?
 12. Does current documentation accurately describe the verified implementation?
 
-## 5. Product decisions that may be required
+## 6. Product decisions that may be required
 
 Do not assume these are unresolved until verification is complete. Potential decision areas include:
 
@@ -103,13 +124,15 @@ Do not assume these are unresolved until verification is complete. Potential dec
 - Follow-up trigger point;
 - required audit events;
 - actor/permission boundaries;
-- patient context preservation across transitions.
+- patient context preservation across transitions;
+- existing-session arrival/reset semantics;
+- buffer/auto-close semantics.
 
-## 6. Implementation rule
+## 7. Implementation rule
 
 No implementation begins from this document until the current-state reconciliation is complete and every required product decision is explicitly approved.
 
-## 7. Verification / closure criteria
+## 8. Verification / closure criteria
 
 Gate 01 may move to CLOSED only when:
 
@@ -125,8 +148,10 @@ Gate 01 may move to CLOSED only when:
 - the Master State and Decision Ledger are updated;
 - no unresolved Gate 01 decision is silently carried forward.
 
-## 8. Current next action
+## 9. Current next action
 
-**Investigate and verify current Patient Flow implementation before proposing new behavior.**
+**Continue evidence-based reconciliation. Do not implement yet.**
+
+The next investigation must complete the unresolved targets identified in the evidence record, then determine which findings require Product Owner approval before implementation.
 
 This Gate is not yet approved for implementation and is not CLOSED.
