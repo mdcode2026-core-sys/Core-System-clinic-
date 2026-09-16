@@ -24,6 +24,87 @@
     --input: 214.3 31.8% 91.4%;
     --ring: 222.2 84% 4.9%;
     --radius: 0.5rem;
+
+    --cs-ink-950: #0f172a;
+    --cs-ink-900: #172033;
+    --cs-slate-700: #334155;
+    --cs-slate-600: #475569;
+    --cs-slate-500: #64748b;
+    --cs-slate-300: #cbd5e1;
+    --cs-slate-200: #e2e8f0;
+    --cs-slate-100: #f1f5f9;
+    --cs-slate-50: #f8fafc;
+    --cs-white: #ffffff;
+    --cs-azure-700: #1d4ed8;
+    --cs-azure-600: #2563eb;
+    --cs-azure-100: #dbeafe;
+    --cs-cyan-700: #0e7490;
+    --cs-cyan-600: #0891b2;
+    --cs-cyan-100: #cffafe;
+    --cs-success-700: #15803d;
+    --cs-warning-700: #a16207;
+    --cs-danger-700: #b91c1c;
+    --cs-danger-100: #fee2e2;
+    --cs-danger-50: #fef2f2;
+
+    --cs-background: var(--cs-slate-50);
+    --cs-foreground: var(--cs-ink-950);
+    --cs-surface: var(--cs-white);
+    --cs-surface-subtle: var(--cs-slate-100);
+    --cs-border: var(--cs-slate-200);
+    --cs-border-strong: var(--cs-slate-300);
+    --cs-primary: var(--cs-azure-600);
+    --cs-primary-strong: var(--cs-azure-700);
+    --cs-primary-soft: var(--cs-azure-100);
+    --cs-info: var(--cs-cyan-700);
+    --cs-info-soft: var(--cs-cyan-100);
+    --cs-success: var(--cs-success-700);
+    --cs-warning: var(--cs-warning-700);
+    --cs-danger: var(--cs-danger-700);
+
+    --cs-font-sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --cs-text-display: 2rem;
+    --cs-text-title: 1.75rem;
+    --cs-text-section: 1.25rem;
+    --cs-text-body: 0.9375rem;
+    --cs-text-caption: 0.8125rem;
+    --cs-text-micro: 0.75rem;
+    --cs-leading-display: 1.2;
+    --cs-leading-title: 1.25;
+    --cs-leading-section: 1.35;
+    --cs-leading-body: 1.55;
+    --cs-leading-caption: 1.45;
+    --cs-font-regular: 400;
+    --cs-font-medium: 500;
+    --cs-font-semibold: 600;
+    --cs-font-bold: 700;
+
+    --cs-space-1: 0.25rem;
+    --cs-space-2: 0.5rem;
+    --cs-space-3: 0.75rem;
+    --cs-space-4: 1rem;
+    --cs-space-5: 1.25rem;
+    --cs-space-6: 1.5rem;
+    --cs-space-8: 2rem;
+    --cs-space-10: 2.5rem;
+    --cs-space-12: 3rem;
+    --cs-space-16: 4rem;
+
+    --cs-radius-sm: 4px;
+    --cs-radius-md: 6px;
+    --cs-radius-lg: 8px;
+    --cs-radius-xl: 12px;
+    --cs-radius-2xl: 16px;
+
+    --cs-shadow-xs: 0 1px 2px rgb(15 23 42 / 0.04);
+    --cs-shadow-sm: 0 2px 8px rgb(15 23 42 / 0.06);
+    --cs-shadow-md: 0 8px 24px rgb(15 23 42 / 0.1);
+
+    --cs-control-height: 40px;
+    --cs-control-height-dense: 36px;
+    --cs-control-radius: var(--cs-radius-lg);
+    --cs-focus-width: 2px;
+    --cs-focus-offset: 2px;
   }
 
   .dark {
@@ -56,8 +137,39 @@
   img, video, canvas { max-width: 100%; }
 }
 
+@layer components {
+  .cs-page-canvas { background: var(--cs-background); color: var(--cs-foreground); }
+  .cs-surface { background: var(--cs-surface); border: 1px solid var(--cs-border); box-shadow: var(--cs-shadow-xs); }
+  .cs-surface-raised { background: var(--cs-surface); border: 1px solid var(--cs-border); box-shadow: var(--cs-shadow-sm); }
+  .cs-interactive:focus-visible { outline: var(--cs-focus-width) solid var(--cs-primary); outline-offset: var(--cs-focus-offset); }
+  .cs-login-error { border-color: var(--cs-danger-100); background: var(--cs-danger-50); color: var(--cs-danger); }
+  .cs-work-mode > header { border-bottom-color: var(--cs-border-strong); }
+}
+
 [dir="rtl"] { direction: rtl; text-align: right; }
 [dir="ltr"] { direction: ltr; text-align: left; }
+
+.cs-header-tools { scrollbar-width: none; -ms-overflow-style: none; }
+.cs-header-tools::-webkit-scrollbar { display: none; }
+
+[data-testid="global-header-chat"] {
+  display: inline-flex;
+  height: var(--cs-control-height);
+  width: var(--cs-control-height);
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--cs-control-radius);
+  color: var(--cs-slate-700);
+}
+[data-testid="global-header-chat"]:hover { background: var(--cs-slate-100); color: var(--cs-ink-950); }
+[data-testid="global-header-chat"]:focus-visible { outline: var(--cs-focus-width) solid var(--cs-primary); outline-offset: var(--cs-focus-offset); }
+[data-testid="global-chat-panel"] { border-color: var(--cs-border); box-shadow: var(--cs-shadow-md); }
+[data-testid="global-chat-panel"] > header { border-bottom-color: var(--cs-border); background: var(--cs-background); }
+[data-testid="global-chat-panel"] button:focus-visible,
+[data-testid="global-chat-panel"] input:focus-visible,
+[data-testid="global-chat-panel"] textarea:focus-visible { outline: var(--cs-focus-width) solid var(--cs-primary); outline-offset: 1px; }
+[data-testid="global-chat-panel"] form { border-top-color: var(--cs-border); }
 
 ::-webkit-scrollbar { width: 8px; height: 8px; }
 ::-webkit-scrollbar-track { background: hsl(var(--muted)); }
