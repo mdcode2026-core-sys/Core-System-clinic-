@@ -3,7 +3,7 @@
 **Date:** 2026-09-16
 **Canonical Branch:** `repair/global-experience-presentation-rebuild-2026-09-16`
 **Canonical PR:** #129
-**Current Canonical Head:** `06630b9a11c27a14c3726e35ac1da8a6aa2d5558`
+**Current Canonical Head:** `e596b359e8abfc242017fa084a587a4197359352`
 **Main Baseline:** `d85a5de23051919fb347e1482bc28f5fe70c0e14`
 **Status:** DOCUMENTATION RECONCILIATION ACTIVE — IMPLEMENTATION / VERIFICATION NOT CLOSED
 
@@ -45,6 +45,7 @@ The canonical consolidation intentionally does **not** mean that every historica
 
 - PRs/branches `#122–#128` — current Experience Foundation / Global Experience lineage.
 - Earlier historical branches in the 30-day audit window were reviewed for documentation and branch-vs-main drift, including AJM, Global UX/IA, Workspace, I18N, Patient Journey, Financial & Resources, Communications/Header and validation paths.
+- Independent documentation/reconciliation refs were also inspected, including `docs/insights-reconciliation-blueprint`, `reconciliation/decision-log-2026-09-08`, `docs/ideal-operational-architecture-audit-2026-08-30`, `docs/header-chat-closure-2026-09-13`, and Workspace/Global-Surfaces documentation refs.
 
 ## 4. Documentation Recovery Finding
 
@@ -89,13 +90,25 @@ The following current-cycle artifacts are now protected in #129 where they were 
 
 - `docs/CORE-SYSTEM-ADAPTIVE-HYBRID-EXPERIENCE-MODEL-DECISION-2026-09-14.md`
 - `docs/CORE-SYSTEM-ADAPTIVE-HYBRID-EXPERIENCE-RECONCILIATION-2026-09-14.md`
-- `docs/CORE-SYSTEM-EXPERIENCE-F1-F4-EXECUTION-HANDOFF-2026-09-15.md`
+- `docs/CORE-SYSTEM-CONSTITUTION-CONTRACT-RECONCILIATION-2026-09-14.md`
+- `docs/CORE-SYSTEM-EXPERIENCE-CONSTITUTION-AND-GOVERNANCE-2026-09-14.md`
+- `docs/CORE-SYSTEM-EXPERIENCE-DECISION-REGISTRY-2026-09-14.md`
+- `docs/CORE-SYSTEM-EXPERIENCE-EXECUTION-GATE-2026-09-14.md`
+- `docs/CORE-SYSTEM-INTEGRATED-EXPERIENCE-WORK-CONTRACT-2026-09-14.md`
+- `docs/CORE-SYSTEM-DESIGN-UX-ARCHITECTURE-CONSTITUTION-2026-09-14.md`
+- `docs/CORE-SYSTEM-EXPERIENCE-F1-F4-EXECUTION-LEDGER-2026-09-15.md`
+- `docs/CORE-SYSTEM-EXPERIENCE-FOUNDATION-SCOPE-FREEZE-2026-09-15.md`
+- `docs/CORE-SYSTEM-INTEGRATED-EXPERIENCE-CONSTITUTION-2026-09-16.md`
+- `docs/reconciliation/historical-recovery/INSIGHTS-ENGINEERING-BLUEPRINT-RECOVERY-2026-09-16.md`
+- `docs/reconciliation/historical-recovery/BRANCH-RECONCILIATION-DECISION-LOG-2026-09-08.md`
+
+The Experience Presentation System and the remaining Visual Foundation artifacts from the #128 source line are identified as current-cycle documentation that still require exact-source promotion/reconciliation if they are not already represented in #129. The audit must not close until this source-vs-canonical check is complete.
 
 Historical source evidence has been preserved under:
 
 `docs/reconciliation/historical-recovery/`
 
-This includes the previously unrepresented Financial & Resources and Global UX/IA historical records. Their presence does not reopen superseded product decisions.
+Their presence does not reopen superseded product decisions.
 
 ## 6. Living Handoff / Ledger Rule
 
@@ -150,6 +163,7 @@ The current canonical Experience Foundation is governed by:
 - Communications is clinic-wide; Chat is a compact Communications surface; Notifications remain separate.
 - Calendar remains a representation over the authoritative Agenda; no second scheduling engine.
 - RTL/LTR changes experience direction where logically appropriate; semantic-direction elements retain fixed semantic orientation where required.
+- Experience Foundation and Experience Presentation must now be treated as one integrated execution model, not competing or sequential design systems.
 
 ## 9. F1–F4 Current Evidence Context
 
@@ -172,7 +186,7 @@ The F1–F4 work remains **NOT CLOSED** until current-head automated/runtime evi
 
 ## 10. Historical PR / Main Reconciliation Principles
 
-Content-level review has already demonstrated several important classes:
+Content-level review has demonstrated several important classes:
 
 ### Already represented in main — do not duplicate
 
@@ -183,7 +197,8 @@ Examples include later/current versions of:
 - Quick Actions execution contract;
 - terminology governance;
 - Stage 12–15 closure/implementation records;
-- current branch reconciliation log.
+- current Global Surfaces reconciliation;
+- many August operational architecture/remediation documents where `main` contains a later executed/reconciled version.
 
 The existence of an older branch copy is not a reason to restore a duplicate file.
 
@@ -193,8 +208,11 @@ Examples include:
 
 - Financial & Resources domain source from the historical branch;
 - Global UX/IA audit and Stage 0 source records;
-- Adaptive Hybrid decision/reconciliation records that were not safely represented in `main`;
-- current-cycle F1–F4 execution handoff evidence.
+- Adaptive Hybrid decision/reconciliation records;
+- Experience Constitution / Decision Registry / Execution Gate;
+- F1–F4 execution handoff/ledger/scope freeze;
+- Insights engineering blueprint;
+- historical branch reconciliation decision log.
 
 ### Validation-only paths
 
@@ -226,10 +244,11 @@ CI/build/deployment success alone does not establish product closure.
 
 ## 12. Immediate Next Execution
 
-1. Continue deep content-level historical audit for any remaining unique documentation/decision artifacts not yet represented in #129 or `main`.
-2. Reconcile those findings into the live handoff/ledger without replacing current state with stale branch snapshots.
-3. Verify the resulting #129 tree and exact documentation diffs.
-4. Run the current Experience/Global-Surfaces validation gates against the exact #129 head.
-5. Only after evidence is complete, perform REVIEW → DOCUMENT finalization → CLOSE.
+1. Complete exact-source promotion/reconciliation for the remaining #128 Visual Foundation / Presentation artifacts.
+2. Complete content-level comparison of the residual independent documentation refs identified by the historical audit.
+3. Reconcile resulting findings into the live Handoff/Ledger and recovery register.
+4. Verify the resulting #129 tree and exact documentation diffs.
+5. Run the current Experience/Global-Surfaces validation gates against the exact #129 head.
+6. Only after evidence is complete, perform REVIEW → DOCUMENT finalization → CLOSE.
 
 **End of Live Execution Handoff.**
