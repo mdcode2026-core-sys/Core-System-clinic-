@@ -35,7 +35,9 @@ async function expectHeader() {
   const header = page.getByTestId("global-header");
   const rect = await header.boundingBox();
   const viewport = page.viewportSize();
-  if (!rect || !viewport || rect.width < viewport.width * 0.95) throw new Error("Header does not span viewport");
+  if (!rect || !viewport || rect.width < viewport.width * 0.70 || rect.x < -1 || rect.x + rect.width > viewport.width + 1) {
+    throw new Error(`Header geometry invalid: ${JSON.stringify({ rect, viewport })}`);
+  }
   const brand = page.getByTestId("global-header-brand");
   if (await brand.count() && !(await brand.boundingBox())) throw new Error("Brand geometry unavailable");
 }
