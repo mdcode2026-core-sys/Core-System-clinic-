@@ -3,9 +3,9 @@
 **Date:** 2026-09-16
 **Canonical Branch:** `repair/global-experience-presentation-rebuild-2026-09-16`
 **Canonical PR:** #129
-**Current Canonical Head:** `e596b359e8abfc242017fa084a587a4197359352`
+**Current Canonical Head:** `c055edc10cbd8e0cddc2bf2eea94db0bad28e29e`
 **Main Baseline:** `d85a5de23051919fb347e1482bc28f5fe70c0e14`
-**Status:** DOCUMENTATION RECONCILIATION ACTIVE — IMPLEMENTATION / VERIFICATION NOT CLOSED
+**Status:** HISTORICAL RECOVERY INTEGRATED — IMPLEMENTATION / VERIFICATION NOT CLOSED
 
 ## 1. Objective
 
@@ -41,11 +41,19 @@ PR #129 is the single active execution path for the consolidated Global Experien
 
 The canonical consolidation intentionally does **not** mean that every historical branch was merged wholesale. Surviving compatible implementation and documentation are retained; superseded, contradictory, validation-only and stale branch snapshots are not revived as execution bases.
 
-### Historical sources already reconciled into the canonical line
+### Historical recovery now integrated into the canonical line
 
-- PRs/branches `#122–#128` — current Experience Foundation / Global Experience lineage.
-- Earlier historical branches in the 30-day audit window were reviewed for documentation and branch-vs-main drift, including AJM, Global UX/IA, Workspace, I18N, Patient Journey, Financial & Resources, Communications/Header and validation paths.
-- Independent documentation/reconciliation refs were also inspected, including `docs/insights-reconciliation-blueprint`, `reconciliation/decision-log-2026-09-08`, `docs/ideal-operational-architecture-audit-2026-08-30`, `docs/header-chat-closure-2026-09-13`, and Workspace/Global-Surfaces documentation refs.
+The following recovery PRs were integrated into #129:
+
+- **PR #130** — historical UX, visual, terminology and governance artifact recovery.
+- **PR #131** — complete 2026-09-14 UX / Architecture Investigation Final Handoff recovery.
+- **PR #132** — compatible F1–F4 Home implementation promotion.
+- **PR #133** — compatible Login, Agenda context and Global Search promotion.
+- **PR #134** — Home welcome dismissal correctness repair.
+
+### Current canonical recovery outcome
+
+The canonical line now preserves historical artifacts under `docs/historical-recovery/` and also contains compatible implementation work recovered from older branches. Historical artifacts are not treated as disposable merely because their source PR was closed.
 
 ## 4. Documentation Recovery Finding
 
@@ -79,6 +87,7 @@ The repository now uses explicit classification for historical artifacts:
 - SUPERSEDED — RETAIN PROVENANCE
 - VALIDATION-ONLY — RETAIN AS EVIDENCE
 - DUPLICATE — POINT TO CANONICAL ARTIFACT
+- COMPATIBLE IMPLEMENTATION CANDIDATE — REVIEW / TEST / PROMOTE
 
 The detailed 30-day audit and provenance map is recorded in:
 
@@ -86,71 +95,79 @@ The detailed 30-day audit and provenance map is recorded in:
 
 ## 5. Current Documentation Authority Recovered
 
-The following current-cycle artifacts are now protected in #129 where they were not reliably represented in `main`:
+The current canonical line now protects, either as active authority or historical source with provenance, the Experience Foundation/Presentation record set including:
 
-- `docs/CORE-SYSTEM-ADAPTIVE-HYBRID-EXPERIENCE-MODEL-DECISION-2026-09-14.md`
-- `docs/CORE-SYSTEM-ADAPTIVE-HYBRID-EXPERIENCE-RECONCILIATION-2026-09-14.md`
-- `docs/CORE-SYSTEM-CONSTITUTION-CONTRACT-RECONCILIATION-2026-09-14.md`
-- `docs/CORE-SYSTEM-EXPERIENCE-CONSTITUTION-AND-GOVERNANCE-2026-09-14.md`
-- `docs/CORE-SYSTEM-EXPERIENCE-DECISION-REGISTRY-2026-09-14.md`
-- `docs/CORE-SYSTEM-EXPERIENCE-EXECUTION-GATE-2026-09-14.md`
-- `docs/CORE-SYSTEM-INTEGRATED-EXPERIENCE-WORK-CONTRACT-2026-09-14.md`
-- `docs/CORE-SYSTEM-DESIGN-UX-ARCHITECTURE-CONSTITUTION-2026-09-14.md`
-- `docs/CORE-SYSTEM-EXPERIENCE-F1-F4-EXECUTION-LEDGER-2026-09-15.md`
-- `docs/CORE-SYSTEM-EXPERIENCE-FOUNDATION-SCOPE-FREEZE-2026-09-15.md`
-- `docs/CORE-SYSTEM-INTEGRATED-EXPERIENCE-CONSTITUTION-2026-09-16.md`
-- `docs/reconciliation/historical-recovery/INSIGHTS-ENGINEERING-BLUEPRINT-RECOVERY-2026-09-16.md`
-- `docs/reconciliation/historical-recovery/BRANCH-RECONCILIATION-DECISION-LOG-2026-09-08.md`
+- Adaptive Hybrid Experience Model Decision and Reconciliation.
+- Experience Constitution, Decision Registry, Execution Gate and Integrated Work Contract.
+- Design / UX / Architecture Constitution.
+- UX / Architecture Investigation Final Handoff.
+- UX Experience Governance VERIFY and PLAN records.
+- F1–F4 Execution Ledger.
+- F1–F4 Foundation Scope Freeze.
+- Integrated Experience Constitution dated 2026-09-16.
+- Visual Design Constitution.
+- Visual Execution Contract.
+- Visual Token Specification.
+- Surface Visual Application Matrix.
+- Experience Presentation System.
+- Insights engineering blueprint recovery.
+- Branch reconciliation decision log.
+- Terminology Governance, Application Register and Historical Reconciliation.
 
-The Experience Presentation System and the remaining Visual Foundation artifacts from the #128 source line are identified as current-cycle documentation that still require exact-source promotion/reconciliation if they are not already represented in #129. The audit must not close until this source-vs-canonical check is complete.
+Exact historical source artifacts are preserved under:
 
-Historical source evidence has been preserved under:
-
-`docs/reconciliation/historical-recovery/`
+`docs/historical-recovery/`
 
 Their presence does not reopen superseded product decisions.
 
-## 6. Living Handoff / Ledger Rule
+## 6. Compatible Implementation Recovery Now Integrated
 
-`CORE_SYSTEM_EXECUTION_HANDOFF.md` and `CORE_SYSTEM_EXECUTION_LEDGER.md` are **living operational records**.
+### Home
 
-Branch snapshots from historical PRs #84/#85/#125/#127 and related paths must be reconciled into these files rather than copied over them.
+Recovered and integrated from historical F1–F4 work:
 
-Historical snapshots may preserve:
+- clinic/user identity context;
+- approved welcome behavior;
+- clinic weather as lightweight contextual information;
+- user-context-aware Today appointments;
+- Agenda destination preserving `doctorId` context where available;
+- compact Today indicators;
+- Attention state for waiting work;
+- direct Home → Workspace transition;
+- Home exclusion of Notifications, Communications, Work Center, Patient Portal information, Quick Actions and personalized widgets.
 
-- earlier baseline SHAs;
-- stage-by-stage forensic findings;
-- migration lineage discoveries;
-- runtime/CI evidence;
-- unresolved blockers;
-- branch-control decisions;
-- exact handoff context;
+The recovery deliberately retained Next.js navigation and shared token usage rather than blindly copying historical anchor/styling choices.
 
-but their old branch/date/current-head claims must not override the current #129 state.
+### Home correctness repair
 
-## 7. Integrated Historical Execution Knowledge
+Historical implementation used a session flag for the welcome state but did not mark it on navigation. This was corrected through:
 
-The live ledger now carries forward the material execution knowledge from the September 9 reconciliation lineage, including:
+- `src/features/home/homeWelcome.ts`;
+- navigation-time welcome dismissal in Home and Workspace/transition actions.
 
-- baseline reconstruction and branch-only change control;
-- live DB vs repository schema reconciliation;
-- appointment→visit causality checks;
-- inventory canonical-path repair and legacy RPC investigation;
-- subscription/permission ceiling reconciliation;
-- provider availability ownership correction;
-- treatment-plan lifecycle proof and UI correction;
-- procurement→receipt→inventory reconciliation;
-- follow-up automation-rule duplicate reconciliation;
-- supplier payment and procurement financial reconciliation;
-- analytics semantic comparison;
-- tenant-consistency and RLS checks;
-- tenant-local timezone boundary repair for Agenda booking;
-- installation of the Unified Test Execution Contract;
-- evidence that CI success is not equivalent to runtime or production closure.
+### Login
 
-These items are historical execution evidence, not an instruction to reopen already completed repairs blindly.
+Compatible Clinical Precision authentication presentation is now integrated while preserving the existing Supabase Auth flow and dedicated auth shell boundary.
 
-## 8. Current Experience Foundation Context
+### Agenda
+
+Compatible context-aware Agenda work is now integrated:
+
+- doctor context via `doctorId` query parameter;
+- context filtering and clear-context behavior;
+- user-specific Home appointment destination remains within authoritative Agenda.
+
+Agenda remains the authoritative scheduling/planning domain; no second scheduling engine was introduced.
+
+### Global Search
+
+Compatible Clinical Precision presentation and responsive/focus behavior are now integrated into `src/core/search/GlobalSearch.tsx` while reusing the existing `globalSearch()` action/engine.
+
+### Visual foundation
+
+The Clinical Precision semantic token and shared surface/focus layer is now integrated into `src/app/globals.css` without replacing the existing Tailwind/shadcn HSL variable compatibility layer.
+
+## 7. Current Experience Foundation Context
 
 The current canonical Experience Foundation is governed by:
 
@@ -163,66 +180,36 @@ The current canonical Experience Foundation is governed by:
 - Communications is clinic-wide; Chat is a compact Communications surface; Notifications remain separate.
 - Calendar remains a representation over the authoritative Agenda; no second scheduling engine.
 - RTL/LTR changes experience direction where logically appropriate; semantic-direction elements retain fixed semantic orientation where required.
-- Experience Foundation and Experience Presentation must now be treated as one integrated execution model, not competing or sequential design systems.
+- Experience Foundation and Experience Presentation are now treated as one integrated execution model.
 
-## 9. F1–F4 Current Evidence Context
+## 8. Historical Implementation Candidates Not Blindly Revived
 
-The F1–F4 historical execution ledger records source-verified implementation corrections including:
+The historical PR #123 Home implementation remains preserved as a superseded implementation snapshot because it contained Home sections later explicitly removed by approved decisions. Its reusable Experience primitives remain a separate review candidate rather than an automatic replacement for the current canonical UI.
 
-- dedicated Login shell separation;
-- three deliberate Header viewport compositions;
-- consistent Header control geometry;
-- mobile Quick Actions viewport anchoring;
-- Home Identity/Context + Today + Attention + Next Destinations composition;
-- Weather treated as open context rather than a nested card;
-- Calendar terminology with existing Agenda representation;
-- removal of duplicate Home Workspace action;
-- compact actionable Today states;
-- preservation of Home exclusions for Notifications, Communications, Work Center, Quick Actions, Patient Portal information and personalized widgets;
-- RTL/LTR logical positioning;
-- correction of undefined visual token usage.
+The PR #128 historical Header implementation was inspected against the current `GlobalHeader.tsx` in #129. The current #129 Header includes additional geometry/focus/shell work and is therefore treated as the current implementation baseline; the older #128 Header snapshot is retained as historical evidence rather than blindly promoted.
 
-The F1–F4 work remains **NOT CLOSED** until current-head automated/runtime evidence is complete. The historical Run #280 result is evidence for the older candidate only and cannot be promoted to the current #129 head.
+## 9. Historical Audit Status
 
-## 10. Historical PR / Main Reconciliation Principles
+The audit is broader than PR #122–#128. Independent refs and reconciliation refs are being classified by actual content/diff.
 
-Content-level review has demonstrated several important classes:
+Confirmed examples of content already represented in main/current form include many August operational-architecture documents and the header/communications closure artifacts.
 
-### Already represented in main — do not duplicate
+Confirmed unique/recovered sources include:
 
-Examples include later/current versions of:
+- Insights Engineering Blueprint.
+- Branch Reconciliation Decision Log.
+- 2026-09-14 Constitution/Contract source artifacts.
+- 2026-09-14 UX Architecture Investigation Handoff.
+- 2026-08-29 Terminology Governance source set.
+- 2026-09-15 Visual Foundation source set.
 
-- Communications/Portal reconciliation records;
-- Header technical foundation records;
-- Quick Actions execution contract;
-- terminology governance;
-- Stage 12–15 closure/implementation records;
-- current Global Surfaces reconciliation;
-- many August operational architecture/remediation documents where `main` contains a later executed/reconciled version.
+The audit remains open for remaining independent refs and for direct comparison of any residual implementation-bearing refs that may contain compatible work.
 
-The existence of an older branch copy is not a reason to restore a duplicate file.
-
-### Unique/high-value historical documentation — preserve/reconcile
-
-Examples include:
-
-- Financial & Resources domain source from the historical branch;
-- Global UX/IA audit and Stage 0 source records;
-- Adaptive Hybrid decision/reconciliation records;
-- Experience Constitution / Decision Registry / Execution Gate;
-- F1–F4 execution handoff/ledger/scope freeze;
-- Insights engineering blueprint;
-- historical branch reconciliation decision log.
-
-### Validation-only paths
-
-Validation PRs/branches such as #126/#127 are evidence paths. Their test observations may inform the canonical handoff/ledger, but their branch state is not itself the implementation baseline.
-
-## 11. Current Closure Gate
+## 10. Current Closure Gate
 
 #129 is **NOT CLOSED**.
 
-No merge to `main` is authorized until applicable gates are evidenced for the current canonical head.
+No merge to `main` is authorized until applicable gates are evidenced for the current canonical head `c055edc10cbd8e0cddc2bf2eea94db0bad28e29e`.
 
 Required current-cycle evidence includes, as applicable:
 
@@ -242,13 +229,13 @@ Required current-cycle evidence includes, as applicable:
 
 CI/build/deployment success alone does not establish product closure.
 
-## 12. Immediate Next Execution
+## 11. Immediate Next Execution
 
-1. Complete exact-source promotion/reconciliation for the remaining #128 Visual Foundation / Presentation artifacts.
-2. Complete content-level comparison of the residual independent documentation refs identified by the historical audit.
-3. Reconcile resulting findings into the live Handoff/Ledger and recovery register.
-4. Verify the resulting #129 tree and exact documentation diffs.
-5. Run the current Experience/Global-Surfaces validation gates against the exact #129 head.
+1. Run and review the current #129 automated execution gates on the exact head `c055edc10cbd8e0cddc2bf2eea94db0bad28e29e`.
+2. Perform targeted runtime verification of Login, Header, Home, Home→Workspace, Agenda-context routing and Global Search in desktop/tablet/mobile and Arabic/English.
+3. Review remaining independent documentation/implementation refs against #129 by actual changed content, not ref names.
+4. Promote additional compatible work only after content-level review and applicable tests.
+5. Update the live Handoff/Ledger and recovery register with each promotion/rejection.
 6. Only after evidence is complete, perform REVIEW → DOCUMENT finalization → CLOSE.
 
 **End of Live Execution Handoff.**
