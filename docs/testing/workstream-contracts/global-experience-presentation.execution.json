@@ -14,11 +14,16 @@
   },
   "regression_level": "R3",
   "required_engineering": ["typecheck", "lint", "build"],
-  "required_suites": ["global-experience-presentation", "authenticated-e2e", "i18n"],
+  "required_suites": ["global-experience-presentation", "global-experience-presentation-runtime", "authenticated-e2e", "i18n"],
   "workstream_checks": [
     {
       "id": "presentation-contract-static-audit",
       "command": "npm run test:global-experience-presentation",
+      "required": true
+    },
+    {
+      "id": "presentation-contract-runtime",
+      "command": "npx playwright test tools/global-experience-presentation-runtime.spec.mjs --reporter=line",
       "required": true
     }
   ]
