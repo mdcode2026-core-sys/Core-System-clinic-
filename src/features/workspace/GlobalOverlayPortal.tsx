@@ -22,8 +22,7 @@ interface OverlayPosition {
   top?: number;
   bottom?: number;
   width: number;
-  left?: number;
-  right?: number;
+  inlineStart: number;
   maxHeight: number;
 }
 
@@ -66,16 +65,13 @@ export function GlobalOverlayPortal({
       const anchor = anchorRef.current?.getBoundingClientRect();
 
       if (viewportWidth < MOBILE_BREAKPOINT || !anchor) {
-        const safeTop = 0;
-        const safeBottom = 0;
-        const top = mobilePlacement === "top" ? Math.max(MOBILE_EDGE, HEADER_OFFSET, safeTop) : undefined;
-        const bottom = mobilePlacement === "bottom" ? Math.max(MOBILE_EDGE, safeBottom) : undefined;
+        const top = mobilePlacement === "top" ? HEADER_OFFSET : undefined;
+        const bottom = mobilePlacement === "bottom" ? MOBILE_EDGE : undefined;
         const reserved = (top ?? 0) + (bottom ?? 0) + MOBILE_EDGE * 2;
         setPosition({
           top,
           bottom,
-          left: MOBILE_EDGE,
-          right: MOBILE_EDGE,
+          inlineStart: MOBILE_EDGE,
           width: Math.max(0, viewportWidth - MOBILE_EDGE * 2),
           maxHeight: Math.max(160, viewportHeight - reserved),
         });
@@ -90,17 +86,13 @@ export function GlobalOverlayPortal({
       const maxHeight = Math.max(160, Math.max(availableBelow, availableAbove));
       const top = shouldOpenAbove ? undefined : Math.min(requestedTop, viewportHeight - EDGE_GAP - 160);
       const bottom = shouldOpenAbove ? Math.max(EDGE_GAP, viewportHeight - anchor.top + HEADER_GAP) : undefined;
-      const requestedStart = dir === "rtl" ? viewportWidth - anchor.right : anchor.right - boundedWidth;
-      const clampedStart = Math.min(Math.max(EDGE_GAP, requestedStart), Math.max(EDGE_GAP, viewportWidth - boundedWidth - EDGE_GAP));
+      const requestedInlineStart = dir === "rtl" ? viewportWidth - anchor.right : anchor.right - boundedWidth;
+      const inlineStart = Math.min(
+        Math.max(EDGE_GAP, requestedInlineStart),
+        Math.max(EDGE_GAP, viewportWidth - boundedWidth - EDGE_GAP),
+      );
 
-      setPosition({
-        top,
-        bottom,
-        left: dir === "ltr" ? clampedStart : undefined,
-        right: dir === "rtl" ? clampedStart : undefined,
-        width: boundedWidth,
-        maxHeight,
-      });
+      setPosition({ top, bottom, inlineStart, width: boundedWidth, maxHeight });
     };
 
     updatePosition();
@@ -163,8 +155,7 @@ export function GlobalOverlayPortal({
     position: "fixed",
     top: position.top,
     bottom: position.bottom,
-    left: position.left,
-    right: position.right,
+    insetInlineStart: position.inlineStart,
     width: position.width,
     maxHeight: position.maxHeight,
     zIndex,
