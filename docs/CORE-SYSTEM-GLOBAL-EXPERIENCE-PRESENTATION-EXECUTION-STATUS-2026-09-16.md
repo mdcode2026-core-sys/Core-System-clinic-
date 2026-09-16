@@ -6,7 +6,7 @@
 **Single execution branch:** `fix/global-surfaces-desktop-box-geometry-2026-09-14`
 **Pull Request:** #122
 **Stacked base:** `feat/visual-design-constitution-f1-f4-2026-09-15` (PR #128)
-**Current reviewed head:** `9503edf19f69d4e4137a0548dfb306526f310eaf`
+**Current reviewed head:** `e51bca46c41c8365a8f9d43002bdaccdc4f0d8e0`
 
 ## Branch discipline
 
@@ -67,7 +67,7 @@ Run #296:
 - `authenticated-route-e2e` — FAIL
 - `real-world-clinic-journey-e2e` — FAIL; this is the frozen/out-of-scope Patient Journey stream and is not being remediated here.
 
-The current corrected head is `9503edf19f69d4e4137a0548dfb306526f310eaf`.
+The current corrected head is `e51bca46c41c8365a8f9d43002bdaccdc4f0d8e0`.
 
 A direct compare against the pre-scope-change head confirms the current delta contains the approved workflow job-scope adjustment and execution-status documentation changes; the Unified Test Execution Engine setup/runner files themselves are restored to their prior versions.
 
@@ -75,9 +75,15 @@ No current-head Unified Test Execution Engine workflow run has been generated in
 
 ## Deployment verification state
 
-Vercel has queued a new preview deployment for the corrected head `9503edf19f69d4e4137a0548dfb306526f310eaf`. The previous preview for `8a07800cff7af61ada887e7b1600082443c4a7ee` reached READY successfully, but it predates the current correction and is not treated as current-head closure evidence.
+Current Vercel preview deployment for the reviewed head `e51bca46c41c8365a8f9d43002bdaccdc4f0d8e0`:
+- Deployment: `dpl_C5fxEQTHymnZG7pvVb3G9jsWBawQ`
+- State: READY
+- TypeScript compilation completed successfully.
+- Static generation completed successfully: 55/55 pages.
+- Deployment output completed successfully.
+- Current preview runtime query returned no `error`/`fatal` logs for this deployment during the inspected 24-hour window.
 
-Interactive browser/device/PWA verification remains open. No production deployment or production closure is claimed.
+This is build/deployment evidence only. Interactive browser/device/PWA verification is still required for closure.
 
 ## Open gates — NOT CLOSED
 
