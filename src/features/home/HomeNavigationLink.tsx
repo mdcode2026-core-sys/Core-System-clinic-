@@ -1,22 +1,16 @@
 "use client";
 
-import type { ReactNode } from "react";
-import Link, { type LinkProps } from "next/link";
+import type { ComponentProps, ReactNode } from "react";
+import Link from "next/link";
 import { markHomeWelcomeSeen } from "./homeWelcome";
 
-interface HomeNavigationLinkProps extends LinkProps {
+type HomeNavigationLinkProps = Omit<ComponentProps<typeof Link>, "onClick" | "children"> & {
   children: ReactNode;
-  className?: string;
-  [key: string]: unknown;
-}
+};
 
-export function HomeNavigationLink({ children, className, ...props }: HomeNavigationLinkProps) {
+export function HomeNavigationLink({ children, ...props }: HomeNavigationLinkProps) {
   return (
-    <Link
-      {...props}
-      onClick={() => markHomeWelcomeSeen()}
-      className={className}
-    >
+    <Link {...props} onClick={() => markHomeWelcomeSeen()}>
       {children}
     </Link>
   );
