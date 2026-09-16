@@ -32,6 +32,7 @@ const commands = {
     ["ajm-migrations", "npm", ["run", "ajm:migrations"]],
   ],
   "workspace-authority": [["global-surfaces-workspace-authority", "npm", ["run", "test:global-surfaces-workspace-authority"]]],
+  "global-experience-presentation": [["global-experience-presentation-contract", "npm", ["run", "test:global-experience-presentation"]]],
   "cross-domain": [["cross-domain-runtime", "npm", ["run", "test:cross-domain-runtime"]]],
   "database-integrity": [["database-integrity", "npm", ["run", "test:cross-domain-runtime"]]],
   authorization: [["authorization-runtime", "npm", ["run", "test:cross-domain-runtime"]]],
