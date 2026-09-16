@@ -49,7 +49,7 @@ jobs:
 
       - name: SETUP — build execution contract
         env:
-          TEST_BASE_REF: ${{ github.event.pull_request.base.sha || inputs.base_ref || 'main' }}
+          TEST_BASE_REF: ${{ github.event.pull_request.base.sha || format('origin/{0}', inputs.base_ref || 'main') }}
           TEST_HEAD_REF: ${{ github.event.pull_request.head.sha || github.sha }}
           TEST_EXECUTION_PLAN: test-execution-plan.json
         run: node tools/test-execution-setup.mjs
