@@ -10,6 +10,7 @@
     "test:execution-setup": "node tools/test-execution-setup.mjs",
     "test:cross-domain-runtime": "node tools/cross-domain-runtime-reconciliation.mjs",
     "test:global-surfaces-workspace-authority": "node tools/global-surfaces-workspace-authority-audit.mjs",
+    "test:global-experience-presentation": "node tools/global-experience-presentation-contract-audit.mjs",
     "test:header-technical-foundation": "node tools/header-technical-foundation-audit.mjs",
     "test:header-chat": "node tools/header-chat-audit.mjs",
     "test:communications-wave-b": "node tools/communications-wave-b-audit.mjs",
@@ -46,9 +47,6 @@
     "date-fns": "^4.1.0",
     "recharts": "2.15.4",
     "lucide-react": "^0.507.0",
-    "clsx": "^2.1.1",
-    "tailwind-merge": "^3.2.0",
-    "class-variance-authority": "^0.7.1",
     "@tanstack/react-query": "^5.0.0",
     "@radix-ui/react-slot": "^1.1.1",
     "@radix-ui/react-dialog": "^1.1.1",
@@ -57,15 +55,11 @@
     "@radix-ui/react-label": "^2.1.1",
     "@radix-ui/react-select": "^2.2.6",
     "autoprefixer": "^10.4.0",
-    "tailwindcss-animate": "^1.0.0",
-    "@radix-ui/react-checkbox": "^1.1.1",
-    "@cornerstonejs/core": "5.8.2",
-    "@cornerstonejs/dicom-image-loader": "5.8.2",
-    "@cornerstonejs/tools": "5.8.2"
+    "tailwindcss-animate": "^3.4.0"
   },
   "overrides": {
     "adm-zip": "^0.6.0",
-    "brace-expansion": "^1.1.1",
+    "brace-expansion": "^1.0.0",
     "js-yaml": "^4.3.2",
     "nanoid": "^3.0.0"
   },
@@ -78,6 +72,6 @@
     "eslint": "^9.25.1",
     "eslint-config-next": "16.3.3",
     "@eslint/eslintrc": "^3.3.1",
-    "@eslint/js": "^9.25.1"
+    "@eslint/js": "^4.3.2"
   }
 }
