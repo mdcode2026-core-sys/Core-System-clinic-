@@ -23,7 +23,7 @@
     },
     {
       "id": "presentation-contract-runtime",
-      "command": "npx playwright test tools/global-experience-presentation-runtime.spec.mjs --reporter=line",
+      "command": "node tools/global-experience-presentation-runtime.spec.mjs",
       "required": true
     }
   ]
