@@ -55,11 +55,14 @@
     "@radix-ui/react-label": "^2.1.1",
     "@radix-ui/react-select": "^2.2.6",
     "autoprefixer": "^10.4.0",
-    "tailwindcss-animate": "^3.4.0"
+    "tailwindcss-animate": "^1.0.0",
+    "@cornerstonejs/core": "5.8.2",
+    "@cornerstonejs/dicom-image-loader": "5.8.2",
+    "@cornerstonejs/tools": "5.8.2"
   },
   "overrides": {
     "adm-zip": "^0.6.0",
-    "brace-expansion": "^1.0.0",
+    "brace-expansion": "^1.1.1",
     "js-yaml": "^4.3.2",
     "nanoid": "^3.0.0"
   },
@@ -72,6 +75,6 @@
     "eslint": "^9.25.1",
     "eslint-config-next": "16.3.3",
     "@eslint/eslintrc": "^3.3.1",
-    "@eslint/js": "^4.3.2"
+    "@eslint/js": "^9.25.1"
   }
 }
