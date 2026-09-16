@@ -51,7 +51,7 @@ export function GlobalHeader({
       dir={isArabic ? "rtl" : "ltr"}
       className={cn(
         styles.geometry,
-        "sticky top-0 z-30 grid min-h-14 w-full min-w-0 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 overflow-visible border-b border-slate-200 bg-white px-2 pt-[env(safe-area-inset-top)] pb-2 shadow-[0_1px_8px_rgba(15,23,42,0.04)] sm:min-h-16 sm:px-3 md:grid-cols-[auto_minmax(18rem,1fr)_auto] md:gap-3 md:px-4 lg:px-5",
+        "sticky top-0 z-30 grid w-full min-w-0 grid-cols-[auto_minmax(0,1fr)] grid-rows-[auto_auto] items-center gap-x-2 gap-y-1 overflow-visible border-b border-slate-200 bg-white px-2 pt-[env(safe-area-inset-top)] pb-2 shadow-[0_1px_8px_rgba(15,23,42,0.04)] sm:px-3 md:grid-cols-[auto_minmax(12rem,1fr)_auto] md:grid-rows-1 md:gap-3 md:px-4 lg:px-5",
         className,
       )}
       data-testid="global-header"
@@ -73,7 +73,7 @@ export function GlobalHeader({
       </div>
 
       <div
-        className="min-w-0 justify-self-stretch md:mx-auto md:w-full md:max-w-[34rem]"
+        className="col-span-2 min-w-0 justify-self-stretch md:col-span-1 md:mx-auto md:w-full md:max-w-[30rem]"
         data-testid="global-header-search-slot"
       >
         {search}
@@ -81,7 +81,7 @@ export function GlobalHeader({
 
       {controls ? (
         <div
-          className="flex min-w-0 max-w-full items-center justify-end gap-0.5 overflow-x-auto overscroll-x-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          className="col-start-2 row-start-1 flex min-w-0 max-w-full items-center justify-self-end gap-0.5 overflow-visible md:col-start-3 md:row-start-1"
           data-testid="global-header-controls"
           aria-label={isArabic ? "أدوات النظام العامة" : "Global controls"}
         >
