@@ -1,4 +1,10 @@
-.geometry {}
+.geometry {
+  --global-edge-gap: 12px;
+}
+
+.geometry :global([data-testid="global-header-controls"]) {
+  direction: inherit;
+}
 
 @media (min-width: 768px) {
   .geometry :global([data-testid="notifications-header-panel"]) {
@@ -9,5 +15,12 @@
   .geometry :global([role="dialog"][aria-label="تنبيهات وملاحظات الاتصالات"]) {
     width: 352px !important;
     max-width: calc(100vw - 24px) !important;
+  }
+}
+
+@media (max-width: 767px) {
+  .geometry {
+    padding-inline-start: max(0.5rem, env(safe-area-inset-left));
+    padding-inline-end: max(0.5rem, env(safe-area-inset-right));
   }
 }
