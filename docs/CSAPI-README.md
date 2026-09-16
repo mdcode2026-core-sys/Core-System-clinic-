@@ -1,5 +1,13 @@
 # CSAPI — CORE SYSTEM Architecture & Product Integration
 
+## Canonical entry point
+
+**Start here for every future CSAPI conversation:**
+
+`docs/CSAPI/CSAPI-MASTER-STATE.md`
+
+Then read the current Gate file identified there.
+
 ## Purpose
 
 CSAPI is the independent architecture/product-integration decision path for CORE SYSTEM.
@@ -28,7 +36,11 @@ CSAPI uses sequential Decision Gates:
 8. Close the Gate.
 9. Move to the next Gate.
 
-No Gate may silently inherit an unresolved decision from another Gate.
+## Documentation rule
+
+The conversation is not the source of truth for CSAPI state. The repository documentation is.
+
+Every substantive CSAPI discovery, proposal, approval, implementation, verification result, deferral, rejection, or closure must be recorded in the CSAPI documentation and ledger on the canonical branch.
 
 ## Separation rule
 
@@ -41,3 +53,7 @@ CSAPI must not modify or depend on PR #129/#136 implementation history as an exe
 **Gate 01 — Patient Flow**
 
 The product term is **Patient Flow**. `Canonical Clinic Flow` is not a product/domain name and must not be introduced as a competing terminology.
+
+## Continuity rule
+
+A new conversation beginning with `CSAPI` must locate and read `docs/CSAPI/CSAPI-MASTER-STATE.md` before deciding what has been completed or what should happen next.
