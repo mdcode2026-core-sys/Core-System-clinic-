@@ -3,8 +3,7 @@
 import type { ReactNode } from "react";
 import { useSyncExternalStore } from "react";
 import Image from "next/image";
-
-const HOME_WELCOME_SEEN_KEY = "core-system-home-welcome-seen";
+import { HOME_WELCOME_SEEN_KEY } from "./homeWelcome";
 
 interface HomeIdentityBannerProps {
   isArabic: boolean;
@@ -19,7 +18,12 @@ function subscribeToHomeWelcome() {
 }
 
 function getHomeWelcomeSnapshot() {
-  return typeof window !== "undefined" && sessionStorage.getItem(HOME_WELCOME_SEEN_KEY) !== "1";
+  if (typeof window === "undefined") return true;
+  try {
+    return window.sessionStorage.getItem(HOME_WELCOME_SEEN_KEY) !== "1";
+  } catch {
+    return true;
+  }
 }
 
 function getHomeWelcomeServerSnapshot() {
@@ -27,11 +31,7 @@ function getHomeWelcomeServerSnapshot() {
 }
 
 export function HomeIdentityBanner({ isArabic, clinicName, clinicLogoUrl, displayName, weather }: HomeIdentityBannerProps) {
-  const showWelcome = useSyncExternalStore(
-    subscribeToHomeWelcome,
-    getHomeWelcomeSnapshot,
-    getHomeWelcomeServerSnapshot,
-  );
+  const showWelcome = useSyncExternalStore(subscribeToHomeWelcome, getHomeWelcomeSnapshot, getHomeWelcomeServerSnapshot);
 
   return (
     <section className="cs-surface-raised rounded-2xl p-4 sm:p-5" aria-labelledby="home-identity-title">
