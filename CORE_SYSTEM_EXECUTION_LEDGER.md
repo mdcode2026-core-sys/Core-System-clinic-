@@ -73,3 +73,52 @@
 | 2026-09-09 21:xx +03 | Test Execution Contract installed | Created `feat/test-execution-contract-20260909` from current `main`; installed `docs/testing/CORE_SYSTEM_MASTER_TEST_EXECUTION_CONTRACT.md`, executable `tools/test-execution-setup.mjs`, CI workflow `.github/workflows/test-execution-contract.yml`, and `npm run test:execution-setup` | The new contract is now represented in repository governance, executable setup logic, package interface and CI | SETUP is the mandatory decision engine before downstream validation; route smoke is not Real-World E2E | Run SETUP and full engineering validation, then activate role/journey E2E |
 | 2026-09-09 21:xx +03 | Contract handoff documentation updated | `CORE_SYSTEM_EXECUTION_HANDOFF.md` updated on `feat/test-execution-contract-20260909` with contract sequence, governance, installed artifacts and status | Conversation-independent handoff now records the contract installation state | Status = `INSTALLED — VALIDATION PENDING` | Validate contract before declaring E2E-ready |
 | 2026-09-09 21:xx +03 | Execution ledger updated | `CORE_SYSTEM_EXECUTION_LEDGER.md` updated on `feat/test-execution-contract-20260909` with contract-installation evidence | Contract installation is chronologically recorded | Preserve ledger as execution source of truth | Continue with executable SETUP/engineering gates |
+| 2026-09-16 11:xx +03 | Historical branch content audit expanded | Closed PRs/branches across the 30-day window were inspected at content/file level, not classified from names alone. High-value historical paths included AJM, Global UX/IA, Workspace, I18N, PJ, Financial & Resources, Communications/Header, validation, and Experience Foundation lines | Confirmed that documentation loss and branch drift occur across multiple independent workstreams; filename/commit/PR state alone is insufficient to determine migration status | Use content-level comparison against current `main` and canonical #129 as the governing reconciliation test | Continue deep branch/document comparison for remaining unique artifacts |
+| 2026-09-16 11:xx +03 | Historical documentation classification corrected | Compared branch copies against later versions on `main`. Examples: Quick Actions contract, Communications historical reconciliation, Header Technical Foundation Notes, terminology governance, Stage 12–15 records and Branch Decision Log are already represented by later/current records | Prevented duplicate recovery of stale snapshots | Do not restore an artifact solely because its branch is old or closed | Continue checking source content where branches diverged materially |
+| 2026-09-16 11:xx +03 | Unique historical documentation recovered | Recovered missing/high-value source documents from historical refs: Financial & Resources domain, Global UX/IA audit, Stage 0 baseline/reconciliation records, Adaptive Hybrid decision/reconciliation, F1–F4 execution handoff | Important product and execution context is now retained in #129 with provenance instead of depending on historical refs | Historical evidence is preserved separately from current authority | Reconcile remaining unique state into live handoff/ledger |
+| 2026-09-16 11:xx +03 | Validation-only branch classification | PRs/branches used primarily to validate Experience Foundation were checked for unique evidence versus implementation payload | Validation branches are not treated as implementation bases; useful test findings are retained as evidence | Do not merge validation snapshots wholesale | Keep current canonical #129 as the only active implementation path |
+| 2026-09-16 12:xx +03 | Live Handoff reconciled | `CORE_SYSTEM_EXECUTION_HANDOFF.md` on #129 updated from the stale 2026-09-09 snapshot using material continuity information from older handoff/ledger branches plus current #129 state | Live handoff now identifies #129, current base/head, documentation-recovery rules, F1–F4 context, current closure gates and historical-source treatment | Live handoff is the current conversation-independent resume point | Keep it synchronized with every material execution transition |
+| 2026-09-16 12:xx +03 | Live Ledger reconciled | Historical execution ledger content was preserved and extended with 2026-09-16 branch/documentation reconciliation entries | Stage evidence and historical forensic knowledge remain chronologically available while current state is identified separately | Ledger is the execution evidence source of truth; stale branch snapshots must not overwrite it | Continue remaining evidence inventory and current-head verification |
+
+## 2026-09-16 Historical Documentation Reconciliation — Current Control Notes
+
+The following control rules now apply to this ledger:
+
+1. `main` is the release baseline; it is not the historical archive.
+2. A closed PR is not proof that its content was merged to `main`.
+3. A merged PR is not proof that every historical documentation snapshot remains current; later documents can supersede earlier ones.
+4. Validation-only branches are evidence sources, not automatic implementation payloads.
+5. Current Product Owner decisions and approved Constitution/Contracts override historical wording.
+6. Historical evidence must retain provenance and must not silently become current authority.
+7. `CORE_SYSTEM_EXECUTION_HANDOFF.md` and this ledger are living records; branch snapshots of either file must be reconciled into them, never blindly copied over current state.
+8. No historical branch is considered disposable until its material contents have been classified as current, recover, historical, superseded, validation-only or duplicate.
+
+## 2026-09-16 Canonical Experience / Documentation State
+
+Current canonical #129 now contains the recovered Experience Foundation governance needed to interpret the implementation consistently:
+
+- Adaptive Hybrid Experience Model — Horizon / Vertex / Zenith.
+- Concept 01 — Clinical Precision visual foundation.
+- Experience Foundation F1–F4 execution context.
+- Global Surfaces canonical reconciliation.
+- Integrated Experience / Work governance.
+- Historical documentation audit and recovery register.
+
+F1–F4 remains open for verification. Historical Run #280 and other prior validation results remain historical evidence and are not treated as fresh evidence for the current #129 head.
+
+## 2026-09-16 Main-vs-Canonical Rule
+
+For this workstream:
+
+```text
+main
+  = release baseline / current merged reality
+
+#129
+  = canonical active reconciliation + implementation line
+
+historical branches / closed PRs
+  = evidence sources only unless a specific artifact is explicitly promoted
+```
+
+No merge to `main` is authorized merely to make historical documentation visible. Documentation and execution reconciliation must be complete first, followed by the normal current-head verification gates.
