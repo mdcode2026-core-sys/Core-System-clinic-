@@ -1,6 +1,8 @@
 name: CORE SYSTEM Unified Test Execution Engine
 
 on:
+  push:
+    branches: [fix/global-surfaces-desktop-box-geometry-2026-09-14]
   pull_request:
     branches: [main, feat/visual-design-constitution-f1-f4-2026-09-15]
   workflow_dispatch:
