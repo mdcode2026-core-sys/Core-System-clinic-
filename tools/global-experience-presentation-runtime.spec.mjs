@@ -21,17 +21,12 @@ async function login() {
   if (/\/login(?:[/?#]|$)/i.test(page.url())) throw new Error(`Login did not establish session: ${page.url()}`);
 }
 
-function rectInsideViewport(rect) {
-  return rect.width > 0 && rect.height > 0 && rect.left >= -1 && rect.top >= -1 && rect.right <= window.innerWidth + 1 && rect.bottom <= window.innerHeight + 1;
+function rectInsideViewport(rect, viewportWidth, viewportHeight) {
+  return rect.width > 0 && rect.height > 0 && rect.left >= -1 && rect.top >= -1 && rect.right <= viewportWidth + 1 && rect.bottom <= viewportHeight + 1;
 }
 
 async function expectNoOverflow(label) {
-  const state = await page.evaluate(() => ({
-    width: window.innerWidth,
-    scrollWidth: document.documentElement.scrollWidth,
-    height: window.innerHeight,
-    scrollHeight: document.documentElement.scrollHeight,
-  }));
+  const state = await page.evaluate(() => ({ width: window.innerWidth, scrollWidth: document.documentElement.scrollWidth }));
   if (state.scrollWidth > state.width + 8) throw new Error(`${label}: horizontal overflow ${state.scrollWidth} > ${state.width}`);
 }
 
@@ -39,20 +34,23 @@ async function expectHeader() {
   await page.getByTestId("global-header").waitFor({ state: "visible", timeout: 15000 });
   const header = page.getByTestId("global-header");
   const rect = await header.boundingBox();
-  if (!rect || rect.width < window.innerWidth * 0.95) throw new Error("Header does not span viewport");
+  const viewport = page.viewportSize();
+  if (!rect || !viewport || rect.width < viewport.width * 0.95) throw new Error("Header does not span viewport");
   const brand = page.getByTestId("global-header-brand");
   if (await brand.count() && !(await brand.boundingBox())) throw new Error("Brand geometry unavailable");
 }
 
-async function expectSidebar(mode) {
+async function expectSidebar(mobileish) {
   const sidebar = page.locator("#global-sidebar");
   await sidebar.waitFor({ state: "attached" });
-  if (mode === "desktop") {
+  if (!mobileish) {
     await sidebar.waitFor({ state: "visible" });
     const rect = await sidebar.boundingBox();
-    if (!rect || !rect.height) throw new Error("Desktop sidebar not visible");
-    if (await page.locator("html").getAttribute("dir") === "rtl") {
-      if (Math.abs(rect.x + rect.width - window.innerWidth) > 8) throw new Error("RTL desktop sidebar is not anchored to inline end");
+    const viewport = page.viewportSize();
+    const dir = await page.locator("html").getAttribute("dir");
+    if (!rect || !viewport || !rect.height) throw new Error("Desktop sidebar not visible");
+    if (dir === "rtl") {
+      if (Math.abs(rect.x + rect.width - viewport.width) > 8) throw new Error("RTL desktop sidebar is not anchored to inline end");
     } else if (Math.abs(rect.x) > 8) throw new Error("LTR desktop sidebar is not anchored to inline start");
   } else {
     const trigger = page.getByTestId("global-header-mobile-nav");
@@ -60,7 +58,7 @@ async function expectSidebar(mode) {
     await page.waitForTimeout(150);
     await sidebar.waitFor({ state: "visible", timeout: 5000 });
     const rect = await sidebar.boundingBox();
-    if (!rect || !rect.width) throw new Error(`${mode} sidebar failed to open`);
+    if (!rect || !rect.width) throw new Error("Responsive sidebar failed to open");
     await page.keyboard.press("Escape");
     await page.waitForTimeout(100);
   }
@@ -81,7 +79,7 @@ async function expectOverlay(testId, panelId) {
   }
   await page.keyboard.press("Escape");
   await page.waitForTimeout(100);
-  if (!(await panel.isVisible().catch(() => false) === false)) throw new Error(`${panelId} did not close on Escape`);
+  if (await panel.isVisible().catch(() => false)) throw new Error(`${panelId} did not close on Escape`);
 }
 
 async function expectDirection(locale, direction) {
@@ -100,8 +98,11 @@ async function expectDirection(locale, direction) {
   const chat = page.getByTestId("global-chat-panel");
   await chat.waitFor({ state: "visible", timeout: 10000 });
   if ((await chat.getAttribute("dir")) !== direction) throw new Error(`Chat direction mismatch: ${await chat.getAttribute("dir")}`);
-  const chatRect = await chat.boundingBox();
-  if (!chatRect || !rectInsideViewport(chatRect)) throw new Error(`Chat outside viewport in ${direction}`);
+  const chatRect = await chat.evaluate((node) => {
+    const r = node.getBoundingClientRect();
+    return { left: r.left, top: r.top, right: r.right, bottom: r.bottom, width: r.width, height: r.height, viewportWidth: window.innerWidth, viewportHeight: window.innerHeight };
+  });
+  if (!rectInsideViewport(chatRect, chatRect.viewportWidth, chatRect.viewportHeight)) throw new Error(`Chat outside viewport in ${direction}`);
   await page.keyboard.press("Escape");
 }
 
@@ -119,7 +120,7 @@ for (const [mode, width, height] of [
   await page.goto(`${baseUrl}/`, { waitUntil: "domcontentloaded", timeout: 60000 });
   await page.waitForTimeout(250);
   await expectHeader();
-  await expectSidebar(mode === "desktop" && width >= 1024 ? "desktop" : "mobileish");
+  await expectSidebar(!(mode === "desktop" && width >= 1024));
   await expectNoOverflow(`${mode}-${width}x${height}`);
   const mobileSearch = page.getByTestId("global-search-mobile-trigger");
   const desktopSearch = page.locator('[data-testid="global-header-search-slot"] input');
@@ -142,8 +143,11 @@ for (const [mode, width, height] of [
   await chatTrigger.click();
   const chat = page.getByTestId("global-chat-panel");
   await chat.waitFor({ state: "visible", timeout: 10000 });
-  const chatRect = await chat.boundingBox();
-  if (!chatRect || !rectInsideViewport(chatRect)) throw new Error(`Chat outside viewport at ${mode} ${width}x${height}`);
+  const chatRect = await chat.evaluate((node) => {
+    const r = node.getBoundingClientRect();
+    return { left: r.left, top: r.top, right: r.right, bottom: r.bottom, width: r.width, height: r.height, viewportWidth: window.innerWidth, viewportHeight: window.innerHeight };
+  });
+  if (!rectInsideViewport(chatRect, chatRect.viewportWidth, chatRect.viewportHeight)) throw new Error(`Chat outside viewport at ${mode} ${width}x${height}`);
   await page.keyboard.press("Escape");
 }
 
@@ -156,7 +160,6 @@ await context.addCookies([
   { name: "core-system-direction", value: "ltr", url: baseUrl },
 ]);
 await page.goto(`${baseUrl}/`, { waitUntil: "domcontentloaded", timeout: 60000 });
-await page.getByTestId("global-header-mobile-nav").count();
 
 const standalonePage = await context.newPage();
 await standalonePage.addInitScript(() => {
