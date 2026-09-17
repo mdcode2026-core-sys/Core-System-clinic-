@@ -38,6 +38,7 @@ const commands = {
   "authenticated-e2e": [["authenticated-route-e2e", "npx", ["playwright", "test", "tools/ajm-production-auth-e2e.spec.mjs", "--reporter=line"]]],
   "patient-journey": [["real-world-clinic-journey-e2e", "node", ["tools/clinic-admin-real-world-e2e-v2.mjs"]]],
   "procurement-inventory-finance": [["procurement-inventory-finance-runtime", "npm", ["run", "test:cross-domain-runtime"]]],
+  "csapi-gate01-d2-database": [["d2-database-foundations", "node", ["tools/csapi-gate01-d2-database-verification.mjs"]]],
 };
 
 const runtimeSuites = new Set([
@@ -47,6 +48,7 @@ const runtimeSuites = new Set([
   "database-integrity",
   "authorization",
   "procurement-inventory-finance",
+  "csapi-gate01-d2-database",
 ]);
 
 const required = [...new Set([...(plan.required_suites || []), "engineering"])]
