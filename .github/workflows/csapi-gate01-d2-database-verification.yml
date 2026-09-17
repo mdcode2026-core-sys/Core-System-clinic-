@@ -13,7 +13,7 @@ permissions:
 
 jobs:
   database-verification:
-    name: D2 — Local Supabase migration + pgTAP verification
+    name: D2 — Local Postgres migration + pgTAP verification
     runs-on: ubuntu-latest
     timeout-minutes: 90
     steps:
@@ -30,8 +30,8 @@ jobs:
       - name: Initialize local Supabase configuration
         run: supabase init --force
 
-      - name: Start local Supabase stack
-        run: supabase start
+      - name: Start local Postgres only
+        run: supabase db start
 
       - name: Reset local database from migration chain
         run: supabase db reset
@@ -42,7 +42,7 @@ jobs:
       - name: Verify local migration state
         run: supabase migration list
 
-      - name: Stop local Supabase stack
+      - name: Stop local database
         if: always()
         run: supabase stop || true
 
