@@ -2,49 +2,62 @@
 
 **Date:** 2026-09-17  
 **Stage:** D2 — Database Foundations  
-**Status:** PREFLIGHT COMPLETE / ISOLATED DATABASE REQUIRED  
+**Status:** IMPLEMENTED / VERIFICATION PENDING  
 **Implementation branch:** `implementation/csapi-gate-01-d2-database-foundations-2026-09-17`  
-**Starting candidate:** `b9470061da5c188adff40b0956ce03a540beccf8`  
+**D1 verified source:** `b9470061da5c188adff40b0956ce03a540beccf8`  
 **Parent design:** `docs/CSAPI/GATES/GATE-01-PATIENT-FLOW-IMPLEMENTATION-DESIGN-PACKET-2026-09-17.md`
 
-## Objective
+## Cost / environment decision
 
-Implement the first additive database foundation for the canonical Patient Flow model without changing production lifecycle behavior before isolated verification.
+The earlier D2 plan proposed a hosted Supabase development Branch. That path is **rejected** for CORE SYSTEM because Supabase Branching is not included in the Free plan. No paid hosted branch will be created for this work.
 
-## D2 preflight findings
+The approved D2 verification path is local Supabase development through the repository migration chain and CI-compatible local tooling. Supabase documents local development as cost-effective and quota-free; the CLI runs the local Postgres/Auth/Storage stack through a Docker-compatible runtime. cite-note
 
-Live Supabase project `core-system-clinic` is healthy at the project level, but its default `main` development branch record currently reports `MIGRATIONS_FAILED`. The live production database contains the existing Visit anchor and operational work structures, but no first-class `clinical_work_sessions`, `patient_flow_queue_entries`, or `patient_flow_events` tables were found.
+## Implemented scope
 
-The existing `clinic_visit_sessions` table remains the current Visit/session anchor. Its legacy six-state `session_status` remains in place. Existing Visit→Patient/Doctor/Room/Agenda tenant-scoped integrity and Visit→Procedure linkage were confirmed during preflight.
+Migration:
 
-The production `schema_migrations` table contains migrations through `20260915151711`, including `optimize_clinic_patients_select_rls`, while the repository branch does not currently contain a matching migration file under `supabase/migrations`. This is migration-history drift and must be reconciled before D2 migration authorship is treated as canonical.
+- `supabase/migrations/20260917192500_csapi_gate01_patient_flow_d2_foundations.sql`
 
-## Safety decision
+Introduced additively:
 
-No production DDL or lifecycle mutation has been performed in D2 preflight.
+- `clinical_work_sessions`
+- `patient_flow_queue_entries`
+- `patient_flow_events`
+- tenant-scoped composite foreign-key integrity
+- one-active-Work-Session-per-Visit invariant
+- one-active-Queue-Entry-per-Visit invariant
+- supporting indexes
+- tenant-scoped read RLS
 
-The D2 implementation must use a disposable Supabase development branch so schema iteration and verification are isolated from production data and behavior. The Supabase tool reports the current branch cost as **0.01344 per hour** for this organization. Creation requires explicit cost confirmation before the branch can be provisioned.
+## Explicit non-scope
 
-## Planned D2 foundations
+D2 does not:
 
-Subject to isolated-schema review:
+- replace `clinic_visit_sessions.session_status`;
+- implement lifecycle commands;
+- create lifecycle RPCs;
+- alter existing lifecycle triggers;
+- change application permissions;
+- migrate existing production rows;
+- modify the production Supabase database;
+- create a paid Supabase hosted branch;
+- use Vercel.
 
-1. `clinical_work_sessions` — child execution units under a stable Visit.
-2. `patient_flow_queue_entries` — historical waiting intervals and ordering.
-3. `patient_flow_events` — append-only business lifecycle events.
-4. Only genuinely aggregate-level additive Visit fields, if the finalized schema requires them.
-5. Tenant-safe foreign keys, indexes, constraints and RLS consistent with the existing repository security model.
+## Safety boundary
 
-The implementation must preserve existing domain ownership and must not introduce a second lifecycle engine.
+Write policies for the new Patient Flow tables are intentionally absent. D3 owns lifecycle write authority and must introduce controlled commands before these structures become writable by application actors.
 
-## Exit requirements
+## Verification required
 
-- Isolated Supabase branch provisioned and healthy.
-- Migration drift understood/reconciled for the D2 working baseline.
-- D2 migration iterated and verified against isolated schema.
-- Tenant integrity and RLS verified.
-- New structures do not alter production behavior.
-- Canonical migration file committed to the D2 GitHub branch.
-- D2 verification record updated with exact database evidence and CI evidence.
+The migration must be tested against a local/CI Supabase environment before D2 is marked VERIFIED. Verification must prove:
 
-**Current decision:** D2 is ready for isolated database provisioning, but no SQL migration is authorized until the required Supabase branch cost confirmation is completed.
+1. migration applies cleanly;
+2. all three tables and required indexes/constraints exist;
+3. tenant-scoped foreign keys reject cross-tenant references;
+4. duplicate active Work Sessions are rejected;
+5. duplicate active Queue Entries are rejected;
+6. RLS prevents cross-tenant reads;
+7. no production database was mutated.
+
+**D2 implementation status:** OPEN — awaiting local/CI database verification.
