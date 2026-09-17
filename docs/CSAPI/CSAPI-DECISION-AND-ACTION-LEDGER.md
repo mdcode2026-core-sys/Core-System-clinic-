@@ -3,6 +3,7 @@
 **Canonical branch:** `architecture/csapi-decision-gates-2026-09-16`  
 **Current Gate 01 reconciliation branch:** `architecture/csapi-gate-01-patient-flow-architecture-reconciliation-2026-09-17`  
 **Current Gate 01 target architecture branch:** `architecture/csapi-gate-01-patient-flow-target-architecture-2026-09-17`  
+**Current Gate 01 implementation reconciliation branch:** `architecture/csapi-gate-01-patient-flow-implementation-reconciliation-2026-09-17`  
 **Purpose:** durable record of what CSAPI discovered, approved, implemented, verified, deferred, rejected, or identified as documentation drift.
 
 ## Rules
@@ -77,34 +78,51 @@
 | CSAPI-043 | Gate 01 | TARGET-ARCHITECTURE | PROPOSED | Business lifecycle events must complement technical row audit and reliably record actor, Visit, Work Session/Queue context, event, source/destination and reason where applicable. |
 | CSAPI-044 | Gate 01 | TARGET-ARCHITECTURE | PROPOSED | Authorization must be evaluated from tenant + capability + context + ownership/eligibility, not from workspace visibility or generic `visits:update` alone. |
 | CSAPI-045 | Gate 01 | TARGET-ARCHITECTURE | PROPOSED | Existing five-minute/sixty-minute trigger values are policy examples only; timing must be tenant-configurable and executed by explicit policy-driven operations rather than hidden lifecycle constants. |
+| CSAPI-046 | Gate 01 | IMPLEMENTATION-RECONCILIATION | PROPOSED | `clinic_visit_sessions` remains the parent Visit; no replacement top-level Visit table is justified by current evidence. |
+| CSAPI-047 | Gate 01 | IMPLEMENTATION-RECONCILIATION | PROPOSED | A first-class Clinical Work Session child is required to represent multiple work intervals without overwriting Visit-level chronology. |
+| CSAPI-048 | Gate 01 | IMPLEMENTATION-RECONCILIATION | PROPOSED | Queue Entry history/order is required because current queue ordering is computed from `created_at` and does not preserve multiple Waiting intervals. |
+| CSAPI-049 | Gate 01 | IMPLEMENTATION-RECONCILIATION | PROPOSED | Existing Journey Coordination Work Items should be reused for Visit-originated operational work, with governed source linkage rather than a duplicate work engine. |
+| CSAPI-050 | Gate 01 | IMPLEMENTATION-RECONCILIATION | PROPOSED | `clinic_user_settings` is user-scoped and is not a valid canonical tenant-level Patient Flow timing policy container; a tenant policy structure is therefore required unless a canonical tenant settings model is found in further inventory. |
+| CSAPI-051 | Gate 01 | IMPLEMENTATION-RECONCILIATION | PROPOSED | Existing 5/60-minute triggers are compatibility evidence only; timing behavior must be converted to policy-driven eligibility plus explicit execution. |
+| CSAPI-052 | Gate 01 | IMPLEMENTATION-RECONCILIATION | PROPOSED | Operational Closure and Administrative Closure must be represented separately; neither should be overloaded into the old `completed` meaning. |
+| CSAPI-053 | Gate 01 | IMPLEMENTATION-RECONCILIATION | PROPOSED | Carry-forward is a same-Visit continuation command with a new operating-date context and business audit record. |
+| CSAPI-054 | Gate 01 | IMPLEMENTATION-RECONCILIATION | PROPOSED | Follow-up remains downstream of authoritative completion and receives an explicit lifecycle guard against unresolved continuation states. |
+| CSAPI-055 | Gate 01 | IMPLEMENTATION-RECONCILIATION | PROPOSED | Patient Flow lifecycle authority must move below application helper level into an enforceable DB transaction/command boundary; current RLS is permission/tenant enforcement, not transition enforcement. |
+| CSAPI-056 | Gate 01 | IMPLEMENTATION-RECONCILIATION | PROPOSED | Current live permission vocabulary requires reconciliation because no `patient_flow:*` keys were returned while repository logic uses Patient Flow contexts/actions. |
+| CSAPI-057 | Gate 01 | IMPLEMENTATION-RECONCILIATION | PROPOSED | Business lifecycle events are required in addition to `audit_trail`; sensitive events must not silently record a NULL actor. |
+| CSAPI-058 | Gate 01 | IMPLEMENTATION-RECONCILIATION | PROPOSED | Existing initializer fields remain historical; current operational responsibility should use the operational Work Item responsibility path where possible. |
+| CSAPI-059 | Gate 01 | IMPLEMENTATION-RECONCILIATION | PROPOSED | Existing Visit-level procedure/inventory/invoice links remain authoritative parent context; Work Session linkage is additive provenance, not domain ownership transfer. |
+| CSAPI-060 | Gate 01 | IMPLEMENTATION-RECONCILIATION | PROPOSED | Existing compatibility lifecycle fields must be preserved during migration and classified as authoritative/derived/legacy before retirement. |
+
+## Current implementation-decision reconciliation document
+
+`docs/CSAPI/GATES/GATE-01-PATIENT-FLOW-IMPLEMENTATION-DECISION-RECONCILIATION-2026-09-17.md`
+
+This document records the evidence-backed reuse/extend/create decisions and the explicit rejected approaches for the implementation stage. All technical decisions in CSAPI-032 through CSAPI-060 remain `PROPOSED` until explicit Product Owner approval.
 
 ## Current unresolved engineering verification areas
 
-These are not product decisions; they are investigation targets:
+The following remain implementation-stage proof targets after approval:
 
-- how the existing `clinic_visit_sessions` model represents Visit versus Clinical Work Session;
-- whether current procedure/session relationships already provide the required separation;
-- how Queue ordering and room routing are currently represented;
-- how Hold is represented or must be represented;
-- how Transfer and multi-session continuation are represented;
-- how operational work ownership/reassignment is represented;
-- how operational closure and administrative closure are represented;
-- how end-of-day carry-forward is represented;
-- exact trigger/timestamp semantics for buffer and auto-close fields;
-- full transition/actor/permission matrix;
-- RLS protection against direct lifecycle bypass;
-- audit reconstruction across state changes, handoffs, reassignment and administrative actions;
-- scheduled, walk-in, urgent, multi-procedure, Hold, return, transfer and cross-day runtime flows.
+- exact final schema for Clinical Work Session and Queue Entry;
+- exact tenant policy storage location/name;
+- exact Patient Flow permission keys and role mappings;
+- exact RPC/command transaction boundary and grants;
+- compatibility projection/migration rules for legacy six-state fields;
+- business-event append-only storage and RLS;
+- scheduler/worker mechanism for timing policies;
+- billing source-of-truth reconciliation;
+- authenticated runtime scenarios;
+- concurrency/race-condition tests;
+- audit reconstruction tests;
+- cross-day/carry-forward scenario proof.
 
-## Current authoritative reconciliation document
+## Current authoritative reconciliation documents
 
-`docs/CSAPI/GATES/GATE-01-PATIENT-FLOW-ARCHITECTURE-RECONCILIATION-2026-09-17.md`
-
-## Current target architecture document
-
-`docs/CSAPI/GATES/GATE-01-PATIENT-FLOW-TARGET-ARCHITECTURE-2026-09-17.md`
-
-This target architecture document translates the reconciled product model and 90-row Gap Matrix into a concrete implementation contract. Its technical decisions remain `PROPOSED` in this ledger until the gated implementation investigation is completed and explicitly approved.
+1. `docs/CSAPI/GATES/GATE-01-PATIENT-FLOW-ARCHITECTURE-RECONCILIATION-2026-09-17.md`
+2. `docs/CSAPI/GATES/GATE-01-PATIENT-FLOW-ARCHITECTURE-GAP-MATRIX-2026-09-17.md`
+3. `docs/CSAPI/GATES/GATE-01-PATIENT-FLOW-TARGET-ARCHITECTURE-2026-09-17.md`
+4. `docs/CSAPI/GATES/GATE-01-PATIENT-FLOW-IMPLEMENTATION-DECISION-RECONCILIATION-2026-09-17.md`
 
 ## Change log
 
@@ -116,8 +134,12 @@ The Product Owner clarified the real-world Patient Flow model. The clarification
 
 The Gate 01 Gap Matrix was converted into a concrete target architecture covering Visit, Clinical Work Session, Queue, Finish, Hold, Transfer, operational handoff, timing policy, operational/admin closure, carry-forward, Follow-up boundary, cross-domain continuity, business audit and database authority. These target technical decisions are recorded as `PROPOSED` pending implementation-stage evidence reconciliation.
 
+### 2026-09-17 — Patient Flow implementation decision reconciliation
+
+The target architecture was reconciled against fresh live Supabase schema, constraint, RLS, function, permission, configuration and repository Work Item evidence. The resulting implementation decisions favor preserving `clinic_visit_sessions`, creating a first-class Work Session and Queue Entry representation, reusing operational Work, introducing tenant-level policy configuration, separating operational/final closure, preserving same-Visit carry-forward, adding business lifecycle events, and enforcing lifecycle authority at the database command boundary. No implementation is authorized by this stage.
+
 ## Implementation boundary
 
-No code, migration, permission change, cleanup or production change is authorized merely by these records. Gate 01 remains under investigation until the target implementation decisions are explicitly approved and reconciled against the current repository/live database state.
+No code, migration, permission change, cleanup or production change is authorized merely by these records. Gate 01 remains under investigation until the proposed implementation decisions are explicitly approved and then implemented and verified through the CSAPI process.
 
 **End of Ledger.**
