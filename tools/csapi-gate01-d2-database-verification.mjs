@@ -34,16 +34,16 @@ try {
     }
   }
 
-  psql("do $ begin if not exists (select 1 from pg_roles where rolname = 'anon') then create role anon nologin; end if; end $;\ndo $ begin if not exists (select 1 from pg_roles where rolname = 'authenticated') then create role authenticated nologin; end if; end $;\ncreate extension if not exists pgtap;\n");
+  psql("do $$ begin if not exists (select 1 from pg_roles where rolname = 'anon') then create role anon nologin; end if; end $$;\ndo $$ begin if not exists (select 1 from pg_roles where rolname = 'authenticated') then create role authenticated nologin; end if; end $$;\ncreate extension if not exists pgtap;\n");
   for (const file of baseline) applyFile(file, "supabase_admin");
-  psql("create or replace function auth.jwt() returns jsonb language sql stable as $ select coalesce(nullif(current_setting('request.jwt.claims', true), ''), '{}')::jsonb $;\ncreate or replace function auth.uid() returns uuid language sql stable as $ select nullif(auth.jwt()->>'sub','')::uuid $;\n", "supabase_admin");
+  psql("create or replace function auth.jwt() returns jsonb language sql stable as $$ select coalesce(nullif(current_setting('request.jwt.claims', true), ''), '{}')::jsonb $$;\ncreate or replace function auth.uid() returns uuid language sql stable as $$ select nullif(auth.jwt()->>'sub','')::uuid $$;\n", "supabase_admin");
   psql("grant execute on function auth.jwt() to anon, authenticated;\ngrant execute on function auth.uid() to anon, authenticated;\n");
   applyFile(migration, "postgres");
 
   const tap = execFileSync("docker", ["exec", "-i", container, "psql", "-X", "-v", "ON_ERROR_STOP=1", "-t", "-A", "-U", "postgres", "-d", "postgres"], { input: readFileSync(test, "utf8"), encoding: "utf8" });
   process.stdout.write(tap);
   if (/^not ok/m.test(tap)) throw new Error("D2 pgTAP reported one or more failing assertions");
-  if (!/^1\.\.35$/m.test(tap)) throw new Error("D2 pgTAP plan did not report exactly 35 assertions");
+  if (!/^1\.\.35$$/m.test(tap)) throw new Error("D2 pgTAP plan did not report exactly 35 assertions");
 
   psql("select to_regclass('public.clinical_work_sessions'), to_regclass('public.patient_flow_queue_entries'), to_regclass('public.patient_flow_events');");
   console.log("D2_DATABASE_VERIFICATION=PASS assertions=35");
