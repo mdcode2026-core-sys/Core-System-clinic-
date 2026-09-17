@@ -1,6 +1,6 @@
 begin;
 
-select plan(32);
+select plan(35);
 
 select has_table('public', 'clinical_work_sessions', 'clinical Work Session table exists');
 select has_table('public', 'patient_flow_queue_entries', 'Patient Flow queue entry table exists');
@@ -65,7 +65,7 @@ values
 
 insert into public.patient_flow_queue_entries (id, tenant_id, visit_id, operating_date, lane_key, priority_class, position, created_by_clinic_user_id)
 values
-  ('00000000-0000-0000-0000-00000000d212', '00000000-0000-0000-0000-00000000d202', '00000000-0000-0000-0000-00000000d208', current_date, 'clinical', 'normal', 1, '00000000-0000-0000-0000-00000000d204'),
+  ('00000000-0000-0000-0000-00000000d212', '00000000-0000-0000-0000-00000000d202', '00000000-0000-00000000d208', current_date, 'clinical', 'normal', 1, '00000000-0000-0000-0000-00000000d204'),
   ('00000000-0000-0000-0000-00000000d213', '00000000-0000-0000-0000-00000000d203', '00000000-0000-0000-0000-00000000d209', current_date, 'clinical', 'normal', 1, '00000000-0000-0000-0000-00000000d205');
 
 insert into public.patient_flow_events (id, tenant_id, visit_id, work_session_id, queue_entry_id, event_type, actor_clinic_user_id)
