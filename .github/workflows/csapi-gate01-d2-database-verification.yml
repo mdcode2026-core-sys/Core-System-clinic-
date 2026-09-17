@@ -1,5 +1,6 @@
 name: CSAPI Gate 01 — D2 Database Verification
 
+# Verification is intentionally local/disposable: no hosted Supabase branch, no production mutation.
 on:
   pull_request:
     branches: [main]
