@@ -4,6 +4,8 @@ BEGIN;
 -- Verification-only copy used by the disposable local database workflow.
 
 CREATE UNIQUE INDEX IF NOT EXISTS clinic_visit_sessions_tenant_id_id_key ON public.clinic_visit_sessions (tenant_id, id);
+CREATE UNIQUE INDEX IF NOT EXISTS clinic_users_tenant_id_id_key ON public.clinic_users (tenant_id, id);
+CREATE UNIQUE INDEX IF NOT EXISTS clinic_rooms_tenant_id_id_key ON public.clinic_rooms (tenant_id, id);
 CREATE TABLE IF NOT EXISTS public.clinical_work_sessions (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(), tenant_id uuid NOT NULL REFERENCES public.master_tenants(id) ON DELETE CASCADE,
   visit_id uuid NOT NULL, sequence_no integer NOT NULL CHECK (sequence_no > 0), status text NOT NULL DEFAULT 'active' CHECK (status IN ('active','finished','held','transferred','cancelled')),
@@ -19,7 +21,6 @@ CREATE TABLE IF NOT EXISTS public.clinical_work_sessions (
 CREATE UNIQUE INDEX IF NOT EXISTS clinical_work_sessions_one_active_per_visit_idx ON public.clinical_work_sessions (tenant_id,visit_id) WHERE status='active';
 CREATE INDEX IF NOT EXISTS clinical_work_sessions_visit_idx ON public.clinical_work_sessions (tenant_id,visit_id,sequence_no);
 CREATE INDEX IF NOT EXISTS clinical_work_sessions_actor_idx ON public.clinical_work_sessions (tenant_id,performed_by_clinic_user_id,status);
-
 CREATE TABLE IF NOT EXISTS public.patient_flow_queue_entries (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(), tenant_id uuid NOT NULL REFERENCES public.master_tenants(id) ON DELETE CASCADE,
   visit_id uuid NOT NULL, operating_date date NOT NULL, lane_key text NOT NULL CHECK (length(trim(lane_key))>0), priority_class text NOT NULL DEFAULT 'normal' CHECK (priority_class IN ('low','normal','high','urgent')),
@@ -32,7 +33,6 @@ CREATE TABLE IF NOT EXISTS public.patient_flow_queue_entries (
 CREATE UNIQUE INDEX IF NOT EXISTS patient_flow_queue_entries_one_active_per_visit_idx ON public.patient_flow_queue_entries (tenant_id,visit_id) WHERE exited_at IS NULL;
 CREATE INDEX IF NOT EXISTS patient_flow_queue_entries_board_idx ON public.patient_flow_queue_entries (tenant_id,operating_date,lane_key,position) WHERE exited_at IS NULL;
 CREATE INDEX IF NOT EXISTS patient_flow_queue_entries_visit_history_idx ON public.patient_flow_queue_entries (tenant_id,visit_id,entered_at DESC);
-
 CREATE TABLE IF NOT EXISTS public.patient_flow_events (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(), tenant_id uuid NOT NULL REFERENCES public.master_tenants(id) ON DELETE CASCADE, visit_id uuid NOT NULL, work_session_id uuid, queue_entry_id uuid,
   event_type text NOT NULL, actor_clinic_user_id uuid, actor_context text, occurred_at timestamptz NOT NULL DEFAULT now(), source_context jsonb NOT NULL DEFAULT '{}'::jsonb,
@@ -46,7 +46,6 @@ CREATE TABLE IF NOT EXISTS public.patient_flow_events (
 CREATE INDEX IF NOT EXISTS patient_flow_events_visit_time_idx ON public.patient_flow_events (tenant_id,visit_id,occurred_at DESC);
 CREATE INDEX IF NOT EXISTS patient_flow_events_correlation_idx ON public.patient_flow_events (tenant_id,correlation_id) WHERE correlation_id IS NOT NULL;
 CREATE INDEX IF NOT EXISTS patient_flow_events_type_time_idx ON public.patient_flow_events (tenant_id,event_type,occurred_at DESC);
-
 ALTER TABLE public.clinical_work_sessions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.patient_flow_queue_entries ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.patient_flow_events ENABLE ROW LEVEL SECURITY;
