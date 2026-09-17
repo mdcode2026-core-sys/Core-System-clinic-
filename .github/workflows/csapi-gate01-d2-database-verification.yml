@@ -45,7 +45,11 @@ jobs:
             -e POSTGRES_PASSWORD=postgres \
             -e POSTGRES_DB=postgres \
             -p 54322:5432 \
-            ghcr.io/supabase/postgres:17.6.1.141
+            ghcr.io/supabase/postgres:17.6.1.141 \
+            -c shared_buffers=32MB \
+            -c max_connections=20 \
+            -c work_mem=4MB \
+            -c maintenance_work_mem=32MB
 
       - name: Wait for Postgres readiness
         run: |
