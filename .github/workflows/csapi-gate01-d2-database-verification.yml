@@ -68,6 +68,8 @@ jobs:
         run: |
           docker exec -i "$D2_POSTGRES_CONTAINER" psql -v ON_ERROR_STOP=1 -U postgres -d postgres <<'SQL'
           create schema if not exists auth;
+          alter schema auth owner to postgres;
+          grant usage on schema auth to postgres;
           do $$ begin if not exists (select 1 from pg_roles where rolname = 'anon') then create role anon nologin; end if; end $$;
           do $$ begin if not exists (select 1 from pg_roles where rolname = 'authenticated') then create role authenticated nologin; end if; end $$;
           create or replace function auth.jwt() returns jsonb language sql stable as $$
