@@ -4,6 +4,9 @@ BEGIN;
 -- Verification-only copy used by the disposable local database workflow.
 
 CREATE UNIQUE INDEX IF NOT EXISTS clinic_visit_sessions_tenant_id_id_key ON public.clinic_visit_sessions (tenant_id, id);
+CREATE UNIQUE INDEX IF NOT EXISTS clinic_users_tenant_id_id_key ON public.clinic_users (tenant_id, id);
+CREATE UNIQUE INDEX IF NOT EXISTS clinic_rooms_tenant_id_id_key ON public.clinic_rooms (tenant_id, id);
+
 CREATE TABLE IF NOT EXISTS public.clinical_work_sessions (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(), tenant_id uuid NOT NULL REFERENCES public.master_tenants(id) ON DELETE CASCADE,
   visit_id uuid NOT NULL, sequence_no integer NOT NULL CHECK (sequence_no > 0), status text NOT NULL DEFAULT 'active' CHECK (status IN ('active','finished','held','transferred','cancelled')),
