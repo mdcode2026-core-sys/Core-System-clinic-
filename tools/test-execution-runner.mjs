@@ -48,7 +48,6 @@ const runtimeSuites = new Set([
   "database-integrity",
   "authorization",
   "procurement-inventory-finance",
-  "csapi-gate01-d2-database",
 ]);
 
 const required = [...new Set([...(plan.required_suites || []), "engineering"])]
