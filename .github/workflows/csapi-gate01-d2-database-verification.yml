@@ -1,5 +1,8 @@
 name: CSAPI Gate 01 — D2 Database Verification
 
+# Free disposable verification path: local Postgres + pgTAP only.
+# No hosted Supabase Branching and no production mutation.
+
 on:
   pull_request:
     branches: [main]
@@ -17,7 +20,6 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 90
     env:
-      D2_DB_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
       D2_POSTGRES_CONTAINER: csapi-gate01-d2-postgres
       D2_BASELINE_SCHEMA: supabase/migrations/20260721100539_remote_schema.sql
       D2_BASELINE_REFRESH: supabase/migrations/20260721112514_remote_schema.sql
@@ -25,68 +27,55 @@ jobs:
     steps:
       - name: Checkout exact candidate
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
+        with: { fetch-depth: 0 }
       - name: Setup Supabase CLI
         uses: supabase/setup-cli@v1
-        with:
-          version: latest
-
+        with: { version: latest }
       - name: Initialize local Supabase configuration
         run: supabase init --force
-
       - name: Start disposable Supabase Postgres container
         run: |
           docker run -d \
             --name "$D2_POSTGRES_CONTAINER" \
+            --shm-size=64m \
             -e POSTGRES_PASSWORD=postgres \
             -e POSTGRES_DB=postgres \
             -p 54322:5432 \
-            ghcr.io/supabase/postgres:17.6.1.141
-
+            ghcr.io/supabase/postgres:17.6.1.141 \
+            -c shared_preload_libraries=pg_net \
+            -c shared_buffers=32MB \
+            -c max_connections=20 \
+            -c work_mem=1MB \
+            -c maintenance_work_mem=16MB
       - name: Wait for Postgres readiness
         run: |
           for i in $(seq 1 60); do
-            if docker exec "$D2_POSTGRES_CONTAINER" pg_isready -U postgres -d postgres >/dev/null 2>&1; then
-              exit 0
-            fi
+            if docker exec "$D2_POSTGRES_CONTAINER" pg_isready -U postgres -d postgres >/dev/null 2>&1; then exit 0; fi
             sleep 2
           done
           docker logs "$D2_POSTGRES_CONTAINER"
           exit 1
-
-      - name: Bootstrap auth and pgTAP test boundary
+      - name: Bootstrap pgTAP test boundary
         run: |
           docker exec -i "$D2_POSTGRES_CONTAINER" psql -v ON_ERROR_STOP=1 -U postgres -d postgres <<'SQL'
-          create schema if not exists auth;
           do $$ begin if not exists (select 1 from pg_roles where rolname = 'anon') then create role anon nologin; end if; end $$;
           do $$ begin if not exists (select 1 from pg_roles where rolname = 'authenticated') then create role authenticated nologin; end if; end $$;
-          create or replace function auth.jwt() returns jsonb language sql stable as $$
-            select coalesce(nullif(current_setting('request.jwt.claims', true), '')::jsonb, '{}'::jsonb);
-          $$;
-          create or replace function auth.uid() returns uuid language sql stable as $$
-            select nullif((auth.jwt()->>'sub'), '')::uuid;
-          $$;
           create extension if not exists pgtap;
           SQL
-
       - name: Apply canonical committed schema baseline
         run: |
-          docker exec -i "$D2_POSTGRES_CONTAINER" psql -v ON_ERROR_STOP=1 -U postgres -d postgres < "$D2_BASELINE_SCHEMA"
-          docker exec -i "$D2_POSTGRES_CONTAINER" psql -v ON_ERROR_STOP=1 -U postgres -d postgres < "$D2_BASELINE_REFRESH"
-
+          docker exec -i "$D2_POSTGRES_CONTAINER" psql -v ON_ERROR_STOP=1 -U supabase_admin -d postgres < "$D2_BASELINE_SCHEMA"
+          docker exec -i "$D2_POSTGRES_CONTAINER" psql -v ON_ERROR_STOP=1 -U supabase_admin -d postgres < "$D2_BASELINE_REFRESH"
       - name: Apply D2 migration only after canonical baseline
+        run: docker exec -i "$D2_POSTGRES_CONTAINER" psql -v ON_ERROR_STOP=1 -U postgres -d postgres < "$D2_MIGRATION"
+      - name: Run D2 pgTAP tests directly against disposable database
         run: |
-          docker exec -i "$D2_POSTGRES_CONTAINER" psql -v ON_ERROR_STOP=1 -U postgres -d postgres < "$D2_MIGRATION"
-
-      - name: Run D2 pgTAP tests
-        run: supabase test db --db-url "$D2_DB_URL" supabase/tests/csapi_gate01_d2_database_foundations.sql
-
+          set -o pipefail
+          docker exec -i "$D2_POSTGRES_CONTAINER" psql -X -v ON_ERROR_STOP=1 -t -A -U postgres -d postgres < supabase/tests/csapi_gate01_d2_database_foundations.sql | tee d2-pgtap.tap
+          if grep -q '^not ok' d2-pgtap.tap; then exit 1; fi
+          grep -q '^1\.\.35$' d2-pgtap.tap
       - name: Verify D2 objects exist
-        run: |
-          docker exec -i "$D2_POSTGRES_CONTAINER" psql -v ON_ERROR_STOP=1 -U postgres -d postgres -c "select to_regclass('public.clinical_work_sessions'), to_regclass('public.patient_flow_queue_entries'), to_regclass('public.patient_flow_events');"
-
+        run: docker exec -i "$D2_POSTGRES_CONTAINER" psql -v ON_ERROR_STOP=1 -U postgres -d postgres -c "select to_regclass('public.clinical_work_sessions'), to_regclass('public.patient_flow_queue_entries'), to_regclass('public.patient_flow_events');"
       - name: Dispose local Postgres container
         if: always()
         run: docker rm -f "$D2_POSTGRES_CONTAINER" || true
@@ -98,19 +87,13 @@ jobs:
     steps:
       - name: Checkout exact candidate
         uses: actions/checkout@v4
-
       - name: Setup Node 22
         uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-
+        with: { node-version: 22, cache: npm }
       - name: Install dependencies
         run: npm ci
-
       - name: Run lint
         run: npm run lint
-
       - name: Run production build
         env:
           NEXT_PUBLIC_SUPABASE_URL: https://qaslsjyxjwvdoiczmhgq.supabase.co
