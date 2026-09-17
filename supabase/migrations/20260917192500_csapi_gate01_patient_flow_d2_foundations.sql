@@ -37,11 +37,11 @@ CREATE TABLE IF NOT EXISTS public.clinical_work_sessions (
   CONSTRAINT clinical_work_sessions_provider_same_tenant_fk
     FOREIGN KEY (tenant_id, clinical_provider_id)
     REFERENCES public.clinic_users (tenant_id, id)
-    ON DELETE SET NULL,
+    ON DELETE RESTRICT,
   CONSTRAINT clinical_work_sessions_room_same_tenant_fk
     FOREIGN KEY (tenant_id, room_id)
     REFERENCES public.clinic_rooms (tenant_id, id)
-    ON DELETE SET NULL,
+    ON DELETE RESTRICT,
   CONSTRAINT clinical_work_sessions_visit_sequence_key UNIQUE (tenant_id, visit_id, sequence_no)
 );
 
@@ -120,15 +120,15 @@ CREATE TABLE IF NOT EXISTS public.patient_flow_events (
   CONSTRAINT patient_flow_events_work_session_same_tenant_fk
     FOREIGN KEY (tenant_id, work_session_id)
     REFERENCES public.clinical_work_sessions (tenant_id, id)
-    ON DELETE SET NULL,
+    ON DELETE RESTRICT,
   CONSTRAINT patient_flow_events_queue_entry_same_tenant_fk
     FOREIGN KEY (tenant_id, queue_entry_id)
     REFERENCES public.patient_flow_queue_entries (tenant_id, id)
-    ON DELETE SET NULL,
+    ON DELETE RESTRICT,
   CONSTRAINT patient_flow_events_actor_same_tenant_fk
     FOREIGN KEY (tenant_id, actor_clinic_user_id)
     REFERENCES public.clinic_users (tenant_id, id)
-    ON DELETE SET NULL
+    ON DELETE RESTRICT
 );
 
 CREATE INDEX IF NOT EXISTS patient_flow_events_visit_time_idx
