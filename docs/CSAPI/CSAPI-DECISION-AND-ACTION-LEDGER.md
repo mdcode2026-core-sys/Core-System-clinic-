@@ -2,6 +2,7 @@
 
 **Canonical branch:** `architecture/csapi-decision-gates-2026-09-16`  
 **Current Gate 01 reconciliation branch:** `architecture/csapi-gate-01-patient-flow-architecture-reconciliation-2026-09-17`  
+**Current Gate 01 target architecture branch:** `architecture/csapi-gate-01-patient-flow-target-architecture-2026-09-17`  
 **Purpose:** durable record of what CSAPI discovered, approved, implemented, verified, deferred, rejected, or identified as documentation drift.
 
 ## Rules
@@ -62,6 +63,20 @@
 | CSAPI-029 | Gate 01 | DOCUMENTATION | DRIFT | The historical Patient Flow engineering specification's explicit state list is narrower than the approved current architecture and must be reconciled before implementation. |
 | CSAPI-030 | Gate 01 | DOCUMENTATION | RECONCILE | The terminology definition of Visit must distinguish the Visit container from Clinical Work Session; `Encounter` remains the interoperability mapping term. |
 | CSAPI-031 | Gate 01 | DOCUMENTATION | HISTORICAL | The 2026-09-01 final execution closure remains historical evidence and is not to be treated as the current full Patient Flow architecture. |
+| CSAPI-032 | Gate 01 | TARGET-ARCHITECTURE | PROPOSED | Patient Flow target architecture separates Visit finality, Clinical Work Session state, Queue/Waiting presence, Operational disposition and Administrative disposition instead of using one giant lifecycle enum. |
+| CSAPI-033 | Gate 01 | TARGET-ARCHITECTURE | PROPOSED | `clinic_visit_sessions` remains the physical starting point/parent Visit record; no second top-level Visit table is proposed merely for terminology. |
+| CSAPI-034 | Gate 01 | TARGET-ARCHITECTURE | PROPOSED | A first-class child Clinical Work Session representation is the expected smallest safe extension, subject to final schema verification; historical work-session events must not be fabricated during migration. |
+| CSAPI-035 | Gate 01 | TARGET-ARCHITECTURE | PROPOSED | Authoritative Queue representation must support multiple Waiting intervals, persistent order, priority/routing metadata and cross-day continuation without equating queue movement with clinical start. |
+| CSAPI-036 | Gate 01 | TARGET-ARCHITECTURE | PROPOSED | Finish is one atomic Patient Flow command that ends the active Clinical Work Session and creates the required operational consequence without inherently completing the Visit. |
+| CSAPI-037 | Gate 01 | TARGET-ARCHITECTURE | PROPOSED | Hold ends/suspends active clinical work while keeping the Visit open; return to Waiting is an explicit continuation operation rather than re-locking the old work interval. |
+| CSAPI-038 | Gate 01 | TARGET-ARCHITECTURE | PROPOSED | Transfer preserves Visit identity and records source/destination actor/room/context; a new Work Session may represent the receiving work. |
+| CSAPI-039 | Gate 01 | TARGET-ARCHITECTURE | PROPOSED | Existing Journey Coordination Work Items and history should be reused for operational handoff/reassignment, with an explicit or proven source link to the originating Visit. |
+| CSAPI-040 | Gate 01 | TARGET-ARCHITECTURE | PROPOSED | Operational Closure removes unresolved work from active daily workload without making the Visit final; Administrative Closure remains the authoritative final disposition. |
+| CSAPI-041 | Gate 01 | TARGET-ARCHITECTURE | PROPOSED | Carry-forward preserves the same Visit ID and records the later operating-date context; it is not automatically Follow-up or a new Appointment. |
+| CSAPI-042 | Gate 01 | TARGET-ARCHITECTURE | PROPOSED | Patient Flow lifecycle mutations should converge on one enforceable database transaction/command boundary, preferably SECURITY INVOKER where feasible, with direct lifecycle UPDATE bypass removed. |
+| CSAPI-043 | Gate 01 | TARGET-ARCHITECTURE | PROPOSED | Business lifecycle events must complement technical row audit and reliably record actor, Visit, Work Session/Queue context, event, source/destination and reason where applicable. |
+| CSAPI-044 | Gate 01 | TARGET-ARCHITECTURE | PROPOSED | Authorization must be evaluated from tenant + capability + context + ownership/eligibility, not from workspace visibility or generic `visits:update` alone. |
+| CSAPI-045 | Gate 01 | TARGET-ARCHITECTURE | PROPOSED | Existing five-minute/sixty-minute trigger values are policy examples only; timing must be tenant-configurable and executed by explicit policy-driven operations rather than hidden lifecycle constants. |
 
 ## Current unresolved engineering verification areas
 
@@ -85,7 +100,11 @@ These are not product decisions; they are investigation targets:
 
 `docs/CSAPI/GATES/GATE-01-PATIENT-FLOW-ARCHITECTURE-RECONCILIATION-2026-09-17.md`
 
-This document is the current Gate 01 interpretation layer for the expanded Patient Flow architecture until a later explicit Product Owner decision supersedes it.
+## Current target architecture document
+
+`docs/CSAPI/GATES/GATE-01-PATIENT-FLOW-TARGET-ARCHITECTURE-2026-09-17.md`
+
+This target architecture document translates the reconciled product model and 90-row Gap Matrix into a concrete implementation contract. Its technical decisions remain `PROPOSED` in this ledger until the gated implementation investigation is completed and explicitly approved.
 
 ## Change log
 
@@ -93,8 +112,12 @@ This document is the current Gate 01 interpretation layer for the expanded Patie
 
 The Product Owner clarified the real-world Patient Flow model. The clarification was recorded as approved architecture in CSAPI records CSAPI-017 through CSAPI-028. A dedicated reconciliation document was created. Historical documentation was classified rather than blindly rewritten.
 
+### 2026-09-17 — Patient Flow target architecture specification
+
+The Gate 01 Gap Matrix was converted into a concrete target architecture covering Visit, Clinical Work Session, Queue, Finish, Hold, Transfer, operational handoff, timing policy, operational/admin closure, carry-forward, Follow-up boundary, cross-domain continuity, business audit and database authority. These target technical decisions are recorded as `PROPOSED` pending implementation-stage evidence reconciliation.
+
 ## Implementation boundary
 
-No code, migration, permission change, cleanup or production change is authorized merely by these records. Gate 01 remains under investigation until repository/live evidence is reconciled against the approved architecture.
+No code, migration, permission change, cleanup or production change is authorized merely by these records. Gate 01 remains under investigation until the target implementation decisions are explicitly approved and reconciled against the current repository/live database state.
 
 **End of Ledger.**
