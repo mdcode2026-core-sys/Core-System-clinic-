@@ -2,8 +2,9 @@
 
 **Date:** 2026-09-17  
 **Stage:** D1 — Canonical Contracts  
-**Status:** IMPLEMENTED / VERIFICATION PENDING  
-**Branch:** `implementation/csapi-gate-01-d1-canonical-contracts-2026-09-17`  
+**Status:** VERIFIED / CLOSED  
+**Implementation branch:** `implementation/csapi-gate-01-d1-canonical-contracts-2026-09-17`  
+**Verified candidate:** `b9470061da5c188adff40b0956ce03a540beccf8`  
 **Parent design:** `docs/CSAPI/GATES/GATE-01-PATIENT-FLOW-IMPLEMENTATION-DESIGN-PACKET-2026-09-17.md`
 
 ## Scope
@@ -14,30 +15,30 @@ Introduce the canonical Patient Flow domain contracts required to separate Visit
 
 - `src/domain/patient-flow/patient-flow.contracts.ts`
 
-The artifact is intentionally additive and does not replace or mutate the existing Queue/Visit state machine yet.
+The artifact is additive and does not replace or mutate the existing Queue/Visit state machine.
 
 ## Compatibility
 
-The existing six-value `clinic_visit_sessions.session_status` model remains untouched. A transitional compatibility type is included to prevent accidental interpretation of the legacy field as the final architecture.
+The existing six-value `clinic_visit_sessions.session_status` model remains untouched. A transitional compatibility type is included so the legacy field is not treated as the final Patient Flow architecture.
 
 ## Safety
 
 - No database schema change.
 - No permission change.
-- No data mutation.
+- No production data mutation.
 - No production deployment.
 - No Vercel operation.
 
-## Verification required
+## Verification
 
-The branch must pass the repository's normal TypeScript/ESLint/CI gates. The D1 stage is not closed until the exact CI result is recorded.
+The exact implementation candidate `b9470061da5c188adff40b0956ce03a540beccf8` was validated by GitHub Actions workflow run #342 / ID `35242133608`, job `UNIFIED — Test Execution Engine` / ID `105272966673`.
 
-## Exit criteria
+Engineering checks passed: TypeScript, ESLint and production build. Unified regression execution passed 9/9 with zero failures, including authenticated E2E, authorization, cross-domain, database-integrity, Patient Journey, and procurement/inventory/finance runtime suites.
 
-1. TypeScript passes.
-2. ESLint passes.
-3. Existing Patient Flow/Queue behavior remains unchanged.
-4. The new contract file is consumed by a controlled subsequent implementation unit before any legacy lifecycle field is altered.
-5. A verification record with exact CI evidence is committed.
+The detailed evidence is recorded in `docs/CSAPI/GATES/GATE-01-D1-CANONICAL-CONTRACTS-VERIFICATION-2026-09-17.md`.
 
-**D1 implementation status:** OPEN — awaiting verification.
+## Exit decision
+
+All blocking D1 verification criteria were satisfied for the implementation candidate. D1 is **VERIFIED / CLOSED**.
+
+D2 is authorized to start from the verified candidate SHA `b9470061da5c188adff40b0956ce03a540beccf8`.
