@@ -145,8 +145,12 @@ ALTER TABLE public.clinical_work_sessions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.patient_flow_queue_entries ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.patient_flow_events ENABLE ROW LEVEL SECURITY;
 
--- D2 exposes only tenant-scoped reads. Lifecycle writes remain intentionally closed
--- until D3 introduces the authoritative command boundary and its actor checks.
+-- D2 exposes tenant-scoped reads only. Explicit grants make the Data API surface
+-- intentional and keep lifecycle writes unavailable until D3 owns command authority.
+REVOKE ALL ON TABLE public.clinical_work_sessions, public.patient_flow_queue_entries, public.patient_flow_events FROM anon;
+REVOKE ALL ON TABLE public.clinical_work_sessions, public.patient_flow_queue_entries, public.patient_flow_events FROM authenticated;
+GRANT SELECT ON TABLE public.clinical_work_sessions, public.patient_flow_queue_entries, public.patient_flow_events TO authenticated;
+
 DROP POLICY IF EXISTS patient_flow_work_sessions_read ON public.clinical_work_sessions;
 CREATE POLICY patient_flow_work_sessions_read
   ON public.clinical_work_sessions
