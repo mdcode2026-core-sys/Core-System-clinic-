@@ -1,5 +1,8 @@
 name: CSAPI Gate 01 — D2 Database Verification
 
+# Free disposable verification path: local Postgres + pgTAP only.
+# Resource limits below intentionally keep the runner/container footprint bounded.
+
 on:
   pull_request:
     branches: [main]
@@ -118,6 +121,6 @@ jobs:
 
       - name: Run production build
         env:
-          NEXT_PUBLIC_SUPABASE_URL: https://qaslsjyxjwvdoiczmhgq.supabase.co
+          NEXT_PUBLIC_SUPABASE_URL: https://qaslsjyxjwvdoiczmhgqg.supabase.co
           NEXT_PUBLIC_APP_URL: http://127.0.0.1:3000
         run: npm run build
