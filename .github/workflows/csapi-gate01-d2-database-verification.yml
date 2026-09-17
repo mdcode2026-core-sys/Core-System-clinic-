@@ -13,12 +13,9 @@ permissions:
 
 jobs:
   database-verification:
-    name: D2 — Disposable local Postgres migration + pgTAP verification
+    name: D2 — Local Supabase Postgres + pgTAP verification
     runs-on: ubuntu-latest
     timeout-minutes: 90
-    env:
-      D2_DB_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
-      D2_POSTGRES_CONTAINER: csapi-gate01-d2-postgres
     steps:
       - name: Checkout exact candidate
         uses: actions/checkout@v4
@@ -33,38 +30,23 @@ jobs:
       - name: Initialize local Supabase configuration
         run: supabase init --force
 
-      - name: Start disposable Supabase Postgres container
-        run: |
-          docker run -d \
-            --name "$D2_POSTGRES_CONTAINER" \
-            -e POSTGRES_PASSWORD=postgres \
-            -e POSTGRES_DB=postgres \
-            -p 54322:5432 \
-            ghcr.io/supabase/postgres:17.6.1.141
+      - name: Start only local database services required for migration verification
+        run: >-
+          supabase start
+          -x gotrue,realtime,storage-api,imgproxy,kong,postgrest,postgres-meta,studio,edge-runtime,logflare,vector,supavisor
 
-      - name: Wait for Postgres readiness
-        run: |
-          for i in $(seq 1 60); do
-            if docker exec "$D2_POSTGRES_CONTAINER" pg_isready -U postgres -d postgres >/dev/null 2>&1; then
-              exit 0
-            fi
-            sleep 2
-          done
-          docker logs "$D2_POSTGRES_CONTAINER"
-          exit 1
+      - name: Reset local database from migration chain
+        run: supabase db reset --no-seed
 
-      - name: Reset disposable database from migration chain
-        run: supabase db reset --db-url "$D2_DB_URL" --no-seed
-
-      - name: Run D2 pgTAP tests against disposable database
-        run: supabase test db --db-url "$D2_DB_URL" supabase/tests/csapi_gate01_d2_database_foundations.sql
+      - name: Run D2 pgTAP tests
+        run: supabase test db supabase/tests/csapi_gate01_d2_database_foundations.sql
 
       - name: Verify migration history
-        run: supabase migration list --db-url "$D2_DB_URL"
+        run: supabase migration list
 
-      - name: Dispose local Postgres container
+      - name: Stop local Supabase database
         if: always()
-        run: docker rm -f "$D2_POSTGRES_CONTAINER" || true
+        run: supabase stop || true
 
   application-regression:
     name: D2 — Application lint/build regression
