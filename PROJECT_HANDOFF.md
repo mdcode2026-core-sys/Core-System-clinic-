@@ -150,7 +150,7 @@ Clinical Work Session = one discrete clinical/procedural work unit inside that V
 Waiting = operational queue condition; not clinical initiation
 Hold = unresolved Visit condition; clinical work temporarily suspended
 Transfer = continuation of the same Visit through another actor/room/work context
-Clinical Work Finished = end of the current clinical work, not automatically Visit Completed
+Finish = end of the current clinical work, not automatically Visit Completed
 Operational Work Queue = reception/operational work after the appropriate clinical handoff
 Operational Closure ≠ Administrative Final Closure
 Carry-forward = administrative continuation of the same unresolved Visit on a later operating date
@@ -165,19 +165,86 @@ Configured timing policies such as short reassignment windows and longer adminis
 
 Administration is the clinic control plane for authorized correction, reassignment, carry-forward, exception handling and final closure. Administrative flexibility remains subject to tenant isolation, permissions and auditability.
 
+## Gate 01 — Target Architecture and Implementation Decision Reconciliation — 2026-09-17
+
+The current Gate 01 engineering sequence is now:
+
+```text
+Approved product architecture
+        ↓
+90-row Architecture Gap Matrix
+        ↓
+Target Architecture Specification
+        ↓
+Implementation Decision Reconciliation
+        ↓
+Implementation Design Packet (next)
+        ↓
+Implementation + isolated verification
+        ↓
+Authenticated E2E + Gate review
+```
+
+Canonical current documents:
+
+- `docs/CSAPI/GATES/GATE-01-PATIENT-FLOW-ARCHITECTURE-GAP-MATRIX-2026-09-17.md`
+- `docs/CSAPI/GATES/GATE-01-PATIENT-FLOW-TARGET-ARCHITECTURE-2026-09-17.md`
+- `docs/CSAPI/GATES/GATE-01-PATIENT-FLOW-IMPLEMENTATION-DECISION-RECONCILIATION-2026-09-17.md`
+- `docs/CSAPI/CSAPI-DECISION-AND-ACTION-LEDGER.md`
+
+Current implementation-reconciliation branch:
+
+`architecture/csapi-gate-01-patient-flow-implementation-reconciliation-2026-09-17`
+
+Current Gate 01 PRs:
+
+- PR #138 — evidence reconciliation
+- PR #139 — architecture reconciliation
+- PR #140 — architecture gap matrix
+- PR #141 — target architecture specification
+- PR #142 — implementation decision reconciliation
+
+The implementation decision reconciliation confirms the following as the proposed execution direction:
+
+- preserve `clinic_visit_sessions` as the parent Visit record;
+- create a first-class Clinical Work Session child representation;
+- do not replace the six-state model with one giant state enum;
+- create/extend authoritative Queue Entry semantics for multiple Waiting intervals and persistent order;
+- make Finish one atomic Patient Flow command;
+- make Hold first-class and route Hold continuation back through Waiting when appropriate;
+- represent Transfer as same-Visit continuation with explicit source/destination history;
+- reuse Journey Coordination operational Work Items and bridge them to Visit-originated work;
+- separate current operational responsibility from historical receptionist initialization;
+- introduce tenant-level timing policy rather than hard-coded five/sixty-minute business constants;
+- separate Operational Closure from Administrative Closure;
+- preserve same Visit identity during cross-day carry-forward;
+- keep Follow-up downstream of authoritative completion;
+- add append-only business lifecycle events in addition to technical row audit;
+- enforce lifecycle authority at the database command boundary rather than relying on generic `visits:update`;
+- reconcile Patient Flow permission vocabulary with the live Team & Access catalog.
+
+**Important:** these technical execution decisions remain `PROPOSED` in CSAPI until explicit Product Owner approval. No implementation is authorized by the reconciliation documents alone.
+
 ## Patient Flow documentation authority
 
 Current Gate 01 documentation control:
 
 - `docs/CSAPI/GATES/GATE-01-PATIENT-FLOW-ARCHITECTURE-RECONCILIATION-2026-09-17.md` — current architecture interpretation.
 - `docs/CSAPI/GATES/GATE-01-PATIENT-FLOW-HISTORICAL-DOCUMENTATION-RECONCILIATION-2026-09-17.md` — historical documentation classification and update plan.
-- `docs/CSAPI/CSAPI-DECISION-AND-ACTION-LEDGER.md` — approved decisions and unresolved engineering verification targets.
+- `docs/CSAPI/GATES/GATE-01-PATIENT-FLOW-ARCHITECTURE-GAP-MATRIX-2026-09-17.md` — 90-row evidence-backed gap inventory.
+- `docs/CSAPI/GATES/GATE-01-PATIENT-FLOW-TARGET-ARCHITECTURE-2026-09-17.md` — target architecture contract.
+- `docs/CSAPI/GATES/GATE-01-PATIENT-FLOW-IMPLEMENTATION-DECISION-RECONCILIATION-2026-09-17.md` — implementation reuse/extend/create reconciliation.
+- `docs/CSAPI/CSAPI-DECISION-AND-ACTION-LEDGER.md` — durable decision status and approval boundary.
 
 The historical 2026-09-01 closure records remain evidence and must not be rewritten merely to make them appear current.
 
 ## Deployment / verification rule
 
 Production deployment follows GitHub `main` → Vercel Git Integration. Do not use manual Vercel build/API calls to bypass build-rate limits. Production Ready requires repository SHA, CI, Production deployment SHA/status and runtime verification to agree.
+
+### Current Gate 01 execution restriction
+
+Until the implementation and verification stages are explicitly completed, **do not use Vercel for inspection, testing, preview verification, deployment, or build activity**. The Gate 01 engineering work in this phase is limited to repository/documentation evidence and live Supabase inspection/verification as authorized by the current execution contract. Vercel is reserved for the final production stage after the approved implementation is promoted to `main`.
 
 ## Final handoff rule
 
