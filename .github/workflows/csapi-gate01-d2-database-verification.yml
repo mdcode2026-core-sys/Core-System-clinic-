@@ -74,8 +74,8 @@ jobs:
 
       - name: Apply canonical committed schema baseline
         run: |
-          docker exec -i "$D2_POSTGRES_CONTAINER" psql -v ON_ERROR_STOP=1 -U postgres -d postgres < "$D2_BASELINE_SCHEMA"
-          docker exec -i "$D2_POSTGRES_CONTAINER" psql -v ON_ERROR_STOP=1 -U postgres -d postgres < "$D2_BASELINE_REFRESH"
+          docker exec -i "$D2_POSTGRES_CONTAINER" psql -v ON_ERROR_STOP=1 -U supabase_admin -d postgres < "$D2_BASELINE_SCHEMA"
+          docker exec -i "$D2_POSTGRES_CONTAINER" psql -v ON_ERROR_STOP=1 -U supabase_admin -d postgres < "$D2_BASELINE_REFRESH"
 
       - name: Apply D2 migration only after canonical baseline
         run: |
