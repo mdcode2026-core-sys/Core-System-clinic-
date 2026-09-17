@@ -13,9 +13,12 @@ permissions:
 
 jobs:
   database-verification:
-    name: D2 — Local Postgres migration + pgTAP verification
+    name: D2 — Disposable local Postgres migration + pgTAP verification
     runs-on: ubuntu-latest
     timeout-minutes: 90
+    env:
+      D2_DB_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+      D2_POSTGRES_CONTAINER: csapi-gate01-d2-postgres
     steps:
       - name: Checkout exact candidate
         uses: actions/checkout@v4
@@ -30,21 +33,38 @@ jobs:
       - name: Initialize local Supabase configuration
         run: supabase init --force
 
-      - name: Start local Postgres only
-        run: supabase db start
+      - name: Start disposable Supabase Postgres container
+        run: |
+          docker run -d \
+            --name "$D2_POSTGRES_CONTAINER" \
+            -e POSTGRES_PASSWORD=postgres \
+            -e POSTGRES_DB=postgres \
+            -p 54322:5432 \
+            ghcr.io/supabase/postgres:17.6.1.141
 
-      - name: Reset local database from migration chain
-        run: supabase db reset
+      - name: Wait for Postgres readiness
+        run: |
+          for i in $(seq 1 60); do
+            if docker exec "$D2_POSTGRES_CONTAINER" pg_isready -U postgres -d postgres >/dev/null 2>&1; then
+              exit 0
+            fi
+            sleep 2
+          done
+          docker logs "$D2_POSTGRES_CONTAINER"
+          exit 1
 
-      - name: Run pgTAP database tests
-        run: supabase test db
+      - name: Reset disposable database from migration chain
+        run: supabase db reset --db-url "$D2_DB_URL" --no-seed
 
-      - name: Verify local migration state
-        run: supabase migration list
+      - name: Run D2 pgTAP tests against disposable database
+        run: supabase test db --db-url "$D2_DB_URL" supabase/tests/csapi_gate01_d2_database_foundations.sql
 
-      - name: Stop local database
+      - name: Verify migration history
+        run: supabase migration list --db-url "$D2_DB_URL"
+
+      - name: Dispose local Postgres container
         if: always()
-        run: supabase stop || true
+        run: docker rm -f "$D2_POSTGRES_CONTAINER" || true
 
   application-regression:
     name: D2 — Application lint/build regression
