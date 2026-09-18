@@ -10,9 +10,9 @@ WITH u AS (
 ), base AS (
   SELECT 1 FROM u JOIN public.roles r ON r.id=u.role_id JOIN public.role_permissions rp ON rp.role_id=r.id JOIN public.permissions p ON p.id=rp.permission_id WHERE p.permission_key=p_permission_key LIMIT 1
 ), direct AS (
-  SELECT 1 FROM u JOIN public.clinic_user_permissions up ON up.user_id=u.id AND up.tenant_id=u.tenant_id AND up.granted AND up.deleted_at IS NULL JOIN public.permissions p ON p.id=up.permission_id WHERE p.permission_key=p_permission_key LIMIT 1
+  SELECT 1 FROM u JOIN public.clinic_user_permissions up ON up.user_id=u.id AND up.tenant_id=u.tenant_id AND up.granted AND true JOIN public.permissions p ON p.id=up.permission_id WHERE p.permission_key=p_permission_key LIMIT 1
 ), override AS (
-  SELECT o.granted FROM u JOIN public.clinic_user_permission_overrides o ON o.user_id=u.id AND o.tenant_id=u.tenant_id AND o.deleted_at IS NULL JOIN public.permissions p ON p.id=o.permission_id WHERE p.permission_key=p_permission_key ORDER BY o.updated_at DESC NULLS LAST,o.created_at DESC LIMIT 1
+  SELECT o.granted FROM u JOIN public.clinic_user_permission_overrides o ON o.user_id=u.id AND o.tenant_id=u.tenant_id AND true JOIN public.permissions p ON p.id=o.permission_id WHERE p.permission_key=p_permission_key ORDER BY o.updated_at DESC NULLS LAST,o.created_at DESC LIMIT 1
 ), admin AS (
   SELECT 1 FROM u JOIN public.roles r ON r.id=u.role_id WHERE r.role_key='clinic_admin' LIMIT 1
 )
@@ -51,8 +51,8 @@ RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public' AS $
 BEGIN
   IF p_tenant_id<>public.get_current_tenant_id() THEN RAISE EXCEPTION 'Tenant mismatch'; END IF;
   IF NOT(public.has_tenant_permission(p_tenant_id,'agenda:create') OR public.has_tenant_permission(p_tenant_id,'agenda:update')) THEN RAISE EXCEPTION 'Permission denied'; END IF;
-  IF p_procedure_id IS NOT NULL AND NOT EXISTS(SELECT 1 FROM public.clinic_procedures WHERE id=p_procedure_id AND tenant_id=p_tenant_id AND deleted_at IS NULL) THEN RAISE EXCEPTION 'Procedure does not belong to tenant'; END IF;
-  IF p_resource_id IS NOT NULL AND NOT EXISTS(SELECT 1 FROM public.clinic_resources WHERE id=p_resource_id AND tenant_id=p_tenant_id AND deleted_at IS NULL) THEN RAISE EXCEPTION 'Resource does not belong to tenant'; END IF;
+  IF p_procedure_id IS NOT NULL AND NOT EXISTS(SELECT 1 FROM public.clinic_procedures WHERE id=p_procedure_id AND tenant_id=p_tenant_id) THEN RAISE EXCEPTION 'Procedure does not belong to tenant'; END IF;
+  IF p_resource_id IS NOT NULL AND NOT EXISTS(SELECT 1 FROM public.clinic_resources WHERE id=p_resource_id AND tenant_id=p_tenant_id) THEN RAISE EXCEPTION 'Resource does not belong to tenant'; END IF;
   RETURN jsonb_build_object('valid',true,'active_model',false,'required_count',0,'matched_count',0,'message','No active resource requirement model');
 END;
 $$;
@@ -89,8 +89,8 @@ DECLARE v_price integer; v_discount integer:=0; v_net integer; v_patient_package
 BEGIN
   IF p_tenant_id<>public.get_current_tenant_id() THEN RAISE EXCEPTION 'Tenant mismatch'; END IF;
   IF NOT public.has_tenant_permission(p_tenant_id,'packages:sell') THEN RAISE EXCEPTION 'Permission denied'; END IF;
-  IF p_created_by IS NOT NULL AND NOT EXISTS(SELECT 1 FROM public.clinic_users WHERE id=p_created_by AND tenant_id=p_tenant_id AND is_active AND deleted_at IS NULL) THEN RAISE EXCEPTION 'Actor does not belong to tenant'; END IF;
-  IF NOT EXISTS(SELECT 1 FROM public.clinic_patients WHERE id=p_patient_id AND tenant_id=p_tenant_id AND deleted_at IS NULL) THEN RETURN jsonb_build_object('success',false,'error','Patient not found'); END IF;
+  IF p_created_by IS NOT NULL AND NOT EXISTS(SELECT 1 FROM public.clinic_users WHERE id=p_created_by AND tenant_id=p_tenant_id AND is_active) THEN RAISE EXCEPTION 'Actor does not belong to tenant'; END IF;
+  IF NOT EXISTS(SELECT 1 FROM public.clinic_patients WHERE id=p_patient_id AND tenant_id=p_tenant_id) THEN RETURN jsonb_build_object('success',false,'error','Patient not found'); END IF;
   IF (p_service_id IS NULL)=(p_package_id IS NULL) THEN RETURN jsonb_build_object('success',false,'error','Exactly one service or package is required'); END IF;
   IF p_financial_plan_id IS NULL THEN RETURN jsonb_build_object('success',false,'error','Financial plan is required before commercial sale execution'); END IF;
   IF p_service_id IS NOT NULL THEN SELECT base_price_subunits,name INTO v_price,v_name FROM public.clinic_services WHERE id=p_service_id AND tenant_id=p_tenant_id AND is_active; ELSE SELECT base_price_subunits,name INTO v_price,v_name FROM public.clinic_packages WHERE id=p_package_id AND tenant_id=p_tenant_id AND is_active; END IF;
@@ -100,7 +100,7 @@ BEGIN
     SELECT CASE WHEN discount_type='percent' THEN round(v_price*discount_value/100.0)::integer ELSE discount_value END INTO v_discount FROM public.clinic_offers WHERE id=p_offer_id;
   END IF;
   v_discount:=least(greatest(v_discount,0),v_price); v_net:=v_price-v_discount;
-  SELECT total_amount_subunits,patient_responsibility_subunits INTO v_financial_total,v_financial_patient FROM public.financial_plans WHERE id=p_financial_plan_id AND tenant_id=p_tenant_id AND patient_id=p_patient_id AND deleted_at IS NULL AND status IN('draft','active');
+  SELECT total_amount_subunits,patient_responsibility_subunits INTO v_financial_total,v_financial_patient FROM public.financial_plans WHERE id=p_financial_plan_id AND tenant_id=p_tenant_id AND patient_id=p_patient_id AND status IN('draft','active');
   IF NOT FOUND THEN RETURN jsonb_build_object('success',false,'error','Financial plan not found or does not belong to patient'); END IF;
   IF v_financial_patient<>v_net AND v_financial_total<>v_net THEN RETURN jsonb_build_object('success',false,'error','Financial plan amount does not match commercial sale net amount'); END IF;
   v_invoice:=public.create_manual_invoice(p_tenant_id,p_patient_id,null,current_date,'installment','Commercial sale: '||v_name,p_created_by,jsonb_build_array(jsonb_build_object('procedure_id',null,'description',v_name,'quantity',1,'unit_price_subunits',v_price,'discount_amount_subunits',v_discount,'discount_percent',null,'tax_rate_percent',0)));
@@ -116,20 +116,20 @@ DECLARE v_stock numeric; v_new numeric; v_procedure_id uuid; v_existing uuid; v_
 BEGIN
   IF p_tenant_id<>public.get_current_tenant_id() THEN RAISE EXCEPTION 'Tenant mismatch'; END IF;
   IF NOT public.has_tenant_permission(p_tenant_id,'inventory:adjust') THEN RAISE EXCEPTION 'Permission denied'; END IF;
-  IF NOT EXISTS(SELECT 1 FROM public.clinic_users WHERE id=p_consumed_by AND tenant_id=p_tenant_id AND is_active AND deleted_at IS NULL) THEN RAISE EXCEPTION 'Actor does not belong to tenant'; END IF;
+  IF NOT EXISTS(SELECT 1 FROM public.clinic_users WHERE id=p_consumed_by AND tenant_id=p_tenant_id AND is_active) THEN RAISE EXCEPTION 'Actor does not belong to tenant'; END IF;
   IF p_quantity<=0 THEN RETURN jsonb_build_object('success',false,'error','Quantity must be positive'); END IF;
-  SELECT patient_id INTO v_patient_id FROM public.clinic_visit_sessions WHERE id=p_visit_id AND tenant_id=p_tenant_id AND deleted_at IS NULL; IF NOT FOUND THEN RETURN jsonb_build_object('success',false,'error','Visit not found'); END IF;
+  SELECT patient_id INTO v_patient_id FROM public.clinic_visit_sessions WHERE id=p_visit_id AND tenant_id=p_tenant_id; IF NOT FOUND THEN RETURN jsonb_build_object('success',false,'error','Visit not found'); END IF;
   IF p_treatment_plan_item_id IS NOT NULL THEN SELECT procedure_id INTO v_procedure_id FROM public.clinic_treatment_plan_items WHERE id=p_treatment_plan_item_id AND tenant_id=p_tenant_id; IF NOT FOUND THEN RETURN jsonb_build_object('success',false,'error','Treatment plan item not found'); END IF; END IF;
-  IF NOT EXISTS(SELECT 1 FROM public.inventory_items WHERE id=p_item_id AND tenant_id=p_tenant_id AND deleted_at IS NULL) THEN RETURN jsonb_build_object('success',false,'error','Inventory item not found'); END IF;
-  SELECT id INTO v_existing FROM public.inventory_ledger WHERE tenant_id=p_tenant_id AND session_id=p_visit_id AND item_id=p_item_id AND treatment_plan_item_id=p_treatment_plan_item_id AND deleted_at IS NULL LIMIT 1;
+  IF NOT EXISTS(SELECT 1 FROM public.inventory_items WHERE id=p_item_id AND tenant_id=p_tenant_id) THEN RETURN jsonb_build_object('success',false,'error','Inventory item not found'); END IF;
+  SELECT id INTO v_existing FROM public.inventory_ledger WHERE tenant_id=p_tenant_id AND session_id=p_visit_id AND item_id=p_item_id AND treatment_plan_item_id=p_treatment_plan_item_id LIMIT 1;
   IF v_existing IS NOT NULL THEN RETURN jsonb_build_object('success',true,'idempotent',true,'ledger_id',v_existing,'patient_id',v_patient_id,'procedure_id',v_procedure_id); END IF;
-  SELECT current_stock INTO v_stock FROM public.inventory_items WHERE id=p_item_id AND tenant_id=p_tenant_id AND deleted_at IS NULL FOR UPDATE; IF v_stock IS NULL THEN RETURN jsonb_build_object('success',false,'error','Inventory item not found'); END IF;
+  SELECT current_stock INTO v_stock FROM public.inventory_items WHERE id=p_item_id AND tenant_id=p_tenant_id FOR UPDATE; IF v_stock IS NULL THEN RETURN jsonb_build_object('success',false,'error','Inventory item not found'); END IF;
   IF v_stock<p_quantity THEN RETURN jsonb_build_object('success',false,'error','Insufficient stock'); END IF;
   v_new:=v_stock-p_quantity; UPDATE public.inventory_items SET current_stock=v_new,updated_at=now() WHERE id=p_item_id AND tenant_id=p_tenant_id;
   INSERT INTO public.inventory_ledger(tenant_id,item_id,procedure_id,treatment_plan_item_id,material_name,quantity_consumed,consumption_type,notes,logged_by,session_id) SELECT p_tenant_id,p_item_id,v_procedure_id,p_treatment_plan_item_id,ii.name,p_quantity,'doctor_request',p_reason,p_consumed_by,p_visit_id FROM public.inventory_items ii WHERE ii.id=p_item_id AND ii.tenant_id=p_tenant_id RETURNING id INTO v_existing;
   RETURN jsonb_build_object('success',true,'idempotent',false,'ledger_id',v_existing,'new_stock',v_new,'visit_id',p_visit_id,'treatment_plan_item_id',p_treatment_plan_item_id,'patient_id',v_patient_id,'procedure_id',v_procedure_id);
 EXCEPTION WHEN unique_violation THEN
-  SELECT id INTO v_existing FROM public.inventory_ledger WHERE tenant_id=p_tenant_id AND session_id=p_visit_id AND item_id=p_item_id AND treatment_plan_item_id=p_treatment_plan_item_id AND deleted_at IS NULL LIMIT 1;
+  SELECT id INTO v_existing FROM public.inventory_ledger WHERE tenant_id=p_tenant_id AND session_id=p_visit_id AND item_id=p_item_id AND treatment_plan_item_id=p_treatment_plan_item_id LIMIT 1;
   RETURN jsonb_build_object('success',true,'idempotent',true,'ledger_id',v_existing,'patient_id',v_patient_id,'procedure_id',v_procedure_id);
 END; $$;
 
