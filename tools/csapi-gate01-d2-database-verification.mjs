@@ -83,58 +83,6 @@ function prepareTemporaryMigrationWorkspace() {
     }
   }
 
-  const fixturePath = join(
-    migrationsDir,
-    "20260830030534_ajm_reality_audit_clinical_resource_scheduling.sql",
-  );
-
-  if (existsSync(fixturePath)) {
-    const original = readFileSync(fixturePath, "utf8");
-    const marker = "insert into public.clinic_resources";
-    const markerIndex = original.indexOf(marker);
-
-    if (markerIndex >= 0) {
-      const prefix = original.slice(0, markerIndex);
-      const insert = original.slice(markerIndex).trim();
-      const guarded = [
-        "do $fixture$",
-        "begin",
-        "  if exists (",
-        "    select 1",
-        "    from public.master_tenants",
-        "    where id = '2fa98983-8069-420f-9c27-7c36ef96ef6e'::uuid",
-        "  ) then",
-        "    " + insert,
-        "  else",
-        "    raise notice 'Reality-audit resource fixture skipped: Zada test tenant is not present';",
-        "  end if;",
-        "end",
-        "$fixture$;",
-        "",
-      ].join("\n");
-
-      if (guarded !== original) {
-        writeFileSync(fixturePath, prefix + guarded);
-        temporaryRewrites.push({ path: fixturePath, original });
-        console.log("LOCAL_FIXTURE_GUARD=20260830030534");
-      }
-    }
-  }
-
-  const inventorySyncPath = join(migrationsDir, "20260803_sync_inventory.sql");
-  if (existsSync(inventorySyncPath)) {
-    const original = readFileSync(inventorySyncPath, "utf8");
-    if (original.includes("CREATE POLICY IF NOT EXISTS ")) {
-      const replacement = original.replace(
-        "CREATE POLICY IF NOT EXISTS ",
-        "CREATE POLICY ",
-      );
-      writeFileSync(inventorySyncPath, replacement);
-      temporaryRewrites.push({ path: inventorySyncPath, original });
-      console.log("LOCAL_MIGRATION_SYNTAX_GUARD=20260803_sync_inventory");
-    }
-  }
-
   console.log("LOCAL_MIGRATION_NORMALIZATION_COUNT=" + temporaryRenames.length);
 }
 
