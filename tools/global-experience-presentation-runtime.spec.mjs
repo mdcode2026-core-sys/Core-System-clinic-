@@ -10,7 +10,7 @@ const context = await browser.newContext({ locale: "en-US", viewport: { width: 1
 const page = await context.newPage();
 
 async function login() {
-  await page.goto(`${baseUrl}/login`, { waitUntil: "domcontentloaded", timeout: 60000 });
+  await page.goto(`${baseUrl}/login`, { waitUntil: "commit", timeout: 60000 });
   await page.locator('input[type="email"],input[name="email"]').first().fill(email);
   await page.locator('input[type="password"],input[name="password"]').first().fill(password);
   await page.getByRole("button", { name: /sign in|login|log in|تسجيل الدخول|دخول/i }).first().click();
