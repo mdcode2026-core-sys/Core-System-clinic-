@@ -1,54 +1,39 @@
 # CORE SYSTEM — EXECUTION HANDOFF
 
-**Date:** 2026-09-09
-**Current Branch:** `feat/test-execution-contract-20260909`
-**Main baseline:** `77cbd36d88c964e6685381b8fe0a1d9c280c3f0e`
-**Current candidate:** see PR #88 head
+**Date:** 2026-09-18  
+**Purpose:** Current cross-conversation execution pointer.
 
-## Contract Installation
-The Master Test Execution Contract is installed in repository governance, executable SETUP logic, package script, CI, handoff and ledger documentation.
+## Current authoritative continuation
 
-Installed artifacts:
-- `docs/testing/CORE_SYSTEM_MASTER_TEST_EXECUTION_CONTRACT.md`
-- `tools/test-execution-setup.mjs`
+The detailed handoff for the active CSAPI and PR #129 work is:
+
+`docs/CSAPI/CSAPI-AND-PR129-CONTINUATION-HANDOFF-2026-09-18.md`
+
+The verification architecture reconciliation is:
+
+`docs/reconciliation/CORE-SYSTEM-VERIFICATION-ARCHITECTURE-RECONCILIATION-2026-09-18.md`
+
+The current verification architecture is:
+
 - `.github/workflows/test-execution-contract.yml`
-- `package.json` → `test:execution-setup`
+- `tools/workstream-verification-plan.mjs`
+- `tools/workstream-verification-lane.mjs`
+- `docs/testing/WORKSTREAM-VERIFICATION-ARCHITECTURE.md`
 
-## Authoritative Sequence
-`SETUP → Engineering Validation → Change/Impact Analysis → Execution Matrix → Role-Based Real-World E2E → Role Handoff E2E → Cross-Module E2E → Negative/Security E2E → Data/State Reconciliation → Selected Regression → Final Verification → Closure`
+## Current state
 
-## SETUP Result
-GitHub Actions run #1 for `CORE SYSTEM Test Execution Contract` completed **SUCCESS**.
+- Unified Test Execution Engine: **retired as canonical execution model**.
+- Workstream Verification Lanes: **implemented in main through PR #164**.
+- Verification architecture: **validation still required**; do not call it fully proven green yet.
+- CSAPI Gate 01: **not closed**.
+- D2 PR #145: **open/draft/not merged**.
+- Global Experience PR #129: **open/draft/not merged**.
+- Vercel: **not used for this phase**.
 
-Generated execution plan:
-- baseline: `77cbd36d88c964e6685381b8fe0a1d9c280c3f0e`
-- candidate: `dbf56b9ccf901ca34955c5d5f35b56502224c8fe`
-- changed files: 6
-- impact: `TARGET`
-- roles: none required for the contract-only change
-- required engineering: typecheck, lint, build
-- required E2E: none for this contract-only candidate
-- regression: `R0`
+## Important continuity rule
 
-This is correct: the contract infrastructure itself does not alter application behavior, roles, data or business workflows. Real-World E2E becomes mandatory when the candidate affects a business surface/role/journey.
+Do not reconstruct the previous Unified-Test investigation.
 
-## Engineering Validation Evidence
-For the candidate, the existing GitHub engineering workflows have passed TypeScript, lint, i18n, UX/architecture, AJM, production build, Stage 8–15 validation, Deployment Governance and the new SETUP gate. The latest Reality Audit was still running at handoff and is not being falsely counted as passed.
+Start from the detailed continuation handoff, validate the new isolated lanes, then continue D2 and PR #129 through that architecture.
 
-The existing route traversal remains a smoke/authorization regression and is not accepted as Real-World E2E proof.
-
-## Governance
-- No direct work on `main`.
-- No Supabase write as part of contract installation.
-- No Vercel build/deploy used as validation evidence.
-- Vercel remains final-release infrastructure only.
-- PJ-MASTER-DOCS remains authoritative.
-- `CORE_SYSTEM_EXECUTION_LEDGER.md` records material execution decisions.
-
-## Contract Status
-**CONTRACT INSTALLED + SETUP VALIDATED — DOWNSTREAM REAL-WORLD E2E FRAMEWORK READY TO ACTIVATE**
-
-The contract itself is not a production feature and does not require a business E2E journey for this installation candidate. Its next real test is a candidate that changes an application/domain surface: SETUP must then select affected roles and Critical User Journeys, followed by full engineering validation and actor-based E2E.
-
-## Current Closure State
-# NOT CLOSED — CONTRACT INSTALLED; REAL-WORLD E2E ACTIVATION IS THE NEXT EXECUTION STAGE
+**END OF POINTER**
