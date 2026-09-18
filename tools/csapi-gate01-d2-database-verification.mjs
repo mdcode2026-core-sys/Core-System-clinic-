@@ -21,6 +21,27 @@ function applyFile(path, user) {
   psql(readFileSync(path, "utf8"), user);
 }
 
+function psqlRetryOnAdminRestart(sql, user = "postgres") {
+  let lastError;
+  for (let attempt = 1; attempt <= 3; attempt += 1) {
+    try {
+      return psql(sql, user);
+    } catch (error) {
+      lastError = error;
+      const message = error instanceof Error ? error.message : String(error);
+      if (!/terminating connection due to administrator command|server closed the connection unexpectedly|connection to server was lost/i.test(message)) {
+        throw error;
+      }
+      console.log(`PostgreSQL restarted during disposable DDL attempt; retrying (attempt ${attempt}/3)`);
+      try {
+        docker(["exec", container, "pg_isready", "-U", "postgres", "-d", "postgres"], undefined);
+      } catch {}
+      execFileSync("sleep", ["2"]);
+    }
+  }
+  throw lastError;
+}
+
 try {
   docker(["run", "-d", "--name", container, "--shm-size=64m", "-e", "POSTGRES_PASSWORD=postgres", "-e", "POSTGRES_DB=postgres", "-p", "54322:5432", "ghcr.io/supabase/postgres:17.6.1.141", "-c", "shared_preload_libraries=pg_net", "-c", "shared_buffers=32MB", "-c", "max_connections=20", "-c", "work_mem=1MB", "-c", "maintenance_work_mem=16MB"]);
 
@@ -34,10 +55,12 @@ try {
     }
   }
 
-  psql("do $$ begin if not exists (select 1 from pg_roles where rolname = 'anon') then create role anon nologin; end if; end $$;\ndo $$ begin if not exists (select 1 from pg_roles where rolname = 'authenticated') then create role authenticated nologin; end if; end $$;\ncreate extension if not exists pgtap;\n");
+  psqlRetryOnAdminRestart("do $ begin if not exists (select 1 from pg_roles where rolname = 'anon') then create role anon nologin; end if; end $;");
+  psqlRetryOnAdminRestart("do $ begin if not exists (select 1 from pg_roles where rolname = 'authenticated') then create role authenticated nologin; end if; end $;");
+  psqlRetryOnAdminRestart("create extension if not exists pgtap;");
   for (const file of baseline) applyFile(file, "supabase_admin");
-  psql("create schema if not exists auth;\ncreate or replace function auth.jwt() returns jsonb language sql stable as $ select coalesce(nullif(current_setting('request.jwt.claims', true), ''), '{}')::jsonb $;\ncreate or replace function auth.uid() returns uuid language sql stable as $ select nullif(auth.jwt()->>'sub','')::uuid $;\n", "supabase_admin");
-  psql("grant execute on function auth.jwt() to anon, authenticated;\ngrant execute on function auth.uid() to anon, authenticated;\n", "supabase_admin");
+  psqlRetryOnAdminRestart("create schema if not exists auth;\ncreate or replace function auth.jwt() returns jsonb language sql stable as $ select coalesce(nullif(current_setting('request.jwt.claims', true), ''), '{}')::jsonb $;\ncreate or replace function auth.uid() returns uuid language sql stable as $ select nullif(auth.jwt()->>'sub','')::uuid $;\n", "supabase_admin");
+  psqlRetryOnAdminRestart("grant execute on function auth.jwt() to anon, authenticated;\ngrant execute on function auth.uid() to anon, authenticated;\n", "supabase_admin");
   applyFile(migration, "postgres");
 
   const tap = execFileSync("docker", ["exec", "-i", container, "psql", "-X", "-v", "ON_ERROR_STOP=1", "-t", "-A", "-U", "postgres", "-d", "postgres"], { input: readFileSync(test, "utf8"), encoding: "utf8" });
