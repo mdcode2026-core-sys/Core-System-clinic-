@@ -70,18 +70,18 @@ if (run(["--help"], { timeout: 120000 }) !== 0) {
 // D2 is a database-only gate. Exclude every non-database service so local CI
 // starts PostgreSQL without Auth/Realtime/Storage/etc. startup dependencies.
 // This uses Supabase's documented -x comma-separated exclusion syntax.
-const excludedServices = "gotrue,realtime,storage-api,imgproxy,kong,mailpit,postgrest,postgres-meta,studio,edge-runtime,logflare,vector,supavisor";
-
-if (run(["start", "-x", excludedServices], { timeout: 900000 }) !== 0) {
-  console.error("D2_DATABASE_VERIFICATION=FAIL reason=supabase-start-failed");
+// D2 is a database-only gate. Use Supabase's database-only local command so CI
+// does not start Auth/Realtime/Storage/etc. containers at all.
+if (run(["db", "start"], { timeout: 900000 }) !== 0) {
+  console.error("D2_DATABASE_VERIFICATION=FAIL reason=supabase-db-start-failed");
   process.exit(1);
 }
 started = true;
 
-if (run(["db", "reset", "--local", "--no-seed"], { timeout: 900000 }) !== 0) {
-  console.error("D2_DATABASE_VERIFICATION=FAIL reason=local-migration-reset-failed");
+if (run(["migration", "up", "--local"], { timeout: 900000 }) !== 0) {
+  console.error("D2_DATABASE_VERIFICATION=FAIL reason=local-migration-apply-failed");
   exitCode = 1;
-} else if (run(["test", "db", "supabase/tests/csapi_gate01_d2_database_foundations.sql", "--local"], { timeout: 900000 }) !== 0) {
+} else if (run(["test", "db", "supabase/tests/csapi_gate01_d2_database_foundations.sql", "--db-url", "postgresql://postgres:postgres@127.0.0.1:54322/postgres"], { timeout: 900000 }) !== 0) {
   console.error("D2_DATABASE_VERIFICATION=FAIL reason=pgTAP-failed");
   exitCode = 1;
 } else {
