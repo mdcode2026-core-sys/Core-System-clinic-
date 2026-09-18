@@ -89,7 +89,7 @@ async function expectDirection(locale, direction) {
     { name: "core-system-locale", value: locale, url: baseUrl },
     { name: "core-system-direction", value: direction, url: baseUrl },
   ]);
-  await page.goto(`${baseUrl}/`, { waitUntil: "domcontentloaded", timeout: 60000 });
+  await page.goto(`${baseUrl}/`, { waitUntil: "commit", timeout: 60000 });
   await page.waitForTimeout(250);
   const htmlDir = await page.locator("html").getAttribute("dir");
   const headerDir = await page.getByTestId("global-header").getAttribute("dir");
