@@ -15,8 +15,12 @@ async function login() {
   await page.locator('input[type="password"],input[name="password"]').first().fill(password);
   await page.getByRole("button", { name: /sign in|login|log in|تسجيل الدخول|دخول/i }).first().click();
   await page.waitForTimeout(1200);
-  const cookies = await context.cookies();
-  if (!cookies.some((cookie) => cookie.name.includes("auth-token"))) throw new Error("Authentication cookie missing");
+  await page.waitForURL((url) => !/\/login(?:[/?#]|$)/i.test(url.toString()), { timeout: 30000 }).catch(() => {});
+  await page.waitForTimeout(500);
+  if (/\/login(?:[/?#]|$)/i.test(page.url())) {
+    const body = await page.locator("body").innerText().catch(() => "");
+    throw new Error(`Login did not establish session: ${page.url()} body=${body.slice(0, 500)}`);
+  }
   await page.goto(`${baseUrl}/`, { waitUntil: "commit", timeout: 60000 });
   if (/\/login(?:[/?#]|$)/i.test(page.url())) throw new Error(`Login did not establish session: ${page.url()}`);
 }
