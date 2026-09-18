@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { ChevronDown, Menu, X } from "lucide-react";
@@ -39,6 +39,7 @@ export function EntitlementAwareWorkspaceShell({ children, user, assignedWorkspa
   const { locale, messages } = useI18n();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
+  const mobileSidebarTriggerRef = useRef<HTMLButtonElement | null>(null);
   const supabase = createClient();
   const isArabic = locale === "ar";
   const accessLoading = permissionsLoading || entitlementsLoading;
@@ -67,7 +68,21 @@ export function EntitlementAwareWorkspaceShell({ children, user, assignedWorkspa
     router.refresh();
   };
 
-  const closeSidebar = () => setSidebarOpen(false);
+  const closeSidebar = useCallback(() => {
+    setSidebarOpen(false);
+    window.setTimeout(() => mobileSidebarTriggerRef.current?.focus(), 0);
+  }, []);
+
+  useEffect(() => {
+    if (!sidebarOpen) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      event.preventDefault();
+      closeSidebar();
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [sidebarOpen, closeSidebar]);
   const getLabel = (item: NavItem) =>
     item.label ? item.label[locale] : item.labelKey ? messages.nav[item.labelKey] : item.href;
   const pathMatches = (href: string) =>
@@ -169,6 +184,7 @@ export function EntitlementAwareWorkspaceShell({ children, user, assignedWorkspa
               className="inline-flex min-h-10 min-w-10 shrink-0 items-center justify-center rounded-md p-1.5 hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
               aria-label={messages.shell.closeMenu}
               title={messages.shell.closeMenu}
+              data-testid="global-sidebar-close"
             >
               <X className="h-5 w-5" />
             </button>
@@ -183,7 +199,11 @@ export function EntitlementAwareWorkspaceShell({ children, user, assignedWorkspa
         <GlobalHeader
           isArabic={isArabic}
           mobileSidebarOpen={sidebarOpen}
-          onOpenMobileSidebar={() => setSidebarOpen(true)}
+          onOpenMobileSidebar={() => {
+            setSidebarOpen(true);
+            window.setTimeout(() => document.querySelector<HTMLButtonElement>('[data-testid="global-sidebar-close"]')?.focus(), 0);
+          }}
+          mobileSidebarTriggerRef={mobileSidebarTriggerRef}
           search={<GlobalSearch />}
           controls={
             <>
