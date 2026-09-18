@@ -119,6 +119,20 @@ function prepareTemporaryMigrationWorkspace() {
     }
   }
 
+  const inventorySyncPath = join(migrationsDir, "20260803_sync_inventory.sql");
+  if (existsSync(inventorySyncPath)) {
+    const original = readFileSync(inventorySyncPath, "utf8");
+    if (original.includes("CREATE POLICY IF NOT EXISTS ")) {
+      const replacement = original.replace(
+        "CREATE POLICY IF NOT EXISTS ",
+        "CREATE POLICY ",
+      );
+      writeFileSync(inventorySyncPath, replacement);
+      temporaryRewrites.push({ path: inventorySyncPath, original });
+      console.log("LOCAL_MIGRATION_SYNTAX_GUARD=20260803_sync_inventory");
+    }
+  }
+
   console.log("LOCAL_MIGRATION_NORMALIZATION_COUNT=" + temporaryRenames.length);
 }
 
