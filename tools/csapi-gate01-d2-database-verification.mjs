@@ -36,6 +36,7 @@ function psqlRetryOnAdminRestart(sql, user = "postgres") {
     }
   }
   throw lastError;
+}
 
 try {
   docker(["run", "-d", "--name", container, "--shm-size=64m", "-e", "POSTGRES_PASSWORD=postgres", "-e", "POSTGRES_DB=postgres", "-p", "54322:5432", "ghcr.io/supabase/postgres:17.6.1.141", "-c", "shared_preload_libraries=pg_net", "-c", "shared_buffers=32MB", "-c", "max_connections=20", "-c", "work_mem=1MB", "-c", "maintenance_work_mem=16MB"]);
