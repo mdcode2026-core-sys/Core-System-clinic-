@@ -1,4 +1,10 @@
-name: CORE SYSTEM Unified Test Execution Engine
+name: CORE SYSTEM Workstream Verification
+
+# Canonical verification architecture:
+# - one detection job
+# - independent verification lane jobs
+# - one final aggregation job
+# No test runner executes multiple unrelated workstreams in one process.
 
 on:
   pull_request:
@@ -6,7 +12,7 @@ on:
   workflow_dispatch:
     inputs:
       base_ref:
-        description: Optional baseline ref for manual execution
+        description: Baseline ref for manual verification
         required: false
         type: string
         default: main
@@ -14,14 +20,48 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: core-system-verification-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 env:
   NEXT_PUBLIC_SUPABASE_URL: https://qaslsjyxjwvdoiczmhgq.supabase.co
   NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+  CORE_SYSTEM_E2E_EMAIL: ${{ secrets.CORE_SYSTEM_E2E_EMAIL }}
+  CORE_SYSTEM_E2E_PASSWORD: ${{ secrets.CORE_SYSTEM_E2E_PASSWORD }}
+  CORE_SYSTEM_PRODUCTION_URL: http://127.0.0.1:3000
   NEXT_PUBLIC_APP_URL: http://127.0.0.1:3000
 
 jobs:
-  unified-test-engine:
-    name: UNIFIED — Test Execution Engine
+  plan:
+    name: VERIFY — Build applicable lane plan
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.plan.outputs.matrix }}
+      has_lanes: ${{ steps.plan.outputs.has_lanes }}
+    steps:
+      - name: Checkout exact candidate
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Build lane plan
+        id: plan
+        env:
+          TEST_BASE_REF: ${{ github.event.pull_request.base.sha || inputs.base_ref || 'main' }}
+          TEST_HEAD_REF: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: node tools/workstream-verification-plan.mjs
+
+  verify:
+    name: VERIFY — ${{ matrix.id }}
+    needs: plan
+    if: needs.plan.result == 'success'
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
     runs-on: ubuntu-latest
     timeout-minutes: 120
     steps:
@@ -29,81 +69,41 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
-
-      - name: Restore Playwright browser cache
-        uses: actions/cache/restore@v4
+      - name: Restore npm cache
+        uses: actions/cache@v4
         with:
-          path: ~/.cache/ms-playwright
-          key: playwright-chromium-1.55.0-ubuntu-24.04
+          path: ~/.npm
+          key: npm-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
           restore-keys: |
-            playwright-chromium-1.55.0-
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: SETUP — build execution contract
+            npm-${{ runner.os }}-
+      - name: Execute isolated verification lane
         env:
+          VERIFICATION_LANE: ${{ matrix.id }}
           TEST_BASE_REF: ${{ github.event.pull_request.base.sha || inputs.base_ref || 'main' }}
           TEST_HEAD_REF: ${{ github.event.pull_request.head.sha || github.sha }}
-          TEST_EXECUTION_PLAN: test-execution-plan.json
-        run: node tools/test-execution-setup.mjs
+        run: node tools/workstream-verification-lane.mjs
 
-      - name: Validate contract completeness
+  gate:
+    name: VERIFY — Final gate
+    needs: [plan, verify]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Evaluate verification result
         run: |
-          node - <<'NODE'
-          const p = require('./test-execution-plan.json');
-          const required = ['contract_version','baseline','candidate','changed_files','impact','roles','required_engineering','required_suites','required_e2e','regression_level'];
-          for (const key of required) {
-            if (p[key] === undefined || p[key] === null) throw new Error(`CONTRACT_MISSING_FIELD=${key}`);
-          }
-          if (!Array.isArray(p.required_suites) || !p.required_suites.includes('engineering')) throw new Error('CONTRACT_MISSING_ENGINEERING_GATE');
-          console.log(`EXECUTION_CONTRACT=VALID version=${p.contract_version} regression=${p.regression_level}`);
-          console.log(`REQUIRED_SUITES=${p.required_suites.join(',')}`);
-          NODE
-
-      - name: Install Playwright runtime
-        run: |
-          npm install --no-save --no-package-lock @playwright/test@1.55.0 playwright@1.55.0
-          npx playwright install chromium
-
-      - name: EXECUTE — all selected test suites
-        env:
-          CORE_SYSTEM_E2E_EMAIL: ${{ secrets.CORE_SYSTEM_E2E_EMAIL }}
-          CORE_SYSTEM_E2E_PASSWORD: ${{ secrets.CORE_SYSTEM_E2E_PASSWORD }}
-          CORE_SYSTEM_PRODUCTION_URL: http://127.0.0.1:3000
-          NEXT_PUBLIC_APP_URL: http://127.0.0.1:3000
-          TEST_EXECUTION_PLAN: test-execution-plan.json
-        run: node tools/test-execution-runner.mjs
-
-      - name: Publish unified execution report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: core-system-unified-test-evidence-${{ github.sha }}
-          path: |
-            test-execution-plan.json
-            test-execution-report.json
-            i18n-audit-report.json
-          if-no-files-found: warn
-
-      - name: Final execution decision
-        if: always()
-        run: |
-          node - <<'NODE'
-          const fs = require('fs');
-          if (!fs.existsSync('test-execution-report.json')) {
-            console.error('EXECUTION_DECISION=FAIL reason=missing-test-execution-report');
-            process.exit(1);
-          }
-          const r = JSON.parse(fs.readFileSync('test-execution-report.json','utf8'));
-          console.log(`EXECUTION_DECISION=${r.status}`);
-          console.log(`TESTS=${r.summary.total} UNIQUE_COMMANDS=${r.summary.executed_unique_commands ?? r.summary.total} PASSED=${r.summary.passed} FAILED=${r.summary.failed}`);
-          for (const f of r.results.filter(x => x.status === 'FAIL')) console.error(`FAILURE_LOCATION suite=${f.suite} test=${f.test} exit=${f.exitCode}`);
-          if (r.status !== 'PASS') process.exit(1);
-          NODE
+          echo "PLAN_RESULT=${{ needs.plan.result }}"
+          echo "LANES_RESULT=${{ needs.verify.result }}"
+          if [ "${{ needs.plan.result }}" != "success" ]; then
+            echo "VERIFICATION_GATE=FAIL reason=lane-plan-failed"
+            exit 1
+          fi
+          if [ "${{ needs.verify.result }}" != "success" ]; then
+            echo "VERIFICATION_GATE=FAIL reason=one-or-more-verification-lanes-failed"
+            exit 1
+          fi
+          echo "VERIFICATION_GATE=PASS"
