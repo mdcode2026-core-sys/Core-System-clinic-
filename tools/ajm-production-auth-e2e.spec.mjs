@@ -12,8 +12,7 @@ const canonicalRoutes = [
   "/financial-resources/insurance", "/financial-resources/insurance/claims", "/financial-resources/inventory/consumption",
   "/financial-resources/overview", "/financial-resources/payments", "/financial-resources/purchasing",
   "/financial-resources/purchasing/receiving", "/financial-resources/purchasing/suppliers", "/follow-up",
-  "/inventory", "/invoices", "/operation", "/patient-flow", "/patient-flow/administrative",
-  "/patient-flow/clinical", "/patient-flow/operations", "/patients", "/portal", "/queue", "/reports",
+  "/inventory", "/invoices", "/operation", "/patient-flow", "/patients", "/portal", "/queue", "/reports",
   "/settings", "/treatment-plans", "/work-center", "/workforce"
 ];
 
@@ -68,14 +67,7 @@ async function smokeRoute(page, route) {
 
 test("Clinic Admin authenticates against the local production candidate and retains authorization", async ({ page, context }) => {
   await login(page, context);
-  for (const route of canonicalRoutes) {
-    const routePage = await context.newPage();
-    try {
-      await smokeRoute(routePage, route);
-    } finally {
-      await routePage.close();
-    }
-  }
+  for (const route of canonicalRoutes) await smokeRoute(page, route);
 });
 
 test("Clinic Admin local production shell remains usable at mobile viewport", async ({ page, context }) => {

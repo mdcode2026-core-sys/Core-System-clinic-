@@ -36,6 +36,7 @@ const commands = {
   "database-integrity": [["database-integrity", "npm", ["run", "test:cross-domain-runtime"]]],
   authorization: [["authorization-runtime", "npm", ["run", "test:cross-domain-runtime"]]],
   "authenticated-e2e": [["authenticated-route-e2e", "npx", ["playwright", "test", "tools/ajm-production-auth-e2e.spec.mjs", "--reporter=line"]]],
+  "global-experience-presentation-runtime": [["global-experience-presentation-runtime", "node", ["tools/global-experience-presentation-runtime.spec.mjs"]]],
   "patient-journey": [["real-world-clinic-journey-e2e", "node", ["tools/clinic-admin-real-world-e2e-v2.mjs"]]],
   "procurement-inventory-finance": [["procurement-inventory-finance-runtime", "npm", ["run", "test:cross-domain-runtime"]]],
 };
@@ -47,6 +48,7 @@ const runtimeSuites = new Set([
   "database-integrity",
   "authorization",
   "procurement-inventory-finance",
+  "global-experience-presentation-runtime",
 ]);
 
 const required = [...new Set([...(plan.required_suites || []), "engineering"])]
@@ -121,7 +123,7 @@ try {
   for (const suite of ordered) {
     const needsRuntime = runtimeSuites.has(suite);
     if (needsRuntime && !startServer()) {
-      for (const [test, command, args] of commands[suite]) {
+      for (const [test, command] of commands[suite]) {
         addBlockedResult(suite, test, command, runtimeStartFailure || "Runtime server unavailable");
       }
       continue;

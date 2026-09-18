@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
 
 export default function FinancialResourcesInstallmentsPage() {
-  redirect("/financial-resources?section=plans");
+  redirect("/financial-resources/financial-plans");
 }
