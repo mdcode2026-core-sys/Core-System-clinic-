@@ -19,4 +19,16 @@ alter table public.master_agenda_events add column if not exists resource_id uui
 create index if not exists idx_master_agenda_events_resource_id on public.master_agenda_events(resource_id);
 alter table public.master_agenda_events drop constraint if exists no_resource_overlap;
 alter table public.master_agenda_events add constraint no_resource_overlap exclude using gist (resource_id with =, tstzrange(scheduled_start, buffer_end) with &&) where (status not in ('cancelled','no_show','completed') and resource_id is not null);
-insert into public.clinic_resources (tenant_id,resource_name,resource_type,status,notes) values ('2fa98983-8069-420f-9c27-7c36ef96ef6e','Laser Device — Alexandrite','laser_device','active','Reality-audit fixture: laser procedure resource'),('2fa98983-8069-420f-9c27-7c36ef96ef6e','HydraFacial Device','hydrafacial_device','active','Reality-audit fixture: HydraFacial resource') on conflict (tenant_id,resource_name) do update set status='active',updated_at=now();
+do $fixture$
+begin
+  if exists (select 1 from public.master_tenants where id='2fa98983-8069-420f-9c27-7c36ef96ef6e'::uuid) then
+    insert into public.clinic_resources (tenant_id,resource_name,resource_type,status,notes)
+    values
+      ('2fa98983-8069-420f-9c27-7c36ef96ef6e','Laser Device — Alexandrite','laser_device','active','Reality-audit fixture: laser procedure resource'),
+      ('2fa98983-8069-420f-9c27-7c36ef96ef6e','HydraFacial Device','hydrafacial_device','active','Reality-audit fixture: HydraFacial resource')
+    on conflict (tenant_id,resource_name) do update set status='active',updated_at=now();
+  else
+    raise notice 'Reality-audit resource fixture skipped: Zada test tenant is not present';
+  end if;
+end
+$fixture$;
