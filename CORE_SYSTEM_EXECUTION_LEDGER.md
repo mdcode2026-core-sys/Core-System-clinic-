@@ -122,3 +122,5 @@ historical branches / closed PRs
 ```
 
 No merge to `main` is authorized merely to make historical documentation visible. Documentation and execution reconciliation must be complete first, followed by the normal current-head verification gates.
+
+| 2026-09-18 18:xx +03 | #129 current-head automated verification | GitHub Actions run #427 (35364558731) checked exact head `ee44a8102c7a5454e61aebdd7fb2b234ff502c83`; plan, engineering, i18n, authenticated E2E, cross-domain runtime, global-experience static/runtime, header technical foundation, header chat, communications Wave B and Final gate all passed | Current #129 automated verification is PASS; prior #426 tablet failure is superseded by fresh evidence on the corrected head | Proceed to REVIEW → DOCUMENT and controlled main promotion; do not claim production closure yet | After main promotion, perform the final allowed production verification stage |
