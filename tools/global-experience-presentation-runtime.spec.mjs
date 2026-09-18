@@ -17,7 +17,7 @@ async function login() {
   await page.waitForTimeout(1200);
   const cookies = await context.cookies();
   if (!cookies.some((cookie) => cookie.name.includes("auth-token"))) throw new Error("Authentication cookie missing");
-  await page.goto(`${baseUrl}/`, { waitUntil: "domcontentloaded", timeout: 60000 });
+  await page.goto(`${baseUrl}/`, { waitUntil: "commit", timeout: 60000 });
   if (/\/login(?:[/?#]|$)/i.test(page.url())) throw new Error(`Login did not establish session: ${page.url()}`);
 }
 
