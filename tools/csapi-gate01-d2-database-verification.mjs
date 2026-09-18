@@ -46,14 +46,14 @@ function prepareTemporaryMigrationWorkspace() {
   const names = readdirSync(migrationsDir).filter((name) => name.endsWith(".sql"));
   const usedVersions = new Set(
     names
-      .map((name) => name.match(/^(\d{14})_/))
+      .map((name) => name.match(/^(\d+)_/))
       .filter(Boolean)
       .map((match) => match[1]),
   );
 
   const byVersion = new Map();
   for (const name of names.sort()) {
-    const match = name.match(/^(\d{14})_/);
+    const match = name.match(/^(\d+)_/);
     if (!match) continue;
     const version = match[1];
     if (!byVersion.has(version)) byVersion.set(version, []);
@@ -67,7 +67,9 @@ function prepareTemporaryMigrationWorkspace() {
       let suffix = 1;
       let replacementVersion = version;
       while (usedVersions.has(replacementVersion)) {
-        replacementVersion = String(BigInt(version) + BigInt(suffix)).padStart(14, "0");
+        replacementVersion = version.length < 14
+          ? String(BigInt(version) * 10000000000n + BigInt(suffix))
+          : String(BigInt(version) + BigInt(suffix)).padStart(14, "0");
         suffix += 1;
       }
       usedVersions.add(replacementVersion);
@@ -77,7 +79,7 @@ function prepareTemporaryMigrationWorkspace() {
       const to = join(migrationsDir, toName);
       renameSync(from, to);
       temporaryRenames.push({ from, to });
-      console.log("LOCAL_MIGRATION_VERSION_NORMALIZED " + duplicates[i] + " -> " + toName);
+      console.log("LOCAL_MIGRATION_VERSION_NORMALIZED " + duplicates[i] + " -> " + toName + " (duplicate numeric version " + version + ")");
     }
   }
 
