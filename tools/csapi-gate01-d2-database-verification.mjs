@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { spawnSync } from "node:child_process";
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
 
 const CLI = ["--yes", "supabase@latest"];
 const timeoutMs = Number(process.env.TEST_COMMAND_TIMEOUT_MS || 900000);
@@ -62,26 +62,15 @@ if (!existsSync("supabase/config.toml")) {
   }
 }
 
-if (run(["--help"], { timeout: 120000 }) !== 0) {
+// Supabase local stack identity defaults to the working directory. Use a stable lowercase\n// project_id in CI so Docker service hostnames remain DNS-safe across runners.\nconst configPath = "supabase/config.toml";\nlet localConfig = readFileSync(configPath, "utf8");\nlocalConfig = localConfig.replace(/^project_id\\s*=.*$/m, \'project_id = "core-system-d2"\');\nwriteFileSync(configPath, localConfig);\nconsole.log("LOCAL_PROJECT_ID=core-system-d2");\n\nif (run(["--help"], { timeout: 120000 }) !== 0) {
   console.error("D2_DATABASE_VERIFICATION=FAIL reason=supabase-cli-unavailable");
   process.exit(1);
 }
 
-// D2 is a database-only gate. Exclude every non-database service so local CI
-// starts PostgreSQL without Auth/Realtime/Storage/etc. startup dependencies.
-// This uses Supabase's documented -x comma-separated exclusion syntax.
-// D2 is a database-only gate. Use Supabase's database-only local command so CI
-// does not start Auth/Realtime/Storage/etc. containers at all.
-if (run(["db", "start"], { timeout: 900000 }) !== 0) {
-  console.error("D2_DATABASE_VERIFICATION=FAIL reason=supabase-db-start-failed");
-  process.exit(1);
-}
-started = true;
-
-if (run(["migration", "up", "--local"], { timeout: 900000 }) !== 0) {
-  console.error("D2_DATABASE_VERIFICATION=FAIL reason=local-migration-apply-failed");
+// D2 uses the complete local Supabase stack because the migration chain may include\n// Supabase-managed service migrations. The critical CI requirement is isolation\n// from hosted environments, not omission of service dependencies.\nif (run(["start", "--debug"], { timeout: 900000 }) !== 0) {\n  console.error("D2_DATABASE_VERIFICATION=FAIL reason=supabase-start-failed");\n  process.exit(1);\n}\nstarted = true;\n\nif (run(["db", "reset", "--local", "--no-seed"], { timeout: 900000 }) !== 0) {
+  console.error("D2_DATABASE_VERIFICATION=FAIL reason=local-migration-reset-failed");
   exitCode = 1;
-} else if (run(["test", "db", "supabase/tests/csapi_gate01_d2_database_foundations.sql", "--db-url", "postgresql://postgres:postgres@127.0.0.1:54322/postgres"], { timeout: 900000 }) !== 0) {
+} else if (run(["test", "db", "supabase/tests/csapi_gate01_d2_database_foundations.sql", "--local"], { timeout: 900000 }) !== 0) {
   console.error("D2_DATABASE_VERIFICATION=FAIL reason=pgTAP-failed");
   exitCode = 1;
 } else {
