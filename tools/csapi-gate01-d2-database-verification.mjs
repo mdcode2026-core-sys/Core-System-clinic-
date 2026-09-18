@@ -67,7 +67,7 @@ if (run(["--help"], { timeout: 120000 }) !== 0) {
 }
 
 const localDbOnlyServices = ["gotrue", "realtime", "storage-api", "imgproxy", "kong", "mailpit", "postgrest", "postgres-meta", "studio", "edge-runtime", "logflare", "vector", "supavisor"];
-if (run(["start", "--debug", ...localDbOnlyServices.flatMap((service) => ["--exclude", service])], { timeout: 900000 }) !== 0) {
+if (run(["start", "--debug", "--exclude", localDbOnlyServices.join(",")], { timeout: 900000 }) !== 0) {
   console.error("D2_DATABASE_VERIFICATION=FAIL reason=supabase-start-failed");
   process.exit(1);
 }
