@@ -66,22 +66,10 @@ if (!existsSync("supabase/config.toml")) {
 const fs = await import("node:fs");
 const configPath = "supabase/config.toml";
 let localConfig = fs.readFileSync(configPath, "utf8");
-const disabledServices = {
-  auth: "enabled",
-  realtime: "enabled",
-  storage: "enabled",
-  studio: "enabled",
-  edge_runtime: "enabled",
-  analytics: "enabled",
-  inbucket: "enabled",
-};
-for (const [section, key] of Object.entries(disabledServices)) {
-  const sectionPattern = new RegExp(`\\\\[${section}\\\\]([\\\\s\\\\S]*?)(?=\\\\n\\\\[|$)`);
-  if (sectionPattern.test(localConfig)) {
-    localConfig = localConfig.replace(sectionPattern, (block) => block.replace(new RegExp(`^${key}\\\\s*=\\\\s*true`, "m"), `${key} = false`));
-  } else {
-    localConfig += `\\n[${section}]\\n${key} = false\\n`;
-  }
+const disabledServices = ["auth", "realtime", "storage", "studio", "edge_runtime", "analytics", "inbucket"];
+for (const section of disabledServices) {
+  const marker = `[${section}]`;
+  if (!localConfig.includes(marker)) localConfig += `\n${marker}\nenabled = false\n`;
 }
 fs.writeFileSync(configPath, localConfig);
 console.log("LOCAL_SUPABASE_MODE=DATABASE_ONLY");
