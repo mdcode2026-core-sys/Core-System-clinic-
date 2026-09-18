@@ -10,6 +10,7 @@
     "test:execution-setup": "node tools/test-execution-setup.mjs",
     "test:cross-domain-runtime": "node tools/cross-domain-runtime-reconciliation.mjs",
     "test:global-surfaces-workspace-authority": "node tools/global-surfaces-workspace-authority-audit.mjs",
+    "test:global-experience-presentation": "node tools/global-experience-presentation-contract-audit.mjs",
     "test:header-technical-foundation": "node tools/header-technical-foundation-audit.mjs",
     "test:header-chat": "node tools/header-chat-audit.mjs",
     "test:communications-wave-b": "node tools/communications-wave-b-audit.mjs",

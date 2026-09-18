@@ -1,13 +1,40 @@
-.geometry {}
+.geometry {
+  --global-edge-gap: 12px;
+}
 
-@media (min-width: 768px) {
-  .geometry :global([data-testid="notifications-header-panel"]) {
-    width: 368px !important;
-    max-width: calc(100vw - 24px) !important;
+.geometry :global([data-testid="global-header-controls"]) {
+  direction: inherit;
+}
+
+.sidebar {
+  inset-inline-start: 0;
+  padding-block-start: env(safe-area-inset-top);
+  padding-block-end: env(safe-area-inset-bottom);
+}
+
+.content {
+  min-width: 0;
+}
+
+@media (min-width: 1024px) {
+  .sidebar {
+    transform: translateX(0) !important;
   }
 
-  .geometry :global([role="dialog"][aria-label="تنبيهات وملاحظات الاتصالات"]) {
-    width: 352px !important;
-    max-width: calc(100vw - 24px) !important;
+  .content {
+    margin-inline-start: 16rem;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  .sidebar {
+    width: min(20rem, 82vw);
+  }
+}
+
+@media (max-width: 767px) {
+  .geometry {
+    padding-inline-start: max(0.5rem, env(safe-area-inset-left));
+    padding-inline-end: max(0.5rem, env(safe-area-inset-right));
   }
 }
