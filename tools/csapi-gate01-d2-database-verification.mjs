@@ -61,6 +61,31 @@ if (!existsSync("supabase/config.toml")) {
   }
 }
 
+// D2 is a database-only gate. Disable non-database local services so CI does not
+// depend on Auth/Realtime/Storage containers or their startup migrations.
+const fs = await import("node:fs");
+const configPath = "supabase/config.toml";
+let localConfig = fs.readFileSync(configPath, "utf8");
+const disabledServices = {
+  auth: "enabled",
+  realtime: "enabled",
+  storage: "enabled",
+  studio: "enabled",
+  edge_runtime: "enabled",
+  analytics: "enabled",
+  inbucket: "enabled",
+};
+for (const [section, key] of Object.entries(disabledServices)) {
+  const sectionPattern = new RegExp(`\\\\[${section}\\\\]([\\\\s\\\\S]*?)(?=\\\\n\\\\[|$)`);
+  if (sectionPattern.test(localConfig)) {
+    localConfig = localConfig.replace(sectionPattern, (block) => block.replace(new RegExp(`^${key}\\\\s*=\\\\s*true`, "m"), `${key} = false`));
+  } else {
+    localConfig += `\\n[${section}]\\n${key} = false\\n`;
+  }
+}
+fs.writeFileSync(configPath, localConfig);
+console.log("LOCAL_SUPABASE_MODE=DATABASE_ONLY");
+
 if (run(["--help"], { timeout: 120000 }) !== 0) {
   console.error("D2_DATABASE_VERIFICATION=FAIL reason=supabase-cli-unavailable");
   process.exit(1);
