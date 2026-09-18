@@ -43,6 +43,7 @@ process.on("SIGINT", () => {
   cleanup();
   process.exit(130);
 });
+
 process.on("SIGTERM", () => {
   cleanup();
   process.exit(143);
@@ -61,14 +62,17 @@ if (!existsSync("supabase/config.toml")) {
   }
 }
 
-// D2 is a database-only gate. Supabase documents -x as the canonical way\n// to exclude non-database service containers from local startup.\nconst excludedServices = "gotrue,realtime,storage-api,imgproxy,kong,mailpit,postgrest,postgres-meta,studio,edge-runtime,logflare,vector,supavisor";
-
 if (run(["--help"], { timeout: 120000 }) !== 0) {
   console.error("D2_DATABASE_VERIFICATION=FAIL reason=supabase-cli-unavailable");
   process.exit(1);
 }
 
-const excludedServices = "gotrue,realtime,storage-api,imgproxy,kong,mailpit,postgrest,postgres-meta,studio,edge-runtime,logflare,vector,supavisor";\n\nif (run(["start", "-x", excludedServices], { timeout: 900000 }) !== 0) {
+// D2 is a database-only gate. Exclude every non-database service so local CI
+// starts PostgreSQL without Auth/Realtime/Storage/etc. startup dependencies.
+// This uses Supabase's documented -x comma-separated exclusion syntax.
+const excludedServices = "gotrue,realtime,storage-api,imgproxy,kong,mailpit,postgrest,postgres-meta,studio,edge-runtime,logflare,vector,supavisor";
+
+if (run(["start", "-x", excludedServices], { timeout: 900000 }) !== 0) {
   console.error("D2_DATABASE_VERIFICATION=FAIL reason=supabase-start-failed");
   process.exit(1);
 }
