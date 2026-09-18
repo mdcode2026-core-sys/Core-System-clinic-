@@ -1,5 +1,5 @@
 alter table inventory_ledger add column if not exists treatment_plan_item_id uuid;
-create unique index if not exists uq_inventory_ledger_procedure_consumption on inventory_ledger(tenant_id,session_id,item_id,treatment_plan_item_id) where deleted_at is null and session_id is not null and item_id is not null and treatment_plan_item_id is not null;
+create unique index if not exists uq_inventory_ledger_procedure_consumption on inventory_ledger(tenant_id,session_id,item_id,treatment_plan_item_id) where session_id is not null and item_id is not null and treatment_plan_item_id is not null;
 create or replace function public.consume_procedure_inventory(p_tenant_id uuid,p_visit_id uuid,p_treatment_plan_item_id uuid,p_item_id uuid,p_quantity numeric,p_consumed_by uuid,p_reason text)
 returns jsonb language plpgsql security definer set search_path=public as $$
 declare v_stock numeric; v_new numeric; v_procedure_id uuid; v_existing uuid; v_patient_id uuid;
