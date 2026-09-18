@@ -3,7 +3,7 @@
 **Date:** 2026-09-18
 **Canonical Branch:** `repair/global-experience-presentation-rebuild-2026-09-16`
 **Canonical PR:** #129
-**Current Canonical Head:** `a916fc4573b556ec36c6140252a5622f3b8ac8ce`
+**Current Canonical Head:** `636267f0b20240cad271a8bc34ce885d64c42682`
 **Main Baseline:** `e2b63b7bb9e1c0bb271f386c84325b8d02cae8bf`
 **Status:** AUTOMATED VERIFICATION PASSED ON CURRENT HEAD — MERGE-READY; POST-MAIN PRODUCTION CLOSURE PENDING
 
@@ -53,6 +53,7 @@ The following recovery PRs were integrated into #129:
 - **PR #135** — closed without merge; retained as provenance/evidence only after reconciliation.
 - **PR #136** — Global Experience Presentation Rebuild execution; merged into #129 and retained as canonical implementation.
 - **PR #137** — closed validation-only; retained as evidence only, not implementation.
+- **PR #163** — closed as superseded after its production login session-handoff correction was incorporated into #129 and re-verified successfully.
 
 ### Current canonical recovery outcome
 
@@ -212,7 +213,7 @@ The historical documentation inventory for the current #129 reconciliation cycle
 
 #129 has now passed the current automated verification gate on the exact current head `a916fc4573b556ec36c6140252a5622f3b8ac8ce`.
 
-GitHub Actions run **#430** (`35365679079`) completed **SUCCESS** on that exact head.
+GitHub Actions run **#433** (`35366862319`) completed **SUCCESS** on that exact head.
 
 Successful lanes:
 
@@ -228,7 +229,7 @@ Successful lanes:
 - communications-wave-b-static
 - Final gate
 
-The previous #429 tablet geometry failure is superseded by the fresh current-head run. The tablet Chat panel was corrected to use deterministic physical viewport gutters (`left/right: GAP`, `margin-inline:auto`, no transform centering), and the fresh runtime lane passed at the affected tablet widths.
+The previous tablet geometry failures are superseded by the fresh current-head run. The tablet Chat panel was corrected to use deterministic physical viewport gutters (`left/right: GAP`, `margin-inline:auto`, no transform centering), and the fresh runtime lane passed at the affected tablet widths.
 
 This evidence is **pre-production**. Vercel is not used as a routine validation path, and no production deployment is being claimed from this run.
 
@@ -241,8 +242,8 @@ Required final-release work remains:
 ## 11. Immediate Next Execution
 
 1. Keep #129 as the canonical line and do not revive historical implementation branches.
-2. Record run #430 and the final tablet correction in the live Ledger.
-3. Complete the controlled merge of #129 into `main` using the exact verified head `a916fc4573b556ec36c6140252a5622f3b8ac8ce`.
+2. Record run #433, the final tablet correction, and the absorbed #163 login hardening in the live Ledger.
+3. Complete the controlled merge of #129 into `main` using the exact verified head `636267f0b20240cad271a8bc34ce885d64c42682`.
 4. After promotion to `main`, perform the final allowed Production verification/build/runtime stage; do not use Vercel before that stage.
 5. Close the Global Experience workstream only when post-main production evidence supports the closure claim.
 
