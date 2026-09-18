@@ -12,15 +12,19 @@ VALUES
 ON CONFLICT (permission_key) DO NOTHING;
 
 INSERT INTO public.roles (id, role_key, role_name, role_name_ar, description, is_system_role, created_at)
-VALUES
-    (gen_random_uuid(), 'super_admin', 'Super Admin', 'المشرف العام', 'System super administrator', true, now()),
-    (gen_random_uuid(), 'clinic_admin', 'Clinic Admin', 'مدير العيادة', 'Clinic administrator', true, now()),
-    (gen_random_uuid(), 'clinic_owner', 'Clinic Owner', 'صاحب العيادة', 'Clinic owner', true, now()),
-    (gen_random_uuid(), 'doctor', 'Doctor', 'طبيب', 'Medical doctor', true, now()),
-    (gen_random_uuid(), 'nurse', 'Nurse', 'ممرض', 'Nurse', true, now()),
-    (gen_random_uuid(), 'receptionist', 'Receptionist', 'موظف الاستقبال', 'Front desk receptionist', true, now()),
-    (gen_random_uuid(), 'accounting', 'Accounting', 'المحاسب', 'Accounting and billing staff', true, now())
-ON CONFLICT (role_key) DO NOTHING;
+SELECT gen_random_uuid(), v.role_key, v.role_name, v.role_name_ar, v.description, true, now()
+FROM (VALUES
+    ('super_admin', 'Super Admin', 'المشرف العام', 'System super administrator'),
+    ('clinic_admin', 'Clinic Admin', 'مدير العيادة', 'Clinic administrator'),
+    ('clinic_owner', 'Clinic Owner', 'صاحب العيادة', 'Clinic owner'),
+    ('doctor', 'Doctor', 'طبيب', 'Medical doctor'),
+    ('nurse', 'Nurse', 'ممرض', 'Nurse'),
+    ('receptionist', 'Receptionist', 'موظف الاستقبال', 'Front desk receptionist'),
+    ('accounting', 'Accounting', 'المحاسب', 'Accounting and billing staff')
+) AS v(role_key, role_name, role_name_ar, description)
+WHERE NOT EXISTS (
+  SELECT 1 FROM public.roles r WHERE r.role_key = v.role_key
+);
 
 DO $$
 DECLARE
