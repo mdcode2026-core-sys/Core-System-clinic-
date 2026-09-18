@@ -119,7 +119,7 @@ for (const [mode, width, height] of [
   ["mobile", 844, 390],
 ]) {
   await page.setViewportSize({ width, height });
-  await page.goto(`${baseUrl}/`, { waitUntil: "domcontentloaded", timeout: 60000 });
+  await page.goto(`${baseUrl}/`, { waitUntil: "commit", timeout: 60000 });
   await page.waitForTimeout(250);
   await expectHeader();
   await expectSidebar(!(mode === "desktop" && width >= 1024));
@@ -161,7 +161,7 @@ await context.addCookies([
   { name: "core-system-locale", value: "en", url: baseUrl },
   { name: "core-system-direction", value: "ltr", url: baseUrl },
 ]);
-await page.goto(`${baseUrl}/`, { waitUntil: "domcontentloaded", timeout: 60000 });
+await page.goto(`${baseUrl}/`, { waitUntil: "commit", timeout: 60000 });
 
 const standalonePage = await context.newPage();
 await standalonePage.addInitScript(() => {
