@@ -32,3 +32,7 @@ The verification target is the repository's local Supabase stack / CI database, 
 D2 may be marked VERIFIED only after the local/CI database evidence proves the migration chain and D2 tests pass. A hosted Supabase branch, production mutation, or Vercel verification is not required for D2 closure.
 
 Any later migration or code change creates a new verification target.
+
+## Canonical verification-lineage note
+
+The canonical D2 branch is based directly on current `main`. The local verification runner preserves repository migration contents while temporarily normalizing duplicate migration version filenames and two known legacy local-reset incompatibilities (the pre-existing inventory policy syntax and the optional Zada resource fixture). These temporary changes are restored before cleanup and are not production migrations.
