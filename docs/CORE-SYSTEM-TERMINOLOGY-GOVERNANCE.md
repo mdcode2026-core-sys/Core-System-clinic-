@@ -1,13 +1,15 @@
 # CORE SYSTEM — Terminology Governance
 
-**Version:** 1.1.0  
-**Date:** 2026-09-11  
+**Version:** 1.2.0  
+**Date:** 2026-09-17  
 **Status:** AUTHORITATIVE — terminology baseline for architecture, AJM, UX/IA and future implementation  
 **Scope:** Business architecture, product structure, authorization, workforce, UX/IA, Patient Journey (PJ), AJM and implementation documentation.
 
 > This document resolves terminology ambiguity. It does not silently rewrite historical decisions. Historical documents remain evidence of project evolution and are corrected only where the reconciliation register identifies a real current-state conflict.
 >
 > For the current Global Surfaces model, the canonical reconciliation is `docs/CORE-SYSTEM-GLOBAL-SURFACES-CANONICAL-RECONCILIATION-2026-09-11.md`.
+>
+> For the current Patient Flow lifecycle interpretation, the canonical Gate 01 reconciliation is `docs/CSAPI/GATES/GATE-01-PATIENT-FLOW-ARCHITECTURE-RECONCILIATION-2026-09-17.md`.
 
 ## 1. Governing rules
 
@@ -49,10 +51,17 @@
 |---|---|---|
 | **Patient** | المريض | The person receiving care and the central subject of the Patient Journey. |
 | **Appointment** | الموعد | A planned/scheduled booking for a future or intended interaction. |
-| **Visit** | الزيارة | CORE's canonical user-facing term for the actual patient visit/work session occurring in the clinic. |
-| **Encounter** | المقابلة/التفاعل الصحي | External/standard medical terminology, especially for interoperability. CORE does not replace Visit with Encounter in the user-facing model solely because standards use Encounter. |
+| **Visit** | الزيارة | The canonical container for the patient's actual clinic work episode/journey until authoritative administrative closure. A Visit may contain multiple Clinical Work Sessions and may span multiple rooms, actors, procedures, holds, transfers and operating dates when unresolved work is carried forward. |
+| **Clinical Work Session** | جلسة عمل سريري | One discrete unit of clinical/procedural work performed for the patient inside an existing Visit. A Visit may contain multiple Clinical Work Sessions. This term is internal CORE architecture vocabulary and is not a replacement for the external medical-standard term Encounter. |
+| **Encounter** | المقابلة/التفاعل الصحي | External/standard medical terminology, especially for interoperability. CORE does not replace Visit or Clinical Work Session with Encounter in the user-facing model solely because standards use Encounter. |
 | **Patient Flow** | مسار حركة المريض | The operational system representing the patient's movement through the clinic; it is one system with Operations, Clinical and Administrative views. |
-| **Queue** | قائمة الانتظار | A mechanism within Patient Flow for managing waiting/order/movement; it is not a replacement for Patient Flow. |
+| **Queue** | قائمة الانتظار | A mechanism within Patient Flow for managing waiting/order/movement; it is not a replacement for Patient Flow. Queue movement does not itself start clinical work. |
+| **Hold** | تعليق مؤقت | A first-class Patient Flow condition in which the current clinical work is temporarily suspended while the Visit remains unresolved/open. Hold is not Completed and is not automatically Follow-up. |
+| **Transfer** | تحويل / نقل العمل | A Patient Flow/clinical handoff in which the current work moves to another authorized actor, room or clinical/procedural context while preserving the parent Visit. A Transfer may create or continue another Clinical Work Session. |
+| **Operational Handoff** | تسليم العمل التشغيلي | Transfer of unresolved operational responsibility/context to another authorized operational actor/team without impersonating the previous user. |
+| **Operational Closure** | الإغلاق التشغيلي | A control state/action that removes unresolved work from the active daily operational workload according to configured policy. It is not equivalent to final administrative closure. |
+| **Administrative Closure** | الإغلاق الإداري النهائي | Final clinic-authority disposition of a Visit after required clinical, operational, financial, inventory, documentation and exception handling has been completed or appropriately dispositioned. |
+| **Carry-forward / Visit Continuation** | ترحيل / استكمال الزيارة | Administrative/operational continuation of the same unresolved Visit to a later operating date. It is not automatically a new Visit, Appointment or Follow-up. |
 | **Treatment Plan** | خطة العلاج | CORE's patient-care planning concept describing intended treatment work and its progression. External mappings such as FHIR CarePlan are interoperability mappings, not automatic renaming. |
 | **Procedure** | إجراء طبي | A medically defined procedure, anchored to the Medical Master Library where applicable. |
 | **Service** | خدمة | A clinic-facing service entity distinct from a Procedure; a Service may bundle multiple Procedures. |
@@ -215,6 +224,43 @@ My Settings remains a Sidebar destination.
 
 No parallel chat or communications engine may be created for the compact surface.
 
+### 5.13 Visit vs Clinical Work Session
+
+The current Patient Flow model requires the following separation:
+
+```text
+Visit
+  = complete unresolved clinic work episode / journey container
+
+Clinical Work Session
+  = one discrete clinical/procedural work unit inside the Visit
+```
+
+A Visit can therefore contain:
+
+- multiple clinical/procedural sessions;
+- Hold periods;
+- Transfers between actors/rooms;
+- Queue returns;
+- additional procedures and consumables;
+- financial/inventory consequences;
+- administrative continuation across operating dates;
+- final operational and administrative closure.
+
+The existence of this conceptual distinction does not imply a mandatory new database table. Implementation must first inspect existing session/visit/procedure/work structures.
+
+### 5.14 Patient Flow state vs work-management state
+
+Patient Flow remains authoritative for the patient's movement and lifecycle. Journey Coordination may own generic Tasks, Requests, Handoffs and assignments generated by Patient Flow events, but must not create a duplicate clinical lifecycle.
+
+### 5.15 Clinical completion vs Visit completion
+
+**Clinical completion** means the current clinical work is finished or handed off according to the authoritative clinical workflow.
+
+**Visit completion** means the Visit has reached its authoritative final state after required clinical, operational and administrative work is resolved.
+
+These are intentionally not synonyms.
+
 ## 6. Historical terminology policy
 
 The project contains older documents in which Module, Capability, Feature, Skill and related terms were used more broadly. Those documents are not rewritten by blind find/replace.
@@ -230,6 +276,8 @@ Every historical occurrence must be classified as one of:
 
 For documents touching Home / Workspace / Role / Permissions / Sidebar / Header, the 2026-09-11 canonical reconciliation is the current interpretation layer.
 
+For Patient Flow lifecycle documents, the 2026-09-17 Gate 01 reconciliation is the current interpretation layer.
+
 ## 7. Visit / Encounter rule
 
 CORE user-facing workflow uses **Visit** as the canonical term. **Encounter** remains a standard/interoperability mapping term when integrating with medical standards such as HL7 FHIR.
@@ -237,7 +285,8 @@ CORE user-facing workflow uses **Visit** as the canonical term. **Encounter** re
 The distinction is intentional:
 
 `Appointment` = planned booking  
-`Visit` = actual clinic visit in CORE  
+`Visit` = complete unresolved clinic work episode in CORE  
+`Clinical Work Session` = one discrete clinical/procedural work unit inside a Visit  
 `Encounter` = external/standard medical mapping where applicable
 
 ## 8. Treatment Plan / CarePlan rule

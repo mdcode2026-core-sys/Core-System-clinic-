@@ -1,0 +1,1 @@
+D1 CI conclusions must reference the exact branch head SHA. This anchor is documentation only.
