@@ -85,7 +85,7 @@ const results = [];
 let exitCode = 0;
 
 try {
-  if (run("npm", ["ci"]) !== 0) {
+  if (lane !== "csapi-gate01-d2-database" && run("npm", ["ci"]) !== 0) {
     throw new Error("npm ci failed");
   }
 
