@@ -1,0 +1,23 @@
+{
+  "contract_version": "1.0",
+  "contract_type": "workstream",
+  "workstream_id": "csapi-gate01-d2",
+  "contract_path": "docs/CSAPI/GATES/GATE-01-D2-DATABASE-FOUNDATIONS-IMPLEMENTATION-RECORD-2026-09-17.md",
+  "status": "binding",
+  "applicability": {
+    "match_any": [
+      "^supabase/migrations/20260917192500_csapi_gate01_patient_flow_d2_foundations\\.sql$",
+      "^supabase/tests/csapi_gate01_d2_database_foundations\\.sql$",
+      "^docs/CSAPI/GATES/GATE-01-D2-",
+      "^docs/testing/workstream-contracts/csapi-gate01-d2\\.execution\\.json$"
+    ]
+  },
+  "required_engineering": ["typecheck", "lint", "build"],
+  "required_suites": ["engineering", "csapi-gate01-d2-database"],
+  "regression_level": "R3",
+  "notes": [
+    "D2 database verification is executed inside the CORE SYSTEM Unified Test Execution Engine.",
+    "The disposable Postgres path is free/local and does not mutate hosted Supabase or production.",
+    "The former standalone D2 workflow is retired once this contract is merged."
+  ]
+}

@@ -38,6 +38,7 @@ const commands = {
   "authenticated-e2e": [["authenticated-route-e2e", "npx", ["playwright", "test", "tools/ajm-production-auth-e2e.spec.mjs", "--reporter=line"]]],
   "patient-journey": [["real-world-clinic-journey-e2e", "node", ["tools/clinic-admin-real-world-e2e-v2.mjs"]]],
   "procurement-inventory-finance": [["procurement-inventory-finance-runtime", "npm", ["run", "test:cross-domain-runtime"]]],
+  "csapi-gate01-d2-database": [["d2-database-foundations", "node", ["tools/csapi-gate01-d2-database-verification.mjs"]]],
 };
 
 const runtimeSuites = new Set([
@@ -58,13 +59,47 @@ const ordered = [
   ...required.filter((suite) => runtimeSuites.has(suite)),
 ];
 
+const planned = [];
+for (const suite of ordered) {
+  for (const [test, command, args] of commands[suite]) {
+    planned.push({ suite, test, command, args });
+  }
+}
+
+const uniquePlan = [];
+const byCommand = new Map();
+for (const item of planned) {
+  const key = JSON.stringify([item.command, item.args]);
+  const existing = byCommand.get(key);
+  if (existing) {
+    existing.covered_suites.push(item.suite);
+    existing.covered_tests.push(item.suite + ":" + item.test);
+  } else {
+    const entry = {
+      ...item,
+      covered_suites: [item.suite],
+      covered_tests: [item.suite + ":" + item.test],
+    };
+    byCommand.set(key, entry);
+    uniquePlan.push(entry);
+  }
+}
+
 const results = [];
 let server = null;
 let runtimeStartFailure = null;
 let buildPassed = false;
 
 function run(command, args, extra = {}) {
-  return spawnSync(command, args, { stdio: "inherit", env: process.env, shell: false, ...extra });
+  const timeoutMs = Number(process.env.TEST_COMMAND_TIMEOUT_MS || 300000);
+  return spawnSync(command, args, {
+    stdio: "inherit",
+    env: process.env,
+    shell: false,
+    timeout: timeoutMs,
+    killSignal: "SIGTERM",
+    ...extra,
+  });
 }
 
 function startServer() {
@@ -104,51 +139,53 @@ function stopServer() {
   server = null;
 }
 
-function addBlockedResult(suite, test, command, reason) {
+function addBlockedResult(item, reason) {
   results.push({
-    suite,
-    test,
-    command: [command, ...(commands[suite].find(([name]) => name === test)?.slice(2) || [])].join(" "),
+    suite: item.suite,
+    test: item.test,
+    covered_suites: item.covered_suites,
+    covered_tests: item.covered_tests,
+    command: [item.command, ...item.args].join(" "),
     status: "FAIL",
     exitCode: 1,
     durationMs: 0,
     reason,
   });
-  console.error(`=== SUITE=${suite} TEST=${test} FAIL blocked=${reason} ===`);
+  console.error("=== SUITES=" + item.covered_suites.join(",") + " TEST=" + item.test + " FAIL blocked=" + reason + " ===");
 }
-
 try {
-  for (const suite of ordered) {
-    const needsRuntime = runtimeSuites.has(suite);
+  for (const item of uniquePlan) {
+    const needsRuntime = item.covered_suites.some((suite) => runtimeSuites.has(suite));
     if (needsRuntime && !startServer()) {
-      for (const [test, command, args] of commands[suite]) {
-        addBlockedResult(suite, test, command, runtimeStartFailure || "Runtime server unavailable");
-      }
+      addBlockedResult(item, runtimeStartFailure || "Runtime server unavailable");
       continue;
     }
 
-    for (const [test, command, args] of commands[suite]) {
-      const started = Date.now();
-      console.log(`\n=== SUITE=${suite} TEST=${test} START ===`);
-      let exitCode = 1;
-      try {
-        const result = run(command, args);
-        exitCode = result.status ?? 1;
-      } catch (error) {
-        console.error(error instanceof Error ? error.stack : String(error));
+    const started = Date.now();
+    console.log("\n=== SUITES=" + item.covered_suites.join(",") + " TEST=" + item.test + " START ===");
+    let exitCode = 1;
+    try {
+      const result = run(item.command, item.args);
+      if (result.error) {
+        console.error(`TEST_COMMAND_ERROR code=${result.error.code || "unknown"} message=${result.error.message}`);
       }
-      const record = {
-        suite,
-        test,
-        command: [command, ...args].join(" "),
-        status: exitCode === 0 ? "PASS" : "FAIL",
-        exitCode,
-        durationMs: Date.now() - started,
-      };
-      results.push(record);
-      if (suite === "engineering" && test === "build") buildPassed = exitCode === 0;
-      console.log(`=== SUITE=${suite} TEST=${test} ${record.status} exit=${exitCode} ===`);
+      exitCode = result.status ?? (result.error?.code === "ETIMEDOUT" ? 124 : 1);
+    } catch (error) {
+      console.error(error instanceof Error ? error.stack : String(error));
     }
+    const record = {
+      suite: item.suite,
+      test: item.test,
+      covered_suites: item.covered_suites,
+      covered_tests: item.covered_tests,
+      command: [item.command, ...item.args].join(" "),
+      status: exitCode === 0 ? "PASS" : "FAIL",
+      exitCode,
+      durationMs: Date.now() - started,
+    };
+    results.push(record);
+    if (item.covered_suites.includes("engineering") && item.test === "build") buildPassed = exitCode === 0;
+    console.log("=== SUITES=" + item.covered_suites.join(",") + " TEST=" + item.test + " " + record.status + " exit=" + exitCode + " ===");
   }
 } finally {
   stopServer();
@@ -164,7 +201,10 @@ const report = {
   execution_order: ordered,
   results,
   summary: {
+    planned_tests: planned.length,
     total: results.length,
+    executed_unique_commands: results.length,
+    deduplicated_commands: planned.length - results.length,
     passed: results.filter((r) => r.status === "PASS").length,
     failed: failures.length,
   },
@@ -174,5 +214,5 @@ const report = {
 writeFileSync("test-execution-report.json", `${JSON.stringify(report, null, 2)}\n`);
 console.log(`\nTEST_EXECUTION_STATUS=${report.status}`);
 console.log(`TEST_EXECUTION_FAILED=${failures.length}`);
-for (const failure of failures) console.error(`FAILURE_LOCATION suite=${failure.suite} test=${failure.test} exit=${failure.exitCode}`);
+for (const failure of failures) console.error("FAILURE_LOCATION suites=" + failure.covered_suites.join(",") + " test=" + failure.test + " exit=" + failure.exitCode);
 process.exitCode = failures.length ? 1 : 0;
