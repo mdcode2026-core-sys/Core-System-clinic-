@@ -15,6 +15,8 @@ const laneRegistry = {
   "authenticated-e2e": { id: "authenticated-e2e" },
   "patient-journey": { id: "patient-journey" },
   "cross-domain": { id: "cross-domain-runtime" },
+  "authorization": { id: "cross-domain-runtime" },
+  "database-integrity": { id: "cross-domain-runtime" },
   "procurement-inventory-finance": { id: "procurement-inventory-finance" },
   "global-experience-presentation": { id: "global-experience-presentation-static" },
   "global-experience-presentation-runtime": { id: "global-experience-presentation-runtime" },
