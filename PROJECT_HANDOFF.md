@@ -2,7 +2,7 @@
 
 **Project:** CORE SYSTEM — ClinicSaaS™  
 **Status:** ACTIVE / Stages 12–15 validated through documentation candidate; final Production SHA gate PENDING  
-**Last Updated:** 2026-09-11
+**Last Updated:** 2026-09-17
 
 ## Current Global UX/IA State
 
@@ -125,17 +125,129 @@ Agenda and Visit remain separate bounded contexts with an explicit state compati
 | Agenda | Visit | Rule |
 |---|---|---|
 | `arrived` | `waiting` | Arrival establishes the waiting Visit state. |
-| `in_session` | `in_consultation` | Clinical handoff maps the active appointment to the clinical Visit. |
-| `completed` | `completed` | Both contexts are closed only after their owning workflow completes. |
-| `cancelled` | `cancelled` | Cancellation is mirrored as a terminal Visit state. |
-| `no_show` | `no_show` | No-show is mirrored as a terminal Visit state. |
+| `in_session` | `in_consultation` | Clinical handoff maps the active appointment to the clinical Visit work state. |
+| `completed` | `completed` | Agenda completion is compatible with Visit completion only after the Visit's owning clinical, operational and administrative workflow permits final completion. |
+| `cancelled` | `cancelled` | Cancellation is mirrored as a terminal Visit state where cancellation is the authoritative outcome. |
+| `no_show` | `no_show` | No-show is mirrored as a terminal Visit state where no-show is the authoritative outcome. |
 
-`pending_close` is intentionally a **Visit-only** state. Agenda has no equivalent state because clinical completion and reception closure are separate ownership steps.
+`pending_close` is intentionally a **Visit-only** state in the historical implementation. The current Gate 01 reconciliation clarifies that this state must not be treated as the complete Patient Flow model. Patient Flow may contain unresolved Hold, Transfer, continuation and operational/administrative control conditions that are richer than the Agenda compatibility map.
+
+## Current Patient Flow Architecture Reconciliation — 2026-09-17
+
+The historical Workspace/Patient Flow documents are substantially aligned with the clarified model, but the earlier explicit lifecycle list was too narrow to serve as the complete current architecture.
+
+The current interpretation is governed by:
+
+`docs/CSAPI/GATES/GATE-01-PATIENT-FLOW-ARCHITECTURE-RECONCILIATION-2026-09-17.md`
+
+The core model is:
+
+```text
+Visit = the complete unresolved clinic work episode / journey container
+
+Clinical Work Session = one discrete clinical/procedural work unit inside that Visit
+
+Waiting = operational queue condition; not clinical initiation
+Hold = unresolved Visit condition; clinical work temporarily suspended
+Transfer = continuation of the same Visit through another actor/room/work context
+Finish = end of the current clinical work, not automatically Visit Completed
+Operational Work Queue = reception/operational work after the appropriate clinical handoff
+Operational Closure ≠ Administrative Final Closure
+Carry-forward = administrative continuation of the same unresolved Visit on a later operating date
+Follow-up = downstream patient-continuity work after authoritative Visit completion; not a substitute for unresolved Visit continuation
+```
+
+A Visit may therefore include multiple clinical/procedural work sessions and may interact with Procedure, Inventory, Billing, Payments, Treatment Plan, Communications and other domain-owned records while retaining one Visit identity.
+
+Reception work must not remain permanently bound to the first receptionist account. Authorized operational reassignment/handoff must allow another receptionist to continue without impersonating the original actor, while preserving audit history.
+
+Configured timing policies such as short reassignment windows and longer administrative-escalation/operational-closure windows are tenant-configurable controls, not immutable Patient Flow states.
+
+Administration is the clinic control plane for authorized correction, reassignment, carry-forward, exception handling and final closure. Administrative flexibility remains subject to tenant isolation, permissions and auditability.
+
+## Gate 01 — Target Architecture and Implementation Decision Reconciliation — 2026-09-17
+
+The current Gate 01 engineering sequence is now:
+
+```text
+Approved product architecture
+        ↓
+90-row Architecture Gap Matrix
+        ↓
+Target Architecture Specification
+        ↓
+Implementation Decision Reconciliation
+        ↓
+Implementation Design Packet (next)
+        ↓
+Implementation + isolated verification
+        ↓
+Authenticated E2E + Gate review
+```
+
+Canonical current documents:
+
+- `docs/CSAPI/GATES/GATE-01-PATIENT-FLOW-ARCHITECTURE-GAP-MATRIX-2026-09-17.md`
+- `docs/CSAPI/GATES/GATE-01-PATIENT-FLOW-TARGET-ARCHITECTURE-2026-09-17.md`
+- `docs/CSAPI/GATES/GATE-01-PATIENT-FLOW-IMPLEMENTATION-DECISION-RECONCILIATION-2026-09-17.md`
+- `docs/CSAPI/CSAPI-DECISION-AND-ACTION-LEDGER.md`
+
+Current implementation-reconciliation branch:
+
+`architecture/csapi-gate-01-patient-flow-implementation-reconciliation-2026-09-17`
+
+Current Gate 01 PRs:
+
+- PR #138 — evidence reconciliation
+- PR #139 — architecture reconciliation
+- PR #140 — architecture gap matrix
+- PR #141 — target architecture specification
+- PR #142 — implementation decision reconciliation
+
+The implementation decision reconciliation confirms the following as the proposed execution direction:
+
+- preserve `clinic_visit_sessions` as the parent Visit record;
+- create a first-class Clinical Work Session child representation;
+- do not replace the six-state model with one giant state enum;
+- create/extend authoritative Queue Entry semantics for multiple Waiting intervals and persistent order;
+- make Finish one atomic Patient Flow command;
+- make Hold first-class and route Hold continuation back through Waiting when appropriate;
+- represent Transfer as same-Visit continuation with explicit source/destination history;
+- reuse Journey Coordination operational Work Items and bridge them to Visit-originated work;
+- separate current operational responsibility from historical receptionist initialization;
+- introduce tenant-level timing policy rather than hard-coded five/sixty-minute business constants;
+- separate Operational Closure from Administrative Closure;
+- preserve same Visit identity during cross-day carry-forward;
+- keep Follow-up downstream of authoritative completion;
+- add append-only business lifecycle events in addition to technical row audit;
+- enforce lifecycle authority at the database command boundary rather than relying on generic `visits:update`;
+- reconcile Patient Flow permission vocabulary with the live Team & Access catalog.
+
+**Important:** these technical execution decisions remain `PROPOSED` in CSAPI until explicit Product Owner approval. No implementation is authorized by the reconciliation documents alone.
+
+## Patient Flow documentation authority
+
+Current Gate 01 documentation control:
+
+- `docs/CSAPI/GATES/GATE-01-PATIENT-FLOW-ARCHITECTURE-RECONCILIATION-2026-09-17.md` — current architecture interpretation.
+- `docs/CSAPI/GATES/GATE-01-PATIENT-FLOW-HISTORICAL-DOCUMENTATION-RECONCILIATION-2026-09-17.md` — historical documentation classification and update plan.
+- `docs/CSAPI/GATES/GATE-01-PATIENT-FLOW-ARCHITECTURE-GAP-MATRIX-2026-09-17.md` — 90-row evidence-backed gap inventory.
+- `docs/CSAPI/GATES/GATE-01-PATIENT-FLOW-TARGET-ARCHITECTURE-2026-09-17.md` — target architecture contract.
+- `docs/CSAPI/GATES/GATE-01-PATIENT-FLOW-IMPLEMENTATION-DECISION-RECONCILIATION-2026-09-17.md` — implementation reuse/extend/create reconciliation.
+- `docs/CSAPI/CSAPI-DECISION-AND-ACTION-LEDGER.md` — durable decision status and approval boundary.
+
+The historical 2026-09-01 closure records remain evidence and must not be rewritten merely to make them appear current.
 
 ## Deployment / verification rule
 
 Production deployment follows GitHub `main` → Vercel Git Integration. Do not use manual Vercel build/API calls to bypass build-rate limits. Production Ready requires repository SHA, CI, Production deployment SHA/status and runtime verification to agree.
 
+### Current Gate 01 execution restriction
+
+Until the implementation and verification stages are explicitly completed, **do not use Vercel for inspection, testing, preview verification, deployment, or build activity**. The Gate 01 engineering work in this phase is limited to repository/documentation evidence and live Supabase inspection/verification as authorized by the current execution contract. Vercel is reserved for the final production stage after the approved implementation is promoted to `main`.
+
 ## Final handoff rule
 
 The Stage 15 candidate is the documentation freeze point. After final CI and diff review, merge once to `main`; then verify Vercel Production against the exact final SHA and complete the final runtime gate. No post-candidate documentation commit is permitted.
+
+**End of Project Handoff.**

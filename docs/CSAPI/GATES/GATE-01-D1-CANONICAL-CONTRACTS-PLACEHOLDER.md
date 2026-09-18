@@ -1,0 +1,1 @@
+D1 verification remains pending exact CI evidence for the final head SHA.
