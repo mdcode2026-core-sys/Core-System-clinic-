@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import { spawn, spawnSync } from "node:child_process";
+import { writeFileSync } from "node:fs";
 
 const lane = process.env.VERIFICATION_LANE;
 if (!lane) throw new Error("VERIFICATION_LANE is required");
@@ -65,7 +66,9 @@ function ensureRuntimeServer() {
   for (let i = 0; i < 60; i += 1) {
     const probe = spawnSync("curl", ["-fsS", "--max-time", "3", `${baseUrl}/api/build-info`], { stdio: "ignore" });
     if (probe.status === 0) return child;
-    if (child.exitCode !== null) throw new Error(`Local production server exited with code ${child.exitCode}`);
+    if (child.exitCode !== null) {
+      throw new Error(`Local production server exited with code ${child.exitCode}`);
+    }
     spawnSync("sleep", ["2"]);
   }
   child.kill("SIGTERM");
@@ -74,40 +77,73 @@ function ensureRuntimeServer() {
 
 if (!commands[lane]) throw new Error(`VERIFICATION_LANE_UNSUPPORTED=${lane}`);
 
+const startedAt = new Date().toISOString();
 console.log(`VERIFICATION_LANE_START=${lane}`);
+
 let server = null;
+const results = [];
+let exitCode = 0;
+
 try {
-  if (lane !== "engineering" && lane !== "csapi-gate01-d2-database") {
-    if (lane !== "global-experience-presentation-static" && lane !== "global-surfaces-workspace-authority" &&
-        lane !== "header-chat-static" && lane !== "header-technical-foundation-static" &&
-        lane !== "communications-wave-b-static" && lane !== "i18n") {
-      run("npm", ["ci"]);
-    } else {
-      run("npm", ["ci"]);
-    }
-  } else if (lane === "engineering") {
-    run("npm", ["ci"]);
+  if (run("npm", ["ci"]) !== 0) {
+    throw new Error("npm ci failed");
   }
 
-  const needsPlaywright = lane === "authenticated-e2e" || lane === "patient-journey" || lane === "global-experience-presentation-runtime";
+  const needsPlaywright = lane === "authenticated-e2e" ||
+    lane === "patient-journey" ||
+    lane === "global-experience-presentation-runtime";
+
   if (needsPlaywright) {
-    if (run("npm", ["install", "--no-save", "--no-package-lock", "@playwright/test@1.55.0", "playwright@1.55.0"]) !== 0) process.exitCode = 1;
-    if (run("npx", ["playwright", "install", "chromium"]) !== 0) process.exitCode = 1;
+    if (run("npm", ["install", "--no-save", "--no-package-lock", "@playwright/test@1.55.0", "playwright@1.55.0"]) !== 0) {
+      throw new Error("Playwright package installation failed");
+    }
+    if (run("npx", ["playwright", "install", "chromium"]) !== 0) {
+      throw new Error("Playwright browser installation failed");
+    }
   }
 
   if (runtimeLanes.has(lane)) {
-    if (run("npm", ["run", "build"]) !== 0) throw new Error("Runtime lane build failed");
+    if (run("npm", ["run", "build"]) !== 0) {
+      throw new Error("Runtime lane build failed");
+    }
     server = ensureRuntimeServer();
   }
 
   for (const [name, command, args] of commands[lane]) {
     console.log(`=== LANE=${lane} TEST=${name} START ===`);
     const code = run(command, args);
+    results.push({ name, command: [command, ...args].join(" "), exitCode: code, status: code === 0 ? "PASS" : "FAIL" });
     console.log(`=== LANE=${lane} TEST=${name} ${code === 0 ? "PASS" : "FAIL"} exit=${code} ===`);
-    if (code !== 0) process.exitCode = code;
+    if (code !== 0) {
+      exitCode = code;
+      break;
+    }
   }
+} catch (error) {
+  exitCode = exitCode || 1;
+  results.push({
+    name: "lane-setup",
+    command: "lane setup",
+    exitCode,
+    status: "FAIL",
+    error: error instanceof Error ? error.message : String(error),
+  });
 } finally {
-  if (server) server.kill("SIGTERM");
+  if (server) {
+    server.kill("SIGTERM");
+    server = null;
+  }
 }
-if ((process.exitCode || 0) === 0) console.log(`VERIFICATION_LANE_RESULT=${lane}:PASS`);
+
+const report = {
+  lane,
+  started_at: startedAt,
+  completed_at: new Date().toISOString(),
+  status: exitCode === 0 ? "PASS" : "FAIL",
+  results,
+};
+
+writeFileSync(`verification-lane-${lane}.json`, JSON.stringify(report, null, 2) + "\n");
+if (exitCode === 0) console.log(`VERIFICATION_LANE_RESULT=${lane}:PASS`);
 else console.error(`VERIFICATION_LANE_RESULT=${lane}:FAIL`);
+process.exitCode = exitCode;
