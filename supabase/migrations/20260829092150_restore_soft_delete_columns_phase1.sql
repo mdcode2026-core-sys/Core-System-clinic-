@@ -70,7 +70,7 @@ DECLARE
     'tenant_devices',
     'tenant_entitlements',
     'tenant_notification_channel_prefs',
-    'workforce_procedure_capabilities',
+    'workforce_procedure_capabilities'
   ];
 BEGIN
   FOREACH v_table IN ARRAY v_tables LOOP
