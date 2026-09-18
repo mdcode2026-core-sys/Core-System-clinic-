@@ -1,11 +1,11 @@
 # CORE SYSTEM — EXECUTION HANDOFF
 
-**Date:** 2026-09-16
+**Date:** 2026-09-18
 **Canonical Branch:** `repair/global-experience-presentation-rebuild-2026-09-16`
 **Canonical PR:** #129
-**Current Canonical Head:** `405ef28993bcf76837a9f0174c35f5d62e369ab4`
-**Main Baseline:** `d85a5de23051919fb347e1482bc28f5fe70c0e14`
-**Status:** HISTORICAL RECOVERY INTEGRATED — IMPLEMENTATION / VERIFICATION NOT CLOSED
+**Current Canonical Head:** `ee44a8102c7a5454e61aebdd7fb2b234ff502c83`
+**Main Baseline:** `e2b63b7bb9e1c0bb271f386c84325b8d02cae8bf`
+**Status:** AUTOMATED VERIFICATION PASSED ON CURRENT HEAD — PRE-PRODUCTION CLOSURE PENDING
 
 ## 1. Objective
 
@@ -203,39 +203,45 @@ Confirmed unique/recovered sources include:
 - 2026-08-29 Terminology Governance source set.
 - 2026-09-15 Visual Foundation source set.
 
-The audit remains open for remaining independent refs and for direct comparison of any residual implementation-bearing refs that may contain compatible work.
+The historical documentation inventory for the current #129 reconciliation cycle has been completed to the point required for this closure step; no additional artifact is being promoted solely because it exists on a historical ref.
 
 ## 10. Current Closure Gate
 
-#129 is **NOT CLOSED**.
+#129 has now passed the current automated verification gate on the exact current head `ee44a8102c7a5454e61aebdd7fb2b234ff502c83`.
 
-No merge to `main` is authorized until applicable gates are evidenced for the current canonical head `405ef28993bcf76837a9f0174c35f5d62e369ab4`.
+GitHub Actions run **#427** (`35364558731`) completed **SUCCESS** on that exact head.
 
-Required current-cycle evidence includes, as applicable:
+Successful lanes:
 
-- current-head TypeScript/lint/build;
-- Unified Test Execution Contract / SETUP applicability;
-- relevant automated E2E;
-- runtime browser verification;
-- Login/Header/Home/Home→Workspace behavior;
-- Desktop/Tablet/Mobile;
-- Arabic/English;
-- RTL/LTR;
-- accessibility, keyboard, focus and touch behavior;
-- overlay/panel stacking and dismissal behavior;
-- adjacent-surface regression;
-- exact current-head documentation reconciliation;
-- production verification where the final claim requires it.
+- Build applicable lane plan
+- engineering
+- cross-domain-runtime
+- global-experience-presentation-runtime
+- i18n
+- authenticated-e2e
+- global-experience-presentation-static
+- header-technical-foundation-static
+- header-chat-static
+- communications-wave-b-static
+- Final gate
 
-CI/build/deployment success alone does not establish product closure.
+The previous #426 tablet geometry failure is superseded by the fresh current-head run. The current runtime lane passed after the tablet anchoring correction.
+
+This evidence is **pre-production**. Vercel is not used as a routine validation path, and no production deployment is being claimed from this run.
+
+Required final-release work remains:
+
+- REVIEW → DOCUMENT reconciliation for the current head;
+- merge/promotion to `main` under the repository merge gate;
+- only after promotion to `main`, final production build/runtime verification as required by release governance.
 
 ## 11. Immediate Next Execution
 
-1. Run and review the current #129 automated execution gates on the exact head `405ef28993bcf76837a9f0174c35f5d62e369ab4`.
-2. Perform targeted runtime verification of Login, Header, Home, Home→Workspace, Agenda-context routing and Global Search in desktop/tablet/mobile and Arabic/English.
-3. Review remaining independent documentation/implementation refs against #129 by actual changed content, not ref names.
-4. Promote additional compatible work only after content-level review and applicable tests.
-5. Update the live Handoff/Ledger and recovery register with each promotion/rejection.
-6. Only after evidence is complete, perform REVIEW → DOCUMENT finalization → CLOSE.
+1. Keep #129 as the canonical line and do not revive historical implementation branches.
+2. Record current-head automated verification evidence in the live Ledger and recovery register.
+3. Complete REVIEW → DOCUMENT for #129.
+4. Promote #129 to `main` only after the repository merge gate is satisfied.
+5. After promotion to `main`, perform the final allowed Production verification/build/runtime stage.
+6. Close the workstream only when the final production evidence supports the closure claim.
 
 **End of Live Execution Handoff.**
