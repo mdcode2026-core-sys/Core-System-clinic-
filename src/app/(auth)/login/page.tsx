@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, Suspense } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { createClient } from "@/infrastructure/supabase/client";
 import { Button } from "@/shared/components/ui/button";
@@ -18,7 +18,6 @@ function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const router = useRouter();
   const searchParams = useSearchParams();
   const { locale, auth: t } = useI18n();
   const redirectPath = searchParams.get("redirect") || "/";
@@ -34,8 +33,7 @@ function LoginForm() {
       setLoading(false);
       return;
     }
-    router.push(redirectPath);
-    router.refresh();
+    window.location.assign(redirectPath);
   }
 
   return (
