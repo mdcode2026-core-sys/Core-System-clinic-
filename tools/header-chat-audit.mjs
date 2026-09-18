@@ -5,8 +5,8 @@ const chatActions=read("src/domain/communications/chat.actions.ts");
 const communications=read("src/domain/communications/communications.actions.ts");
 const page=read("src/app/(dashboard)/communications/page.tsx");
 const contract=read("docs/COMMUNICATIONS-CHAT-PATIENT-PORTAL-BINDING-EXECUTION-CONTRACT-2026-09-12.md");
-const migrations=fs.readdirSync("supabase/migrations").filter(n=>n.includes("global_chat_functional_repair"));
-const creationMigration=migrations.length===1?read(`supabase/migrations/${migrations[0]}`):"";
+const migrations=fs.readdirSync("supabase/migrations").filter(n=>/\.sql$/.test(n)).filter(n=>{const s=read(`supabase/migrations/${n}`);return s.includes("create_communication_conversation")||s.includes("communications_participants_manage_insert");});
+const creationMigration=migrations.map(n=>read(`supabase/migrations/${n}`)).join("\n");
 const realtimeMigrations=fs.readdirSync("supabase/migrations").filter(n=>n.includes("chat_directory_realtime_latency"));
 const realtimeMigration=realtimeMigrations.length===1?read(`supabase/migrations/${realtimeMigrations[0]}`):"";
 const checks=[
