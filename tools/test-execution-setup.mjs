@@ -92,6 +92,8 @@ function loadWorkstreamContracts() {
 loadWorkstreamContracts();
 
 for (const file of changed) {
+  const isApplicationFile = /^(src\/)/.test(file);
+
   if (/^supabase\//.test(file) || /database|migration|rls|policy/i.test(file)) {
     add("DATA_IMPACT", "database-integrity", "authorization");
     plan.impact.add("SECURITY_IMPACT");
@@ -105,7 +107,7 @@ for (const file of changed) {
       .forEach((r) => plan.roles.add(r));
     plan.required_e2e.add("role-authorization");
   }
-  if (/patient|appointment|agenda|queue|visit|treatment|follow-up|portal|work-center|clinical/i.test(file)) {
+  if (isApplicationFile && /patient|appointment|agenda|queue|visit|treatment|follow-up|portal|work-center|clinical/i.test(file)) {
     add("INTEGRATED", "patient-journey", "cross-domain");
     plan.impact.add("CROSS_IMPACT");
     plan.roles.add("Receptionist");
@@ -113,7 +115,7 @@ for (const file of changed) {
     plan.required_e2e.add("patient-journey");
     elevateRegression("R3");
   }
-  if (/inventory|purchas|supplier|invoice|payment|financial|analytics/i.test(file)) {
+  if (isApplicationFile && /inventory|purchas|supplier|invoice|payment|financial|analytics/i.test(file)) {
     add("CROSS_IMPACT", "cross-domain", "procurement-inventory-finance");
     plan.impact.add("DATA_IMPACT");
     plan.roles.add("Finance/Accounting");
