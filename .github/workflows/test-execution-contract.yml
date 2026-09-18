@@ -8,7 +8,6 @@ name: CORE SYSTEM Workstream Verification
 
 on:
   pull_request:
-    branches: [main]
   workflow_dispatch:
     inputs:
       base_ref:
