@@ -172,7 +172,7 @@ await standalonePage.addInitScript(() => {
   });
   Object.defineProperty(navigator, "standalone", { configurable: true, value: true });
 });
-await standalonePage.goto(`${baseUrl}/`, { waitUntil: "domcontentloaded", timeout: 60000 });
+await standalonePage.goto(`${baseUrl}/`, { waitUntil: "commit", timeout: 60000 });
 await standalonePage.waitForTimeout(250);
 const standalone = await standalonePage.evaluate(() => ({ standalone: window.matchMedia("(display-mode: standalone)").matches, overflow: document.documentElement.scrollWidth > window.innerWidth + 8 }));
 if (!standalone.standalone) throw new Error("Standalone display-mode emulation failed");
