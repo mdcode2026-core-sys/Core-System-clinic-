@@ -91,7 +91,15 @@ let runtimeStartFailure = null;
 let buildPassed = false;
 
 function run(command, args, extra = {}) {
-  return spawnSync(command, args, { stdio: "inherit", env: process.env, shell: false, ...extra });
+  const timeoutMs = Number(process.env.TEST_COMMAND_TIMEOUT_MS || 300000);
+  return spawnSync(command, args, {
+    stdio: "inherit",
+    env: process.env,
+    shell: false,
+    timeout: timeoutMs,
+    killSignal: "SIGTERM",
+    ...extra,
+  });
 }
 
 function startServer() {
@@ -158,7 +166,10 @@ try {
     let exitCode = 1;
     try {
       const result = run(item.command, item.args);
-      exitCode = result.status ?? 1;
+      if (result.error) {
+        console.error(`TEST_COMMAND_ERROR code=${result.error.code || "unknown"} message=${result.error.message}`);
+      }
+      exitCode = result.status ?? (result.error?.code === "ETIMEDOUT" ? 124 : 1);
     } catch (error) {
       console.error(error instanceof Error ? error.stack : String(error));
     }
