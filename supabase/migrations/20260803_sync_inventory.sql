@@ -26,7 +26,8 @@ CREATE TABLE IF NOT EXISTS public.inventory_items (
 ALTER TABLE public.inventory_items ENABLE ROW LEVEL SECURITY;
 
 -- RLS policy for tenant isolation
-CREATE POLICY IF NOT EXISTS "rls_inventory_items_isolation"
+DROP POLICY IF EXISTS "rls_inventory_items_isolation" ON public.inventory_items;
+CREATE POLICY "rls_inventory_items_isolation"
 ON public.inventory_items
 USING (tenant_id = public.get_current_tenant_id());
 
