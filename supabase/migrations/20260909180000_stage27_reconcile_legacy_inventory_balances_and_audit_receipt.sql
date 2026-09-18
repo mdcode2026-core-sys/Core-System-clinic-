@@ -12,7 +12,7 @@ WITH opening_balances(item_id, opening_delta) AS (
     ('0d80656a-1ccc-42bf-84b3-9491e9123bf9'::uuid, 100::numeric),
     ('369f2f4e-c1dc-4d27-907f-f4aa4e3f5ec9'::uuid, 50::numeric),
     ('06bdbc61-5cd5-4ad6-a5fa-07ca4c4f24c2'::uuid, 20::numeric),
-    ('5cc15bb9-0bd7-4c2b-abe6-8b345bda9c92'::uuid, 60::numeric),
+    ('5cc15bb9-0bd7-4c27-907f-f4aa4e3f5ec9'::uuid, 60::numeric),
     ('f4934c1c-4924-4656-ac2e-62da9bb48266'::uuid, 25::numeric)
 )
 INSERT INTO public.inventory_ledger (
