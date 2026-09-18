@@ -61,25 +61,7 @@ if (!existsSync("supabase/config.toml")) {
   }
 }
 
-// D2 is a database-only gate. Disable non-database local services so CI does not
-// depend on Auth/Realtime/Storage containers or their startup migrations.
-const fs = await import("node:fs");
-const configPath = "supabase/config.toml";
-let localConfig = fs.readFileSync(configPath, "utf8");
-const disabledServices = new Set(["auth", "realtime", "studio", "edge_runtime", "analytics", "inbucket"]);
-const lines = localConfig.split("\n");
-let currentSection = "";
-for (let i = 0; i < lines.length; i += 1) {
-  const sectionMatch = lines[i].match(/^\[([^\]]+)\]$/);
-  if (sectionMatch) currentSection = sectionMatch[1];
-  if (disabledServices.has(currentSection) && /^enabled\s*=/.test(lines[i])) lines[i] = "enabled = false";
-}
-for (const section of disabledServices) {
-  if (!lines.some((line) => line === `[${section}]`)) lines.push("", `[${section}]`, "enabled = false");
-}
-localConfig = lines.join("\n");
-fs.writeFileSync(configPath, localConfig);
-console.log("LOCAL_SUPABASE_MODE=DATABASE_ONLY");
+// D2 is a database-only gate. Supabase documents -x as the canonical way\n// to exclude non-database service containers from local startup.\nconst excludedServices = "gotrue,realtime,storage-api,imgproxy,kong,mailpit,postgrest,postgres-meta,studio,edge-runtime,logflare,vector,supavisor";
 
 if (run(["--help"], { timeout: 120000 }) !== 0) {
   console.error("D2_DATABASE_VERIFICATION=FAIL reason=supabase-cli-unavailable");
@@ -87,7 +69,7 @@ if (run(["--help"], { timeout: 120000 }) !== 0) {
 }
 
 const localDbOnlyServices = ["gotrue", "realtime", "imgproxy", "kong", "mailpit", "postgrest", "postgres-meta", "studio", "edge-runtime", "logflare", "vector", "supavisor"];
-if (run(["start", "--debug", "--exclude", localDbOnlyServices.join(",")], { timeout: 900000 }) !== 0) {
+if (run(["start", "-x", excludedServices], { timeout: 900000 }) !== 0) {
   console.error("D2_DATABASE_VERIFICATION=FAIL reason=supabase-start-failed");
   process.exit(1);
 }
