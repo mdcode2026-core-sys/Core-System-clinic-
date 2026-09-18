@@ -68,7 +68,6 @@ if (run(["--help"], { timeout: 120000 }) !== 0) {
   process.exit(1);
 }
 
-const localDbOnlyServices = ["gotrue", "realtime", "imgproxy", "kong", "mailpit", "postgrest", "postgres-meta", "studio", "edge-runtime", "logflare", "vector", "supavisor"];
 if (run(["start", "-x", excludedServices], { timeout: 900000 }) !== 0) {
   console.error("D2_DATABASE_VERIFICATION=FAIL reason=supabase-start-failed");
   process.exit(1);
