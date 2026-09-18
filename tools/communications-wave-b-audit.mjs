@@ -25,7 +25,7 @@ const attachmentMigrations = migrations.filter((file) => /communication.*attachm
 const attachmentSql = attachmentMigrations.map(read).join("\n");
 
 const checks = [
-  ["Global Chat is implemented as a surface over Communications", chat.includes("/communications") && chat.includes("communication_conversation_participants") && chat.includes("communication_message_reads")],
+  ["Global Chat is implemented as a surface over Communications", chat.includes('from "@/domain/communications/communications.actions"') && chat.includes("createConversation") && actions.includes("createCommunicationConversation")],
   ["Global Chat has no parallel chat storage", !/(chat_conversations|chat_messages|chat_message_reads)/.test(chat)],
   ["Global Chat has no independent permission engine", !chat.includes("hasEffectivePermission")],
   ["Internal group membership uses the existing participant model", actions.includes("addConversationParticipant") && actions.includes("removeConversationParticipant") && actions.includes("communication_conversation_participants")],
