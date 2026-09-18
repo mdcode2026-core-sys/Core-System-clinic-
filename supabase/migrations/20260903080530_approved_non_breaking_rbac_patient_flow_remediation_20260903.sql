@@ -12,7 +12,7 @@ WITH u AS (
 ), direct AS (
   SELECT 1 FROM u JOIN public.clinic_user_permissions up ON up.user_id=u.id AND up.tenant_id=u.tenant_id AND up.granted AND true JOIN public.permissions p ON p.id=up.permission_id WHERE p.permission_key=p_permission_key LIMIT 1
 ), override AS (
-  SELECT o.granted FROM u JOIN public.clinic_user_permission_overrides o ON o.user_id=u.id AND o.tenant_id=u.tenant_id AND o.deleted_at IS NULL JOIN public.permissions p ON p.id=o.permission_id WHERE p.permission_key=p_permission_key ORDER BY o.updated_at DESC NULLS LAST,o.created_at DESC LIMIT 1
+  SELECT o.granted FROM u JOIN public.clinic_user_permission_overrides o ON o.user_id=u.id AND o.tenant_id=u.tenant_id AND true JOIN public.permissions p ON p.id=o.permission_id WHERE p.permission_key=p_permission_key ORDER BY o.updated_at DESC NULLS LAST,o.created_at DESC LIMIT 1
 ), admin AS (
   SELECT 1 FROM u JOIN public.roles r ON r.id=u.role_id WHERE r.role_key='clinic_admin' LIMIT 1
 )
