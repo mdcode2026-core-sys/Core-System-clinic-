@@ -5,7 +5,7 @@ with u as (
 ), base as (
   select p.permission_key from u join public.roles r on ((r.id=u.role_template_id and (r.is_system_role or r.tenant_id=u.tenant_id)) or (u.role_template_id is null and r.role_key=u.role)) join public.role_permissions rp on rp.role_id=r.id join public.permissions p on p.id=rp.permission_id where p.permission_key=p_permission_key
 ), direct as (
-  select p.permission_key from u join public.clinic_user_permissions up on up.user_id=u.id and up.tenant_id=u.tenant_id and up.granted and up.deleted_at is null join public.permissions p on p.id=up.permission_id where p.permission_key=p_permission_key
+  select p.permission_key from u join public.clinic_user_permissions up on up.user_id=u.id and up.tenant_id=u.tenant_id and up.granted and true join public.permissions p on p.id=up.permission_id where p.permission_key=p_permission_key
 ), overrides as (
   select o.granted from u join public.clinic_user_permission_overrides o on o.user_id=u.id and o.tenant_id=u.tenant_id and o.deleted_at is null join public.permissions p on p.id=o.permission_id where p.permission_key=p_permission_key order by o.updated_at desc nulls last, o.created_at desc limit 1
 ), subject as (select * from u)
@@ -18,7 +18,7 @@ with u as (
 ), base as (
   select 1 from u join public.roles r on ((r.id=u.role_template_id and (r.is_system_role or r.tenant_id=u.tenant_id)) or (u.role_template_id is null and r.role_key=u.role)) join public.role_permissions rp on rp.role_id=r.id join public.permissions p on p.id=rp.permission_id where p.permission_key=p_permission_key limit 1
 ), direct as (
-  select 1 from u join public.clinic_user_permissions up on up.user_id=u.id and up.tenant_id=u.tenant_id and up.granted and up.deleted_at is null join public.permissions p on p.id=up.permission_id where p.permission_key=p_permission_key limit 1
+  select 1 from u join public.clinic_user_permissions up on up.user_id=u.id and up.tenant_id=u.tenant_id and up.granted and true join public.permissions p on p.id=up.permission_id where p.permission_key=p_permission_key limit 1
 ), override as (
   select o.granted from u join public.clinic_user_permission_overrides o on o.user_id=u.id and o.tenant_id=u.tenant_id and o.deleted_at is null join public.permissions p on p.id=o.permission_id where p.permission_key=p_permission_key order by o.updated_at desc nulls last,o.created_at desc limit 1
 )
