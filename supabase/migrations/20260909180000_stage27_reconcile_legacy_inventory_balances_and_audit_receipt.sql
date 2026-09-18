@@ -68,7 +68,11 @@ SELECT
   'Chemical Peel Solution',
   10,
   'purchase',
-  '0e6e6030-121b-4e1a-bf14-ebbd18c19e4f'::uuid,
+  CASE WHEN EXISTS (
+    SELECT 1 FROM public.clinic_users cu
+    WHERE cu.id='0e6e6030-121b-4e1a-bf14-ebbd18c19e4f'::uuid
+      AND cu.tenant_id='2fa98983-8069-420f-9c27-7c36ef96ef6e'::uuid
+  ) THEN '0e6e6030-121b-4e1a-bf14-ebbd18c19e4f'::uuid ELSE NULL END,
   'Historical AUDIT-PO-001 receipt reconciliation: receipt 10/10 existed and current stock already included the quantity; ledger provenance restored without changing stock.',
   '2026-09-07 10:27:42.052108+00'::timestamptz,
   10,
