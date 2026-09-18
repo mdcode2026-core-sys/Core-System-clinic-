@@ -6,7 +6,22 @@ import { join } from "node:path";
 
 const base = process.env.TEST_BASE_REF || "main";
 const head = process.env.TEST_HEAD_REF || "HEAD";
-const changed = execFileSync("git", ["diff", "--name-only", `${base}...${head}`], { encoding: "utf8" })
+
+function ensureBaseAvailable(ref) {
+  try {
+    execFileSync("git", ["rev-parse", "--verify", `${ref}^{commit}`], { encoding: "utf8" });
+    return ref;
+  } catch {}
+  if (/^[0-9a-f]{40}$/i.test(ref)) {
+    execFileSync("git", ["fetch", "--no-tags", "origin", ref], { stdio: "inherit" });
+    return "FETCH_HEAD";
+  }
+  execFileSync("git", ["fetch", "--no-tags", "origin", `${ref}:refs/remotes/origin/${ref}`], { stdio: "inherit" });
+  return `refs/remotes/origin/${ref}`;
+}
+
+const baseRef = ensureBaseAvailable(base);
+const changed = execFileSync("git", ["diff", "--name-only", `${baseRef}...${head}`], { encoding: "utf8" })
   .split("\n").map((x) => x.trim()).filter(Boolean);
 
 const laneRegistry = {
