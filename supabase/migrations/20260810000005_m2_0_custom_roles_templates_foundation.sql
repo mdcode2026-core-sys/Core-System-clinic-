@@ -12,6 +12,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_roles_system_unique ON public.roles (role_
 CREATE UNIQUE INDEX IF NOT EXISTS idx_roles_custom_unique ON public.roles (tenant_id, role_key) WHERE tenant_id IS NOT NULL;
 
 ALTER TABLE public.roles ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS rls_roles_read ON public.roles;
 
 -- SELECT: system roles visible to all; custom roles only to owning tenant
 CREATE POLICY rls_roles_read ON public.roles FOR SELECT TO authenticated
@@ -31,6 +32,7 @@ CREATE POLICY rls_roles_custom_delete ON public.roles FOR DELETE TO authenticate
 USING (is_system_role = false AND tenant_id = public.get_current_tenant_id());
 
 ALTER TABLE public.role_permissions ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS rls_role_permissions_read ON public.role_permissions;
 
 -- SELECT: system role permissions visible to all; custom role permissions only to owning tenant
 CREATE POLICY rls_role_permissions_read ON public.role_permissions FOR SELECT TO authenticated
