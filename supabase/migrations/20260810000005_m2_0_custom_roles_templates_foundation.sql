@@ -14,35 +14,42 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_roles_custom_unique ON public.roles (tenan
 ALTER TABLE public.roles ENABLE ROW LEVEL SECURITY;
 
 -- SELECT: system roles visible to all; custom roles only to owning tenant
+DROP POLICY IF EXISTS rls_roles_read ON public.roles;
 CREATE POLICY rls_roles_read ON public.roles FOR SELECT TO authenticated
 USING (is_system_role = true OR tenant_id = public.get_current_tenant_id());
 
 -- INSERT: only custom roles for current tenant
+DROP POLICY IF EXISTS rls_roles_custom_insert ON public.roles;
 CREATE POLICY rls_roles_custom_insert ON public.roles FOR INSERT TO authenticated
 WITH CHECK (is_system_role = false AND tenant_id = public.get_current_tenant_id());
 
 -- UPDATE: only custom roles for current tenant
+DROP POLICY IF EXISTS rls_roles_custom_update ON public.roles;
 CREATE POLICY rls_roles_custom_update ON public.roles FOR UPDATE TO authenticated
 USING (is_system_role = false AND tenant_id = public.get_current_tenant_id())
 WITH CHECK (is_system_role = false AND tenant_id = public.get_current_tenant_id());
 
 -- DELETE: only custom roles for current tenant
+DROP POLICY IF EXISTS rls_roles_custom_delete ON public.roles;
 CREATE POLICY rls_roles_custom_delete ON public.roles FOR DELETE TO authenticated
 USING (is_system_role = false AND tenant_id = public.get_current_tenant_id());
 
 ALTER TABLE public.role_permissions ENABLE ROW LEVEL SECURITY;
 
 -- SELECT: system role permissions visible to all; custom role permissions only to owning tenant
+DROP POLICY IF EXISTS rls_role_permissions_read ON public.role_permissions;
 CREATE POLICY rls_role_permissions_read ON public.role_permissions FOR SELECT TO authenticated
 USING (EXISTS (SELECT 1 FROM public.roles r WHERE r.id = role_permissions.role_id
     AND (r.is_system_role = true OR r.tenant_id = public.get_current_tenant_id())));
 
 -- INSERT: only for custom roles of current tenant
+DROP POLICY IF EXISTS rls_role_permissions_custom_insert ON public.role_permissions;
 CREATE POLICY rls_role_permissions_custom_insert ON public.role_permissions FOR INSERT TO authenticated
 WITH CHECK (EXISTS (SELECT 1 FROM public.roles r WHERE r.id = role_permissions.role_id
     AND r.is_system_role = false AND r.tenant_id = public.get_current_tenant_id()));
 
 -- UPDATE: only for custom roles of current tenant
+DROP POLICY IF EXISTS rls_role_permissions_custom_update ON public.role_permissions;
 CREATE POLICY rls_role_permissions_custom_update ON public.role_permissions FOR UPDATE TO authenticated
 USING (EXISTS (SELECT 1 FROM public.roles r WHERE r.id = role_permissions.role_id
     AND r.is_system_role = false AND r.tenant_id = public.get_current_tenant_id()))
@@ -50,6 +57,7 @@ WITH CHECK (EXISTS (SELECT 1 FROM public.roles r WHERE r.id = role_permissions.r
     AND r.is_system_role = false AND r.tenant_id = public.get_current_tenant_id()));
 
 -- DELETE: only for custom roles of current tenant
+DROP POLICY IF EXISTS rls_role_permissions_custom_delete ON public.role_permissions;
 CREATE POLICY rls_role_permissions_custom_delete ON public.role_permissions FOR DELETE TO authenticated
 USING (EXISTS (SELECT 1 FROM public.roles r WHERE r.id = role_permissions.role_id
     AND r.is_system_role = false AND r.tenant_id = public.get_current_tenant_id()));
