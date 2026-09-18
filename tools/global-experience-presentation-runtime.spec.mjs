@@ -10,15 +10,36 @@ const context = await browser.newContext({ locale: "en-US", viewport: { width: 1
 const page = await context.newPage();
 
 async function login() {
-  await page.goto(`${baseUrl}/login`, { waitUntil: "domcontentloaded", timeout: 60000 });
-  await page.locator('input[type="email"],input[name="email"]').first().fill(email);
-  await page.locator('input[type="password"],input[name="password"]').first().fill(password);
-  await page.getByRole("button", { name: /sign in|login|log in|تسجيل الدخول|دخول/i }).first().click();
-  await page.waitForTimeout(1200);
-  const cookies = await context.cookies();
-  if (!cookies.some((cookie) => cookie.name.includes("auth-token"))) throw new Error("Authentication cookie missing");
-  await page.goto(`${baseUrl}/`, { waitUntil: "domcontentloaded", timeout: 60000 });
-  if (/\/login(?:[/?#]|$)/i.test(page.url())) throw new Error(`Login did not establish session: ${page.url()}`);
+  let lastFailure = "";
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    await context.clearCookies();
+    await page.goto(`${baseUrl}/login`, { waitUntil: "domcontentloaded", timeout: 60000 });
+    const tokenResponse = page.waitForResponse(
+      (response) => response.url().includes("/auth/v1/token"),
+      { timeout: 20000 },
+    ).catch(() => null);
+    await page.locator('input[type="email"],input[name="email"]').first().fill(email);
+    await page.locator('input[type="password"],input[name="password"]').first().fill(password);
+    await page.getByRole("button", { name: /sign in|login|log in|تسجيل الدخول|دخول/i }).first().click();
+    const token = await tokenResponse;
+    const tokenStatus = token?.status() ?? "no-response";
+    let hasAuthCookie = false;
+    for (let i = 0; i < 50; i += 1) {
+      const cookies = await context.cookies();
+      hasAuthCookie = cookies.some((cookie) => cookie.name.includes("auth-token"));
+      if (hasAuthCookie) break;
+      await page.waitForTimeout(200);
+    }
+    console.log(`GLOBAL_EXPERIENCE_LOGIN_ATTEMPT=${attempt} AUTH_STATUS=${tokenStatus} AUTH_COOKIE=${hasAuthCookie} URL=${page.url()}`);
+    if (hasAuthCookie) {
+      await page.goto(`${baseUrl}/`, { waitUntil: "domcontentloaded", timeout: 60000 });
+      await page.waitForTimeout(500);
+      if (!/\/login(?:[/?#]|$)/i.test(page.url())) return;
+    }
+    lastFailure = `attempt=${attempt} status=${tokenStatus} cookie=${hasAuthCookie} url=${page.url()}`;
+    if (attempt < 3) await page.waitForTimeout(1000);
+  }
+  throw new Error(`Login did not establish session. ${lastFailure}`);
 }
 
 function rectInsideViewport(rect, viewportWidth, viewportHeight) {
