@@ -66,7 +66,7 @@ if (!existsSync("supabase/config.toml")) {
 const fs = await import("node:fs");
 const configPath = "supabase/config.toml";
 let localConfig = fs.readFileSync(configPath, "utf8");
-const disabledServices = new Set(["auth", "realtime", "storage", "studio", "edge_runtime", "analytics", "inbucket"]);
+const disabledServices = new Set(["auth", "realtime", "studio", "edge_runtime", "analytics", "inbucket"]);
 const lines = localConfig.split("\n");
 let currentSection = "";
 for (let i = 0; i < lines.length; i += 1) {
@@ -86,7 +86,7 @@ if (run(["--help"], { timeout: 120000 }) !== 0) {
   process.exit(1);
 }
 
-const localDbOnlyServices = ["gotrue", "realtime", "storage-api", "imgproxy", "kong", "mailpit", "postgrest", "postgres-meta", "studio", "edge-runtime", "logflare", "vector", "supavisor"];
+const localDbOnlyServices = ["gotrue", "realtime", "imgproxy", "kong", "mailpit", "postgrest", "postgres-meta", "studio", "edge-runtime", "logflare", "vector", "supavisor"];
 if (run(["start", "--debug", "--exclude", localDbOnlyServices.join(",")], { timeout: 900000 }) !== 0) {
   console.error("D2_DATABASE_VERIFICATION=FAIL reason=supabase-start-failed");
   process.exit(1);
