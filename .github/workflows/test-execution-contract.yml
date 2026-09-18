@@ -1,5 +1,7 @@
 name: CORE SYSTEM Unified Test Execution Engine
 
+# Canonical test authority: all applicable workstream suites execute through this workflow.
+
 on:
   pull_request:
     branches: [main]
@@ -13,6 +15,10 @@ on:
 
 permissions:
   contents: read
+
+concurrency:
+  group: core-system-unified-test-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 env:
   NEXT_PUBLIC_SUPABASE_URL: https://qaslsjyxjwvdoiczmhgq.supabase.co
