@@ -20,6 +20,9 @@ select ok(not has_table_privilege('authenticated','public.patient_flow_events','
 select ok(not exists(select 1 from pg_policies where schemaname='public' and tablename='clinical_work_sessions' and cmd in ('INSERT','UPDATE','DELETE')),'Work Session has no lifecycle write policies');
 select ok(not exists(select 1 from pg_policies where schemaname='public' and tablename='patient_flow_queue_entries' and cmd in ('INSERT','UPDATE','DELETE')),'Queue Entry has no lifecycle write policies');
 select ok(not exists(select 1 from pg_policies where schemaname='public' and tablename='patient_flow_events' and cmd in ('INSERT','UPDATE','DELETE')),'Event has no lifecycle write policies');
+select ok((select relrowsecurity from pg_class where oid='public.clinical_work_sessions'::regclass),'Work Session RLS is enabled');
+select ok((select relrowsecurity from pg_class where oid='public.patient_flow_queue_entries'::regclass),'Queue Entry RLS is enabled');
+select ok((select relrowsecurity from pg_class where oid='public.patient_flow_events'::regclass),'Event RLS is enabled');
 insert into public.master_tenants(id,clinic_name,license_key) values('00000000-0000-0000-0000-00000000d202','CSAPI D2 Test Tenant A','CSAPI-D2-TEST-A'),('00000000-0000-0000-0000-00000000d203','CSAPI D2 Test Tenant B','CSAPI-D2-TEST-B');
 insert into public.clinic_users(id,tenant_id,full_name,role,employee_code,pin_code) values('00000000-0000-0000-0000-00000000d204','00000000-0000-0000-0000-00000000d202','D2 Test User A','doctor','D2-A','0000'),('00000000-0000-0000-0000-00000000d205','00000000-0000-0000-0000-00000000d203','D2 Test User B','doctor','D2-B','0001');
 insert into public.clinic_patients(id,tenant_id,first_name,last_name,phone_primary) values('00000000-0000-0000-0000-00000000d206','00000000-0000-0000-0000-00000000d202','Patient','A','000000001'),('00000000-0000-0000-0000-00000000d207','00000000-0000-0000-0000-00000000d203','Patient','B','000000002');
