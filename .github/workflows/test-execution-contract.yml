@@ -9,6 +9,11 @@ name: CORE SYSTEM Workstream Verification
 on:
   pull_request:
     branches: [main]
+  push:
+    branches:
+      - "implementation/**"
+      - "architecture/**"
+      - "repair/**"
   workflow_dispatch:
     inputs:
       base_ref:
