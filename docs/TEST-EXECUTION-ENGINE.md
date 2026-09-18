@@ -1,25 +1,15 @@
-# CORE SYSTEM Unified Test Execution Engine
+# CORE SYSTEM Verification Architecture
 
-## Authority
+The former Unified Test Execution Engine has been superseded by the Workstream Verification architecture documented in docs/testing/WORKSTREAM-VERIFICATION-ARCHITECTURE.md.
 
-`tools/test-execution-setup.mjs` is the decision engine. It compares the exact candidate against the exact baseline and produces `test-execution-plan.json`.
+.github/workflows/test-execution-contract.yml remains the workflow filename for compatibility, but it no longer runs a unified test process. It now plans independent verification lanes and aggregates their outcomes.
 
-`tools/test-execution-runner.mjs` is the execution engine. It executes only the suites selected by the contract, records each suite/test/command/exit code/duration, writes `test-execution-report.json`, and fails the workflow when any required test fails.
+tools/workstream-verification-plan.mjs is the applicability and contract-resolution layer.
 
-`.github/workflows/test-execution-contract.yml` is the single automated test workflow for pull requests to `main` and manual execution.
+tools/workstream-verification-lane.mjs executes exactly one known lane per GitHub Actions job.
 
-## Failure localization
+The architectural requirement is strict isolation: unrelated runtime suites must never share the same long-lived application process, mutable test state, or disposable database.
 
-Every executed test is reported as `SUITE`, `TEST`, `STATUS`, and `exit` in the Actions log and in `test-execution-report.json`. A failed suite does not hide later failures; the runner continues through the selected plan and emits a final deterministic decision.
+A final gate may aggregate results, but it must not hide missing or unsupported checks and must never treat a partially executed plan as a successful verification.
 
-## Runtime
-
-Engineering checks run first. If an authenticated browser suite is required, the runner starts the local production server from the validated build, waits for `/api/build-info`, executes the browser suites, and stops the server.
-
-Vercel is not a routine validation environment. Production release eligibility consumes a successful unified test-engine run.
-
-## Retired automated test workflows
-
-The former duplicate i18n, UX, stage validation, Reality Audit, runtime E2E, legacy cleanup, and documentation validation workflows were removed from `.github/workflows` so they cannot execute as parallel test authorities.
-
-Release/deployment governance workflows remain separate because they govern release/deployment rather than provide an independent test authority.
+Vercel is not part of this workstream verification path.
