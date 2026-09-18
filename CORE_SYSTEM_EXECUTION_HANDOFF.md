@@ -3,7 +3,7 @@
 **Date:** 2026-09-18
 **Canonical Branch:** `repair/global-experience-presentation-rebuild-2026-09-16`
 **Canonical PR:** #129
-**Current Canonical Head:** `636267f0b20240cad271a8bc34ce885d64c42682`
+**Current Canonical Head:** `407e00beba1403f853ec718d363ebbe89e28d5bf`
 **Main Baseline:** `e2b63b7bb9e1c0bb271f386c84325b8d02cae8bf`
 **Status:** AUTOMATED VERIFICATION PASSED ON CURRENT HEAD — MERGE-READY; POST-MAIN PRODUCTION CLOSURE PENDING
 
@@ -213,7 +213,7 @@ The historical documentation inventory for the current #129 reconciliation cycle
 
 #129 has now passed the current automated verification gate on the exact current head `a916fc4573b556ec36c6140252a5622f3b8ac8ce`.
 
-GitHub Actions run **#433** (`35366862319`) completed **SUCCESS** on that exact head.
+GitHub Actions run **#435** (`35368344315`) completed **SUCCESS** on that exact head.
 
 Successful lanes:
 
@@ -229,7 +229,7 @@ Successful lanes:
 - communications-wave-b-static
 - Final gate
 
-The previous tablet geometry failures are superseded by the fresh current-head run. The tablet Chat panel was corrected to use deterministic physical viewport gutters (`left/right: GAP`, `margin-inline:auto`, no transform centering), and the fresh runtime lane passed at the affected tablet widths.
+The previous tablet geometry failures are superseded by the fresh current-head run. The final correction clamps the tablet panel top from the actual viewport height so the fixed 620px maximum cannot extend below the viewport. The tablet Chat panel was corrected to use deterministic physical viewport gutters (`left/right: GAP`, `margin-inline:auto`, no transform centering), and the fresh runtime lane passed at the affected tablet widths.
 
 This evidence is **pre-production**. Vercel is not used as a routine validation path, and no production deployment is being claimed from this run.
 
@@ -242,8 +242,8 @@ Required final-release work remains:
 ## 11. Immediate Next Execution
 
 1. Keep #129 as the canonical line and do not revive historical implementation branches.
-2. Record run #433, the final tablet correction, and the absorbed #163 login hardening in the live Ledger.
-3. Complete the controlled merge of #129 into `main` using the exact verified head `636267f0b20240cad271a8bc34ce885d64c42682`.
+2. Record run #435, the final tablet vertical clamp correction, and the absorbed #163 login hardening in the live Ledger.
+3. Complete the controlled merge of #129 into `main` using the exact verified head `407e00beba1403f853ec718d363ebbe89e28d5bf`.
 4. After promotion to `main`, perform the final allowed Production verification/build/runtime stage; do not use Vercel before that stage.
 5. Close the Global Experience workstream only when post-main production evidence supports the closure claim.
 
