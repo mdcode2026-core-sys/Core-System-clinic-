@@ -34,8 +34,7 @@ function LoginForm() {
       setLoading(false);
       return;
     }
-    router.push(redirectPath);
-    router.refresh();
+    window.location.assign(redirectPath);
   }
 
   return (
