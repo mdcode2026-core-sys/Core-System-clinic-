@@ -9,7 +9,7 @@
 **Post-merge documentation branch:** `docs/csapi-d2-post-merge-verification-2026-09-19`
 **D2 Status:** MERGED — PRODUCTION ROLLOUT / FINAL VERIFICATION PENDING
 **D3 Branch:** `implementation/csapi-gate01-d3-lifecycle-authority-2026-09-19`
-**D3 Status:** PLAN FROZEN — PRE-IMPLEMENTATION VERIFICATION IN PROGRESS
+**D3 Status:** STEP 1 COMPLETE — COMMAND/DATA/EVENT CONTRACT FROZEN; DB IMPLEMENTATION PENDING
 **Production Supabase:** NOT TOUCHED FOR D2
 **Vercel:** NOT TOUCHED FOR D2
 
@@ -350,3 +350,29 @@ Step 0 evidence:
 No D3 production migration or application code has been changed at this point.
 
 **Current D3 next action:** verify the frozen plan branch through the applicable CI engineering gate. If it passes, proceed to Step 1: exact command/data/event contract. If it fails, fix only the concrete execution defect and re-verify before advancing.
+
+
+## D3 Step 1 — Command / Data / Event Contract
+
+**Result:** PASS / FROZEN BEFORE DATABASE IMPLEMENTATION.
+
+Authoritative contract:
+`docs/CSAPI/GATES/GATE-01-D3-COMMAND-DATA-EVENT-CONTRACT-2026-09-19.md`
+
+The contract fixes:
+- lifecycle transitions;
+- seven D3 domain commands;
+- owner/permission boundaries;
+- Queue Entry semantics and position normalization;
+- Work Session projection semantics;
+- Event taxonomy;
+- atomic transaction boundary;
+- concurrency and correlation/idempotency behavior;
+- legacy adapter rule;
+- D3-specific acceptance matrix.
+
+Verified repository evidence confirms the existing Queue Engine remains the transition-rule source and existing Queue/Visit actions are the legacy mutation callers to be migrated.
+
+**Step 1 evidence commit:** `cbfc04831e2ab6ec3a12276a59b12b90283b523e`
+
+**Next:** re-verify this exact branch/head through CI, then proceed to Step 2 — D3 database mutation boundary.
