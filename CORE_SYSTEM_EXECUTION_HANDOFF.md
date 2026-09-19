@@ -2,7 +2,7 @@
 
 **Updated:** 2026-09-19
 **Workstream:** CSAPI — Gate 01 — Patient Flow
-**Current Stage:** D2 — Database Foundations
+**Current Stage:** Gate 01 — Post-D2 / D3 Preparation
 **Canonical D2 PR:** #168
 **Canonical D2 Branch:** `implementation/csapi-gate-01-d2-database-foundations-canonical-2026-09-18`
 **Merged D2 Main SHA:** `6013a9ffa4705738bc9e8de7c0d1403ff6a0858e`
@@ -255,27 +255,23 @@ Do not:
 - repair Workforce/Payroll because it appeared in the migration chain;
 - repair Financial/Inventory because it appeared in the migration chain;
 - use Vercel;
-- mutate Production Supabase;
-- merge #168 before the D2 verification gate is truthful and green;
+- mutate Production Supabase during implementation or documentation reconciliation;
+- reopen or modify the merged #168 D2 implementation unless a new defect is proven;
 - revive old D2 PR #145 as the execution base;
 - use obsolete Unified Test Execution Engine evidence as current D2 proof.
 
 ## 10. Exact next execution
 
-When the next conversation starts with **CSAPI**, execute immediately from this handoff:
-
-1. Re-verify PR #168, its exact head, branch, and current GitHub Actions state.
-2. Review #168 for scope purity and merge-readiness against the now-green D2 gate.
-3. Merge only the exact verified head `c5cd0aef6dcecde96a477585985c1344f8924b62` to `main`.
-4. After merge, perform the authorized read-only Production Supabase verification for the D2 schema/RLS/constraints.
-5. Update this Handoff and the Ledger with exact final SHA, migration version, merge evidence, and production verification evidence.
-6. Close D2 only when all required closure evidence exists.
-7. Only then identify the canonical D3 plan/contract/branch from repository evidence and continue to D3 — without pulling D3 work backward into D2.
-9. Merge #168 to `main).
-10. Only after merge, perform the authorized Production Supabase read-only verification for the D2 migration/schema/RLS/constraints.
-11. Update this Handoff and the Ledger with exact final SHA, migration version, CI evidence, merge evidence, and production verification evidence.
-12. Close D2 only when all required closure evidence exists.
-13. Then identify the canonical D3 plan/contract/branch from repository evidence and continue to D3 — without pulling D3 work backward into D2.
+1. Treat D2 implementation as merged and CI-verified.
+2. Keep Production Supabase unchanged; its post-merge read-only check confirmed that D2 migration `20260917192500` is not deployed.
+3. Do not start D3 implementation until its contract is derived and frozen from repository evidence.
+4. Create a dedicated D3 branch/PR from current `main`.
+5. Implement only D3 lifecycle write authority/commands over the D2 foundations.
+6. Verify D3 through its own engineering/database/runtime gates.
+7. Run integrated Patient Flow verification: Reception → Waiting → Clinical Start → Work → Finish.
+8. Complete the final Gate 01 release/production stage under the approved release boundary.
+9. Update Handoff/Ledger with exact evidence and formally close Gate 01.
+10. Only after Gate 01 closure continue to the next approved CSAPI workstream; never pull later-phase work backward into D2.
 
 ## 10A. Post-merge transition — 2026-09-19
 
@@ -305,7 +301,7 @@ The exact D3 command names and transition matrix are not yet frozen in this hand
 
 Use this order when sources conflict:
 
-1. current `main) and current canonical PR/head;
+1. current `main` and current canonical PR/head;
 2. current CSAPI Gate 01 contracts/design packets;
 3. current repository implementation and migrations;
 4. current live Supabase evidence, read-only until the authorized post-merge D2 verification;
@@ -314,5 +310,7 @@ Use this order when sources conflict:
 Never let an old branch or old handoff silently become the execution base.
 
 **Resume command:** `CSAPI`
+
+**Current main documentation merge SHA:** `c23d0c8ca09c2dc944ed4422b18b72b4e4968b96`
 
 **End of Live Execution Handoff.**
