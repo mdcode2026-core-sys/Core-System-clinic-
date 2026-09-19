@@ -77,7 +77,7 @@ async function seed() {
   const pmap = new Map((ps.data || []).map((p) => [p.permission_key, p.id]));
 
   const grants = [
-    [doctorClinicId, ["patient_flow:clinical","sessions:update"]],
+    [doctorClinicId, ["patient_flow:clinical","sessions:update","visits:read","visits:update"]],
     [receptionClinicId, ["patient_flow:operations","sessions:update","sessions:close"]],
   ];
   for (const [userId, keys] of grants) {
@@ -116,7 +116,7 @@ async function login(email) {
   await page.goto(baseUrl + "/login", { waitUntil: "domcontentloaded", timeout: 60000 });
   await page.locator('input[type="email"],input[name="email"]').first().fill(email);
   await page.locator('input[type="password"],input[name="password"]').first().fill(password);
-  await page.getByRole("button", { name: /sign in|login|log in|ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ø¯Ø®ÙˆÙ„|Ø¯Ø®ÙˆÙ„/i }).first().click();
+  await page.getByRole("button", { name: /sign in|login|log in~*ºw^~)ÞvéÝyø§yÞJºw^~)Þt&'ºw^~)ÞvéÝyø§yß.ºw^~)ÞvéÝyø§yÔ|ºw^~)ÞvéÝyø§yÞHºw^~)Þt/i }).first().click();
   await page.waitForTimeout(2500);
   if (/\/login(?:[/?#]|$)/i.test(page.url())) {
     await page.goto(baseUrl + "/", { waitUntil: "domcontentloaded", timeout: 60000 });
@@ -167,20 +167,26 @@ try {
   await gotoPage("/patient-flow/operations");
   if (!(await page.getByText("D3 Runtime Patient", { exact: false }).count())) throw new Error("Reception cannot see seeded waiting patient");
   const card = page.getByText("D3 Runtime Patient", { exact: false }).first().locator("xpath=ancestor::div[contains(@class,'border')][1]");
-  await card.getByRole("button", { name: /register arrival|ØªØ³Ø¬ÙŠÙ„ Ø§Ù„ÙˆØµÙˆÙ„|register|ÙˆØµÙˆÙ„/i }).first().click();
+  await card.getByRole("button", { name: /register arrival|ºw^~)ÞvéÝyø§y×,ºw^~)ÞvéÝyø§yÔ ºw^~)ÞvéÝyø§yÖHºw^~)ÞvéÝyø§yÞD|register~éÝyø§yÞ5ºw^~)ÞvéÝyø§yÔ/i }).first().click();
   await page.waitForTimeout(700);
-  console.log("PASS|Reception enters Waiting through D3");
+  await assertVisitStatus("waiting", "Reception enters Waiting through D3");
+  await assertEvent("waiting_entered", "Reception Waiting event");
 
   await login(doctorEmail);
   await gotoPage("/patient-flow/clinical");
   await page.getByText("D3 Runtime Patient", { exact: false }).first().waitFor({ state: "visible", timeout: 30000 });
-  await button(/take|start|Ø¨Ø¯Ø¡/i, "Clinical Pull");
+  await button(/take|start~éÝyø§yÞ/ºw^~)Þu/i, "Clinical Pull");
+  await assertVisitStatus("in_consultation", "Clinical Pull state");
+  await assertEvent("clinical_started", "Clinical Start event");
+  await page.locator("textarea").first().waitFor({ state: "visible", timeout: 30000 });
   await page.locator("textarea").nth(0).fill("runtime examination");
   await page.locator("textarea").nth(1).fill("runtime findings");
   await page.locator("textarea").nth(2).fill("runtime decision");
-  await button(/finish visit|finish|Ø¥Ù†Ù‡Ø§Ø¡|Ø¥ÙƒÙ…Ø§Ù„/i, "Finish");
+  await button(/finish visit|finish~%ºw^~)ÞvéÝyø§y×'ºw^~)Þu~%ºw^~)ÞvéÝyø§y×'ºw^~)Þt/i, "Finish");
+  await assertVisitStatus("pending_close", "Finish state");
+  await assertEvent("clinical_finished", "Clinical Finish event");
   if (!(await page.getByText("Pending", { exact: false }).count())) throw new Error("Pending close state was not rendered");
-  if (await page.getByRole("button", { name: /complete visit|complete|Ø¥ØºÙ„Ø§Ù‚ Ø§Ù„Ø²ÙŠØ§Ø±Ø©|Ø¥ØºÙ„Ø§Ù‚/i }).count()) {
+  if (await page.getByRole("button", { name: /complete visit|complete~%ºw^~)ÞvéÝyø§yÖ'ºw^~)Þv&'ºw^~)ÞvéÝyø§yÖJºw^~)ÞvéÝyø§y×)~éÝyø§y×:ºw^~)ÞvéÝyø§y×B/i }).count()) {
     throw new Error("Clinical surface exposed reception completion");
   }
   console.log("PASS|Clinical cannot complete Reception-owned closure");
@@ -188,7 +194,9 @@ try {
   await login(receptionEmail);
   await gotoPage("/patient-flow/operations");
   await page.getByText("D3 Runtime Patient", { exact: false }).first().waitFor({ state: "visible", timeout: 30000 });
-  await button(/complete from reception|complete visit|complete|Ø¥ØºÙ„Ø§Ù‚ Ø§Ù„Ø²ÙŠØ§Ø±Ø©|Ø¥ØºÙ„Ø§Ù‚/i, "Reception Complete");
+  await button(/complete from reception|complete visit|complete|ºw^~)ÞvéÝyø§yÞDºw^~)ÞvéÝyø§yÒ ºw^~)ÞvéÝyø§yÖ2ºw^~)ÞvéÝyø§y×1ºw^~)Þu~%ºw^~)ÞvéÝyø§yÖ'ºw^~)Þv/i, "Reception Complete");
+  await assertVisitStatus("completed", "Reception Complete");
+  await assertEvent("reception_completed", "Reception Complete event");
 
   const final = await admin.from("clinic_visit_sessions").select("session_status").eq("id", visitId).single();
   if (final.error || final.data?.session_status !== "completed") throw new Error("Final visit status=" + (final.data?.session_status || final.error?.message));
