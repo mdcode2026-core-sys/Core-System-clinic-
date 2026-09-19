@@ -423,9 +423,9 @@ The D3 runtime lane remains planned and is not yet active.
 
 ## D3 Step 2B Closure — 2026-09-19
 
-Exact verified head: `3c9606775c09e5eb3f7fe70d820541f49a1bd452`
+Exact verified head: `3fe7fa27bc533ad6dc7623274e237f756682db30`
 
-GitHub Actions Run #539 (`35439186653`) PASS:
+GitHub Actions Run #540 (`35439419179`) PASS:
 - D3 database lifecycle authority: PASS
 - Patient Flow Stage 6 regression: PASS
 - Engineering: PASS
