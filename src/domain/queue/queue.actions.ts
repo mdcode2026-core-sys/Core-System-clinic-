@@ -6,7 +6,6 @@ import { resolveTenantId } from "@/core/auth/resolveTenantId";
 import { EnrichedSession, SessionStatus } from "./queue.types";
 import { d3CancelPatientFlow, d3EnterWaiting, d3MarkNoShow, d3StartClinicalWork } from "./d3.actions";
 import { getEffectivePermissions } from "@/core/permissions/permissionEngine";
-import { d3CancelPatientFlow, d3MarkNoShow, d3StartClinicalWork } from "./d3.actions";
 
 async function getAuthContext() {
   const supabase = await createClient();
@@ -91,11 +90,22 @@ export async function holdVisit(sessionId: string): Promise<EnrichedSession> {
 }
 
 export async function resumeVisit(sessionId: string): Promise<EnrichedSession> {
-  const { supabase, tenantId, userId, permissions } = await getAuthContext();
+  const { supabase, tenantId, permissions } = await getAuthContext();
   requirePermission(permissions, "sessions:update");
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not authenticated");
+  const { data: clinicUser, error: clinicUserError } = await supabase
+    .from("clinic_users")
+    .select("id")
+    .eq("tenant_id", tenantId)
+    .eq("auth_user_id", user.id)
+    .eq("is_active", true)
+    .is("deleted_at", null)
+    .maybeSingle();
+  if (clinicUserError || !clinicUser) throw new Error("Clinic user not resolved");
   const { data: session, error } = await supabase
     .from("clinic_visit_sessions")
-    .update({ lock_holder_id: userId, lock_timestamp: new Date().toISOString(), updated_at: new Date().toISOString() })
+    .update({ lock_holder_id: clinicUser.id, lock_timestamp: new Date().toISOString(), updated_at: new Date().toISOString() })
     .eq("id", sessionId)
     .eq("tenant_id", tenantId)
     .eq("session_status", "in_consultation")
