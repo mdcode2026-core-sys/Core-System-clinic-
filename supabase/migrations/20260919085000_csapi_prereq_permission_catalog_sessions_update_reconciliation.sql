@@ -27,6 +27,7 @@ JOIN public.permissions p
   ON p.permission_key = 'sessions:update'
 WHERE r.role_key IN ('clinic_admin','doctor','receptionist','super_admin')
   AND r.is_system_role = true
-ON CONFLICT DO NOTHING;
+ON CONFLICT (role_id, permission_id) DO UPDATE
+SET deleted_at = NULL;
 
 COMMIT;
