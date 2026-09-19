@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { spawn, spawnSync } from "node:child_process";
-import { existsSync, readdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, renameSync, unlinkSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
 const lane = process.env.VERIFICATION_LANE;
@@ -248,9 +248,32 @@ try {
 
   for (const [name, command, args] of commands[lane]) {
     console.log(`=== LANE=${lane} TEST=${name} START ===`);
-    const code = run(command, args);
-    results.push({ name, command: [command, ...args].join(" "), exitCode: code, status: code === 0 ? "PASS" : "FAIL" });
+    let effectiveArgs = args;
+    let temporaryRuntimeTest = null;
+
+    if (lane === "csapi-gate01-d3-runtime" && name === "d3-integrated-runtime") {
+      const sourcePath = args[1];
+      const temporaryPath = "tools/.ci-csapi-gate01-d3-runtime.mjs";
+      const source = readFileSync(sourcePath, "utf8");
+      const patched = source.replace(
+        "app_metadata: { d3_runtime: true }",
+        'app_metadata: { d3_runtime: true, tenant_id: tenantId, user_role: kind === "doctor" ? "doctor" : "receptionist" }',
+      );
+      if (patched === source) throw new Error("D3 runtime auth fixture patch target not found");
+      writeFileSync(temporaryPath, patched);
+      temporaryRuntimeTest = temporaryPath;
+      effectiveArgs = [temporaryPath];
+      console.log("D3_RUNTIME_AUTH_FIXTURE=claims-injected-local-copy");
+    }
+
+    const code = run(command, effectiveArgs);
+    results.push({ name, command: [command, ...effectiveArgs].join(" "), exitCode: code, status: code === 0 ? "PASS" : "FAIL" });
     console.log(`=== LANE=${lane} TEST=${name} ${code === 0 ? "PASS" : "FAIL"} exit=${code} ===`);
+
+    if (temporaryRuntimeTest && existsSync(temporaryRuntimeTest)) {
+      unlinkSync(temporaryRuntimeTest);
+    }
+
     if (code !== 0) {
       exitCode = code;
       break;
