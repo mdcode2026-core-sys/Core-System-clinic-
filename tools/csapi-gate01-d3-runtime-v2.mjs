@@ -71,7 +71,7 @@ async function seed() {
   if (cu.error) throw new Error("Clinic users fixture failed: " + cu.error.message);
 
   const ps = await admin.from("permissions").select("id,permission_key").in("permission_key", [
-    "patient_flow:clinical","patient_flow:operations","sessions:update","sessions:close",
+    "patient_flow:clinical","patient_flow:operations","sessions:update","sessions:close","visits:read","visits:update",
   ]);
   if (ps.error) throw new Error("Permissions lookup failed: " + ps.error.message);
   const pmap = new Map((ps.data || []).map((p) => [p.permission_key, p.id]));
