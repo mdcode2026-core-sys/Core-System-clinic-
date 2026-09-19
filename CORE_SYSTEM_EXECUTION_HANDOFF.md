@@ -9,7 +9,7 @@
 **Post-merge documentation branch:** `docs/csapi-d2-post-merge-verification-2026-09-19`
 **D2 Status:** MERGED — PRODUCTION ROLLOUT / FINAL VERIFICATION PENDING
 **D3 Branch:** `implementation/csapi-gate01-d3-lifecycle-authority-2026-09-19`
-**D3 Status:** STEP 3 COMPLETE / CI VERIFIED — SERVER ACTION INTEGRATION; STEP 4 RUNTIME PENDING
+**D3 Status:** STEP 4 RUNTIME VERIFICATION IN PROGRESS — LATEST RUNTIME FAIL; REMEDIATION PENDING
 **Production Supabase:** NOT TOUCHED FOR D2
 **Vercel:** NOT TOUCHED FOR D2
 
