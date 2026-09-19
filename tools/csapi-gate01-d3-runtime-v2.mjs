@@ -116,7 +116,7 @@ async function login(email) {
   await page.goto(baseUrl + "/login", { waitUntil: "domcontentloaded", timeout: 60000 });
   await page.locator('input[type="email"],input[name="email"]').first().fill(email);
   await page.locator('input[type="password"],input[name="password"]').first().fill(password);
-  await page.getByRole("button", { name: /sign in|login|log in~*w^~)vyyJw^~)t&'w^~)vyy.w^~)vyy|w^~)vyyHw^~)t/i }).first().click();
+  await page.getByRole("button", { name: /sign in|login|log in/i }).first().click();
   await page.waitForTimeout(2500);
   if (/\/login(?:[/?#]|$)/i.test(page.url())) {
     await page.goto(baseUrl + "/", { waitUntil: "domcontentloaded", timeout: 60000 });
@@ -167,7 +167,7 @@ try {
   await gotoPage("/patient-flow/operations");
   if (!(await page.getByText("D3 Runtime Patient", { exact: false }).count())) throw new Error("Reception cannot see seeded waiting patient");
   const card = page.getByText("D3 Runtime Patient", { exact: false }).first().locator("xpath=ancestor::div[contains(@class,'border')][1]");
-  await card.getByRole("button", { name: /register arrival|w^~)vyy,w^~)vyy w^~)vyyHw^~)vyyD|register~yy5w^~)vyy/i }).first().click();
+  await card.getByRole("button", { name: /register arrival|register/i }).first().click();
   await page.waitForTimeout(700);
   await assertVisitStatus("waiting", "Reception enters Waiting through D3");
   await assertEvent("waiting_entered", "Reception Waiting event");
@@ -175,18 +175,18 @@ try {
   await login(doctorEmail);
   await gotoPage("/patient-flow/clinical");
   await page.getByText("D3 Runtime Patient", { exact: false }).first().waitFor({ state: "visible", timeout: 30000 });
-  await button(/take|start~yy/w^~)u/i, "Clinical Pull");
+  await button(/take|start/i, "Clinical Pull");
   await assertVisitStatus("in_consultation", "Clinical Pull state");
   await assertEvent("clinical_started", "Clinical Start event");
   await page.locator("textarea").first().waitFor({ state: "visible", timeout: 30000 });
   await page.locator("textarea").nth(0).fill("runtime examination");
   await page.locator("textarea").nth(1).fill("runtime findings");
   await page.locator("textarea").nth(2).fill("runtime decision");
-  await button(/finish visit|finish~%w^~)vyy'w^~)u~%w^~)vyy'w^~)t/i, "Finish");
+  await button(/finish visit|finish/i, "Finish");
   await assertVisitStatus("pending_close", "Finish state");
   await assertEvent("clinical_finished", "Clinical Finish event");
   if (!(await page.getByText("Pending", { exact: false }).count())) throw new Error("Pending close state was not rendered");
-  if (await page.getByRole("button", { name: /complete visit|complete~%w^~)vyy'w^~)v&'w^~)vyyJw^~)vyy)~yy:w^~)vyyB/i }).count()) {
+  if (await page.getByRole("button", { name: /complete visit|complete/i }).count()) {
     throw new Error("Clinical surface exposed reception completion");
   }
   console.log("PASS|Clinical cannot complete Reception-owned closure");
@@ -194,7 +194,7 @@ try {
   await login(receptionEmail);
   await gotoPage("/patient-flow/operations");
   await page.getByText("D3 Runtime Patient", { exact: false }).first().waitFor({ state: "visible", timeout: 30000 });
-  await button(/complete from reception|complete visit|complete|w^~)vyyDw^~)vyy w^~)vyy2w^~)vyy1w^~)u~%w^~)vyy'w^~)v/i, "Reception Complete");
+  await button(/complete from reception|complete visit|complete/i, "Reception Complete");
   await assertVisitStatus("completed", "Reception Complete");
   await assertEvent("reception_completed", "Reception Complete event");
 
