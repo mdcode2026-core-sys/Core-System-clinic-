@@ -1,6 +1,6 @@
 BEGIN;
 
-SELECT plan(32);
+SELECT plan(44);
 
 CREATE TEMP TABLE d3_test_ids (
   key text primary key,
@@ -200,6 +200,19 @@ SELECT is(
   'Reorder Waiting emits waiting_reordered'
 );
 
+SELECT ok(
+  (public.csapi_d3_reorder_waiting(
+    (SELECT id FROM public.patient_flow_queue_entries WHERE tenant_id='00000000-0000-0000-0000-00000000d301' AND visit_id='00000000-0000-0000-0000-00000000d310' AND exited_at IS NULL),
+    1,'urgent','clinical','00000000-0000-0000-0000-00000000e302'
+  )->>'event_id') IS NOT NULL,
+  'same Reorder Waiting correlation returns existing outcome'
+);
+SELECT is(
+  (SELECT count(*)::int FROM public.patient_flow_events WHERE tenant_id='00000000-0000-0000-0000-00000000d301' AND visit_id='00000000-0000-0000-0000-00000000d310' AND event_type='waiting_reordered'),
+  1,
+  'same Reorder Waiting correlation does not duplicate the event'
+);
+
 SELECT set_config('request.jwt.claims','{"sub":"00000000-0000-0000-0000-00000000d303","app_metadata":{"tenant_id":"00000000-0000-0000-0000-00000000d301"}}',true);
 
 SELECT ok(
@@ -223,6 +236,19 @@ SELECT is(
   (SELECT count(*)::int FROM public.patient_flow_events WHERE tenant_id='00000000-0000-0000-0000-00000000d301' AND visit_id='00000000-0000-0000-0000-00000000d310' AND event_type='clinical_started'),
   1,
   'Start Clinical Work emits clinical_started'
+);
+
+SELECT ok(
+  (public.csapi_d3_start_clinical_work(
+    '00000000-0000-0000-0000-00000000d310',
+    '00000000-0000-0000-0000-00000000e303'
+  )->>'event_id') IS NOT NULL,
+  'same Start Clinical Work correlation returns existing outcome'
+);
+SELECT is(
+  (SELECT count(*)::int FROM public.patient_flow_events WHERE tenant_id='00000000-0000-0000-0000-00000000d301' AND visit_id='00000000-0000-0000-0000-00000000d310' AND event_type='clinical_started'),
+  1,
+  'same Start Clinical Work correlation does not duplicate the event'
 );
 
 SELECT throws_ok(
@@ -255,6 +281,19 @@ SELECT is(
   'Finish Clinical Work emits clinical_finished'
 );
 
+SELECT ok(
+  (public.csapi_d3_finish_clinical_work(
+    '00000000-0000-0000-0000-00000000d310',
+    '00000000-0000-0000-0000-00000000e305'
+  )->>'event_id') IS NOT NULL,
+  'same Finish Clinical Work correlation returns existing outcome'
+);
+SELECT is(
+  (SELECT count(*)::int FROM public.patient_flow_events WHERE tenant_id='00000000-0000-0000-0000-00000000d301' AND visit_id='00000000-0000-0000-0000-00000000d310' AND event_type='clinical_finished'),
+  1,
+  'same Finish Clinical Work correlation does not duplicate the event'
+);
+
 SELECT set_config('request.jwt.claims','{"sub":"00000000-0000-0000-0000-00000000d303","app_metadata":{"tenant_id":"00000000-0000-0000-0000-00000000d301"}}',true);
 SELECT throws_ok(
   $sql$SELECT public.csapi_d3_complete_reception('00000000-0000-0000-0000-00000000d310','00000000-0000-0000-0000-00000000e306')$sql$,
@@ -282,6 +321,19 @@ SELECT is(
   'Complete Reception emits reception_completed'
 );
 
+SELECT ok(
+  (public.csapi_d3_complete_reception(
+    '00000000-0000-0000-0000-00000000d310',
+    '00000000-0000-0000-0000-00000000e307'
+  )->>'event_id') IS NOT NULL,
+  'same Complete Reception correlation returns existing outcome'
+);
+SELECT is(
+  (SELECT count(*)::int FROM public.patient_flow_events WHERE tenant_id='00000000-0000-0000-0000-00000000d301' AND visit_id='00000000-0000-0000-0000-00000000d310' AND event_type='reception_completed'),
+  1,
+  'same Complete Reception correlation does not duplicate the event'
+);
+
 SELECT set_config('request.jwt.claims','{"sub":"00000000-0000-0000-0000-00000000d305","app_metadata":{"tenant_id":"00000000-0000-0000-0000-00000000d301"}}',true);
 SELECT public.csapi_d3_enter_waiting('00000000-0000-0000-0000-00000000d312','general','normal','arrival',null,'00000000-0000-0000-0000-00000000e308');
 SELECT ok(
@@ -294,6 +346,20 @@ SELECT is(
   'Mark No-show emits no_show'
 );
 
+SELECT ok(
+  (public.csapi_d3_mark_no_show(
+    '00000000-0000-0000-0000-00000000d312',
+    'no show',
+    '00000000-0000-0000-0000-00000000e309'
+  )->>'event_id') IS NOT NULL,
+  'same Mark No-show correlation returns existing outcome'
+);
+SELECT is(
+  (SELECT count(*)::int FROM public.patient_flow_events WHERE tenant_id='00000000-0000-0000-0000-00000000d301' AND visit_id='00000000-0000-0000-0000-00000000d312' AND event_type='no_show'),
+  1,
+  'same Mark No-show correlation does not duplicate the event'
+);
+
 SELECT set_config('request.jwt.claims','{"sub":"00000000-0000-0000-0000-00000000d305","app_metadata":{"tenant_id":"00000000-0000-0000-0000-00000000d301"}}',true);
 SELECT public.csapi_d3_enter_waiting('00000000-0000-0000-0000-00000000d313','general','high','arrival',null,'00000000-0000-0000-0000-00000000e310');
 SELECT ok(
@@ -304,6 +370,20 @@ SELECT is(
   (SELECT count(*)::int FROM public.patient_flow_events WHERE tenant_id='00000000-0000-0000-0000-00000000d301' AND visit_id='00000000-0000-0000-0000-00000000d313' AND event_type='cancelled'),
   1,
   'Cancel emits cancelled event'
+);
+
+SELECT ok(
+  (public.csapi_d3_cancel_patient_flow(
+    '00000000-0000-0000-0000-00000000d313',
+    'reception cancel',
+    '00000000-0000-0000-0000-00000000e311'
+  )->>'event_id') IS NOT NULL,
+  'same Cancel correlation returns existing outcome'
+);
+SELECT is(
+  (SELECT count(*)::int FROM public.patient_flow_events WHERE tenant_id='00000000-0000-0000-0000-00000000d301' AND visit_id='00000000-0000-0000-0000-00000000d313' AND event_type='cancelled'),
+  1,
+  'same Cancel correlation does not duplicate the event'
 );
 
 SELECT set_config('request.jwt.claims','{"sub":"00000000-0000-0000-0000-00000000d303","app_metadata":{"tenant_id":"00000000-0000-0000-0000-00000000d301"}}',true);
