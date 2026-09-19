@@ -10,6 +10,8 @@
 
 D3 owns lifecycle write authority for Patient Flow over the D2 foundations.
 
+**Authorization clarification:** Stage 6 `patient_flow:operations/clinical/administrative` keys govern Patient Flow surface/workspace access. They are not the canonical lifecycle-write permissions. D3 write authorization therefore uses the existing canonical session permissions (`sessions:update` and `sessions:close`) plus state/ownership/administrative rules already used by current Queue/Workspace actions. This prevents a parallel action-authority model.
+
 The canonical mutation path is:
 
 ```
@@ -88,7 +90,6 @@ Inputs:
 - `p_correlation_id uuid`
 
 Authorization:
-- effective `patient_flow:operations`
 - effective `sessions:update`
 
 Allowed source states:
@@ -139,7 +140,6 @@ Inputs:
 - `p_correlation_id uuid`
 
 Authorization:
-- effective `patient_flow:clinical`
 - effective `sessions:update`
 
 Responsibility rule:
@@ -222,8 +222,8 @@ Allowed states:
 - `pending_close`
 
 Authorization:
-- effective Patient Flow permission appropriate to the current context;
-- `sessions:update`;
+- effective `sessions:update`;
+- current-state ownership/administrative override rules;
 - clinical cancellation remains subject to clinical ownership/override rules.
 
 Behavior:
