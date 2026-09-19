@@ -72,12 +72,19 @@ export async function registerPatientArrival(
   if (data.sessionId) {
     const { data: current, error: readError } = await supabase
       .from("clinic_visit_sessions")
-      .select("id,session_status")
+      .select("id,session_status,patient_id,doctor_id,room_id,agenda_event_id")
       .eq("id", data.sessionId)
       .eq("tenant_id", tenantId)
       .single();
     if (readError || !current) throw new Error("Session not found");
     if (current.session_status !== "waiting") throw new Error("Patient must be waiting before arrival is registered");
+
+    patientId = data.patient_id ?? current.patient_id;
+    doctorId = data.doctor_id ?? current.doctor_id;
+    roomId = data.room_id ?? current.room_id;
+    agendaEventId = data.agenda_event_id ?? current.agenda_event_id;
+
+    if (!doctorId) throw new Error("Waiting session is missing a doctor");
 
     const { error } = await supabase
       .from("clinic_visit_sessions")
