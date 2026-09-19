@@ -1,6 +1,6 @@
 BEGIN;
 
-SELECT plan(40);
+SELECT plan(43);
 
 CREATE TEMP TABLE d3_test_ids (
   key text primary key,
@@ -113,6 +113,11 @@ SELECT is(
   3,
   'Reception direct permission grants exist'
 );
+SELECT ok(EXISTS(SELECT 1 FROM public.permissions WHERE permission_key='patient_flow:operations' AND deleted_at IS NULL),'patient_flow:operations permission exists');
+SELECT ok(EXISTS(SELECT 1 FROM public.permissions WHERE permission_key='sessions:update' AND deleted_at IS NULL),'sessions:update permission exists');
+SELECT ok(EXISTS(SELECT 1 FROM public.permissions WHERE permission_key='sessions:close' AND deleted_at IS NULL),'sessions:close permission exists');
+
+
 SELECT ok(
   'patient_flow:operations'=ANY(public.get_effective_permissions('00000000-0000-0000-0000-00000000d306'::uuid,'00000000-0000-0000-0000-00000000d301'::uuid)),
   'Effective permissions include patient_flow:operations'
