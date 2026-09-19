@@ -1,7 +1,7 @@
 # CORE SYSTEM — CSAPI Gate 01 — D3 Verification Plan
 
 **Updated:** 2026-09-19
-**Status:** IN PROGRESS — STEP 4 RUNTIME PENDING
+**Status:** IN PROGRESS — STEP 4 RUNTIME FAILED / REMEDIATION PENDING
 **Stage:** D3 — Lifecycle Write Authority / Commands
 
 ## 1. Test architecture decision
@@ -96,3 +96,33 @@ Exact verified head: `c57e35b791593175343c893d57368c582129fa24`
 Run #548 (`35441891645`) passed Engineering, D3 database/command, Patient Flow Stage 6 regression and Final gate.
 
 Step 3 server-action integration is complete. The remaining required evidence is the dedicated integrated runtime suite.
+
+
+## Latest D3 Step 4 Evidence — 2026-09-19
+
+**Candidate:** `381302a2c34542502e2c58d1d39804d7e6152336`
+**CI:** Run #576 (`35449505099`)
+
+Results:
+- Build applicable lane plan: PASS
+- Engineering: PASS
+- D3 database/command: PASS
+- Patient Flow Stage 6 regression: PASS
+- Integrated D3 runtime: **FAIL**
+- Final gate: FAIL
+
+### Runtime findings
+The local runtime and authentication layer now execute. Diagnostic output showed effective Reception permissions including `patient_flow:operations`, `patients:read`, `sessions:close`, `sessions:read`, and `sessions:update`, and the authenticated client could read the seeded waiting Visit/Patient.
+
+The first concrete application failure was:
+
+```
+Arrival failed: insert or update on table "clinic_visit_sessions"
+violates foreign key constraint "clinic_visit_sessions_initialized_by_receptionist_fkey"
+```
+
+The current runtime harness incorrectly treated the UI click as successful and continued, after which the Clinical path encountered `ACTIVE_WAITING_QUEUE_ENTRY_REQUIRED` and the test later timed out on documentation fields.
+
+Therefore the runtime verifier is **not yet trustworthy lifecycle evidence**. The next Step 4 action is to make the verifier fail-fast, inspect the FK target/identity semantics, fix the smallest proven defect, and rerun the complete lifecycle.
+
+**Step 4 remains OPEN.** Step 5 and Step 6 must not start.
