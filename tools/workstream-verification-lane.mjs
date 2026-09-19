@@ -157,25 +157,22 @@ function prepareD3RuntimeEnvironment() {
   }
 
   const fixtureSql = [
-    "insert into public.role_permissions(role_id,permission_id)",
-    "select r.id,p.id from public.roles r cross join public.permissions p",
-    "where r.role_key='doctor' and p.permission_key='patient_flow:clinical'",
-    "and not exists(select 1 from public.role_permissions rp where rp.role_id=r.id and rp.permission_id=p.id and rp.deleted_at is null);",
-    "insert into public.role_permissions(role_id,permission_id)",
-    "select r.id,p.id from public.roles r cross join public.permissions p",
-    "where r.role_key='receptionist' and p.permission_key='patient_flow:operations'",
-    "and not exists(select 1 from public.role_permissions rp where rp.role_id=r.id and rp.permission_id=p.id and rp.deleted_at is null);",
+    "INSERT INTO public.role_permissions(role_id,permission_id)",
+    "SELECT r.id,p.id FROM public.roles r CROSS JOIN public.permissions p",
+    "WHERE r.role_key='doctor' AND p.permission_key='patient_flow:clinical'",
+    "AND NOT EXISTS(SELECT 1 FROM public.role_permissions rp WHERE rp.role_id=r.id AND rp.permission_id=p.id AND rp.deleted_at IS NULL);",
+    "INSERT INTO public.role_permissions(role_id,permission_id)",
+    "SELECT r.id,p.id FROM public.roles r CROSS JOIN public.permissions p",
+    "WHERE r.role_key='receptionist' AND p.permission_key='patient_flow:operations'",
+    "AND NOT EXISTS(SELECT 1 FROM public.role_permissions rp WHERE rp.role_id=r.id AND rp.permission_id=p.id AND rp.deleted_at IS NULL);",
   ].join(" ");
-  const fixture = runCapture("curl", [
-    "-fsS", "-X", "POST",
-    process.env.NEXT_PUBLIC_SUPABASE_URL + "/rest/v1/rpc/exec",
-    "-H", "apikey: " + process.env.SUPABASE_SERVICE_ROLE_KEY,
-    "-H", "Authorization: Bearer " + process.env.SUPABASE_SERVICE_ROLE_KEY,
-    "-H", "Content-Type: application/json",
-    "--data", JSON.stringify({ sql: fixtureSql }),
+  const fixture = runCapture("psql", [
+    process.env.SUPABASE_DB_URL || "postgresql://postgres:postgres@127.0.0.1:54322/postgres",
+    "-v", "ON_ERROR_STOP=1",
+    "-c", fixtureSql,
   ]);
   if (fixture.status !== 0) {
-    console.log("D3_RUNTIME_ROLE_FIXTURE=SKIPPED");
+    throw new Error(`D3 local route-permission fixture failed: ${fixture.stderr.slice(-1200)}`);
   }
 }
 
