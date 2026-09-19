@@ -2,12 +2,14 @@
 
 **Updated:** 2026-09-19
 **Workstream:** CSAPI — Gate 01 — Patient Flow
-**Current Stage:** Gate 01 — Post-D2 / D3 Preparation
+**Current Stage:** D3 — Plan Freeze / Contract Definition
 **Canonical D2 PR:** #168
 **Canonical D2 Branch:** `implementation/csapi-gate-01-d2-database-foundations-canonical-2026-09-18`
 **Merged D2 Main SHA:** `6013a9ffa4705738bc9e8de7c0d1403ff6a0858e`
 **Post-merge documentation branch:** `docs/csapi-d2-post-merge-verification-2026-09-19`
 **D2 Status:** MERGED — PRODUCTION ROLLOUT / FINAL VERIFICATION PENDING
+**D3 Branch:** `implementation/csapi-gate01-d3-lifecycle-authority-2026-09-19`
+**D3 Status:** PLAN FROZEN — PRE-IMPLEMENTATION VERIFICATION IN PROGRESS
 **Production Supabase:** NOT TOUCHED FOR D2
 **Vercel:** NOT TOUCHED FOR D2
 
@@ -314,3 +316,37 @@ Never let an old branch or old handoff silently become the execution base.
 **Current main documentation merge SHA:** `c23d0c8ca09c2dc944ed4422b18b72b4e4968b96`
 
 **End of Live Execution Handoff.**
+
+
+## D3 Plan Freeze — 2026-09-19
+
+D3 has entered controlled pre-implementation execution.
+
+Authoritative D3 planning artifacts on the D3 branch:
+- `docs/CSAPI/GATES/GATE-01-D3-LIFECYCLE-WRITE-AUTHORITY-PLAN-2026-09-19.md`
+- `docs/CSAPI/GATES/GATE-01-D3-LIFECYCLE-WRITE-AUTHORITY-VERIFICATION-PLAN-2026-09-19.md`
+- `docs/testing/workstream-contracts/csapi-gate01-d3.execution.json`
+
+The plan explicitly separates:
+- D2 database foundations from D3 lifecycle writes;
+- existing Stage 6 regression evidence from new D3 lifecycle evidence;
+- database/command verification from integrated runtime verification.
+
+Current implementation finding:
+- Existing Queue/Visit server actions mutate `clinic_visit_sessions` directly.
+- They do not atomically project the same lifecycle transition into D2 Work Session / Queue Entry / Event records.
+- The existing broad `moveFromPatientFlow` mutation surface is not accepted as the canonical D3 command authority.
+
+Test suitability finding:
+- `tools/patient-flow-stage6-audit.mjs` remains a regression/static architecture check.
+- `supabase/tests/csapi_gate01_d2_database_foundations.sql` remains D2-only integrity evidence and must not be repurposed as D3 lifecycle proof.
+- D3 therefore requires dedicated database/command and runtime verification lanes.
+
+Step 0 evidence:
+- D3 plan created: `cd0056ee3164c6b6ecd335f226a0945fa6fbcbc3`
+- D3 verification plan created: `f9d82aad220d58a0b95200507f12de1f64c9b5fd`
+- D3 planned contract created: `1aec7ec51105d053853ac61d5daf2107bf20b892`
+
+No D3 production migration or application code has been changed at this point.
+
+**Current D3 next action:** verify the frozen plan branch through the applicable CI engineering gate. If it passes, proceed to Step 1: exact command/data/event contract. If it fails, fix only the concrete execution defect and re-verify before advancing.
