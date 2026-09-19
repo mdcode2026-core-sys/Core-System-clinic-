@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { spawn, spawnSync } from "node:child_process";
-import { writeFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 
 const lane = process.env.VERIFICATION_LANE;
 if (!lane) throw new Error("VERIFICATION_LANE is required");
@@ -101,7 +101,8 @@ function normalizeRuntimeMigrationVersions() {
       }
       used.add(replacement);
       const from = join(dir, duplicates[i]);
-      const to = join(dir, replacement + "_" + duplicates[i].slice(version.length + 1);
+      const to = join(dir, replacement + "_" + duplicates[i].slice(version.length + 1));
+
       renameSync(from, to);
       d3RuntimeState.renames.push({ from, to });
     }
@@ -190,7 +191,8 @@ try {
 
   const needsPlaywright = lane === "authenticated-e2e" ||
     lane === "patient-journey" ||
-    lane === "global-experience-presentation-runtime";
+    lane === "global-experience-presentation-runtime" ||
+    lane === "csapi-gate01-d3-runtime";
 
   if (needsPlaywright) {
     if (run("npm", ["install", "--no-save", "--no-package-lock", "@playwright/test@1.55.0", "playwright@1.55.0"]) !== 0) {
