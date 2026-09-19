@@ -1,7 +1,7 @@
 # CORE SYSTEM — CSAPI Gate 01 — D3 Verification Plan
 
 **Updated:** 2026-09-19
-**Status:** PLANNED / PRE-IMPLEMENTATION
+**Status:** IN PROGRESS — STEP 4 RUNTIME PENDING
 **Stage:** D3 — Lifecycle Write Authority / Commands
 
 ## 1. Test architecture decision
@@ -85,3 +85,14 @@ Every D3 step must leave an evidence record:
 No step may be marked complete from source inspection alone.
 
 **Status:** PRE-IMPLEMENTATION VERIFICATION PLAN.
+
+
+## Current D3 Verification State
+
+**2026-09-19 — Step 3 PASS**
+
+Exact verified head: `c57e35b791593175343c893d57368c582129fa24`
+
+Run #548 (`35441891645`) passed Engineering, D3 database/command, Patient Flow Stage 6 regression and Final gate.
+
+Step 3 server-action integration is complete. The remaining required evidence is the dedicated integrated runtime suite.
