@@ -790,3 +790,25 @@ Step 6 Documentation / Closure
 **Do not touch Production Supabase.**
 
 **Resume token: `CSAPI`**
+
+
+## Documentation Reconciliation Note
+
+The implementation/runtime evidence in this handoff is tied to tested candidate head `381302a2c34542502e2c58d1d39804d7e6152336`.
+
+After that tested candidate, documentation-only reconciliation commits were added to preserve the state of this execution conversation. Therefore the next conversation **must verify the live PR #172 head first** rather than assuming the current Git SHA is still `381302a2c...`.
+
+The authoritative facts that remain unchanged by those documentation commits are:
+- D3 Step 4 is OPEN.
+- Run #576 is the latest runtime evidence recorded here.
+- D3 database, Engineering and Stage 6 are PASS.
+- Integrated runtime is not proven.
+- First real runtime defect is the `initialized_by_receptionist` FK failure.
+- Runtime false-positive behavior must be corrected before accepting a future PASS.
+
+Supporting reconciliation documents were updated in this same execution closeout:
+- `CORE_SYSTEM_EXECUTION_HANDOFF.md`
+- `CORE_SYSTEM_EXECUTION_LEDGER.md`
+- D3 Verification Plan
+- D3 Workstream Contract
+- D3 Lifecycle Write Authority Plan
