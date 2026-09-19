@@ -9,7 +9,7 @@
 **Post-merge documentation branch:** `docs/csapi-d2-post-merge-verification-2026-09-19`
 **D2 Status:** MERGED — PRODUCTION ROLLOUT / FINAL VERIFICATION PENDING
 **D3 Branch:** `implementation/csapi-gate01-d3-lifecycle-authority-2026-09-19`
-**D3 Status:** STEP 2A COMPLETE — VERIFICATION HARNESS READY; D3 DATABASE MUTATION PENDING
+**D3 Status:** STEP 2B IMPLEMENTED — DATABASE MUTATION BOUNDARY ADDED; CI VERIFICATION PENDING
 **Production Supabase:** NOT TOUCHED FOR D2
 **Vercel:** NOT TOUCHED FOR D2
 
@@ -392,3 +392,30 @@ GitHub Actions run **#508** (`35433430969`) passed on exact D3 head `7b71fdfc57e
 The existing D2 and Stage 6 checks remain separate and were not reinterpreted as D3 proof.
 
 **Next approved step:** Step 2B — implement the D3 database mutation boundary and activate the binding D3 database contract. No Production mutation and no Vercel verification are permitted.
+
+## D3 Step 2B — Database Mutation Boundary
+
+**Implementation:** COMPLETE / VERIFICATION PENDING.
+
+Added:
+- `supabase/migrations/20260919090000_csapi_gate01_d3_lifecycle_authority.sql`
+- D3 lifecycle functions for Waiting, Reorder, Clinical Start, Clinical Finish, Reception Completion, Cancel and No-show.
+- Correlation idempotency index.
+- Authenticated-only RPC ACL.
+- Atomic Visit + D2 Queue/Work Session/Event projection boundary.
+- Controlled tenant/actor/permission validation and visit/work-session locking.
+
+Verification contract activated:
+- D3 database lane.
+- Patient Flow Stage 6 regression lane.
+- Engineering lane.
+
+The D3 runtime lane remains planned and is not yet active.
+
+**Exact implementation commits:**
+- Migration: `cafd46654b5d3d10281cef5b4481f555ce5c4468`
+- Migration correction: `5ea6b2f7da28846f84b7fcbfa26f090c32c62d12`
+- Test fixture correction: `59189c04f832991e4bd42845e810c24096405f2b`
+- Binding contract: `a6772bd9b3b0d5892d94a0ab5c83036876697afc`
+
+**Current next action:** run the exact D3 database and regression lanes. No D3 implementation may advance to server adapters until those lanes pass.
