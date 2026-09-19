@@ -36,7 +36,7 @@ const commands = {
   "communications-wave-b-static": [["communications-wave-b", "npm", ["run", "test:communications-wave-b"]]],
   "csapi-gate01-d2-database": [["d2-database-foundations", "node", ["tools/csapi-gate01-d2-database-verification.mjs"]]],
   "csapi-gate01-d3-database": [["d3-database-lifecycle-authority", "node", ["tools/csapi-gate01-d3-database-verification.mjs"]]],
-  "csapi-gate01-d3-runtime": [["d3-integrated-runtime", "node", ["tools/csapi-gate01-d3-runtime.mjs"]]],
+  "csapi-gate01-d3-runtime": [["d3-integrated-runtime", "node", ["tools/csapi-gate01-d3-runtime-v2.mjs"]]],
   "patient-flow-stage6-regression": [["patient-flow-stage6-regression", "npm", ["run", "ux:patient-flow-stage6"]]],
 };
 
