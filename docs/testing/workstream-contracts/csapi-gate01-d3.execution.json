@@ -2,7 +2,7 @@
   "contract_version": "1.0",
   "contract_type": "workstream",
   "workstream_id": "csapi-gate01-d3",
-  "status": "planned",
+  "status": "binding",
   "applicability": {
     "match_any": [
       "^supabase/migrations/.*csapi_gate01_d3.*\\.sql$",
@@ -13,16 +13,17 @@
       "^docs/CSAPI/GATES/GATE-01-D3-"
     ]
   },
-  "required_engineering": ["typecheck","lint","build"],
+  "required_engineering": [
+    "typecheck",
+    "lint",
+    "build"
+  ],
   "planned_suites": [
-    "engineering",
-    "csapi-gate01-d3-database",
-    "patient-flow-stage6-regression",
     "csapi-gate01-d3-runtime"
   ],
   "notes": [
-    "This contract is planned before implementation and is not yet activated in the workstream planner.",
-    "The planner must be updated before the contract becomes binding so every declared check resolves to an explicit verification lane.",
+    "D3 database and Patient Flow Stage 6 regression checks are now binding for the D3 implementation PR.",
+    "The integrated runtime suite remains planned until its dedicated runtime runner is implemented and verified.",
     "D3 must not modify or reinterpret the D2 verification contract.",
     "Vercel and hosted Production Supabase are excluded from D3 implementation verification."
   ],
@@ -37,5 +38,18 @@
     "idempotency",
     "legacy mutation path migration",
     "integrated runtime"
+  ],
+  "required_suites": [
+    "engineering",
+    "csapi-gate01-d3-database",
+    "patient-flow-stage6-regression"
+  ],
+  "workstream_checks": [
+    {
+      "name": "d3-lifecycle-database",
+      "command": "node tools/csapi-gate01-d3-database-verification.mjs",
+      "required": true,
+      "execution_owner": "workstream-verification"
+    }
   ]
 }
