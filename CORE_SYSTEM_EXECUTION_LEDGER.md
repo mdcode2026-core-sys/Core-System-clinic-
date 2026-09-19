@@ -195,3 +195,12 @@ Final release / production stage
         ↓
 Gate 01 CLOSED
 ```
+
+## 2026-09-19 D3 Plan Freeze / Test Suitability Review
+
+| Date | Action | Evidence | Result | Decision | Next Action |
+|---|---|---|---|---|---|
+| 2026-09-19 | D3 branch established | `implementation/csapi-gate01-d3-lifecycle-authority-2026-09-19` from current `main` | Controlled non-main execution path | Use this branch as the sole D3 implementation path | Verify frozen plan |
+| 2026-09-19 | D3 plan frozen | D3 lifecycle authority plan + verification plan + planned workstream contract | Scope, command intent, atomicity, security, test and closure boundaries documented before code | No code modification before plan verification | Run applicable CI |
+| 2026-09-19 | Test suitability review | Stage 6 audit, D2 pgTAP, existing Queue/Visit actions, D2 schema | Stage 6 = regression/static; D2 pgTAP = D2-only; neither proves D3 lifecycle writes | Add dedicated D3 DB/command and runtime evidence | Activate lanes only after tooling exists |
+| 2026-09-19 | Existing mutation-path finding | `queue.actions.ts`, `workspace.actions.ts`, `visit.actions.ts` | Direct legacy Visit mutations exist and broad generic Patient Flow mutation is not sufficient for D3 authority | D3 must centralize lifecycle writes and migrate callers | Step 1 exact command/data contract |
