@@ -233,3 +233,83 @@ Gate 01 CLOSED
 
 | 2026-09-19 | D3 Step 3 — Server Action Integration | Exact head `c57e35b791593175343c893d57368c582129fa24`; GitHub Actions Run #548 (`35441891645`) | Build plan, Engineering, D3 database, Stage 6 regression and Final gate all PASS | Server lifecycle callers now dispatch to canonical D3 commands; old generic lifecycle mutation authority removed from active paths | Proceed to D3 Step 4 — Integrated Runtime |
 | 2026-09-19 | D3 Step 3 corrective regression update | Run #547 Stage 6 failed only because the static audit expected superseded pre-D3 helper structure; `tools/patient-flow-stage6-audit.mjs` was updated to verify the D3 adapter boundary and reject legacy generic lifecycle mutation | Run #548 re-verification PASS | Treat the audit as a regression contract for architecture, not a requirement to preserve obsolete implementation structure | Keep runtime evidence separate and execute Step 4 |
+
+
+## 2026-09-19 D3 Step 4 — Integrated Runtime Reconciliation / Conversation Resume
+
+| Date | Action | Evidence | Result | Decision | Next Action |
+|---|---|---|---|---|---|
+| 2026-09-19 | Step 3 server-action integration completed | Head `c57e35b791593175343c893d57368c582129fa24`; Run #548 `35441891645` | Build plan, Engineering, D3 DB, Stage 6 and Final gate all PASS | Step 3 closed at CI level | Start Step 4 integrated runtime |
+| 2026-09-19 | Runtime lane activated | `tools/csapi-gate01-d3-runtime.mjs`, then `tools/csapi-gate01-d3-runtime-v2.mjs`; local Supabase + local Next runtime | Initial runtime infrastructure/auth assumptions exposed several verifier/fixture defects | Keep runtime fully local; do not use Vercel/Production | Continue runtime hardening |
+| 2026-09-19 | Runtime local-environment correction | Lane runner now initializes missing local `supabase/config.toml`, replays migrations locally, provisions local auth/permissions, and tears the environment down after the test | Local environment became executable | Treat these as verification infrastructure only | Verify actual application path |
+| 2026-09-19 | Runtime auth correction | Temporary local runtime copy injects deterministic app claims; later diagnostics confirmed effective permissions | Authentication PASS; Reception actor can resolve expected D3/session permissions and read seeded Visit/Patient | Auth is not the remaining primary blocker | Investigate lifecycle arrival path |
+| 2026-09-19 | Latest runtime execution | Run #576 `35449505099`, current PR head `381302a2c34542502e2c58d1d39804d7e6152336` | Build plan PASS; Engineering PASS; D3 DB PASS; Stage 6 PASS; Runtime FAIL; Final gate FAIL | Step 4 remains OPEN | Fix truthful runtime harness + first real application defect |
+| 2026-09-19 | First real application defect identified | Runtime log: `clinic_visit_sessions_initialized_by_receptionist_fkey` | Reception arrival server action fails because the value written to `initialized_by_receptionist` violates its FK | Do not mask this error as a test fixture success; inspect FK target and canonical identity semantics | Determine smallest correct application/fixture correction |
+| 2026-09-19 | Runtime verifier false-positive identified | Same Run #576 continued after arrival failure and printed `PASS|Reception enters Waiting through D3`; later `ACTIVE_WAITING_QUEUE_ENTRY_REQUIRED` also did not abort | Current runtime verifier is not yet trustworthy lifecycle evidence | Harden fail-fast behavior before using another PASS as D3 proof | Update verifier and rerun |
+| 2026-09-19 | Current D3 resume point frozen | `docs/CSAPI/CSAPI-CURRENT-EXECUTION-HANDOFF-2026-09-19.md` created | Conversation-independent CSAPI resume state now records exact head, Step status, failed runtime evidence, scope boundaries and next action | New conversation must start with `CSAPI` and read the current handoff first | Continue Step 4 only |
+
+### Current D3 gate state
+
+**Step 0:** CLOSED  
+**Step 1:** CLOSED / CONTRACT FROZEN  
+**Step 2A:** CLOSED / VERIFICATION HARNESS PASS  
+**Step 2B:** CLOSED / CI PASS  
+**Step 3:** CLOSED / CI PASS  
+**Step 4:** **OPEN / RUNTIME NOT PASSED**  
+**Step 5:** NOT STARTED  
+**Step 6:** NOT STARTED
+
+### Current exact repository state
+
+PR #172:
+- open
+- draft
+- mergeable
+- not merged
+- current head: `381302a2c34542502e2c58d1d39804d7e6152336`
+- 85 commits
+- 19 changed files
+- 3,957 additions
+- 134 deletions
+
+The PR body still carries obsolete plan-freeze language. It must be reconciled later, after Step 4/5 evidence, and must not be treated as current execution scope.
+
+### Current runtime evidence boundary
+
+Run #576 proves:
+- local build/start can run;
+- local Supabase migration replay can run for the D3 lane;
+- authenticated runtime session can be established;
+- effective permissions can be resolved;
+- seeded Visit/Patient can be read.
+
+Run #576 does **not** prove:
+- Reception arrival succeeds;
+- Queue Entry is created by the runtime path;
+- Clinical Pull succeeds;
+- Clinical Work succeeds;
+- Finish succeeds;
+- Pending Close succeeds;
+- Reception Completion succeeds;
+- Completed lifecycle/event sequence succeeds.
+
+Therefore no runtime PASS may be inferred from #576.
+
+### Scope protection
+
+The D3 user-approved direction remains:
+- technical permissions may be used and broadened in tests;
+- role/plan mappings in fixtures are not final product design;
+- Full Subscription is a capability baseline for deterministic testing;
+- no final commercial subscription tiers are being designed in D3;
+- future capability gaps are findings for later authorization/entitlement stages;
+- no unrelated domain repairs are part of D3.
+
+### Hard boundary
+
+No Vercel verification.  
+No hosted Production Supabase mutation.  
+No unrelated Workforce/Payroll/Financial/Inventory implementation.  
+No UI redesign.  
+No second Queue engine.  
+No second permission engine.
