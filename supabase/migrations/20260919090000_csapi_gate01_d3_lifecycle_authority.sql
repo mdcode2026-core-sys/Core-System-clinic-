@@ -51,8 +51,7 @@ BEGIN
     RAISE EXCEPTION USING ERRCODE='P0001', MESSAGE='ACTOR_NOT_FOUND';
   END IF;
 
-  IF NOT public.has_effective_permission('patient_flow:operations')
-     OR NOT public.has_effective_permission('sessions:update') THEN
+  IF NOT public.has_effective_permission('sessions:update') THEN
     RAISE EXCEPTION USING ERRCODE='P0001', MESSAGE='PERMISSION_DENIED';
   END IF;
 
@@ -219,8 +218,7 @@ BEGIN
     RAISE EXCEPTION USING ERRCODE='P0001', MESSAGE='ACTOR_NOT_FOUND';
   END IF;
 
-  IF NOT public.has_effective_permission('patient_flow:operations')
-     OR NOT public.has_effective_permission('sessions:update') THEN
+  IF NOT public.has_effective_permission('sessions:update') THEN
     RAISE EXCEPTION USING ERRCODE='P0001', MESSAGE='PERMISSION_DENIED';
   END IF;
 
@@ -410,8 +408,7 @@ BEGIN
     RAISE EXCEPTION USING ERRCODE='P0001', MESSAGE='ACTOR_NOT_FOUND';
   END IF;
 
-  IF NOT public.has_effective_permission('patient_flow:clinical')
-     OR NOT public.has_effective_permission('sessions:update') THEN
+  IF NOT public.has_effective_permission('sessions:update') THEN
     RAISE EXCEPTION USING ERRCODE='P0001', MESSAGE='PERMISSION_DENIED';
   END IF;
 
@@ -586,8 +583,7 @@ BEGIN
     RAISE EXCEPTION USING ERRCODE='P0001', MESSAGE='ACTOR_NOT_FOUND';
   END IF;
 
-  IF NOT public.has_effective_permission('patient_flow:clinical')
-     OR NOT public.has_effective_permission('sessions:update') THEN
+  IF NOT public.has_effective_permission('sessions:update') THEN
     RAISE EXCEPTION USING ERRCODE='P0001', MESSAGE='PERMISSION_DENIED';
   END IF;
 
@@ -768,7 +764,7 @@ BEGIN
     RAISE EXCEPTION USING ERRCODE='P0001', MESSAGE='ACTOR_NOT_FOUND';
   END IF;
 
-  IF NOT public.has_effective_permission('patient_flow:operations')
+  IF NOT public.has_effective_permission('sessions:update')
      OR NOT public.has_effective_permission('sessions:close') THEN
     RAISE EXCEPTION USING ERRCODE='P0001', MESSAGE='PERMISSION_DENIED';
   END IF;
@@ -977,13 +973,7 @@ BEGIN
 
   IF v_previous_status = 'in_consultation'
      AND NOT v_admin_override
-     AND NOT public.has_effective_permission('patient_flow:clinical') THEN
-    RAISE EXCEPTION USING ERRCODE='P0001', MESSAGE='PERMISSION_DENIED';
-  END IF;
-
-  IF v_previous_status IN ('waiting','pending_close')
-     AND NOT v_admin_override
-     AND NOT public.has_effective_permission('patient_flow:operations') THEN
+     AND NOT public.has_effective_permission('sessions:update') THEN
     RAISE EXCEPTION USING ERRCODE='P0001', MESSAGE='PERMISSION_DENIED';
   END IF;
 
@@ -1112,8 +1102,7 @@ BEGIN
     RAISE EXCEPTION USING ERRCODE='P0001', MESSAGE='ACTOR_NOT_FOUND';
   END IF;
 
-  IF NOT public.has_effective_permission('patient_flow:operations')
-     OR NOT public.has_effective_permission('sessions:update') THEN
+  IF NOT public.has_effective_permission('sessions:update') THEN
     RAISE EXCEPTION USING ERRCODE='P0001', MESSAGE='PERMISSION_DENIED';
   END IF;
 
