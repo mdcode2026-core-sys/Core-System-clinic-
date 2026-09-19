@@ -81,7 +81,16 @@ SELECT
   'a7200000-0000-4000-8000-000000000001'::uuid,
   2200,
   22000
-WHERE NOT EXISTS (
+WHERE EXISTS (
+  SELECT 1 FROM public.master_tenants mt
+  WHERE mt.id='2fa98983-8069-420f-9c27-7c36ef96ef6e'::uuid
+)
+AND EXISTS (
+  SELECT 1 FROM public.inventory_items ii
+  WHERE ii.id='ccc3760a-398a-4c2b-abe6-8b345bda9c92'::uuid
+    AND ii.tenant_id='2fa98983-8069-420f-9c27-7c36ef96ef6e'::uuid
+)
+AND NOT EXISTS (
   SELECT 1 FROM public.inventory_ledger il
   WHERE il.tenant_id='2fa98983-8069-420f-9c27-7c36ef96ef6e'::uuid
     AND il.source_type='purchase_receipt'
