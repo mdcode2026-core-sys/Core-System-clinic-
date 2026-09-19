@@ -23,7 +23,15 @@ async function getContext() {
   const tenantId = await resolveTenantId(user.id);
   if (!tenantId) throw new Error("No tenant assigned");
   const permissions = await getEffectivePermissions(user.id, tenantId);
-  return { supabase, user, tenantId, permissions };
+  const { data: clinicUser, error: clinicUserError } = await supabase
+    .from("clinic_users")
+    .select("id")
+    .eq("auth_user_id", user.id)
+    .eq("tenant_id", tenantId)
+    .eq("is_active", true)
+    .maybeSingle();
+  if (clinicUserError || !clinicUser) throw new Error("Clinic user not resolved");
+  return { supabase, user, tenantId, clinicUserId: clinicUser.id, permissions };
 }
 
 function requirePermission(permissions: readonly string[], permission: string) {
@@ -94,7 +102,7 @@ export async function registerPatientArrival(
         room_id: roomId,
         agenda_event_id: agendaEventId,
         arrived_at: new Date().toISOString(),
-        initialized_by_receptionist: user.id,
+        initialized_by_receptionist: clinicUserId,
         updated_at: new Date().toISOString(),
       })
       .eq("id", data.sessionId)
