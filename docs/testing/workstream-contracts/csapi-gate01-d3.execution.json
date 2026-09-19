@@ -23,7 +23,7 @@
   ],
   "notes": [
     "D3 database and Patient Flow Stage 6 regression checks are now binding for the D3 implementation PR.",
-    "The integrated runtime suite remains planned until its dedicated runtime runner is implemented and verified.",
+    "The integrated runtime suite is now implemented and binding; it runs against an isolated local Supabase + local Next runtime.",
     "D3 must not modify or reinterpret the D2 verification contract.",
     "Vercel and hosted Production Supabase are excluded from D3 implementation verification."
   ],
