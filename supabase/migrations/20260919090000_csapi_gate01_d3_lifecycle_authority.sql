@@ -257,12 +257,9 @@ BEGIN
     RAISE EXCEPTION USING ERRCODE='P0001', MESSAGE='INVALID_QUEUE_LANE';
   END IF;
 
-  SELECT q.*, v.session_status
-  INTO v_entry, v_visit_status
+  SELECT q.*
+  INTO v_entry
   FROM public.patient_flow_queue_entries q
-  JOIN public.clinic_visit_sessions v
-    ON v.tenant_id = q.tenant_id
-   AND v.id = q.visit_id
   WHERE q.id = p_queue_entry_id
     AND q.tenant_id = v_tenant_id
     AND q.exited_at IS NULL
@@ -271,6 +268,14 @@ BEGIN
   IF v_entry.id IS NULL THEN
     RAISE EXCEPTION USING ERRCODE='P0001', MESSAGE='ACTIVE_QUEUE_ENTRY_NOT_FOUND';
   END IF;
+
+  SELECT v.session_status
+  INTO v_visit_status
+  FROM public.clinic_visit_sessions v
+  WHERE v.id = v_entry.visit_id
+    AND v.tenant_id = v_tenant_id
+    AND v.deleted_at IS NULL
+  FOR UPDATE;
 
   IF v_visit_status <> 'waiting' THEN
     RAISE EXCEPTION USING ERRCODE='P0001', MESSAGE='REORDER_REQUIRES_WAITING_VISIT';
