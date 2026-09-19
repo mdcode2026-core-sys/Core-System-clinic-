@@ -419,3 +419,18 @@ The D3 runtime lane remains planned and is not yet active.
 - Binding contract: `a6772bd9b3b0d5892d94a0ab5c83036876697afc`
 
 **Current next action:** run the exact D3 database and regression lanes. No D3 implementation may advance to server adapters until those lanes pass.
+
+
+## D3 Step 2B Closure — 2026-09-19
+
+Exact verified head: `3c9606775c09e5eb3f7fe70d820541f49a1bd452`
+
+GitHub Actions Run #539 (`35439186653`) PASS:
+- D3 database lifecycle authority: PASS
+- Patient Flow Stage 6 regression: PASS
+- Engineering: PASS
+- Final gate: PASS
+
+Step 2B database mutation boundary is therefore verified and closed at CI level. No Production Supabase mutation and no Vercel verification were used.
+
+**Next:** Step 3 — Server action integration. Migrate active D3-owned direct mutation callers to thin wrappers over the canonical D3 commands. Do not redesign Queue/Workspace/Visit UI or introduce a second engine.
