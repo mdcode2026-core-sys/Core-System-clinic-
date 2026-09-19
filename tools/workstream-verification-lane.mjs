@@ -279,15 +279,16 @@ try {
         'await gotoPage("/patient-flow/clinical");',
         'await gotoPage("/clinical");',
       );
-      patched = patched.replace(
-        '  await card.getByRole("button", { name: /register arrival|تسجيل الوصول|register|وصول/i }).first().click();',
-        `  const more = card.locator("details").locator("summary").filter({ hasText: /more|المزيد/i }).first();
+      const arrivalPatchTarget = '  await card.getByRole("button", { name: /register arrival|register/i }).first().click();';
+      const arrivalPatchReplacement = `  const more = card.locator("details").locator("summary").filter({ hasText: /more|المزيد/i }).first();
   await more.waitFor({ state: "visible", timeout: 30000 });
   await more.click();
-  const registerArrival = card.getByRole("button", { name: /register arrival|تسجيل الوصول|register|وصول/i }).first();
+  const registerArrival = card.getByRole("button", { name: /register arrival|register/i }).first();
   await registerArrival.waitFor({ state: "visible", timeout: 30000 });
-  await registerArrival.click();`,
-      );
+  await registerArrival.click();`;
+      const arrivalPatched = patched.replace(arrivalPatchTarget, arrivalPatchReplacement);
+      if (arrivalPatched === patched) throw new Error("D3 runtime arrival UI patch target not found; verifier source changed without updating the CI patch.");
+      patched = arrivalPatched;
 
       patched = patched.replace(
         "await seed();",
