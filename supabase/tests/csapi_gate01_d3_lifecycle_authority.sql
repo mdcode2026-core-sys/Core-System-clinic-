@@ -101,7 +101,7 @@ VALUES
  ('00000000-0000-0000-0000-00000000d313','00000000-0000-0000-0000-00000000d301','00000000-0000-0000-0000-00000000d309','00000000-0000-0000-0000-00000000d304','waiting',now(),now());
 
 SET LOCAL ROLE authenticated;
-SELECT set_config('request.jwt.claims','{"sub":"00000000-0000-0000-0000-00000000d305"}',true);
+SELECT set_config('request.jwt.claims','{"sub":"00000000-0000-0000-0000-00000000d305","app_metadata":{"tenant_id":"00000000-0000-0000-0000-00000000d301"}}',true);
 
 SELECT ok(
   (public.csapi_d3_enter_waiting(
@@ -157,7 +157,7 @@ SELECT is(
   'Reorder Waiting emits waiting_reordered'
 );
 
-SELECT set_config('request.jwt.claims','{"sub":"00000000-0000-0000-0000-00000000d303"}',true);
+SELECT set_config('request.jwt.claims','{"sub":"00000000-0000-0000-0000-00000000d303","app_metadata":{"tenant_id":"00000000-0000-0000-0000-00000000d301"}}',true);
 
 SELECT ok(
   (public.csapi_d3_start_clinical_work(
@@ -212,7 +212,7 @@ SELECT is(
   'Finish Clinical Work emits clinical_finished'
 );
 
-SELECT set_config('request.jwt.claims','{"sub":"00000000-0000-0000-0000-00000000d303"}',true);
+SELECT set_config('request.jwt.claims','{"sub":"00000000-0000-0000-0000-00000000d303","app_metadata":{"tenant_id":"00000000-0000-0000-0000-00000000d301"}}',true);
 SELECT throws_ok(
   $sql$SELECT public.csapi_d3_complete_reception('00000000-0000-0000-0000-00000000d310','00000000-0000-0000-0000-00000000e306')$sql$,
   'P0001',
@@ -220,7 +220,7 @@ SELECT throws_ok(
   'clinical actor cannot complete reception-owned close'
 );
 
-SELECT set_config('request.jwt.claims','{"sub":"00000000-0000-0000-0000-00000000d305"}',true);
+SELECT set_config('request.jwt.claims','{"sub":"00000000-0000-0000-0000-00000000d305","app_metadata":{"tenant_id":"00000000-0000-0000-0000-00000000d301"}}',true);
 SELECT ok(
   (public.csapi_d3_complete_reception(
     '00000000-0000-0000-0000-00000000d310',
@@ -239,7 +239,7 @@ SELECT is(
   'Complete Reception emits reception_completed'
 );
 
-SELECT set_config('request.jwt.claims','{"sub":"00000000-0000-0000-0000-00000000d305"}',true);
+SELECT set_config('request.jwt.claims','{"sub":"00000000-0000-0000-0000-00000000d305","app_metadata":{"tenant_id":"00000000-0000-0000-0000-00000000d301"}}',true);
 SELECT public.csapi_d3_enter_waiting('00000000-0000-0000-0000-00000000d312','general','normal','arrival',null,'00000000-0000-0000-0000-00000000e308');
 SELECT ok(
   (public.csapi_d3_mark_no_show('00000000-0000-0000-0000-00000000d312','no show','00000000-0000-0000-0000-00000000e309')->>'new_status')='no_show',
@@ -251,7 +251,7 @@ SELECT is(
   'Mark No-show emits no_show'
 );
 
-SELECT set_config('request.jwt.claims','{"sub":"00000000-0000-0000-0000-00000000d305"}',true);
+SELECT set_config('request.jwt.claims','{"sub":"00000000-0000-0000-0000-00000000d305","app_metadata":{"tenant_id":"00000000-0000-0000-0000-00000000d301"}}',true);
 SELECT public.csapi_d3_enter_waiting('00000000-0000-0000-0000-00000000d313','general','high','arrival',null,'00000000-0000-0000-0000-00000000e310');
 SELECT ok(
   (public.csapi_d3_cancel_patient_flow('00000000-0000-0000-0000-00000000d313','reception cancel','00000000-0000-0000-0000-00000000e311')->>'new_status')='cancelled',
@@ -263,7 +263,7 @@ SELECT is(
   'Cancel emits cancelled event'
 );
 
-SELECT set_config('request.jwt.claims','{"sub":"00000000-0000-0000-0000-00000000d303"}',true);
+SELECT set_config('request.jwt.claims','{"sub":"00000000-0000-0000-0000-00000000d303","app_metadata":{"tenant_id":"00000000-0000-0000-0000-00000000d301"}}',true);
 SELECT throws_ok(
   $sql$SELECT public.csapi_d3_start_clinical_work('00000000-0000-0000-0000-00000000d311','00000000-0000-0000-0000-00000000e312')$sql$,
   'P0001',
@@ -271,7 +271,7 @@ SELECT throws_ok(
   'cross-tenant Visit is rejected'
 );
 
-SELECT set_config('request.jwt.claims','{"sub":"00000000-0000-0000-0000-00000000d307"}',true);
+SELECT set_config('request.jwt.claims','{"sub":"00000000-0000-0000-0000-00000000d307","app_metadata":{"tenant_id":"00000000-0000-0000-0000-00000000d301"}}',true);
 SELECT throws_ok(
   $sql$SELECT public.csapi_d3_mark_no_show('00000000-0000-0000-0000-00000000d310','unauthorized','00000000-0000-0000-0000-00000000e313')$sql$,
   'P0001',
@@ -279,7 +279,7 @@ SELECT throws_ok(
   'unauthorized actor is rejected'
 );
 
-SELECT set_config('request.jwt.claims','{"sub":"00000000-0000-0000-0000-00000000d305"}',true);
+SELECT set_config('request.jwt.claims','{"sub":"00000000-0000-0000-0000-00000000d305","app_metadata":{"tenant_id":"00000000-0000-0000-0000-00000000d301"}}',true);
 SELECT throws_ok(
   $sql$SELECT public.csapi_d3_mark_no_show('00000000-0000-0000-0000-00000000d312','mismatch','00000000-0000-0000-0000-00000000e301')$sql$,
   'P0001',
