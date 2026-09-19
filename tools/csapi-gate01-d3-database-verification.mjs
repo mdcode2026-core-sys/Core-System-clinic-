@@ -120,6 +120,19 @@ try {
     process.exit(1);
   }
 
+  console.log("D3_DATABASE_CONCURRENCY_DELEGATE=START");
+  const concurrency = spawnSync("node", ["tools/csapi-gate01-d3-concurrency-verification.mjs"], {
+    stdio: "inherit",
+    env: { ...process.env, SUPABASE_TELEMETRY_DISABLED: "1" },
+    shell: false,
+    timeout: 180000,
+    killSignal: "SIGTERM",
+  });
+  if ((concurrency.status ?? 1) !== 0) {
+    console.error("D3_DATABASE_VERIFICATION=FAIL reason=concurrency-proof-failed");
+    process.exit(1);
+  }
+
   console.log("D3_DATABASE_VERIFICATION=PASS");
 } finally {
   cleanup();
