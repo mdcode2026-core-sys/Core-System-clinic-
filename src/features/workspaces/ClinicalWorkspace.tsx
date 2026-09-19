@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { getQueue } from "@/domain/queue/queue.queries";
+import { getCurrentClinicUserId, getQueue } from "@/domain/queue/queue.queries";
 import type { EnrichedSession } from "@/domain/queue/queue.types";
 import { transitionToClinical } from "@/domain/queue/workspace.actions";
 import { addVisitProcedure, finishClinicalVisit, getClinicalProcedures, getClinicalVisit, removeVisitProcedure, saveClinicalVisit } from "@/domain/visit/visit.actions";
@@ -40,9 +40,9 @@ export function ClinicalWorkspace({ initialQueue = [] }: { initialQueue?: Enrich
     if (!user) return;
     setLoading(true); setError(null);
     try {
-      const queue = await getQueue();
+      const [queue, clinicUserId] = await Promise.all([getQueue(), getCurrentClinicUserId()]);
       setSessions(queue.filter((s) => s.session_status === "waiting" || s.session_status === "in_consultation" || s.session_status === "pending_close"));
-      const active = queue.find((s) => s.session_status === "in_consultation" && s.lock_holder_id === user.id);
+      const active = queue.find((s) => s.session_status === "in_consultation" && s.lock_holder_id === clinicUserId);
       if (active) {
         const visit = await getClinicalVisit(active.id);
         setCurrent(visit);
