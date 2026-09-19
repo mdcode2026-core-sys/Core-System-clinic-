@@ -54,7 +54,7 @@ function revalidateWorkspacePaths() {
 export async function registerPatientArrival(
   data: { sessionId?: string; patient_id: string; doctor_id?: string; room_id?: string; agenda_event_id?: string },
 ): Promise<EnrichedSession> {
-  const { supabase, user, tenantId, permissions } = await getContext();
+  const { supabase, user, tenantId, clinicUserId, permissions } = await getContext();
   requirePermission(permissions, "sessions:update");
 
   let patientId = data.patient_id;
@@ -128,7 +128,7 @@ export async function registerPatientArrival(
       room_id: roomId,
       agenda_event_id: agendaEventId,
       arrived_at: now,
-      initialized_by_receptionist: user.id,
+      initialized_by_receptionist: clinicUserId,
       session_status: "waiting",
       created_at: now,
       updated_at: now,
