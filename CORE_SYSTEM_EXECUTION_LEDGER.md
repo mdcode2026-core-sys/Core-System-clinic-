@@ -218,3 +218,11 @@ Gate 01 CLOSED
 | Date | Action | Evidence | Result | Decision | Next Action |
 |---|---|---|---|---|---|
 | 2026-09-19 | D3 verification harness added | D3 pgTAP test, D3 DB runner, workstream lane/planner mappings | Engineering/verification infrastructure changes pass CI run #508 (`35433430969`) on `7b71fdfc57e20c04c9af0684ba191612ed127bf9` | Harness is ready; D3 DB migration can now be implemented and tested | Step 2B — D3 database mutation boundary |
+
+## 2026-09-19 D3 Step 2B — Database Mutation Boundary
+
+| Date | Action | Evidence | Result | Decision | Next Action |
+|---|---|---|---|---|---|
+| 2026-09-19 | D3 mutation migration added | `supabase/migrations/20260919090000_csapi_gate01_d3_lifecycle_authority.sql` | Seven lifecycle write commands + correlation boundary + ACL/security added | D3 write authority now exists only in the new command boundary | Verify by dedicated D3 DB lane |
+| 2026-09-19 | D3 verification contract activated | `docs/testing/workstream-contracts/csapi-gate01-d3.execution.json` | D3 DB + Stage 6 regression + Engineering are binding; runtime remains planned | Do not advance until these gates pass | Run CI on exact head |
+| 2026-09-19 | D3 test fixture/schema reconciliation | Auth fixture rows and PL/pgSQL record handling corrected | Test is aligned with actual Auth FK and SQL execution rules | Preserve production command design; fix test setup only | Verify exact current head |
