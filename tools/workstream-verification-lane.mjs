@@ -293,6 +293,11 @@ try {
         "await seed();",
         
         `await seed();
+  const workspaceFixtures = await admin.from("clinic_user_workspaces").upsert([
+    { tenant_id: tenantId, user_id: receptionClinicId, workspace: "operation", is_default: true },
+    { tenant_id: tenantId, user_id: doctorClinicId, workspace: "clinical", is_default: true },
+  ], { onConflict: "tenant_id,user_id,workspace" });
+  if (workspaceFixtures.error) throw new Error("D3 workspace fixture failed: " + workspaceFixtures.error.message);
   const diagnosticClient = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
   const diagnosticAuth = await diagnosticClient.auth.signInWithPassword({ email: receptionEmail, password });
   if (diagnosticAuth.error || !diagnosticAuth.data.user) throw new Error("Diagnostic authenticated client login failed: " + (diagnosticAuth.error?.message || "no user"));
