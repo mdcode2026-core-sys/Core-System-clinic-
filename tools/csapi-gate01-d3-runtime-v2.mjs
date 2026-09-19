@@ -159,6 +159,27 @@ async function assertEvent(eventType, label) {
   console.log("PASS|" + label + "|" + eventType);
 }
 
+async function assertActiveQueueCount(expected, label, routingTarget = null) {
+  let query = admin.from("patient_flow_queue_entries").select("id").eq("tenant_id", tenantId).eq("visit_id", visitId).is("exited_at", null);
+  if (routingTarget) query = query.eq("routing_target", routingTarget);
+  const result = await query;
+  if (result.error) throw new Error(label + " queue read failed: " + result.error.message);
+  if ((result.data || []).length !== expected) throw new Error(label + " expected=" + expected + " actual=" + (result.data || []).length);
+  console.log("PASS|" + label + "|" + expected);
+}
+
+async function assertWorkSessionState(expectedActive, expectedFinished, label) {
+  const result = await admin.from("clinical_work_sessions").select("status").eq("tenant_id", tenantId).eq("visit_id", visitId);
+  if (result.error) throw new Error(label + " work-session read failed: " + result.error.message);
+  const rows = result.data || [];
+  const active = rows.filter((row) => row.status === "active").length;
+  const finished = rows.filter((row) => row.status === "finished").length;
+  if (active !== expectedActive || finished !== expectedFinished) {
+    throw new Error(label + " expectedActive=" + expectedActive + " actualActive=" + active + " expectedFinished=" + expectedFinished + " actualFinished=" + finished);
+  }
+  console.log("PASS|" + label + "|active=" + active + "|finished=" + finished);
+}
+
 async function cleanup() {
   await admin.from("patient_flow_events").delete().eq("tenant_id", tenantId);
   await admin.from("clinical_work_sessions").delete().eq("tenant_id", tenantId);
@@ -191,6 +212,8 @@ try {
   await page.getByText("D3 Runtime Patient", { exact: false }).first().waitFor({ state: "visible", timeout: 30000 });
   await button(/take|start/i, "Clinical Pull");
   await assertVisitStatus("in_consultation", "Clinical Pull state");
+  await assertActiveQueueCount(0, "Clinical Pull closes active waiting queue");
+  await assertWorkSessionState(1, 0, "Clinical Pull creates one active Work Session");
   await assertEvent("clinical_started", "Clinical Start event");
   await page.locator("textarea").first().waitFor({ state: "visible", timeout: 30000 });
   await page.locator("textarea").nth(0).fill("runtime examination");
@@ -198,6 +221,8 @@ try {
   await page.locator("textarea").nth(2).fill("runtime decision");
   await button(/finish visit|finish/i, "Finish");
   await assertVisitStatus("pending_close", "Finish state");
+  await assertWorkSessionState(0, 1, "Finish closes Work Session");
+  await assertActiveQueueCount(1, "Finish creates reception handoff queue", "reception");
   await assertEvent("clinical_finished", "Clinical Finish event");
   if (!(await page.getByText("Pending", { exact: false }).count())) throw new Error("Pending close state was not rendered");
   if (await page.getByRole("button", { name: /complete visit|complete/i }).count()) {
@@ -205,11 +230,24 @@ try {
   }
   console.log("PASS|Clinical cannot complete Reception-owned closure");
 
+  const doctorClient = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
+  const doctorAuth = await doctorClient.auth.signInWithPassword({ email: doctorEmail, password });
+  if (doctorAuth.error || !doctorAuth.data.user) throw new Error("Negative authority fixture login failed: " + (doctorAuth.error?.message || "no user"));
+  const deniedCompletion = await doctorClient.rpc("csapi_d3_complete_reception", {
+    p_visit_id: visitId,
+    p_correlation_id: "00000000-0000-0000-0000-00000000e399",
+  });
+  if (!deniedCompletion.error || !/PERMISSION_DENIED/i.test(deniedCompletion.error.message || "")) {
+    throw new Error("Clinical direct reception completion was not rejected by D3 authority boundary");
+  }
+  console.log("PASS|Clinical direct reception-completion RPC rejected");
+
   await login(receptionEmail);
   await gotoPage("/patient-flow/operations");
   await page.getByText("D3 Runtime Patient", { exact: false }).first().waitFor({ state: "visible", timeout: 30000 });
   await button(/complete from reception|complete visit|complete/i, "Reception Complete");
   await assertVisitStatus("completed", "Reception Complete");
+  await assertActiveQueueCount(0, "Reception Complete closes active queue");
   await assertEvent("reception_completed", "Reception Complete event");
 
   const final = await admin.from("clinic_visit_sessions").select("session_status").eq("id", visitId).single();
