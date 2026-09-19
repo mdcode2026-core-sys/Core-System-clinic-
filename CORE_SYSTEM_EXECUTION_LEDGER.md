@@ -169,3 +169,29 @@ D3 must not start implementation before D2 closure.
 
 | 2026-09-19 | D2 verification PASS | GitHub Actions run `#499` (`35431678991`) on exact head `c5cd0aef6dcecde96a477585985c1344f8924b62` | Build plan, D2 database, Engineering, and Final gate all PASS | D2 database foundations are pre-merge verified; no production mutation and no Vercel verification used | Review scope, then merge exact verified head to `main`; perform post-merge read-only production verification |
 | 2026-09-19 | D2 test-fixture correction | Commit `c5cd0aef6dcecde96a477585985c1344f8924b62` updated only `supabase/tests/csapi_gate01_d2_database_foundations.sql` so doctor fixtures provide canonical `role_id` | Corrects test setup to current canonical RBAC schema without changing D2 production migrations | Keep correction scoped to verification fixture | Preserve exact verified head for merge |
+
+## 2026-09-19 D2 Post-Merge Reconciliation
+
+| Date | Action | Evidence | Result | Decision | Next Action |
+|---|---|---|---|---|---|
+| 2026-09-19 | D2 final documented CI | Run #500 (`35431848948`) on `fd717722994e0945765acd300c3640b8aac7edfa` | PASS | Pre-merge documented head verified | Merge exact candidate |
+| 2026-09-19 | D2 PR merge | PR #168 | Merged | Main now contains D2 implementation | Post-merge verification |
+| 2026-09-19 | Main merge evidence | SHA `6013a9ffa4705738bc9e8de7c0d1403ff6a0858e` | Merge completed | D2 implementation stage is merged | Keep D3 separate |
+| 2026-09-19 | Production read-only check | Supabase migration history + catalog | Migration `20260917192500` absent; all three D2 tables absent | Production rollout is not complete | Do not claim Production D2 deployment |
+| 2026-09-19 | Gate 01 transition | D2 implementation + CI + merge complete | Gate 01 remains OPEN | D3 is next | Establish D3 contract before code |
+
+### CSAPI Gate 01 execution model
+
+```text
+D1 — application/contract foundation
+        ↓
+D2 — database foundations [MERGED + CI VERIFIED]
+        ↓
+D3 — lifecycle write authority / commands [NEXT]
+        ↓
+Integrated Patient Flow verification
+        ↓
+Final release / production stage
+        ↓
+Gate 01 CLOSED
+```

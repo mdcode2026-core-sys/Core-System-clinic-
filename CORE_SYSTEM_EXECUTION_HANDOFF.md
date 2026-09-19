@@ -5,9 +5,9 @@
 **Current Stage:** D2 — Database Foundations
 **Canonical D2 PR:** #168
 **Canonical D2 Branch:** `implementation/csapi-gate-01-d2-database-foundations-canonical-2026-09-18`
-**Canonical D2 Head:** `c5cd0aef6dcecde96a477585985c1344f8924b62`
-**Documentation branch:** `docs/csapi-gate01-d2-handoff-reconciliation-2026-09-19`
-**D2 Status:** VERIFIED — CI PASS; PRE-MERGE CLOSURE PENDING
+**Merged D2 Main SHA:** `6013a9ffa4705738bc9e8de7c0d1403ff6a0858e`
+**Post-merge documentation branch:** `docs/csapi-d2-post-merge-verification-2026-09-19`
+**D2 Status:** MERGED — PRODUCTION ROLLOUT / FINAL VERIFICATION PENDING
 **Production Supabase:** NOT TOUCHED FOR D2
 **Vercel:** NOT TOUCHED FOR D2
 
@@ -104,7 +104,7 @@ The D2 database lane therefore reached and passed the contracted D2 assertions, 
 
 The immediately preceding replay/test-fixture correction was limited to the D2 test fixture: it now supplies the canonical `role_id` for its doctor test users. No production database was changed and no Vercel verification was used.
 
-D2 remains pre-merge: PR #168 is still draft/open and Production Supabase has not been touched.
+PR #168 is merged to `main` as `6013a9ffa4705738bc9e8de7c0d1403ff6a0858e`. Production Supabase has not been modified.
 
 ### Historical pre-fix verification evidence
 
@@ -276,6 +276,30 @@ When the next conversation starts with **CSAPI**, execute immediately from this 
 11. Update this Handoff and the Ledger with exact final SHA, migration version, CI evidence, merge evidence, and production verification evidence.
 12. Close D2 only when all required closure evidence exists.
 13. Then identify the canonical D3 plan/contract/branch from repository evidence and continue to D3 — without pulling D3 work backward into D2.
+
+## 10A. Post-merge transition — 2026-09-19
+
+- PR #168 merged to `main` with SHA `6013a9ffa4705738bc9e8de7c0d1403ff6a0858e`.
+- GitHub Actions #499 and #500 passed the D2 verification sequence.
+- Production Supabase was checked read-only after merge.
+- Migration `20260917192500` is not deployed to Production, and the three D2 tables are not present there.
+- D2 implementation is therefore merged and CI-verified; Gate 01 is still open.
+- D3 is the next implementation stage and must use its own contract, branch, PR, verification, and closure evidence.
+
+### CSAPI Gate 01 master sequence
+
+D1 — application/contract foundation
+→ D2 — database foundations [MERGED + CI VERIFIED]
+→ D3 — lifecycle write authority / commands [NEXT]
+→ integrated Patient Flow verification
+→ final release/production stage
+→ Gate 01 CLOSED
+
+### D3 boundary
+
+D3 translates the approved Patient Flow lifecycle into authoritative, tenant-safe, actor-authorized state-changing operations over the D2 tables. It must preserve Waiting as a queue state, keep Reception ordering separate from clinical start, let the responsible clinical user/room pull the patient when work begins, and use the approved completion term `Finish`.
+
+The exact D3 command names and transition matrix are not yet frozen in this handoff and must be derived from the D3 contract/repository evidence before any D3 code change.
 
 ## 11. Canonical source priority
 

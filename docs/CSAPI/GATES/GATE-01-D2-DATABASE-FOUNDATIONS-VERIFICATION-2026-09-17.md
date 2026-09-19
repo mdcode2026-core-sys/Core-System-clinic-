@@ -2,10 +2,10 @@
 
 **Updated:** 2026-09-19  
 **Stage:** D2 — Database Foundations  
-**Status:** BLOCKED — MIGRATION-CHAIN REPLAY FAILURE  
+**Status:** VERIFIED / MERGED; PRODUCTION ROLLOUT PENDING
 **Canonical PR:** #168  
 **Canonical branch:** `implementation/csapi-gate-01-d2-database-foundations-canonical-2026-09-18`  
-**Current known head:** `2d331509e8a709e394dfe0dd819a7a6e5d1a5091`
+**Merged main SHA:** `6013a9ffa4705738bc9e8de7c0d1403ff6a0858e`
 
 ## Verification method
 
@@ -19,30 +19,15 @@ The verification target is the repository's local Supabase stack / CI database, 
 - Tests: `supabase/tests/csapi_gate01_d2_database_foundations.sql`
 - Runner: `tools/csapi-gate01-d2-database-verification.mjs`
 
-## Latest evidence
+## Latest evidence — reconciled after merge
 
-GitHub Actions run **35384612530**:
+GitHub Actions run **#499** (`35431678991`) passed all required D2 lanes on exact code candidate `c5cd0aef6dcecde96a477585985c1344f8924b62`.
 
-| Check | Result |
-|---|---|
-| Build applicable lane plan | PASS |
-| Engineering | CANCELLED after required D2 lane failure |
-| D2 database | FAIL |
-| Final gate | FAIL |
+After documentation-only reconciliation, run **#500** (`35431848948`) also passed on final documented pre-merge head `fd717722994e0945765acd300c3640b8aac7edfa`.
 
-The first concrete database replay blocker was:
+PR #168 was merged to `main` with merge SHA `6013a9ffa4705738bc9e8de7c0d1403ff6a0858e`.
 
-```
-ERROR: insert or update on table "clinic_resources"
-violates foreign key constraint "clinic_resources_tenant_id_fkey"
-SQLSTATE 23503
-```
-
-Migration:
-
-`supabase/migrations/20260830030534_ajm_reality_audit_clinical_resource_scheduling.sql`
-
-Cause: a historical reality-audit fixture inserts resources for a hard-coded Zada tenant that is absent in the clean replay database.
+Post-merge Production Supabase check was read-only and confirmed migration `20260917192500` and all three D2 tables are not yet present in Production.
 
 ## Interpretation
 
@@ -79,8 +64,10 @@ No Vercel use is authorized for D2 before the final post-merge release stage.
 
 ## Closure rule
 
-D2 may be marked VERIFIED only after the complete required evidence exists. A green D2 assertion run is not sufficient if the migration chain was made green by suppressing or bypassing a real error.
+D2 implementation verification is complete and the PR is merged.
 
-After merge to `main`, perform the authorized read-only Production verification for D2 schema/RLS/constraints and record exact evidence in the Handoff/Ledger.
+Production rollout is not complete because the D2 migration has not been deployed to Production. No Production mutation was performed in this verification sequence.
 
-**D2 verification status:** OPEN / BLOCKED.
+D3 remains the next implementation stage and must have its own contract, branch, PR, verification lane, and closure evidence.
+
+**D2 verification status:** MERGED / VERIFIED — PRODUCTION ROLLOUT PENDING.
