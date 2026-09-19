@@ -35,6 +35,7 @@ const commands = {
   "communications-wave-b-static": [["communications-wave-b", "npm", ["run", "test:communications-wave-b"]]],
   "csapi-gate01-d2-database": [["d2-database-foundations", "node", ["tools/csapi-gate01-d2-database-verification.mjs"]]],
   "csapi-gate01-d3-database": [["d3-database-lifecycle-authority", "node", ["tools/csapi-gate01-d3-database-verification.mjs"]]],
+  "csapi-gate01-d3-runtime": [["d3-integrated-runtime", "node", ["tools/csapi-gate01-d3-runtime.mjs"]]],
   "patient-flow-stage6-regression": [["patient-flow-stage6-regression", "npm", ["run", "ux:patient-flow-stage6"]]],
 };
 
@@ -44,6 +45,7 @@ const runtimeLanes = new Set([
   "cross-domain-runtime",
   "procurement-inventory-finance",
   "global-experience-presentation-runtime",
+  "csapi-gate01-d3-runtime",
 ]);
 
 function run(command, args) {
@@ -58,6 +60,101 @@ function run(command, args) {
     console.error(`COMMAND_ERROR=${result.error.code || "unknown"} ${result.error.message}`);
   }
   return result.status ?? (result.error?.code === "ETIMEDOUT" ? 124 : 1);
+}
+
+function runCapture(command, args) {
+  const result = spawnSync(command, args, {
+    stdio: ["ignore", "pipe", "pipe"],
+    env: process.env,
+    shell: false,
+    encoding: "utf8",
+    timeout: timeoutMs,
+  });
+  return { status: result.status ?? 1, stdout: result.stdout || "", stderr: result.stderr || "" };
+}
+
+const d3RuntimeState = {
+  started: false,
+  configPath: "supabase/config.toml",
+  originalConfig: null,
+  renames: [],
+};
+
+function normalizeRuntimeMigrationVersions() {
+  const dir = "supabase/migrations";
+  const names = readdirSync(dir).filter((name) => name.endsWith(".sql"));
+  const used = new Set(names.map((name) => name.match(/^(\d+)_/)?.[1]).filter(Boolean));
+  const groups = new Map();
+  for (const name of names.sort()) {
+    const version = name.match(/^(\d+)_/)?.[1];
+    if (!version) continue;
+    if (!groups.has(version)) groups.set(version, []);
+    groups.get(version).push(name);
+  }
+  for (const [version, duplicates] of groups) {
+    for (let i = 1; i < duplicates.length; i += 1) {
+      let suffix = 1;
+      let replacement = version;
+      while (used.has(replacement)) {
+        replacement = String(BigInt(version) + BigInt(suffix)).padStart(version.length, "0");
+        suffix += 1;
+      }
+      used.add(replacement);
+      const from = join(dir, duplicates[i]);
+      const to = join(dir, replacement + "_" + duplicates[i].slice(version.length + 1);
+      renameSync(from, to);
+      d3RuntimeState.renames.push({ from, to });
+    }
+  }
+}
+
+function restoreD3RuntimeWorkspace() {
+  for (const { from, to } of [...d3RuntimeState.renames].reverse()) {
+    try { if (existsSync(to)) renameSync(to, from); } catch {}
+  }
+  d3RuntimeState.renames = [];
+  if (d3RuntimeState.originalConfig !== null) {
+    try { writeFileSync(d3RuntimeState.configPath, d3RuntimeState.originalConfig); } catch {}
+    d3RuntimeState.originalConfig = null;
+  }
+}
+
+function prepareD3RuntimeEnvironment() {
+  d3RuntimeState.originalConfig = readFileSync(d3RuntimeState.configPath, "utf8");
+  writeFileSync(d3RuntimeState.configPath, d3RuntimeState.originalConfig.replace(/^project_id\s*=.*$/m, 'project_id = "core-system-d3-runtime"'));
+  normalizeRuntimeMigrationVersions();
+
+  if (runCapture("npx", [...["--yes", "supabase@latest"], "start", "--debug"],).status !== 0) {
+    throw new Error("Local Supabase runtime start failed");
+  }
+  d3RuntimeState.started = true;
+
+  const status = runCapture("npx", [...["--yes", "supabase@latest"], "status", "-o", "json"],);
+  if (status.status !== 0) throw new Error(`Local Supabase runtime status failed: ${status.stderr.slice(-500)}`);
+  const info = JSON.parse(status.stdout);
+  if (!info.API_URL || !info.ANON_KEY || !info.SERVICE_ROLE_KEY) throw new Error("Local Supabase runtime status did not expose API_URL/ANON_KEY/SERVICE_ROLE_KEY");
+
+  process.env.NEXT_PUBLIC_SUPABASE_URL = info.API_URL;
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = info.ANON_KEY;
+  process.env.SUPABASE_SERVICE_ROLE_KEY = info.SERVICE_ROLE_KEY;
+
+  if (run("npx", ["--yes", "supabase@latest", "db", "reset", "--local", "--no-seed"]) !== 0) {
+    throw new Error("Local Supabase runtime migration reset failed");
+  }
+}
+
+function cleanupD3RuntimeEnvironment() {
+  restoreD3RuntimeWorkspace();
+  if (d3RuntimeState.started) {
+    spawnSync("npx", ["--yes", "supabase@latest", "stop", "--no-backup"], {
+      stdio: "inherit",
+      env: { ...process.env, SUPABASE_TELEMETRY_DISABLED: "1" },
+      shell: false,
+      timeout: 180000,
+      killSignal: "SIGTERM",
+    });
+    d3RuntimeState.started = false;
+  }
 }
 
 function ensureRuntimeServer() {
@@ -104,6 +201,10 @@ try {
     }
   }
 
+  if (lane === "csapi-gate01-d3-runtime") {
+    prepareD3RuntimeEnvironment();
+  }
+
   if (runtimeLanes.has(lane)) {
     if (run("npm", ["run", "build"]) !== 0) {
       throw new Error("Runtime lane build failed");
@@ -134,6 +235,9 @@ try {
   if (server) {
     server.kill("SIGTERM");
     server = null;
+  }
+  if (lane === "csapi-gate01-d3-runtime") {
+    cleanupD3RuntimeEnvironment();
   }
 }
 
