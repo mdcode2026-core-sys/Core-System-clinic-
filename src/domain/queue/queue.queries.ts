@@ -22,6 +22,23 @@ async function hydrateDurations(supabase: Awaited<ReturnType<typeof createClient
   return sessions.map((session) => { const agenda = session.agenda_event_id ? agendaMap.get(session.agenda_event_id) : null; const procedure = agenda?.procedure_id ? procedureMap.get(agenda.procedure_id) : null; return { ...session, procedure_name: procedure?.procedure_name ?? undefined, estimated_duration_minutes: procedure?.standard_duration_minutes ?? session.session_duration_minutes ?? null }; });
 }
 
+export async function getCurrentClinicUserId(): Promise<string> {
+  const supabase = await createClient();
+  const tenantId = await getTenantId();
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError || !user) throw new Error("Not authenticated");
+  const { data, error } = await supabase
+    .from("clinic_users")
+    .select("id")
+    .eq("tenant_id", tenantId)
+    .eq("auth_user_id", user.id)
+    .eq("is_active", true)
+    .is("deleted_at", null)
+    .maybeSingle();
+  if (error || !data?.id) throw new Error("Clinic user not resolved");
+  return data.id;
+}
+
 export async function getQueue(filters?: QueueFilters): Promise<EnrichedSession[]> {
   const supabase = await createClient(); const tenantId = await getTenantId(); const { start, end } = getTodayRange();
   // clinic_visit_sessions has both the base patient FK and a composite same-tenant FK.
