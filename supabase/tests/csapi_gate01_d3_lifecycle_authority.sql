@@ -1,6 +1,6 @@
 BEGIN;
 
-SELECT plan(43);
+SELECT plan(45);
 
 CREATE TEMP TABLE d3_test_ids (
   key text primary key,
@@ -116,6 +116,13 @@ SELECT is(
 SELECT ok(EXISTS(SELECT 1 FROM public.permissions WHERE permission_key='patient_flow:operations' AND deleted_at IS NULL),'patient_flow:operations permission exists');
 SELECT ok(EXISTS(SELECT 1 FROM public.permissions WHERE permission_key='sessions:update' AND deleted_at IS NULL),'sessions:update permission exists');
 SELECT ok(EXISTS(SELECT 1 FROM public.permissions WHERE permission_key='sessions:close' AND deleted_at IS NULL),'sessions:close permission exists');
+
+SELECT ok(EXISTS(SELECT 1 FROM public.permissions WHERE permission_key='sessions:update' AND deleted_at IS NULL),'sessions:update permission exists after replay reconciliation');
+SELECT is(
+  (SELECT count(*)::int FROM public.role_permissions rp JOIN public.roles r ON r.id=rp.role_id JOIN public.permissions p ON p.id=rp.permission_id WHERE r.is_system_role=true AND r.role_key IN ('clinic_admin','doctor','receptionist','super_admin') AND p.permission_key='sessions:update'),
+  4,
+  'sessions:update is mapped to all active system roles'
+);
 
 
 SELECT ok(
