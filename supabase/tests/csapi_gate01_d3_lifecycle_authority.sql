@@ -1,6 +1,6 @@
 BEGIN;
 
-SELECT plan(45);
+SELECT plan(48);
 
 CREATE TEMP TABLE d3_test_ids (
   key text primary key,
