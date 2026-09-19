@@ -2,10 +2,10 @@
 
 **Updated:** 2026-09-19  
 **Stage:** D2 — Database Foundations  
-**Status:** IMPLEMENTED / VERIFICATION BLOCKED BY MIGRATION-CHAIN REPLAY  
+**Status:** IMPLEMENTED / CI VERIFIED / MERGED; PRODUCTION ROLLOUT PENDING
 **Canonical implementation PR:** #168  
 **Canonical implementation branch:** `implementation/csapi-gate-01-d2-database-foundations-canonical-2026-09-18`  
-**Current known head:** `2d331509e8a709e394dfe0dd819a7a6e5d1a5091`  
+**Merged main SHA:** `6013a9ffa4705738bc9e8de7c0d1403ff6a0858e`  
 **D1 verified source:** `b9470061da5c188adff40b0956ce03a540beccf8`  
 **Parent design:** `docs/CSAPI/GATES/GATE-01-PATIENT-FLOW-IMPLEMENTATION-DESIGN-PACKET-2026-09-17.md`
 
@@ -68,27 +68,14 @@ Before D2 merge, each non-D2 migration must satisfy one of these conditions:
 
 No Workforce/Payroll or Financial/Inventory implementation work may be started merely because one of their migrations appears in the D2 replay chain.
 
-## Current verification blocker
+## Final verification evidence
 
-Latest known D2 run: GitHub Actions `35384612530`.
+GitHub Actions run #499 (`35431678991`) passed the D2 database lane on exact code candidate `c5cd0aef6dcecde96a477585985c1344f8924b62`.
+After documentation-only commits, run #500 (`35431848948`) also passed on the final documented pre-merge head `fd717722994e0945765acd300c3640b8aac7edfa`.
+PR #168 was merged to `main` with merge SHA `6013a9ffa4705738bc9e8de7c0d1403ff6a0858e`.
+Post-merge Production Supabase verification was read-only and confirmed that migration `20260917192500` and the three D2 tables are not yet deployed in Production.
 
-The D2 database lane reached:
-
-```
-20260830030534_ajm_reality_audit_clinical_resource_scheduling.sql
-```
-
-and failed with:
-
-```
-ERROR: insert or update on table "clinic_resources"
-violates foreign key constraint "clinic_resources_tenant_id_fkey"
-SQLSTATE 23503
-```
-
-Cause: the historical reality-audit migration attempted to insert hard-coded Zada tenant resource fixtures while the clean replay database did not contain that tenant.
-
-This is a **migration-chain replay defect** encountered before the D2 migration is reached. It is not evidence of a D2 Patient Flow schema failure.
+The replay failures recorded below are historical evidence of blockers corrected before the final green gate.
 
 ## Required response to replay failures
 
@@ -106,6 +93,10 @@ Write policies for the new Patient Flow tables remain intentionally absent. D3 o
 
 ## Closure
 
-D2 remains **OPEN** until local/CI migration replay, D2 pgTAP, Engineering/Final Gate, merge to `main), and authorized post-merge Production verification are complete.
+D2 implementation is **MERGED and CI VERIFIED**.
 
-**D2 implementation status:** OPEN.
+D2 Production rollout is **PENDING** because migration `20260917192500` has not been applied to Production. No Production schema mutation was performed during this documentation reconciliation.
+
+D3 owns lifecycle write authority/commands and must remain separate from D2.
+
+**D2 implementation status:** MERGED / VERIFIED — Production rollout pending.
