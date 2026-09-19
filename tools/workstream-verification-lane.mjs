@@ -167,7 +167,7 @@ function prepareD3RuntimeEnvironment() {
     "AND NOT EXISTS(SELECT 1 FROM public.role_permissions rp WHERE rp.role_id=r.id AND rp.permission_id=p.id AND rp.deleted_at IS NULL);",
     "INSERT INTO public.role_permissions(role_id,permission_id)",
     "SELECT r.id,p.id FROM public.roles r CROSS JOIN public.permissions p",
-    "WHERE r.role_key IN ('doctor','receptionist') AND p.permission_key='sessions:read'",
+    "WHERE r.role_key IN ('doctor','receptionist') AND p.permission_key IN ('sessions:read','patients:read')",
     "AND NOT EXISTS(SELECT 1 FROM public.role_permissions rp WHERE rp.role_id=r.id AND rp.permission_id=p.id AND rp.deleted_at IS NULL);",
   ].join(" ");
   const fixture = runCapture("psql", [
