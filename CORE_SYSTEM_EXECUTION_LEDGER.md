@@ -204,3 +204,11 @@ Gate 01 CLOSED
 | 2026-09-19 | D3 plan frozen | D3 lifecycle authority plan + verification plan + planned workstream contract | Scope, command intent, atomicity, security, test and closure boundaries documented before code | No code modification before plan verification | Run applicable CI |
 | 2026-09-19 | Test suitability review | Stage 6 audit, D2 pgTAP, existing Queue/Visit actions, D2 schema | Stage 6 = regression/static; D2 pgTAP = D2-only; neither proves D3 lifecycle writes | Add dedicated D3 DB/command and runtime evidence | Activate lanes only after tooling exists |
 | 2026-09-19 | Existing mutation-path finding | `queue.actions.ts`, `workspace.actions.ts`, `visit.actions.ts` | Direct legacy Visit mutations exist and broad generic Patient Flow mutation is not sufficient for D3 authority | D3 must centralize lifecycle writes and migrate callers | Step 1 exact command/data contract |
+
+
+## 2026-09-19 D3 Step 1 — Command/Data/Event Contract
+
+| Date | Action | Evidence | Result | Decision | Next Action |
+|---|---|---|---|---|---|
+| 2026-09-19 | D3 command/data/event contract frozen | `docs/CSAPI/GATES/GATE-01-D3-COMMAND-DATA-EVENT-CONTRACT-2026-09-19.md` | Seven lifecycle commands, owners, transitions, queue/work-session/event projections, atomicity, authorization, concurrency and idempotency rules fixed | Use this contract as the implementation boundary | Re-run CI on the exact post-contract head |
+| 2026-09-19 | D3 scope/implementation boundary reconfirmed | Existing Queue Engine + Queue/Workspace/Visit actions | Reuse canonical transition rules; migrate legacy direct mutations into one D3 command boundary; no second engine | No architecture expansion required | Step 2 database mutation boundary |
