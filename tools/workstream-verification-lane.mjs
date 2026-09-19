@@ -259,11 +259,24 @@ try {
       const sourcePath = args[0];
       const temporaryPath = "tools/.ci-csapi-gate01-d3-runtime.mjs";
       const source = readFileSync(sourcePath, "utf8");
-      const patched = source.replace(
+      let patched = source.replace(
         "app_metadata: { d3_runtime: true }",
         'app_metadata: { d3_runtime: true, tenant_id: tenantId, user_role: kind === "doctor" ? "doctor" : "receptionist" }',
       );
       if (patched === source) throw new Error("D3 runtime auth fixture patch target not found");
+      patched = patched.replace(
+        "await seed();",
+        `await seed();
+  const diagnosticClient = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
+  const diagnosticAuth = await diagnosticClient.auth.signInWithPassword({ email: receptionEmail, password });
+  if (diagnosticAuth.error || !diagnosticAuth.data.user) throw new Error("Diagnostic authenticated client login failed: " + (diagnosticAuth.error?.message || "no user"));
+  const diagnosticPermissions = await diagnosticClient.rpc("get_effective_permissions", { p_user_id: diagnosticAuth.data.user.id, p_tenant_id: tenantId });
+  console.log("D3_DIAGNOSTIC_EFFECTIVE_PERMISSIONS=" + JSON.stringify(diagnosticPermissions.data));
+  const diagnosticSessions = await diagnosticClient.from("clinic_visit_sessions").select("id,session_status,created_at").eq("tenant_id", tenantId);
+  console.log("D3_DIAGNOSTIC_SESSIONS=" + JSON.stringify({ error: diagnosticSessions.error?.message ?? null, rows: diagnosticSessions.data ?? [] }));
+  const diagnosticPatients = await diagnosticClient.from("clinic_patients").select("id,first_name,last_name").eq("tenant_id", tenantId);
+  console.log("D3_DIAGNOSTIC_PATIENTS=" + JSON.stringify({ error: diagnosticPatients.error?.message ?? null, rows: diagnosticPatients.data ?? [] }));`,
+      );
       writeFileSync(temporaryPath, patched);
       temporaryRuntimeTest = temporaryPath;
       effectiveArgs = [temporaryPath];
