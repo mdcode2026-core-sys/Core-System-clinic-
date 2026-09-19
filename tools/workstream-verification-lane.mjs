@@ -155,6 +155,28 @@ function prepareD3RuntimeEnvironment() {
   if (run("npx", ["--yes", "supabase@latest", "db", "reset", "--local", "--no-seed"]) !== 0) {
     throw new Error("Local Supabase runtime migration reset failed");
   }
+
+  const fixtureSql = [
+    "insert into public.role_permissions(role_id,permission_id)",
+    "select r.id,p.id from public.roles r cross join public.permissions p",
+    "where r.role_key='doctor' and p.permission_key='patient_flow:clinical'",
+    "and not exists(select 1 from public.role_permissions rp where rp.role_id=r.id and rp.permission_id=p.id and rp.deleted_at is null);",
+    "insert into public.role_permissions(role_id,permission_id)",
+    "select r.id,p.id from public.roles r cross join public.permissions p",
+    "where r.role_key='receptionist' and p.permission_key='patient_flow:operations'",
+    "and not exists(select 1 from public.role_permissions rp where rp.role_id=r.id and rp.permission_id=p.id and rp.deleted_at is null);",
+  ].join(" ");
+  const fixture = runCapture("curl", [
+    "-fsS", "-X", "POST",
+    process.env.NEXT_PUBLIC_SUPABASE_URL + "/rest/v1/rpc/exec",
+    "-H", "apikey: " + process.env.SUPABASE_SERVICE_ROLE_KEY,
+    "-H", "Authorization: Bearer " + process.env.SUPABASE_SERVICE_ROLE_KEY,
+    "-H", "Content-Type: application/json",
+    "--data", JSON.stringify({ sql: fixtureSql }),
+  ]);
+  if (fixture.status !== 0) {
+    console.log("D3_RUNTIME_ROLE_FIXTURE=SKIPPED");
+  }
 }
 
 function cleanupD3RuntimeEnvironment() {
