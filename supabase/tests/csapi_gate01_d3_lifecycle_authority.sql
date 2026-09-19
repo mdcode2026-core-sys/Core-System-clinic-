@@ -49,10 +49,10 @@ VALUES
  ('00000000-0000-0000-0000-00000000d315','authenticated','authenticated','d3-tenant-b-doctor@example.test',now(),'{}'::jsonb,'{}'::jsonb,now(),now(),false,false);
 
 INSERT INTO public.clinic_users(
- id,tenant_id,auth_user_id,full_name,role,role_id,employee_code,pin_code,is_active,account_status
+ id,tenant_id,auth_user_id,full_name,role,role_id,employee_code,pin_code,is_active
 )
 VALUES
- ('00000000-0000-0000-0000-00000000d304','00000000-0000-0000-0000-00000000d301','00000000-0000-0000-0000-00000000d303','D3 Doctor','doctor',(SELECT id FROM public.roles WHERE role_key='doctor' AND is_system_role=true LIMIT 1),'D3-D','0000',true,'active'),
+ ('00000000-0000-0000-0000-00000000d304','00000000-0000-0000-0000-00000000d301','00000000-0000-0000-0000-00000000d303','D3 Doctor','doctor',(SELECT id FROM public.roles WHERE role_key='doctor' AND is_system_role=true LIMIT 1),'D3-D','0000',true),
  ('00000000-0000-0000-0000-00000000d306','00000000-0000-0000-0000-00000000d301','00000000-0000-0000-0000-00000000d305','D3 Reception','receptionist',(SELECT id FROM public.roles WHERE role_key='receptionist' AND is_system_role=true LIMIT 1),'D3-R','0001',true,'active'),
  ('00000000-0000-0000-0000-00000000d308','00000000-0000-0000-0000-00000000d301','00000000-0000-0000-0000-00000000d307','D3 Unauthorized','doctor',(SELECT id FROM public.roles WHERE role_key='doctor' AND is_system_role=true LIMIT 1),'D3-U','0002',true,'active'),
  ('00000000-0000-0000-0000-00000000d314','00000000-0000-0000-0000-00000000d302','00000000-0000-0000-0000-00000000d315','D3 Tenant B Doctor','doctor',(SELECT id FROM public.roles WHERE role_key='doctor' AND is_system_role=true LIMIT 1),'D3-B','0003',true,'active');
