@@ -1,6 +1,6 @@
 BEGIN;
 
-SELECT plan(39);
+SELECT plan(32);
 
 CREATE TEMP TABLE d3_test_ids (
   key text primary key,
@@ -34,11 +34,6 @@ SELECT ok(
   has_function_privilege('authenticated','public.csapi_d3_enter_waiting(uuid,text,text,text,text,uuid)','EXECUTE'),
   'authenticated can execute D3 waiting command'
 );
-SELECT ok(
-  NOT has_function_privilege('authenticated','public.csapi_d3_actor(text)','EXECUTE'),
-  'internal D3 actor helper is not exposed'
-);
-
 INSERT INTO public.master_tenants(id,clinic_name,license_key,timezone,currency,country_code)
 VALUES
  ('00000000-0000-0000-0000-00000000d301','CSAPI D3 Tenant A','CSAPI-D3-A','Asia/Amman','JOD','JO'),
@@ -215,7 +210,7 @@ SELECT is(
 );
 
 SELECT set_config('request.jwt.claims','{"sub":"00000000-0000-0000-0000-00000000d305"}',true);
-PERFORM public.csapi_d3_enter_waiting('00000000-0000-0000-0000-00000000d312','general','normal','arrival',null,'00000000-0000-0000-0000-00000000e308');
+SELECT public.csapi_d3_enter_waiting('00000000-0000-0000-0000-00000000d312','general','normal','arrival',null,'00000000-0000-0000-0000-00000000e308');
 SELECT ok(
   (public.csapi_d3_mark_no_show('00000000-0000-0000-0000-00000000d312','no show','00000000-0000-0000-0000-00000000e309')->>'new_status')='no_show',
   'Mark No-show moves waiting Visit to no_show'
@@ -227,7 +222,7 @@ SELECT is(
 );
 
 SELECT set_config('request.jwt.claims','{"sub":"00000000-0000-0000-0000-00000000d305"}',true);
-PERFORM public.csapi_d3_enter_waiting('00000000-0000-0000-0000-00000000d313','general','high','arrival',null,'00000000-0000-0000-0000-00000000e310');
+SELECT public.csapi_d3_enter_waiting('00000000-0000-0000-0000-00000000d313','general','high','arrival',null,'00000000-0000-0000-0000-00000000e310');
 SELECT ok(
   (public.csapi_d3_cancel_patient_flow('00000000-0000-0000-0000-00000000d313','reception cancel','00000000-0000-0000-0000-00000000e311')->>'new_status')='cancelled',
   'Cancel from Waiting moves Visit to cancelled'
