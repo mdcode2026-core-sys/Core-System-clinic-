@@ -128,3 +128,44 @@ No merge to `main` is authorized merely to make historical documentation visible
 | 2026-09-18 19:xx +03 | #129–#137 reconciliation + final pre-main verification | #130–#134 confirmed integrated; #135 closed without merge and retained as provenance; #136 merged into #129; #137 validation-only evidence. Current #129 head `a916fc4573b556ec36c6140252a5622f3b8ac8ce`; GitHub Actions run #430 (`35365679079`) passed plan, engineering, i18n, authenticated E2E, cross-domain runtime, Global Experience static/runtime, header technical foundation, header chat, Communications Wave B and Final gate. | Canonical #129 is merge-ready; prior tablet failure is superseded by the deterministic tablet gutter correction and passing runtime evidence. No production verification performed. | Merge exact verified #129 head to `main`; only then enter final production verification stage. | Merge #129, verify resulting main SHA, then execute final post-main production gate |
 | 2026-09-18 19:xx +03 | Final #129 verification after auth hardening | Canonical head `636267f0b20240cad271a8bc34ce885d64c42682`; run #433 (`35366862319`) passed all applicable lanes and Final gate. PR #163 is closed as superseded after its production login redirect hardening was absorbed into #129 and verified. | Canonical #129 remains merge-ready; no production verification performed. | Merge exact #129 head to `main`, then perform only the final post-main production gate. | Merge and verify main |
 | 2026-09-18 19:xx +03 | Final tablet containment correction | Canonical head `407e00beba1403f853ec718d363ebbe89e28d5bf`; run #435 (`35368344315`) passed all applicable lanes and Final gate. Tablet Chat top is now clamped from viewport height, eliminating the 620px panel overflow at 1023x768. | Final pre-main verification PASS. | Merge exact #129 head to `main`; then final post-main production gate. | Merge and verify main |
+
+
+## 2026-09-19 CSAPI Gate 01 — D2 Continuity / Scope-Control Reconciliation
+
+| Date | Action | Evidence | Result | Decision | Next Action |
+|---|---|---|---|---|---|
+| 2026-09-19 | Re-verified current D2 execution state | PR #168; canonical D2 branch `implementation/csapi-gate-01-d2-database-foundations-canonical-2026-09-18`; current head `2d331509e8a709e394dfe0dd819a7a6e5d1a5091` | #168 is still open/draft and mergeable; D2 is not closed | Continue from #168; do not revive #145 or another historical D2 branch | Re-run current D2 gate from exact head and inspect first blocker |
+| 2026-09-19 | Re-verified latest D2 CI result | GitHub Actions run `35384612530` | Build plan PASS; D2 database FAIL; Final gate FAIL; Engineering job cancelled after D2 failure | Superseded by run #499 after the test-fixture correction | Continue from exact corrected head |
+| 2026-09-19 | Identified first concrete replay blocker | D2 database job log: `20260830030534_ajm_reality_audit_clinical_resource_scheduling.sql`; SQLSTATE 23503 on `clinic_resources_tenant_id_fkey` | Clean local replay reaches the historical reality-audit fixture and fails because the hard-coded Zada tenant is absent | Treat as migration-chain replay defect, not a D2 Patient Flow defect | Apply the smallest deterministic replay correction; then rerun D2 |
+| 2026-09-19 | Scope-control reconciliation | PR #168 diff includes historical migration replay restorations including `20260906104000_restore_missing_workforce_payroll_core_objects.sql` and Financial/Inventory remediation | Workforce/Payroll/Financial changes are not D2 functionality | Classify them explicitly as replay/history prerequisites pending scope-purity review; do not start those domain workstreams | Review each non-D2 migration for deterministic replay necessity before D2 merge |
+| 2026-09-19 | User change-control rule recorded | User explicitly requires advance notice before material scope changes and no phase jumping | Future-domain defects must not silently become D2 implementation work | D2 may contain only necessary, narrowly-scoped replay corrections or D2 fixes; unrelated domain repairs stay deferred and documented | Follow classification rule for every newly discovered blocker |
+| 2026-09-19 | Migration-error handling rule recorded | D2 verification requires a truthful replay of the repository migration chain | Real replay blockers must not be hidden or deferred merely to obtain a green D2 check; unrelated domain defects must not be repaired inside D2 | Fix genuine replay defects at the replay layer; defer genuine future-domain defects; repair D2 defects in D2 | Continue until D2 assertions are reached and pass |
+| 2026-09-19 | Production/Vercel boundary re-confirmed | No D2 production migration applied; no Vercel use for current D2 stage | Production remains untouched and D2 remains pre-production | Preserve boundary until post-merge final verification | After D2 merge only, perform authorized production verification |
+
+### Continuity control
+
+The authoritative next-chat resume token is:
+
+**CSAPI**
+
+On receiving `CSAPI`, the assistant must read the current Handoff/Ledger state, verify #168/head/CI again, and continue execution. It must not restart the architectural investigation, reopen closed CSAPI decisions, or jump to D3.
+
+### D2 scope boundary
+
+The presence of Workforce/Payroll, Financial, Inventory, or other historical migrations in the current D2 branch does **not** make those domains part of Gate 01 D2. Their only permitted relevance at this point is deterministic migration replay/history reconciliation. Any genuine domain repair belongs to its own workstream/phase.
+
+### D2 closure remains blocked
+
+D2 is **OPEN** until:
+
+1. the repository migration chain replays deterministically in the approved local/CI environment;
+2. the D2 database assertions pass;
+3. required Engineering/Final Gate checks pass on the exact candidate head;
+4. #168 is merged to `main`;
+5. post-merge Production Supabase verification is completed read-only for D2 schema/RLS/constraints;
+6. this Handoff and Ledger contain exact closure evidence.
+
+D3 must not start implementation before D2 closure.
+
+| 2026-09-19 | D2 verification PASS | GitHub Actions run `#499` (`35431678991`) on exact head `c5cd0aef6dcecde96a477585985c1344f8924b62` | Build plan, D2 database, Engineering, and Final gate all PASS | D2 database foundations are pre-merge verified; no production mutation and no Vercel verification used | Review scope, then merge exact verified head to `main`; perform post-merge read-only production verification |
+| 2026-09-19 | D2 test-fixture correction | Commit `c5cd0aef6dcecde96a477585985c1344f8924b62` updated only `supabase/tests/csapi_gate01_d2_database_foundations.sql` so doctor fixtures provide canonical `role_id` | Corrects test setup to current canonical RBAC schema without changing D2 production migrations | Keep correction scoped to verification fixture | Preserve exact verified head for merge |

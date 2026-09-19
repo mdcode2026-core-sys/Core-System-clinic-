@@ -23,7 +23,7 @@ INSERT INTO public.inventory_ledger (
 SELECT
   i.tenant_id,
   i.id,
-  i.name,
+  coalesce(to_jsonb(i)->>'name', 'Inventory item ' || i.id::text),
   ob.opening_delta,
   'inventory_adjustment_increase',
   'Historical opening balance reconciliation: pre-canonical inventory state recorded explicitly; no stock quantity changed.',
@@ -68,7 +68,11 @@ SELECT
   'Chemical Peel Solution',
   10,
   'purchase',
-  '0e6e6030-121b-4e1a-bf14-ebbd18c19e4f'::uuid,
+  CASE WHEN EXISTS (
+    SELECT 1 FROM public.clinic_users cu
+    WHERE cu.id='0e6e6030-121b-4e1a-bf14-ebbd18c19e4f'::uuid
+      AND cu.tenant_id='2fa98983-8069-420f-9c27-7c36ef96ef6e'::uuid
+  ) THEN '0e6e6030-121b-4e1a-bf14-ebbd18c19e4f'::uuid ELSE NULL END,
   'Historical AUDIT-PO-001 receipt reconciliation: receipt 10/10 existed and current stock already included the quantity; ledger provenance restored without changing stock.',
   '2026-09-07 10:27:42.052108+00'::timestamptz,
   10,
@@ -77,7 +81,16 @@ SELECT
   'a7200000-0000-4000-8000-000000000001'::uuid,
   2200,
   22000
-WHERE NOT EXISTS (
+WHERE EXISTS (
+  SELECT 1 FROM public.master_tenants mt
+  WHERE mt.id='2fa98983-8069-420f-9c27-7c36ef96ef6e'::uuid
+)
+AND EXISTS (
+  SELECT 1 FROM public.inventory_items ii
+  WHERE ii.id='ccc3760a-398a-4c2b-abe6-8b345bda9c92'::uuid
+    AND ii.tenant_id='2fa98983-8069-420f-9c27-7c36ef96ef6e'::uuid
+)
+AND NOT EXISTS (
   SELECT 1 FROM public.inventory_ledger il
   WHERE il.tenant_id='2fa98983-8069-420f-9c27-7c36ef96ef6e'::uuid
     AND il.source_type='purchase_receipt'

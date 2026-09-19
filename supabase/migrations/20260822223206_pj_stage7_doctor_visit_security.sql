@@ -78,7 +78,7 @@ alter policy rls_sessions_update on public.clinic_visit_sessions
 using (tenant_id = public.get_current_tenant_id() and (public.has_effective_permission('sessions:update') or public.has_effective_permission('visits:update')))
 with check (tenant_id = public.get_current_tenant_id() and (public.has_effective_permission('sessions:update') or public.has_effective_permission('visits:update')));
 
-alter policy rls_sessions_write_role_check on public.clinic_visit_sessions
+alter policy rls_sessions_write on public.clinic_visit_sessions
 with check (tenant_id = public.get_current_tenant_id() and public.has_effective_permission('sessions:create'));
 
 alter table public.clinic_visit_procedures enable row level security;

@@ -1,21 +1,25 @@
 # CORE SYSTEM — EXECUTION HANDOFF
 
-**Date:** 2026-09-18
-**Canonical Branch:** `repair/global-experience-presentation-rebuild-2026-09-16`
-**Canonical PR:** #129
-**Current Canonical Head:** `407e00beba1403f853ec718d363ebbe89e28d5bf`
-**Main Baseline:** `e2b63b7bb9e1c0bb271f386c84325b8d02cae8bf`
-**Status:** AUTOMATED VERIFICATION PASSED ON CURRENT HEAD — MERGE-READY; POST-MAIN PRODUCTION CLOSURE PENDING
+**Updated:** 2026-09-19
+**Workstream:** CSAPI — Gate 01 — Patient Flow
+**Current Stage:** D2 — Database Foundations
+**Canonical D2 PR:** #168
+**Canonical D2 Branch:** `implementation/csapi-gate-01-d2-database-foundations-canonical-2026-09-18`
+**Canonical D2 Head:** `c5cd0aef6dcecde96a477585985c1344f8924b62`
+**Documentation branch:** `docs/csapi-gate01-d2-handoff-reconciliation-2026-09-19`
+**D2 Status:** VERIFIED — CI PASS; PRE-MERGE CLOSURE PENDING
+**Production Supabase:** NOT TOUCHED FOR D2
+**Vercel:** NOT TOUCHED FOR D2
 
-## 1. Objective
+## 1. Purpose of this handoff
 
-Maintain one conversation-independent execution handoff for CORE SYSTEM. This file is the live continuity record for the current canonical execution path and must be updated when material execution state changes.
+This is the conversation-independent resume point for the current CSAPI execution.
 
-Historical branch snapshots are evidence. They must not replace this live record with stale branch-specific state.
+The next conversation must begin from this exact state when the user sends **CSAPI**. Do not reconstruct the work from memory, old PRs, or an older handoff.
 
-## 2. Governing Execution Sequence
+The governing execution sequence remains:
 
-```text
+```
 VERIFY
   ↓
 PLAN
@@ -33,218 +37,258 @@ DOCUMENT
 CLOSE
 ```
 
-The sequence may iterate inside a stage. No stage is skipped merely because a previous branch or PR was closed.
+No phase may be skipped or silently combined with a later phase.
 
-## 3. Current Canonical Path
+## 2. User control / change-control rule
 
-PR #129 is the single active execution path for the consolidated Global Experience work.
+The user explicitly requires that **any material change outside the already-approved scope of the current phase be explained and surfaced before it is made**.
 
-The canonical consolidation intentionally does **not** mean that every historical branch was merged wholesale. Surviving compatible implementation and documentation are retained; superseded, contradictory, validation-only and stale branch snapshots are not revived as execution bases.
+Therefore:
 
-### Historical recovery now integrated into the canonical line
+- Do not silently expand D2 into D3 or another CSAPI phase.
+- Do not silently repair unrelated Workforce, Payroll, Financial, Inventory, Agenda, or other domain functionality merely because a verification reset encounters it.
+- Do not silently change architecture, canonical execution paths, permissions, lifecycle ownership, or migration authority.
+- If a new issue is discovered, first classify it as:
+  1. D2-required prerequisite,
+  2. verification/replay defect,
+  3. genuine unrelated domain defect,
+  4. future-phase work.
+- Only category 1 or a narrowly-scoped verification/replay correction may be executed inside the current D2 gate, and only when it is necessary to obtain valid D2 evidence and is additive/non-breaking.
+- Category 3 and category 4 findings must be documented and kept outside D2 unless the user explicitly approves a scope change.
+- Never use a workaround that hides a real migration or schema error merely to make D2 pass.
 
-The following recovery PRs were integrated into #129:
+This rule exists specifically to prevent the previous drift where Patient Flow verification exposed other domains and the work began moving into those domains without an explicit scope decision.
 
-- **PR #130** — historical UX, visual, terminology and governance artifact recovery.
-- **PR #131** — complete 2026-09-14 UX / Architecture Investigation Final Handoff recovery.
-- **PR #132** — compatible F1–F4 Home implementation promotion.
-- **PR #133** — compatible Login, Agenda context and Global Search promotion.
-- **PR #134** — Home welcome dismissal correctness repair.
-- **PR #135** — closed without merge; retained as provenance/evidence only after reconciliation.
-- **PR #136** — Global Experience Presentation Rebuild execution; merged into #129 and retained as canonical implementation.
-- **PR #137** — closed validation-only; retained as evidence only, not implementation.
-- **PR #163** — closed as superseded after its production login session-handoff correction was incorporated into #129 and re-verified successfully.
+## 3. What D2 actually is
 
-### Current canonical recovery outcome
+D2 is **Patient Flow database foundations**.
 
-The canonical line now preserves historical artifacts under `docs/historical-recovery/` and also contains compatible implementation work recovered from older branches. Historical artifacts are not treated as disposable merely because their source PR was closed.
+The approved D2 implementation introduces, additively:
 
-## 4. Documentation Recovery Finding
+- `clinical_work_sessions`
+- `patient_flow_queue_entries`
+- `patient_flow_events`
+- tenant-safe composite foreign-key integrity;
+- one-active-Work-Session-per-Visit invariant;
+- one-active-Queue-Entry-per-Visit invariant;
+- supporting indexes;
+- tenant-scoped read RLS.
 
-The historical audit confirmed a recurring documentation-loss pattern:
+D2 does **not** implement Patient Flow lifecycle commands.
 
-```text
-Branch / PR created
-   ↓
-Decision / contract / handoff documented
-   ↓
-Implementation continues on branch
-   ↓
-PR closed or superseded
-   ↓
-No controlled documentation promotion/reconciliation
-   ↓
-main lacks the latest decision/context
-   ↓
-Future work reconstructs context incorrectly
-   ↓
-Implementation drift / repeated corrections
+D3 is the later phase responsible for controlled lifecycle write authority/commands. Do not implement D3 while closing D2.
+
+Patient Flow semantics remain:
+
+- Reception opens the operational visit workflow.
+- The patient enters a **Waiting** queue; this is not the start of the clinical encounter.
+- Waiting can represent appointments, walk-ins, emergency cases, post-consultation lab/radiology, multiple procedures, and other approved waiting scenarios.
+- Reception controls queue ordering/movement.
+- The responsible clinical user/room sees the waiting queue in the reception-defined order and pulls the patient when work actually starts.
+- Moving a patient in the waiting queue does not itself start examination/procedure.
+
+The approved wording is **Finish**, not “Finish Clinical Work”.
+
+## 4. Current D2 verification reality
+
+### Latest verification — 2026-09-19
+
+GitHub Actions run **#499** (`35431678991`) verified exact candidate `c5cd0aef6dcecde96a477585985c1344f8924b62`.
+
+- Build applicable lane plan: PASS
+- D2 database lane: PASS
+- Engineering lane: PASS
+- Final gate: PASS
+
+The D2 database lane therefore reached and passed the contracted D2 assertions, including migration replay, schema/constraint checks, cross-tenant composite-FK rejection, active-record invariants, and tenant-scoped read isolation.
+
+The immediately preceding replay/test-fixture correction was limited to the D2 test fixture: it now supplies the canonical `role_id` for its doctor test users. No production database was changed and no Vercel verification was used.
+
+D2 remains pre-merge: PR #168 is still draft/open and Production Supabase has not been touched.
+
+### Historical pre-fix verification evidence
+
+The latest known D2 verification run was GitHub Actions run **#35384612530**.
+
+The exact candidate checked by the D2 database lane was:
+
+`763ff6fd75b6b9b408883a9202319d3db871da59`
+
+That run did not complete D2 verification.
+
+Observed lane result:
+
+- Build applicable lane plan: PASS
+- Engineering lane: completed its execution steps successfully but the workflow job was ultimately marked CANCELLED because the required D2 lane failed.
+- D2 database lane: FAIL
+- Final gate: FAIL
+
+The D2 database failure was not a Patient Flow D2 assertion failure.
+
+The first concrete migration-chain failure reached during local reset was:
+
+```
+ERROR: insert or update on table "clinic_resources"
+violates foreign key constraint "clinic_resources_tenant_id_fkey"
+(SQLSTATE 23503)
 ```
 
-Closing a PR is therefore **not** documentation closure.
+The failing migration was:
 
-The repository now uses explicit classification for historical artifacts:
+`supabase/migrations/20260830030534_ajm_reality_audit_clinical_resource_scheduling.sql`
 
-- PROMOTE TO MAIN
-- PROMOTE TO CURRENT CANONICAL EXECUTION BRANCH
-- HISTORICAL ARCHIVE
-- SUPERSEDED — RETAIN PROVENANCE
-- VALIDATION-ONLY — RETAIN AS EVIDENCE
-- DUPLICATE — POINT TO CANONICAL ARTIFACT
-- COMPATIBLE IMPLEMENTATION CANDIDATE — REVIEW / TEST / PROMOTE
+The migration attempted to insert reality-audit resource fixture rows for a hard-coded Zada tenant while the replay database did not contain that tenant.
 
-The detailed 30-day audit and provenance map is recorded in:
+This means the current blocker is **migration-chain replay integrity before D2 is reached**, not evidence that the D2 schema itself is wrong.
 
-`docs/reconciliation/CORE-SYSTEM-HISTORICAL-DOCUMENTATION-AUDIT-2026-09-16.md`
+Earlier replay blockers on this same canonical D2 line were also encountered and corrected, including:
 
-## 5. Current Documentation Authority Recovered
+- invalid `CREATE POLICY IF NOT EXISTS` PostgreSQL syntax in `20260803_sync_inventory.sql`;
+- legacy role-policy recreation conflicts;
+- unsupported explicit conflict target in the role seed migration;
+- stale Patient Journey Stage 7 policy name;
+- duplicate migration numeric versions during local replay;
+- optional Zada fixture handling in another reality-audit migration.
 
-The current canonical line now protects, either as active authority or historical source with provenance, the Experience Foundation/Presentation record set including:
+These corrections are verification/replay concerns. They must not be interpreted as D2 product scope.
 
-- Adaptive Hybrid Experience Model Decision and Reconciliation.
-- Experience Constitution, Decision Registry, Execution Gate and Integrated Work Contract.
-- Design / UX / Architecture Constitution.
-- UX / Architecture Investigation Final Handoff.
-- UX Experience Governance VERIFY and PLAN records.
-- F1–F4 Execution Ledger.
-- F1–F4 Foundation Scope Freeze.
-- Integrated Experience Constitution dated 2026-09-16.
-- Visual Design Constitution.
-- Visual Execution Contract.
-- Visual Token Specification.
-- Surface Visual Application Matrix.
-- Experience Presentation System.
-- Insights engineering blueprint recovery.
-- Branch reconciliation decision log, including the final v2 sync record from 2026-09-08.
-- Terminology Governance, Application Register and Historical Reconciliation.
+## 5. Critical scope finding: Workforce / Payroll / Financial migrations
 
-Exact historical source artifacts are preserved under:
+The current PR #168 diff contains several historical migration-replay restoration/hardening files in addition to the D2 migration.
 
-`docs/historical-recovery/`
+In particular, the PR currently contains:
 
-Their presence does not reopen superseded product decisions.
+`supabase/migrations/20260906104000_restore_missing_workforce_payroll_core_objects.sql`
 
-## 6. Compatible Implementation Recovery Now Integrated
+and also a Financial/Inventory remediation migration.
 
-### Home
+**These are not D2 Patient Flow functionality.**
 
-Recovered and integrated from historical F1–F4 work:
+They appeared because the canonical D2 branch was rebuilt against current `main` and the local migration chain exposed missing historical migration-lineage objects required to replay the repository database state.
 
-- clinic/user identity context;
-- approved welcome behavior;
-- clinic weather as lightweight contextual information;
-- user-context-aware Today appointments;
-- Agenda destination preserving `doctorId` context where available;
-- compact Today indicators;
-- Attention state for waiting work;
-- direct Home → Workspace transition;
-- Home exclusion of Notifications, Communications, Work Center, Patient Portal information, Quick Actions and personalized widgets.
+Therefore:
 
-The recovery deliberately retained Next.js navigation and shared token usage rather than blindly copying historical anchor/styling choices.
+- Workforce/Payroll has no architectural or functional role in Gate 01 D2.
+- Financial/Inventory has no architectural or functional role in Gate 01 D2.
+- Their presence in the current PR must be treated as **migration-history/replay prerequisites under reconciliation**, not as new D2 features.
+- They must not trigger a Workforce, Payroll, Financial, or Inventory implementation phase.
+- Before D2 is closed, the canonical PR contents must be reviewed to ensure each such file is genuinely required for deterministic migration replay and is not an unrelated functional change.
+- If a file is required only because repository migration history is incomplete, it must be classified explicitly as replay reconciliation. If it is unrelated to deterministic D2 verification, it must not be allowed to silently enlarge the D2 scope.
 
-### Home correctness repair
+## 6. How migration errors must be handled
 
-Historical implementation used a session flag for the welcome state but did not mark it on navigation. This was corrected through:
+Do **not** leave a real migration-chain error as an invisible “future phase” defect merely so D2 can pass.
 
-- `src/features/home/homeWelcome.ts`;
-- navigation-time welcome dismissal in Home and Workspace/transition actions.
+The rule is:
 
-### Login
+### If the error prevents the repository from reaching D2 verification
 
-Compatible Clinical Precision authentication presentation is now integrated while preserving the existing Supabase Auth flow and dedicated auth shell boundary.
+Fix or isolate the **migration/replay defect itself**, in the smallest additive/non-breaking way, so the verification environment can deterministically replay the canonical migration chain.
 
-### Agenda
+Examples include:
 
-Compatible context-aware Agenda work is now integrated:
+- a PostgreSQL-invalid migration statement;
+- a migration that recreates an existing policy without being replay-safe;
+- a missing historical migration object required by later migrations;
+- a hard-coded optional fixture that assumes a tenant that is absent from a clean reset;
+- duplicate migration-version filenames that make deterministic replay impossible.
 
-- doctor context via `doctorId` query parameter;
-- context filtering and clear-context behavior;
-- user-specific Home appointment destination remains within authoritative Agenda.
+### If the error is a genuine product/domain defect unrelated to D2
 
-Agenda remains the authoritative scheduling/planning domain; no second scheduling engine was introduced.
+Do not repair that domain during D2.
 
-### Global Search
+Record it as a finding and assign it to the correct future workstream/phase.
 
-Compatible Clinical Precision presentation and responsive/focus behavior are now integrated into `src/core/search/GlobalSearch.tsx` while reusing the existing `globalSearch()` action/engine.
+### If the error is a D2 implementation defect
 
-### Visual foundation
+Repair the D2 implementation, then rerun the full D2 gate.
 
-The Clinical Precision semantic token and shared surface/focus layer is now integrated into `src/app/globals.css` without replacing the existing Tailwind/shadcn HSL variable compatibility layer.
+The objective is a **truthful D2 PASS**, not a green check produced by hiding upstream migration failures.
 
-## 7. Current Experience Foundation Context
+## 7. Current migration rule
 
-The current canonical Experience Foundation is governed by:
+D2 migration:
 
-- Adaptive Hybrid Experience Model: Horizon + Vertex + Zenith.
-- Visual language: Concept 01 — Clinical Precision.
-- F1 Login, F2 Header, F3 Home, F4 Home → Workspace.
-- Information density follows Work Complexity.
-- Home remains Simple + Contextual and is not a specialist work engine.
-- Header controls remain independent semantic functions.
-- Communications is clinic-wide; Chat is a compact Communications surface; Notifications remain separate.
-- Calendar remains a representation over the authoritative Agenda; no second scheduling engine.
-- RTL/LTR changes experience direction where logically appropriate; semantic-direction elements retain fixed semantic orientation where required.
-- Experience Foundation and Experience Presentation are now treated as one integrated execution model.
+`supabase/migrations/20260917192500_csapi_gate01_patient_flow_d2_foundations.sql`
 
-## 8. Historical Implementation Candidates Not Blindly Revived
+Target database state is local/CI only until D2 is formally closed.
 
-The historical PR #123 Home implementation remains preserved as a superseded implementation snapshot because it contained Home sections later explicitly removed by approved decisions. Its reusable Experience primitives remain a separate review candidate rather than an automatic replacement for the current canonical UI.
+Production migration version `20260917192500` is **not applied to Production** at this handoff point.
 
-The PR #128 historical Header implementation was inspected against the current `GlobalHeader.tsx` in #129. The current #129 Header includes additional geometry/focus/shell work and is therefore treated as the current implementation baseline; the older #128 Header snapshot is retained as historical evidence rather than blindly promoted.
+No production data migration is authorized as part of D2.
 
-## 9. Historical Audit Status
+No Vercel verification is authorized before the D2 merge/final-release stage.
 
-The audit is broader than PR #122–#128. Independent refs and reconciliation refs are being classified by actual content/diff.
+## 8. D2 verification contract
 
-Confirmed examples of content already represented in main/current form include many August operational-architecture documents and the header/communications closure artifacts.
+Binding contract:
 
-Confirmed unique/recovered sources include:
+`docs/testing/workstream-contracts/csapi-gate01-d2.execution.json`
 
-- Insights Engineering Blueprint.
-- Branch Reconciliation Decision Log including final-v2 security/migration reconciliation evidence.
-- 2026-09-14 Constitution/Contract source artifacts.
-- 2026-09-14 UX Architecture Investigation Handoff.
-- 2026-08-29 Terminology Governance source set.
-- 2026-09-15 Visual Foundation source set.
+Required D2 database command:
 
-The historical documentation inventory for the current #129 reconciliation cycle has been completed to the point required for this closure step; no additional artifact is being promoted solely because it exists on a historical ref.
+`node tools/csapi-gate01-d2-database-verification.mjs`
 
-## 10. Current Closure Gate
+Required proof:
 
-#129 has now passed the current automated verification gate on the exact current head `a916fc4573b556ec36c6140252a5622f3b8ac8ce`.
+1. full repository migration chain replays cleanly;
+2. D2 migration applies;
+3. all three D2 tables exist;
+4. required indexes/constraints exist;
+5. tenant-safe composite FKs reject cross-tenant references;
+6. duplicate active Work Sessions are rejected;
+7. duplicate active Queue Entries are rejected;
+8. RLS prevents cross-tenant reads;
+9. engineering checks pass;
+10. no production database mutation occurs.
 
-GitHub Actions run **#435** (`35368344315`) completed **SUCCESS** on that exact head.
+The verification runner is local/CI only. Its temporary normalization of duplicate migration filenames is a verification mechanism, not a production migration-history rewrite.
 
-Successful lanes:
+## 9. What must NOT happen now
 
-- Build applicable lane plan
-- engineering
-- cross-domain-runtime
-- global-experience-presentation-runtime
-- i18n
-- authenticated-e2e
-- global-experience-presentation-static
-- header-technical-foundation-static
-- header-chat-static
-- communications-wave-b-static
-- Final gate
+Do not:
 
-The previous tablet geometry failures are superseded by the fresh current-head run. The final correction clamps the tablet panel top from the actual viewport height so the fixed 620px maximum cannot extend below the viewport. The tablet Chat panel was corrected to use deterministic physical viewport gutters (`left/right: GAP`, `margin-inline:auto`, no transform centering), and the fresh runtime lane passed at the affected tablet widths.
+- implement D3 lifecycle commands;
+- add D2 write-authority RPCs owned by D3;
+- redesign Patient Flow UI;
+- modify Reception/Clinical Workspace behavior unless a D2 database contract explicitly requires it;
+- repair Workforce/Payroll because it appeared in the migration chain;
+- repair Financial/Inventory because it appeared in the migration chain;
+- use Vercel;
+- mutate Production Supabase;
+- merge #168 before the D2 verification gate is truthful and green;
+- revive old D2 PR #145 as the execution base;
+- use obsolete Unified Test Execution Engine evidence as current D2 proof.
 
-This evidence is **pre-production**. Vercel is not used as a routine validation path, and no production deployment is being claimed from this run.
+## 10. Exact next execution
 
-Required final-release work remains:
+When the next conversation starts with **CSAPI**, execute immediately from this handoff:
 
-- REVIEW → DOCUMENT reconciliation for the current head;
-- merge/promotion to `main` under the repository merge gate;
-- only after promotion to `main`, final production build/runtime verification as required by release governance.
+1. Re-verify PR #168, its exact head, branch, and current GitHub Actions state.
+2. Review #168 for scope purity and merge-readiness against the now-green D2 gate.
+3. Merge only the exact verified head `c5cd0aef6dcecde96a477585985c1344f8924b62` to `main`.
+4. After merge, perform the authorized read-only Production Supabase verification for the D2 schema/RLS/constraints.
+5. Update this Handoff and the Ledger with exact final SHA, migration version, merge evidence, and production verification evidence.
+6. Close D2 only when all required closure evidence exists.
+7. Only then identify the canonical D3 plan/contract/branch from repository evidence and continue to D3 — without pulling D3 work backward into D2.
+9. Merge #168 to `main).
+10. Only after merge, perform the authorized Production Supabase read-only verification for the D2 migration/schema/RLS/constraints.
+11. Update this Handoff and the Ledger with exact final SHA, migration version, CI evidence, merge evidence, and production verification evidence.
+12. Close D2 only when all required closure evidence exists.
+13. Then identify the canonical D3 plan/contract/branch from repository evidence and continue to D3 — without pulling D3 work backward into D2.
 
-## 11. Immediate Next Execution
+## 11. Canonical source priority
 
-1. Keep #129 as the canonical line and do not revive historical implementation branches.
-2. Record run #435, the final tablet vertical clamp correction, and the absorbed #163 login hardening in the live Ledger.
-3. Complete the controlled merge of #129 into `main` using the exact verified head `407e00beba1403f853ec718d363ebbe89e28d5bf`.
-4. After promotion to `main`, perform the final allowed Production verification/build/runtime stage; do not use Vercel before that stage.
-5. Close the Global Experience workstream only when post-main production evidence supports the closure claim.
+Use this order when sources conflict:
+
+1. current `main) and current canonical PR/head;
+2. current CSAPI Gate 01 contracts/design packets;
+3. current repository implementation and migrations;
+4. current live Supabase evidence, read-only until the authorized post-merge D2 verification;
+5. historical branches/PRs as provenance only.
+
+Never let an old branch or old handoff silently become the execution base.
+
+**Resume command:** `CSAPI`
 
 **End of Live Execution Handoff.**

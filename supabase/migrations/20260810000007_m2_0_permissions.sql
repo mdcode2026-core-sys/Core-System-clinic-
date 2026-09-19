@@ -20,7 +20,7 @@ VALUES
     (gen_random_uuid(), 'nurse', 'Nurse', 'ممرض', 'Nurse', true, now()),
     (gen_random_uuid(), 'receptionist', 'Receptionist', 'موظف الاستقبال', 'Front desk receptionist', true, now()),
     (gen_random_uuid(), 'accounting', 'Accounting', 'المحاسب', 'Accounting and billing staff', true, now())
-ON CONFLICT (role_key) DO NOTHING;
+ON CONFLICT DO NOTHING;
 
 DO $$
 DECLARE

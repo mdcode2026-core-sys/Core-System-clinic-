@@ -146,4 +146,5 @@ END; $$;
 REVOKE EXECUTE ON FUNCTION public.validate_procedure_resources_for_booking(uuid,uuid,uuid) FROM anon;
 GRANT EXECUTE ON FUNCTION public.validate_procedure_resources_for_booking(uuid,uuid,uuid) TO authenticated;
 
+ALTER TABLE public.master_agenda_events DROP CONSTRAINT IF EXISTS no_patient_overlap;
 ALTER TABLE public.master_agenda_events ADD CONSTRAINT no_patient_overlap EXCLUDE USING gist (patient_id WITH =, tstzrange(scheduled_start,buffer_end) WITH &&) WHERE (patient_id IS NOT NULL AND status <> ALL (ARRAY['cancelled'::varchar,'no_show'::varchar]));
