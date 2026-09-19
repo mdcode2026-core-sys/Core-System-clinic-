@@ -252,7 +252,7 @@ try {
     let temporaryRuntimeTest = null;
 
     if (lane === "csapi-gate01-d3-runtime" && name === "d3-integrated-runtime") {
-      const sourcePath = args[1];
+      const sourcePath = args[0];
       const temporaryPath = "tools/.ci-csapi-gate01-d3-runtime.mjs";
       const source = readFileSync(sourcePath, "utf8");
       const patched = source.replace(
