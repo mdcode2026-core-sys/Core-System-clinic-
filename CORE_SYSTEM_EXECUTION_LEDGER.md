@@ -229,3 +229,7 @@ Gate 01 CLOSED
 
 
 | 2026-09-19 | D3 Step 2B verification | Run #540 (`35439419179`) on `3fe7fa27bc533ad6dc7623274e237f756682db30` | D3 DB + Stage 6 + Engineering + Final gate all PASS | Close Step 2B CI verification | Proceed to Step 3 server action integration |
+
+
+| 2026-09-19 | D3 Step 3 — Server Action Integration | Exact head `c57e35b791593175343c893d57368c582129fa24`; GitHub Actions Run #548 (`35441891645`) | Build plan, Engineering, D3 database, Stage 6 regression and Final gate all PASS | Server lifecycle callers now dispatch to canonical D3 commands; old generic lifecycle mutation authority removed from active paths | Proceed to D3 Step 4 — Integrated Runtime |
+| 2026-09-19 | D3 Step 3 corrective regression update | Run #547 Stage 6 failed only because the static audit expected superseded pre-D3 helper structure; `tools/patient-flow-stage6-audit.mjs` was updated to verify the D3 adapter boundary and reject legacy generic lifecycle mutation | Run #548 re-verification PASS | Treat the audit as a regression contract for architecture, not a requirement to preserve obsolete implementation structure | Keep runtime evidence separate and execute Step 4 |
