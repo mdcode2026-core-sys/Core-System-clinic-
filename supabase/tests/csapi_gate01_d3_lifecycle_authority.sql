@@ -39,6 +39,14 @@ VALUES
  ('00000000-0000-0000-0000-00000000d301','CSAPI D3 Tenant A','CSAPI-D3-A','Asia/Amman','JOD','JO'),
  ('00000000-0000-0000-0000-00000000d302','CSAPI D3 Tenant B','CSAPI-D3-B','Asia/Amman','JOD','JO');
 
+INSERT INTO public.tenants(
+  id,clinic_name,license_key,timezone,currency,country_code,is_active
+)
+VALUES
+ ('00000000-0000-0000-0000-00000000d301','CSAPI D3 Legacy Tenant A','CSAPI-D3-A','Asia/Amman','JOD','JO',true),
+ ('00000000-0000-0000-0000-00000000d302','CSAPI D3 Legacy Tenant B','CSAPI-D3-B','Asia/Amman','JOD','JO',true)
+ON CONFLICT (id) DO NOTHING;
+
 INSERT INTO auth.users (
   id, aud, role, email, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at, is_sso_user, is_anonymous
 )
