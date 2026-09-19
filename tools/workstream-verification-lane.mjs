@@ -157,6 +157,11 @@ function prepareD3RuntimeEnvironment() {
   }
 
   const fixtureSql = [
+    "INSERT INTO public.permissions(permission_key,permission_name,description,resource,action) VALUES",
+    "('patients:read','Read Patients','View patient records','patients','read'),",
+    "('sessions:read','Read Sessions','View visit sessions and queue state','sessions','read'),",
+    "('sessions:create','Create Sessions','Create visit sessions and queue intake records','sessions','create')",
+    "ON CONFLICT(permission_key) DO UPDATE SET deleted_at=NULL, permission_name=EXCLUDED.permission_name, description=EXCLUDED.description, resource=EXCLUDED.resource, action=EXCLUDED.action;",
     "UPDATE public.permissions SET deleted_at=NULL WHERE permission_key IN ('sessions:read','patients:read','sessions:create','sessions:update','sessions:close','patient_flow:operations','patient_flow:clinical');",
     "INSERT INTO public.role_permissions(role_id,permission_id)",
     "SELECT r.id,p.id FROM public.roles r CROSS JOIN public.permissions p",
