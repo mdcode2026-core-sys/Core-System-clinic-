@@ -54,7 +54,7 @@
     },
     {
       "name": "d3-integrated-runtime",
-      "command": "node tools/csapi-gate01-d3-runtime.mjs",
+      "command": "node tools/csapi-gate01-d3-runtime-v2.mjs",
       "required": true,
       "execution_owner": "workstream-verification"
     }
