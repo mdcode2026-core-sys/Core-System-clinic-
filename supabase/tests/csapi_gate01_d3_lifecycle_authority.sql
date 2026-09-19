@@ -1,6 +1,6 @@
 BEGIN;
 
-SELECT plan(32);
+SELECT plan(36);
 
 CREATE TEMP TABLE d3_test_ids (
   key text primary key,
@@ -102,6 +102,11 @@ VALUES
 
 SET LOCAL ROLE authenticated;
 SELECT set_config('request.jwt.claims','{"sub":"00000000-0000-0000-0000-00000000d305","app_metadata":{"tenant_id":"00000000-0000-0000-0000-00000000d301"}}',true);
+
+SELECT is(auth.uid(),'00000000-0000-0000-0000-00000000d305'::uuid,'Auth context resolves reception actor');
+SELECT is(public.get_current_tenant_id(),'00000000-0000-0000-0000-00000000d301'::uuid,'Tenant context resolves Tenant A');
+SELECT ok(public.has_effective_permission('patient_flow:operations'),'Reception has patient_flow:operations');
+SELECT ok(public.has_effective_permission('sessions:update'),'Reception has sessions:update');
 
 SELECT ok(
   (public.csapi_d3_enter_waiting(
