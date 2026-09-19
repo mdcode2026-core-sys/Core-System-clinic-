@@ -51,8 +51,7 @@ BEGIN
     RAISE EXCEPTION USING ERRCODE='P0001', MESSAGE='ACTOR_NOT_FOUND';
   END IF;
 
-  IF NOT public.has_effective_permission('sessions:update')
-     OR NOT public.has_effective_permission('patient_flow:operations') THEN
+  IF NOT public.has_effective_permission('sessions:update') THEN
     RAISE EXCEPTION USING ERRCODE='P0001', MESSAGE='PERMISSION_DENIED';
   END IF;
 
@@ -219,7 +218,8 @@ BEGIN
     RAISE EXCEPTION USING ERRCODE='P0001', MESSAGE='ACTOR_NOT_FOUND';
   END IF;
 
-  IF NOT public.has_effective_permission('sessions:update') THEN
+  IF NOT public.has_effective_permission('sessions:update')
+     OR NOT public.has_effective_permission('patient_flow:operations') THEN
     RAISE EXCEPTION USING ERRCODE='P0001', MESSAGE='PERMISSION_DENIED';
   END IF;
 
@@ -409,8 +409,7 @@ BEGIN
     RAISE EXCEPTION USING ERRCODE='P0001', MESSAGE='ACTOR_NOT_FOUND';
   END IF;
 
-  IF NOT public.has_effective_permission('sessions:update')
-     OR NOT public.has_effective_permission('patient_flow:clinical') THEN
+  IF NOT public.has_effective_permission('sessions:update') THEN
     RAISE EXCEPTION USING ERRCODE='P0001', MESSAGE='PERMISSION_DENIED';
   END IF;
 
@@ -585,7 +584,8 @@ BEGIN
     RAISE EXCEPTION USING ERRCODE='P0001', MESSAGE='ACTOR_NOT_FOUND';
   END IF;
 
-  IF NOT public.has_effective_permission('sessions:update') THEN
+  IF NOT public.has_effective_permission('sessions:update')
+     OR NOT public.has_effective_permission('patient_flow:clinical') THEN
     RAISE EXCEPTION USING ERRCODE='P0001', MESSAGE='PERMISSION_DENIED';
   END IF;
 
