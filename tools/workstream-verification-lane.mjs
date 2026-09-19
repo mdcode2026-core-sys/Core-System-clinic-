@@ -157,6 +157,7 @@ function prepareD3RuntimeEnvironment() {
   }
 
   const fixtureSql = [
+    "UPDATE public.permissions SET deleted_at=NULL WHERE permission_key IN ('sessions:read','patients:read','sessions:create','sessions:update','sessions:close','patient_flow:operations','patient_flow:clinical');",
     "INSERT INTO public.role_permissions(role_id,permission_id)",
     "SELECT r.id,p.id FROM public.roles r CROSS JOIN public.permissions p",
     "WHERE r.role_key='doctor' AND p.permission_key='patient_flow:clinical'",
