@@ -25,6 +25,9 @@ const laneRegistry = {
   "header-technical-foundation": { id: "header-technical-foundation-static" },
   "communications-wave-b": { id: "communications-wave-b-static" },
   "csapi-gate01-d2-database": { id: "csapi-gate01-d2-database" },
+  "csapi-gate01-d3-database": { id: "csapi-gate01-d3-database" },
+  "csapi-gate01-d3-runtime": { id: "csapi-gate01-d3-runtime" },
+  "patient-flow-stage6-regression": { id: "patient-flow-stage6-regression" },
 };
 
 const commandToLane = new Map([
@@ -35,6 +38,10 @@ const commandToLane = new Map([
   ["npm run test:header-technical-foundation", "header-technical-foundation-static"],
   ["npm run test:communications-wave-b", "communications-wave-b-static"],
   ["node tools/csapi-gate01-d2-database-verification.mjs", "csapi-gate01-d2-database"],
+  ["node tools/csapi-gate01-d3-database-verification.mjs", "csapi-gate01-d3-database"],
+  ["node tools/csapi-gate01-d3-runtime.mjs", "csapi-gate01-d3-runtime"],
+  ["node tools/csapi-gate01-d3-runtime-v2.mjs", "csapi-gate01-d3-runtime"],
+  ["npm run ux:patient-flow-stage6", "patient-flow-stage6-regression"],
 ]);
 
 const lanes = new Map([["engineering", { id: "engineering" }]]);

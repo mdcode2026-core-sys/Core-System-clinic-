@@ -2,12 +2,14 @@
 
 **Updated:** 2026-09-19
 **Workstream:** CSAPI — Gate 01 — Patient Flow
-**Current Stage:** Gate 01 — Post-D2 / D3 Preparation
+**Current Stage:** D3 — Step 4 — Integrated Runtime
 **Canonical D2 PR:** #168
 **Canonical D2 Branch:** `implementation/csapi-gate-01-d2-database-foundations-canonical-2026-09-18`
 **Merged D2 Main SHA:** `6013a9ffa4705738bc9e8de7c0d1403ff6a0858e`
 **Post-merge documentation branch:** `docs/csapi-d2-post-merge-verification-2026-09-19`
 **D2 Status:** MERGED — PRODUCTION ROLLOUT / FINAL VERIFICATION PENDING
+**D3 Branch:** `implementation/csapi-gate01-d3-lifecycle-authority-2026-09-19`
+**D3 Status:** STEP 4 RUNTIME VERIFICATION IN PROGRESS — LATEST RUNTIME FAIL; REMEDIATION PENDING
 **Production Supabase:** NOT TOUCHED FOR D2
 **Vercel:** NOT TOUCHED FOR D2
 
@@ -314,3 +316,235 @@ Never let an old branch or old handoff silently become the execution base.
 **Current main documentation merge SHA:** `c23d0c8ca09c2dc944ed4422b18b72b4e4968b96`
 
 **End of Live Execution Handoff.**
+
+
+## D3 Plan Freeze — 2026-09-19
+
+D3 has entered controlled pre-implementation execution.
+
+Authoritative D3 planning artifacts on the D3 branch:
+- `docs/CSAPI/GATES/GATE-01-D3-LIFECYCLE-WRITE-AUTHORITY-PLAN-2026-09-19.md`
+- `docs/CSAPI/GATES/GATE-01-D3-LIFECYCLE-WRITE-AUTHORITY-VERIFICATION-PLAN-2026-09-19.md`
+- `docs/testing/workstream-contracts/csapi-gate01-d3.execution.json`
+
+The plan explicitly separates:
+- D2 database foundations from D3 lifecycle writes;
+- existing Stage 6 regression evidence from new D3 lifecycle evidence;
+- database/command verification from integrated runtime verification.
+
+Current implementation finding:
+- Existing Queue/Visit server actions mutate `clinic_visit_sessions` directly.
+- They do not atomically project the same lifecycle transition into D2 Work Session / Queue Entry / Event records.
+- The existing broad `moveFromPatientFlow` mutation surface is not accepted as the canonical D3 command authority.
+
+Test suitability finding:
+- `tools/patient-flow-stage6-audit.mjs` remains a regression/static architecture check.
+- `supabase/tests/csapi_gate01_d2_database_foundations.sql` remains D2-only integrity evidence and must not be repurposed as D3 lifecycle proof.
+- D3 therefore requires dedicated database/command and runtime verification lanes.
+
+Step 0 evidence:
+- D3 plan created: `cd0056ee3164c6b6ecd335f226a0945fa6fbcbc3`
+- D3 verification plan created: `f9d82aad220d58a0b95200507f12de1f64c9b5fd`
+- D3 planned contract created: `1aec7ec51105d053853ac61d5daf2107bf20b892`
+
+No D3 production migration or application code has been changed at this point.
+
+**Current D3 next action:** verify the frozen plan branch through the applicable CI engineering gate. If it passes, proceed to Step 1: exact command/data/event contract. If it fails, fix only the concrete execution defect and re-verify before advancing.
+
+
+## D3 Step 1 — Command / Data / Event Contract
+
+**Result:** PASS / FROZEN BEFORE DATABASE IMPLEMENTATION.
+
+Authoritative contract:
+`docs/CSAPI/GATES/GATE-01-D3-COMMAND-DATA-EVENT-CONTRACT-2026-09-19.md`
+
+The contract fixes:
+- lifecycle transitions;
+- seven D3 domain commands;
+- owner/permission boundaries;
+- Queue Entry semantics and position normalization;
+- Work Session projection semantics;
+- Event taxonomy;
+- atomic transaction boundary;
+- concurrency and correlation/idempotency behavior;
+- legacy adapter rule;
+- D3-specific acceptance matrix.
+
+Verified repository evidence confirms the existing Queue Engine remains the transition-rule source and existing Queue/Visit actions are the legacy mutation callers to be migrated.
+
+**Step 1 evidence commit:** `cbfc04831e2ab6ec3a12276a59b12b90283b523e`
+
+**Next:** re-verify this exact branch/head through CI, then proceed to Step 2 — D3 database mutation boundary.
+
+## D3 Step 2A — Verification Harness
+
+**Result:** PASS.
+
+Dedicated D3 verification artifacts are now present:
+- `supabase/tests/csapi_gate01_d3_lifecycle_authority.sql`
+- `tools/csapi-gate01-d3-database-verification.mjs`
+- D3 database lane mapping in `tools/workstream-verification-lane.mjs`
+- D3 planner mappings in `tools/workstream-verification-plan.mjs`
+
+GitHub Actions run **#508** (`35433430969`) passed on exact D3 head `7b71fdfc57e20c04c9af0684ba191612ed127bf9`.
+
+The existing D2 and Stage 6 checks remain separate and were not reinterpreted as D3 proof.
+
+**Next approved step:** Step 2B — implement the D3 database mutation boundary and activate the binding D3 database contract. No Production mutation and no Vercel verification are permitted.
+
+## D3 Step 2B — Database Mutation Boundary
+
+**Implementation:** COMPLETE / VERIFICATION PENDING.
+
+Added:
+- `supabase/migrations/20260919090000_csapi_gate01_d3_lifecycle_authority.sql`
+- D3 lifecycle functions for Waiting, Reorder, Clinical Start, Clinical Finish, Reception Completion, Cancel and No-show.
+- Correlation idempotency index.
+- Authenticated-only RPC ACL.
+- Atomic Visit + D2 Queue/Work Session/Event projection boundary.
+- Controlled tenant/actor/permission validation and visit/work-session locking.
+
+Verification contract activated:
+- D3 database lane.
+- Patient Flow Stage 6 regression lane.
+- Engineering lane.
+
+The D3 runtime lane remains planned and is not yet active.
+
+**Exact implementation commits:**
+- Migration: `cafd46654b5d3d10281cef5b4481f555ce5c4468`
+- Migration correction: `5ea6b2f7da28846f84b7fcbfa26f090c32c62d12`
+- Test fixture correction: `59189c04f832991e4bd42845e810c24096405f2b`
+- Binding contract: `a6772bd9b3b0d5892d94a0ab5c83036876697afc`
+
+**Current next action:** run the exact D3 database and regression lanes. No D3 implementation may advance to server adapters until those lanes pass.
+
+
+## D3 Step 2B Closure — 2026-09-19
+
+Exact verified head: `3fe7fa27bc533ad6dc7623274e237f756682db30`
+
+GitHub Actions Run #540 (`35439419179`) PASS:
+- D3 database lifecycle authority: PASS
+- Patient Flow Stage 6 regression: PASS
+- Engineering: PASS
+- Final gate: PASS
+
+Step 2B database mutation boundary is therefore verified and closed at CI level. No Production Supabase mutation and no Vercel verification were used.
+
+**Next:** Step 3 — Server action integration. Migrate active D3-owned direct mutation callers to thin wrappers over the canonical D3 commands. Do not redesign Queue/Workspace/Visit UI or introduce a second engine.
+
+
+## D3 Step 3 — Server Action Integration — 2026-09-19
+
+**Result:** PASS / CLOSED AT CI LEVEL.
+
+Canonical implementation head:
+`c57e35b791593175343c893d57368c582129fa24`
+
+GitHub Actions Run **#548** (`35441891645`) verified the exact candidate and passed:
+- Build applicable lane plan — PASS
+- Engineering — PASS
+- D3 database/command lane — PASS
+- Patient Flow Stage 6 regression — PASS
+- Final gate — PASS
+
+Implemented server-action integration:
+- `src/domain/queue/d3.actions.ts` — thin authenticated D3 RPC adapter layer.
+- `src/domain/queue/queue.actions.ts` — lifecycle callers routed through D3; Visit creation remains separate entity creation, then D3 establishes Waiting.
+- `src/domain/queue/workspace.actions.ts` — direct lifecycle mutation paths replaced with explicit D3 command dispatch.
+- `src/infrastructure/supabase/database.types.ts` — D3 RPC signatures added.
+- `supabase/migrations/20260919090000_csapi_gate01_d3_lifecycle_authority.sql` — command authorization corrected to the frozen contract.
+- `tools/patient-flow-stage6-audit.mjs` — regression audit updated to validate the new D3 adapter boundary rather than superseded legacy implementation text.
+
+CI correction encountered:
+- Run #547 exposed that the Stage 6 static audit still required the pre-D3 `workspace.actions.ts` structure (`patientFlowPermission` + generic `transitionSession`).
+- The smallest valid correction was to make the audit assert the canonical D3 adapter/dispatch boundary and reject the old generic lifecycle mutation authority.
+- Run #548 then passed all required lanes.
+
+Boundary verification:
+- No Production Supabase mutation.
+- Vercel was not used.
+- No UI redesign or second queue/permission engine was introduced.
+
+**Step 3 gate:** PASS. No generic lifecycle mutation bypass remains in the active D3 entry points covered by this integration.
+
+**Next:** D3 Step 4 — Integrated Runtime. Required path:
+Reception → Waiting → Reorder (when applicable) → Clinical Pull/Start → Clinical Work → Finish → Pending Close → Reception Complete → Completed, with authorization and tenant-negative runtime evidence.
+
+**2026-09-19 Step 4 Runtime verifier revision:** The D3 integrated runtime lane now executes `tools/csapi-gate01-d3-runtime-v2.mjs`, retaining the original runner for comparison/reference. V2 uses a more deterministic local-authentication wait path; no production endpoint is used.
+
+
+## CSAPI CURRENT RESUME — 2026-09-19 20:28 +03
+
+**Authoritative CSAPI continuation file:**
+`docs/CSAPI/CSAPI-CURRENT-EXECUTION-HANDOFF-2026-09-19.md`
+
+When the next conversation starts with **CSAPI**, use that file first.
+
+### Current exact state
+
+- CSAPI Gate 01: OPEN.
+- D2: merged to `main`; baseline `6013a9ffa4705738bc9e8de7c0d1403ff6a0858e`.
+- D3 branch: `implementation/csapi-gate01-d3-lifecycle-authority-2026-09-19`.
+- PR #172: OPEN / DRAFT / MERGEABLE / NOT MERGED.
+- Current PR head: `381302a2c34542502e2c58d1d39804d7e6152336`.
+- Current PR body is stale plan-freeze text and must not override the current repository/CSAPI state.
+- D3 Steps 0, 1, 2A, 2B and 3 are complete at their respective CI gates.
+- D3 Step 4 — Integrated Runtime is OPEN and NOT PASSED.
+
+### Latest CI evidence
+
+Run #576, ID `35449505099`, checked the current D3 candidate.
+
+- Build applicable lane plan: PASS
+- Patient Flow Stage 6 regression: PASS
+- Engineering: PASS
+- D3 database/command: PASS
+- D3 integrated runtime: FAIL
+- Final gate: FAIL
+
+### Latest runtime findings
+
+The runtime environment and authentication now work. The authenticated Reception diagnostic actor resolved the expected Patient Flow/session permissions and could directly read the seeded waiting Visit and Patient.
+
+The first real application error is:
+
+```
+Arrival failed: insert or update on table "clinic_visit_sessions"
+violates foreign key constraint
+"clinic_visit_sessions_initialized_by_receptionist_fkey"
+```
+
+The runtime harness then incorrectly printed a PASS for the button click and continued. The next Clinical step encountered:
+
+```
+ACTIVE_WAITING_QUEUE_ENTRY_REQUIRED
+```
+
+and the harness again continued as if Clinical Pull had passed, eventually timing out on clinical documentation fields.
+
+Therefore the latest runtime result is **not valid positive lifecycle evidence**. The next work must first make the runtime verifier fail-fast, then resolve the FK/identity mismatch, then rerun the complete lifecycle.
+
+### Important verification-history note
+
+Several intermediate runtime attempts were intentionally corrective:
+- local Supabase `config.toml` initialization;
+- deterministic local auth/claims handling;
+- local Patient Flow route/workspace permission fixture;
+- local `sessions:read` fixture;
+- runtime diagnostic logging.
+
+These changes are verification infrastructure and must not be interpreted as final product role/subscription design.
+
+### Exact next step
+
+Continue at **D3 Step 4**:
+1. harden the runtime verifier so server-action failures cannot be reported as PASS;
+2. inspect the real `initialized_by_receptionist` FK and the current application identity semantics;
+3. fix only the smallest proven defect;
+4. rerun the integrated runtime;
+5. only after a trustworthy runtime PASS proceed to Step 5 Final Review.
+
+No Vercel. No hosted Production Supabase mutation. No unrelated domain work.

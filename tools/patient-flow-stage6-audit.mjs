@@ -57,12 +57,25 @@ requireText("src/features/patient-flow/PatientFlowBoard.tsx", "moveFromPatientFl
 requireText("src/features/patient-flow/PatientFlowBoard.tsx", "allowedTargets");
 requireText("src/features/patient-flow/PatientFlowBoard.tsx", "onDrop");
 
-requireText("src/domain/queue/workspace.actions.ts", "function patientFlowPermission");
-requireText("src/domain/queue/workspace.actions.ts", 'requirePermission(permissions, patientFlowPermission(context))');
-requireText("src/domain/queue/workspace.actions.ts", 'requirePermission(permissions, "sessions:update")');
-requireText("src/domain/queue/workspace.actions.ts", "queueEngine.validateTransition");
+const workspaceActions = read("src/domain/queue/workspace.actions.ts");
+for (const commandAdapter of [
+  "d3EnterWaiting",
+  "d3StartClinicalWork",
+  "d3FinishClinicalWork",
+  "d3CompleteReception",
+  "d3CancelPatientFlow",
+  "d3MarkNoShow",
+]) requireText("src/domain/queue/d3.actions.ts", commandAdapter);
+requireText("src/domain/queue/workspace.actions.ts", "moveFromPatientFlow");
+requireText("src/domain/queue/workspace.actions.ts", "switch (target)");
 requireText("src/domain/queue/workspace.actions.ts", '.eq("tenant_id", tenantId)');
 requireText("src/domain/queue/workspace.actions.ts", 'revalidatePath("/(dashboard)/patient-flow")');
+if (workspaceActions && /async function transitionSession\(/.test(workspaceActions)) {
+  failures.push("src/domain/queue/workspace.actions.ts: legacy direct transition authority remains");
+}
+if (workspaceActions && /session_status:\s*target/.test(workspaceActions)) {
+  failures.push("src/domain/queue/workspace.actions.ts: generic lifecycle status write remains");
+}
 
 for (const transition of [
   'waiting: ["in_consultation", "no_show", "cancelled"]',
