@@ -42,12 +42,19 @@
   "required_suites": [
     "engineering",
     "csapi-gate01-d3-database",
-    "patient-flow-stage6-regression"
+    "patient-flow-stage6-regression",
+    "csapi-gate01-d3-runtime"
   ],
   "workstream_checks": [
     {
       "name": "d3-lifecycle-database",
       "command": "node tools/csapi-gate01-d3-database-verification.mjs",
+      "required": true,
+      "execution_owner": "workstream-verification"
+    },
+    {
+      "name": "d3-integrated-runtime",
+      "command": "node tools/csapi-gate01-d3-runtime.mjs",
       "required": true,
       "execution_owner": "workstream-verification"
     }
