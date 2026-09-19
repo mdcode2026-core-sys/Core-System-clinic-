@@ -40,6 +40,7 @@ const commandToLane = new Map([
   ["node tools/csapi-gate01-d2-database-verification.mjs", "csapi-gate01-d2-database"],
   ["node tools/csapi-gate01-d3-database-verification.mjs", "csapi-gate01-d3-database"],
   ["node tools/csapi-gate01-d3-runtime.mjs", "csapi-gate01-d3-runtime"],
+  ["node tools/csapi-gate01-d3-runtime-v2.mjs", "csapi-gate01-d3-runtime"],
   ["npm run ux:patient-flow-stage6", "patient-flow-stage6-regression"],
 ]);
 
