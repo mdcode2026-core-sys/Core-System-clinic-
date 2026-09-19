@@ -2,6 +2,7 @@
 
 import { spawn, spawnSync } from "node:child_process";
 import { existsSync, readdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
 
 const lane = process.env.VERIFICATION_LANE;
 if (!lane) throw new Error("VERIFICATION_LANE is required");
