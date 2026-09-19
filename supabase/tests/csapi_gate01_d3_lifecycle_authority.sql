@@ -78,12 +78,12 @@ VALUES
  ('00000000-0000-0000-0000-00000000d308','00000000-0000-0000-0000-00000000d301','00000000-0000-0000-0000-00000000d307','D3 Unauthorized','doctor',(SELECT id FROM public.roles WHERE role_key='doctor' AND is_system_role=true LIMIT 1) ,'D3-U','0002',true),
  ('00000000-0000-0000-0000-00000000d314','00000000-0000-0000-0000-00000000d302','00000000-0000-0000-0000-00000000d315','D3 Tenant B Doctor','doctor',(SELECT id FROM public.roles WHERE role_key='doctor' AND is_system_role=true LIMIT 1) ,'D3-B','0003',true);
 
-INSERT INTO public.clinic_user_permission_overrides(tenant_id,user_id,permission_id,granted,created_by)
+INSERT INTO public.clinic_user_permissions(tenant_id,user_id,permission_id,granted,created_by)
 SELECT '00000000-0000-0000-0000-00000000d301','00000000-0000-0000-0000-00000000d304',p.id,true,'00000000-0000-0000-0000-00000000d306'
 FROM public.permissions p
 WHERE p.permission_key IN ('patient_flow:clinical','sessions:update');
 
-INSERT INTO public.clinic_user_permission_overrides(tenant_id,user_id,permission_id,granted,created_by)
+INSERT INTO public.clinic_user_permissions(tenant_id,user_id,permission_id,granted,created_by)
 SELECT '00000000-0000-0000-0000-00000000d301','00000000-0000-0000-0000-00000000d306',p.id,true,'00000000-0000-0000-0000-00000000d306'
 FROM public.permissions p
 WHERE p.permission_key IN ('patient_flow:operations','sessions:update','sessions:close');
