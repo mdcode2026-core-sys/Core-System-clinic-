@@ -474,3 +474,77 @@ Boundary verification:
 Reception → Waiting → Reorder (when applicable) → Clinical Pull/Start → Clinical Work → Finish → Pending Close → Reception Complete → Completed, with authorization and tenant-negative runtime evidence.
 
 **2026-09-19 Step 4 Runtime verifier revision:** The D3 integrated runtime lane now executes `tools/csapi-gate01-d3-runtime-v2.mjs`, retaining the original runner for comparison/reference. V2 uses a more deterministic local-authentication wait path; no production endpoint is used.
+
+
+## CSAPI CURRENT RESUME — 2026-09-19 20:28 +03
+
+**Authoritative CSAPI continuation file:**
+`docs/CSAPI/CSAPI-CURRENT-EXECUTION-HANDOFF-2026-09-19.md`
+
+When the next conversation starts with **CSAPI**, use that file first.
+
+### Current exact state
+
+- CSAPI Gate 01: OPEN.
+- D2: merged to `main`; baseline `6013a9ffa4705738bc9e8de7c0d1403ff6a0858e`.
+- D3 branch: `implementation/csapi-gate01-d3-lifecycle-authority-2026-09-19`.
+- PR #172: OPEN / DRAFT / MERGEABLE / NOT MERGED.
+- Current PR head: `381302a2c34542502e2c58d1d39804d7e6152336`.
+- Current PR body is stale plan-freeze text and must not override the current repository/CSAPI state.
+- D3 Steps 0, 1, 2A, 2B and 3 are complete at their respective CI gates.
+- D3 Step 4 — Integrated Runtime is OPEN and NOT PASSED.
+
+### Latest CI evidence
+
+Run #576, ID `35449505099`, checked the current D3 candidate.
+
+- Build applicable lane plan: PASS
+- Patient Flow Stage 6 regression: PASS
+- Engineering: PASS
+- D3 database/command: PASS
+- D3 integrated runtime: FAIL
+- Final gate: FAIL
+
+### Latest runtime findings
+
+The runtime environment and authentication now work. The authenticated Reception diagnostic actor resolved the expected Patient Flow/session permissions and could directly read the seeded waiting Visit and Patient.
+
+The first real application error is:
+
+```
+Arrival failed: insert or update on table "clinic_visit_sessions"
+violates foreign key constraint
+"clinic_visit_sessions_initialized_by_receptionist_fkey"
+```
+
+The runtime harness then incorrectly printed a PASS for the button click and continued. The next Clinical step encountered:
+
+```
+ACTIVE_WAITING_QUEUE_ENTRY_REQUIRED
+```
+
+and the harness again continued as if Clinical Pull had passed, eventually timing out on clinical documentation fields.
+
+Therefore the latest runtime result is **not valid positive lifecycle evidence**. The next work must first make the runtime verifier fail-fast, then resolve the FK/identity mismatch, then rerun the complete lifecycle.
+
+### Important verification-history note
+
+Several intermediate runtime attempts were intentionally corrective:
+- local Supabase `config.toml` initialization;
+- deterministic local auth/claims handling;
+- local Patient Flow route/workspace permission fixture;
+- local `sessions:read` fixture;
+- runtime diagnostic logging.
+
+These changes are verification infrastructure and must not be interpreted as final product role/subscription design.
+
+### Exact next step
+
+Continue at **D3 Step 4**:
+1. harden the runtime verifier so server-action failures cannot be reported as PASS;
+2. inspect the real `initialized_by_receptionist` FK and the current application identity semantics;
+3. fix only the smallest proven defect;
+4. rerun the integrated runtime;
+5. only after a trustworthy runtime PASS proceed to Step 5 Final Review.
+
+No Vercel. No hosted Production Supabase mutation. No unrelated domain work.
