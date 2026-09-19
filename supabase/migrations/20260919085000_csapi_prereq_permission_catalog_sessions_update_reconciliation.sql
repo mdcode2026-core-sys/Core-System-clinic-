@@ -18,7 +18,12 @@ VALUES (
   'sessions',
   'update'
 )
-ON CONFLICT (permission_key) DO NOTHING;
+ON CONFLICT (permission_key) DO UPDATE
+SET permission_name = EXCLUDED.permission_name,
+    description = EXCLUDED.description,
+    resource = EXCLUDED.resource,
+    action = EXCLUDED.action,
+    deleted_at = NULL;
 
 INSERT INTO public.role_permissions (role_id, permission_id)
 SELECT r.id, p.id
