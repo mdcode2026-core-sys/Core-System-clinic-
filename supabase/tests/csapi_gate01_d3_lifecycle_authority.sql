@@ -48,6 +48,27 @@ VALUES
  ('00000000-0000-0000-0000-00000000d307','authenticated','authenticated','d3-unauthorized@example.test',now(),'{}'::jsonb,'{}'::jsonb,now(),now(),false,false),
  ('00000000-0000-0000-0000-00000000d315','authenticated','authenticated','d3-tenant-b-doctor@example.test',now(),'{}'::jsonb,'{}'::jsonb,now(),now(),false,false);
 
+INSERT INTO public.subscriptions (
+  id,tenant_id,plan_id,status,billing_cycle,started_at,ends_at,trial_ends_at
+)
+SELECT
+  x.id,
+  x.tenant_id,
+  sp.id,
+  'active',
+  'monthly',
+  now(),
+  NULL,
+  NULL
+FROM (
+  VALUES
+   ('00000000-0000-0000-0000-00000000d317'::uuid,'00000000-0000-0000-0000-00000000d301'::uuid),
+   ('00000000-0000-0000-0000-00000000d318'::uuid,'00000000-0000-0000-0000-00000000d302'::uuid)
+) AS x(id,tenant_id)
+JOIN public.subscription_plans sp ON sp.plan_key='enterprise'
+  AND sp.is_active=true
+  AND sp.deleted_at IS NULL;
+
 INSERT INTO public.clinic_users(
  id,tenant_id,auth_user_id,full_name,role,role_id,employee_code,pin_code,is_active
 )
