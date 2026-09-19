@@ -9,7 +9,7 @@
 **Post-merge documentation branch:** `docs/csapi-d2-post-merge-verification-2026-09-19`
 **D2 Status:** MERGED — PRODUCTION ROLLOUT / FINAL VERIFICATION PENDING
 **D3 Branch:** `implementation/csapi-gate01-d3-lifecycle-authority-2026-09-19`
-**D3 Status:** STEP 1 COMPLETE — COMMAND/DATA/EVENT CONTRACT FROZEN; DB IMPLEMENTATION PENDING
+**D3 Status:** STEP 2A COMPLETE — VERIFICATION HARNESS READY; D3 DATABASE MUTATION PENDING
 **Production Supabase:** NOT TOUCHED FOR D2
 **Vercel:** NOT TOUCHED FOR D2
 
@@ -376,3 +376,19 @@ Verified repository evidence confirms the existing Queue Engine remains the tran
 **Step 1 evidence commit:** `cbfc04831e2ab6ec3a12276a59b12b90283b523e`
 
 **Next:** re-verify this exact branch/head through CI, then proceed to Step 2 — D3 database mutation boundary.
+
+## D3 Step 2A — Verification Harness
+
+**Result:** PASS.
+
+Dedicated D3 verification artifacts are now present:
+- `supabase/tests/csapi_gate01_d3_lifecycle_authority.sql`
+- `tools/csapi-gate01-d3-database-verification.mjs`
+- D3 database lane mapping in `tools/workstream-verification-lane.mjs`
+- D3 planner mappings in `tools/workstream-verification-plan.mjs`
+
+GitHub Actions run **#508** (`35433430969`) passed on exact D3 head `7b71fdfc57e20c04c9af0684ba191612ed127bf9`.
+
+The existing D2 and Stage 6 checks remain separate and were not reinterpreted as D3 proof.
+
+**Next approved step:** Step 2B — implement the D3 database mutation boundary and activate the binding D3 database contract. No Production mutation and no Vercel verification are permitted.
