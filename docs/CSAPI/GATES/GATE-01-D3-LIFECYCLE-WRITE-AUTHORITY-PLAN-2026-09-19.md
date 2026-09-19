@@ -380,4 +380,33 @@ After every successful step:
 
 A failed executable step is handled by inspecting the first concrete cause and fixing the smallest necessary defect. Execution stops only for an unresolved architectural decision requiring the owner.
 
-**Status:** PLAN FROZEN — READY FOR PLAN VERIFICATION.
+**Status:** D3 IMPLEMENTATION IN PROGRESS — STEP 4 RUNTIME REMEDIATION PENDING
+
+
+## Current D3 Implementation State — 2026-09-19
+
+Steps 0, 1, 2A, 2B and 3 are complete at their respective gates.
+
+Step 4 — Integrated Runtime is **OPEN / NOT PASSED**.
+
+Latest verified implementation candidate:
+`381302a2c34542502e2c58d1d39804d7e6152336`
+
+Latest CI:
+Run #576 (`35449505099`)
+
+- Build plan: PASS
+- Engineering: PASS
+- D3 database/command: PASS
+- Patient Flow Stage 6 regression: PASS
+- D3 integrated runtime: FAIL
+- Final gate: FAIL
+
+The runtime failure is currently split into two facts:
+
+1. The authenticated runtime can resolve the expected technical permissions and read the seeded waiting Visit/Patient.
+2. The Reception arrival path produces a real FK error on `clinic_visit_sessions.initialized_by_receptionist`, while the current runtime harness incorrectly treats the UI click as a PASS and continues.
+
+Therefore the runtime test evidence is not yet sufficient to establish lifecycle success.
+
+**Next approved action:** harden the runtime verifier to fail fast, inspect the exact FK target/identity semantics, correct the smallest proven defect, and rerun the complete D3 runtime. Do not begin Step 5 until the runtime evidence is trustworthy and green.
