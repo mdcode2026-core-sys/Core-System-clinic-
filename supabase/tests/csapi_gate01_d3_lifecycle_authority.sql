@@ -1,6 +1,6 @@
 BEGIN;
 
-SELECT plan(36);
+SELECT plan(40);
 
 CREATE TEMP TABLE d3_test_ids (
   key text primary key,
@@ -107,6 +107,22 @@ SELECT is(auth.uid(),'00000000-0000-0000-0000-00000000d305'::uuid,'Auth context 
 SELECT is(public.get_current_tenant_id(),'00000000-0000-0000-0000-00000000d301'::uuid,'Tenant context resolves Tenant A');
 SELECT ok(public.has_effective_permission('patient_flow:operations'),'Reception has patient_flow:operations');
 SELECT ok(public.has_effective_permission('sessions:update'),'Reception has sessions:update');
+
+SELECT is(
+  (SELECT count(*)::int FROM public.clinic_user_permissions cup JOIN public.permissions p ON p.id=cup.permission_id WHERE cup.user_id='00000000-0000-0000-0000-00000000d306' AND cup.tenant_id='00000000-0000-0000-0000-00000000d301' AND cup.granted=true AND cup.deleted_at IS NULL AND p.permission_key IN ('patient_flow:operations','sessions:update','sessions:close')),
+  3,
+  'Reception direct permission grants exist'
+);
+SELECT ok(
+  'patient_flow:operations'=ANY(public.get_effective_permissions('00000000-0000-0000-0000-00000000d306'::uuid,'00000000-0000-0000-0000-00000000d301'::uuid)),
+  'Effective permissions include patient_flow:operations'
+);
+SELECT ok(
+  'sessions:update'=ANY(public.get_effective_permissions('00000000-0000-0000-0000-00000000d306'::uuid,'00000000-0000-0000-0000-00000000d301'::uuid)),
+  'Effective permissions include sessions:update'
+);
+
+
 
 SELECT ok(
   (public.csapi_d3_enter_waiting(
