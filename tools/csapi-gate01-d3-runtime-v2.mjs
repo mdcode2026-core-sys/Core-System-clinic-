@@ -145,6 +145,20 @@ async function button(re, label) {
   console.log("PASS|" + label);
 }
 
+async function assertVisitStatus(expected, label) {
+  const result = await admin.from("clinic_visit_sessions").select("session_status").eq("id", visitId).eq("tenant_id", tenantId).single();
+  if (result.error) throw new Error(label + " state read failed: " + result.error.message);
+  if (result.data?.session_status !== expected) throw new Error(label + " expected=" + expected + " actual=" + (result.data?.session_status || "null"));
+  console.log("PASS|" + label + "|" + expected);
+}
+
+async function assertEvent(eventType, label) {
+  const result = await admin.from("patient_flow_events").select("id,event_type").eq("tenant_id", tenantId).eq("visit_id", visitId).eq("event_type", eventType);
+  if (result.error) throw new Error(label + " event read failed: " + result.error.message);
+  if ((result.data || []).length !== 1) throw new Error(label + " expected exactly one " + eventType + " event, got=" + (result.data || []).length);
+  console.log("PASS|" + label + "|" + eventType);
+}
+
 async function cleanup() {
   await admin.from("patient_flow_events").delete().eq("tenant_id", tenantId);
   await admin.from("clinical_work_sessions").delete().eq("tenant_id", tenantId);
