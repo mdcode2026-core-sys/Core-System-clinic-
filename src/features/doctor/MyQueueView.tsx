@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useI18n } from "@/core/i18n/I18nProvider";
 import { useAuth } from "@/core/auth/AuthContext";
-import { getQueue } from "@/domain/queue/queue.queries";
+import { getCurrentClinicUserId, getQueue } from "@/domain/queue/queue.queries";
 import { callNextPatient, holdVisit, resumeVisit } from "@/domain/queue/queue.actions";
 import { useQueueSubscription } from "@/shared/hooks/useQueue";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
@@ -21,19 +21,19 @@ export function MyQueueView() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   useQueueSubscription(tenantId);
 
-  const loadMySessions = useCallback(async (currentUserId: string) => { const allSessions = await getQueue(); return allSessions.filter((s) => s.doctor_id === currentUserId || s.lock_holder_id === currentUserId); }, []);
-  const fetchData = useCallback(async () => { if (!tenantId || !user) return; setIsLoading(true); setErrorMessage(null); try { setSessions(await loadMySessions(user.id)); } catch { setErrorMessage(messages.common.unexpectedError); } finally { setIsLoading(false); } }, [tenantId, user, loadMySessions, messages.common.unexpectedError]);
+  const loadMySessions = useCallback(async (clinicUserId: string) => { const allSessions = await getQueue(); return allSessions.filter((s) => s.doctor_id === clinicUserId || s.lock_holder_id === clinicUserId); }, []);
+  const fetchData = useCallback(async () => { if (!tenantId || !user) return; setIsLoading(true); setErrorMessage(null); try { const clinicUserId = await getCurrentClinicUserId(); setSessions(await loadMySessions(clinicUserId)); } catch { setErrorMessage(messages.common.unexpectedError); } finally { setIsLoading(false); } }, [tenantId, user, loadMySessions, messages.common.unexpectedError]);
 
   useEffect(() => {
     if (!tenantId || !user) return; let cancelled = false;
-    async function load() { setIsLoading(true); setErrorMessage(null); try { const mySessions = await loadMySessions(user!.id); if (!cancelled) setSessions(mySessions); } catch { if (!cancelled) setErrorMessage(messages.common.unexpectedError); } finally { if (!cancelled) setIsLoading(false); } }
+    async function load() { setIsLoading(true); setErrorMessage(null); try { const clinicUserId = await getCurrentClinicUserId(); const mySessions = await loadMySessions(clinicUserId); if (!cancelled) setSessions(mySessions); } catch { if (!cancelled) setErrorMessage(messages.common.unexpectedError); } finally { if (!cancelled) setIsLoading(false); } }
     load(); return () => { cancelled = true; };
   }, [tenantId, user, loadMySessions, messages.common.unexpectedError]);
 
   const handleAction = async (action: string, sessionId: string) => { setIsProcessing((prev) => ({ ...prev, [sessionId]: true })); setErrorMessage(null); try { switch (action) { case "call": await callNextPatient(sessionId); break; case "hold": await holdVisit(sessionId); break; case "resume": await resumeVisit(sessionId); break; } await fetchData(); } catch { setErrorMessage(messages.common.unexpectedError); } finally { setIsProcessing((prev) => ({ ...prev, [sessionId]: false })); } };
 
   const myWaiting = sessions.filter((s) => s.session_status === "waiting");
-  const myCurrent = sessions.find((s) => s.session_status === "in_consultation" && s.lock_holder_id === user?.id);
+  const myCurrent = sessions.find((s) => s.session_status === "in_consultation" && s.lock_holder_id);
   const myOnHold = sessions.filter((s) => s.session_status === "in_consultation" && !s.lock_holder_id);
   const myCompletedToday = sessions.filter((s) => s.session_status === "completed");
   const direction = locale === "ar" ? "rtl" : "ltr";
