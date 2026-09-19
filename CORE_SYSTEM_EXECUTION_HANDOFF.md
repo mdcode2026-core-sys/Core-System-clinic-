@@ -472,3 +472,5 @@ Boundary verification:
 
 **Next:** D3 Step 4 — Integrated Runtime. Required path:
 Reception → Waiting → Reorder (when applicable) → Clinical Pull/Start → Clinical Work → Finish → Pending Close → Reception Complete → Completed, with authorization and tenant-negative runtime evidence.
+
+**2026-09-19 Step 4 Runtime verifier revision:** The D3 integrated runtime lane now executes `tools/csapi-gate01-d3-runtime-v2.mjs`, retaining the original runner for comparison/reference. V2 uses a more deterministic local-authentication wait path; no production endpoint is used.
