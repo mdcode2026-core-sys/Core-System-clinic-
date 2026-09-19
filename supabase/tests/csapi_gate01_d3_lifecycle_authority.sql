@@ -39,6 +39,15 @@ VALUES
  ('00000000-0000-0000-0000-00000000d301','CSAPI D3 Tenant A','CSAPI-D3-A','Asia/Amman','JOD','JO'),
  ('00000000-0000-0000-0000-00000000d302','CSAPI D3 Tenant B','CSAPI-D3-B','Asia/Amman','JOD','JO');
 
+INSERT INTO auth.users (
+  id, aud, role, email, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at, is_sso_user, is_anonymous
+)
+VALUES
+ ('00000000-0000-0000-0000-00000000d303','authenticated','authenticated','d3-doctor@example.test',now(),'{}'::jsonb,'{}'::jsonb,now(),now(),false,false),
+ ('00000000-0000-0000-0000-00000000d305','authenticated','authenticated','d3-reception@example.test',now(),'{}'::jsonb,'{}'::jsonb,now(),now(),false,false),
+ ('00000000-0000-0000-0000-00000000d307','authenticated','authenticated','d3-unauthorized@example.test',now(),'{}'::jsonb,'{}'::jsonb,now(),now(),false,false),
+ ('00000000-0000-0000-0000-00000000d315','authenticated','authenticated','d3-tenant-b-doctor@example.test',now(),'{}'::jsonb,'{}'::jsonb,now(),now(),false,false);
+
 INSERT INTO public.clinic_users(
  id,tenant_id,auth_user_id,full_name,role,role_id,employee_code,pin_code,is_active,account_status
 )
