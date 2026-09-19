@@ -48,6 +48,22 @@ VALUES
  ('00000000-0000-0000-0000-00000000d307','authenticated','authenticated','d3-unauthorized@example.test',now(),'{}'::jsonb,'{}'::jsonb,now(),now(),false,false),
  ('00000000-0000-0000-0000-00000000d315','authenticated','authenticated','d3-tenant-b-doctor@example.test',now(),'{}'::jsonb,'{}'::jsonb,now(),now(),false,false);
 
+INSERT INTO public.subscription_plans (
+  id, plan_key, plan_name, plan_name_ar, max_users, max_devices, max_branches,
+  modules, ai_limits, storage_gb, api_rate_limit, is_active
+)
+VALUES (
+  '00000000-0000-0000-0000-00000000d319',
+  'enterprise',
+  'Enterprise',
+  'Enterprise',
+  100, 100, 100,
+  '["all"]'::jsonb, '{}'::jsonb, 100, 1000, true
+)
+ON CONFLICT (plan_key) DO UPDATE
+SET modules='["all"]'::jsonb,
+    is_active=true;
+
 INSERT INTO public.subscriptions (
   id,tenant_id,plan_id,status,billing_cycle,started_at,ends_at,trial_ends_at
 )
