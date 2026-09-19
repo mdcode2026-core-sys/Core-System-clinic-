@@ -165,6 +165,10 @@ function prepareD3RuntimeEnvironment() {
     "SELECT r.id,p.id FROM public.roles r CROSS JOIN public.permissions p",
     "WHERE r.role_key='receptionist' AND p.permission_key='patient_flow:operations'",
     "AND NOT EXISTS(SELECT 1 FROM public.role_permissions rp WHERE rp.role_id=r.id AND rp.permission_id=p.id AND rp.deleted_at IS NULL);",
+    "INSERT INTO public.role_permissions(role_id,permission_id)",
+    "SELECT r.id,p.id FROM public.roles r CROSS JOIN public.permissions p",
+    "WHERE r.role_key IN ('doctor','receptionist') AND p.permission_key='sessions:read'",
+    "AND NOT EXISTS(SELECT 1 FROM public.role_permissions rp WHERE rp.role_id=r.id AND rp.permission_id=p.id AND rp.deleted_at IS NULL);",
   ].join(" ");
   const fixture = runCapture("psql", [
     process.env.SUPABASE_DB_URL || "postgresql://postgres:postgres@127.0.0.1:54322/postgres",
