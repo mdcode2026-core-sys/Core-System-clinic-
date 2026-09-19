@@ -122,19 +122,31 @@ function restoreD3RuntimeWorkspace() {
 }
 
 function prepareD3RuntimeEnvironment() {
+  if (!existsSync(d3RuntimeState.configPath)) {
+    const initialized = runCapture("npx", ["--yes", "supabase@latest", "init"]);
+    if (initialized.status !== 0) {
+      throw new Error(`Local Supabase init failed: ${initialized.stderr.slice(-1200)}`);
+    }
+  }
+
   d3RuntimeState.originalConfig = readFileSync(d3RuntimeState.configPath, "utf8");
   writeFileSync(d3RuntimeState.configPath, d3RuntimeState.originalConfig.replace(/^project_id\s*=.*$/m, 'project_id = "core-system-d3-runtime"'));
   normalizeRuntimeMigrationVersions();
 
-  if (runCapture("npx", [...["--yes", "supabase@latest"], "start", "--debug"],).status !== 0) {
-    throw new Error("Local Supabase runtime start failed");
+  const started = runCapture("npx", ["--yes", "supabase@latest", "start", "--debug"]);
+  if (started.status !== 0) {
+    throw new Error(`Local Supabase runtime start failed: ${started.stderr.slice(-1600)}`);
   }
   d3RuntimeState.started = true;
 
-  const status = runCapture("npx", [...["--yes", "supabase@latest"], "status", "-o", "json"],);
-  if (status.status !== 0) throw new Error(`Local Supabase runtime status failed: ${status.stderr.slice(-500)}`);
+  const status = runCapture("npx", ["--yes", "supabase@latest", "status", "-o", "json"]);
+  if (status.status !== 0) {
+    throw new Error(`Local Supabase runtime status failed: ${status.stderr.slice(-1200)}`);
+  }
   const info = JSON.parse(status.stdout);
-  if (!info.API_URL || !info.ANON_KEY || !info.SERVICE_ROLE_KEY) throw new Error("Local Supabase runtime status did not expose API_URL/ANON_KEY/SERVICE_ROLE_KEY");
+  if (!info.API_URL || !info.ANON_KEY || !info.SERVICE_ROLE_KEY) {
+    throw new Error(`Local Supabase runtime status missing credentials: ${status.stdout.slice(-800)}`);
+  }
 
   process.env.NEXT_PUBLIC_SUPABASE_URL = info.API_URL;
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = info.ANON_KEY;
