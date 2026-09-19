@@ -270,8 +270,28 @@ try {
         'app_metadata: { d3_runtime: true, tenant_id: tenantId, user_role: kind === "doctor" ? "doctor" : "receptionist" }',
       );
       if (patched === source) throw new Error("D3 runtime auth fixture patch target not found");
+
+      patched = patched.replaceAll(
+        'await gotoPage("/patient-flow/operations");',
+        'await gotoPage("/operation");',
+      );
+      patched = patched.replaceAll(
+        'await gotoPage("/patient-flow/clinical");',
+        'await gotoPage("/clinical");',
+      );
+      patched = patched.replace(
+        '  await card.getByRole("button", { name: /register arrival|تسجيل الوصول|register|وصول/i }).first().click();',
+        `  const more = card.locator("details").locator("summary").filter({ hasText: /more|المزيد/i }).first();
+  await more.waitFor({ state: "visible", timeout: 30000 });
+  await more.click();
+  const registerArrival = card.getByRole("button", { name: /register arrival|تسجيل الوصول|register|وصول/i }).first();
+  await registerArrival.waitFor({ state: "visible", timeout: 30000 });
+  await registerArrival.click();`,
+      );
+
       patched = patched.replace(
         "await seed();",
+        
         `await seed();
   const diagnosticClient = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
   const diagnosticAuth = await diagnosticClient.auth.signInWithPassword({ email: receptionEmail, password });
