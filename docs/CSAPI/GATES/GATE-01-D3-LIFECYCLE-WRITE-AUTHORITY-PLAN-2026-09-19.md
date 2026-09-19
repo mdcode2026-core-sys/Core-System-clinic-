@@ -12,6 +12,8 @@
 
 D3 provides the authoritative write layer for Patient Flow over the D2 database foundations.
 
+Authorization boundary clarification: `patient_flow:operations` / `patient_flow:clinical` / `patient_flow:administrative` remain Patient Flow surface/workspace access signals. Lifecycle write authority uses the existing canonical session permissions (`sessions:update`, `sessions:close`) together with state, subject-ownership and administrative-override rules already used by current Queue/Workspace actions.
+
 D3 does not redesign Patient Flow, create a second Queue engine, replace Agenda, replace Patient Journey, or redesign the UI.
 
 The execution sequence for D3 is binding:
