@@ -5,9 +5,9 @@
 **Current Stage:** D2 — Database Foundations
 **Canonical D2 PR:** #168
 **Canonical D2 Branch:** `implementation/csapi-gate-01-d2-database-foundations-canonical-2026-09-18`
-**Canonical D2 Head:** `2d331509e8a709e394dfe0dd819a7a6e5d1a5091`
+**Canonical D2 Head:** `c5cd0aef6dcecde96a477585985c1344f8924b62`
 **Documentation branch:** `docs/csapi-gate01-d2-handoff-reconciliation-2026-09-19`
-**D2 Status:** OPEN — VERIFICATION BLOCKED BY MIGRATION-CHAIN REPLAY FAILURE
+**D2 Status:** VERIFIED — CI PASS; PRE-MERGE CLOSURE PENDING
 **Production Supabase:** NOT TOUCHED FOR D2
 **Vercel:** NOT TOUCHED FOR D2
 
@@ -90,6 +90,23 @@ Patient Flow semantics remain:
 The approved wording is **Finish**, not “Finish Clinical Work”.
 
 ## 4. Current D2 verification reality
+
+### Latest verification — 2026-09-19
+
+GitHub Actions run **#499** (`35431678991`) verified exact candidate `c5cd0aef6dcecde96a477585985c1344f8924b62`.
+
+- Build applicable lane plan: PASS
+- D2 database lane: PASS
+- Engineering lane: PASS
+- Final gate: PASS
+
+The D2 database lane therefore reached and passed the contracted D2 assertions, including migration replay, schema/constraint checks, cross-tenant composite-FK rejection, active-record invariants, and tenant-scoped read isolation.
+
+The immediately preceding replay/test-fixture correction was limited to the D2 test fixture: it now supplies the canonical `role_id` for its doctor test users. No production database was changed and no Vercel verification was used.
+
+D2 remains pre-merge: PR #168 is still draft/open and Production Supabase has not been touched.
+
+### Historical pre-fix verification evidence
 
 The latest known D2 verification run was GitHub Actions run **#35384612530**.
 
@@ -248,13 +265,12 @@ Do not:
 When the next conversation starts with **CSAPI**, execute immediately from this handoff:
 
 1. Re-verify PR #168, its exact head, branch, and current GitHub Actions state.
-2. Inspect the latest D2 database failure and identify the first actual replay blocker.
-3. Fix only the smallest migration/replay defect required to make the canonical migration chain deterministic, unless it is proven to be unrelated future-domain work.
-4. Re-run the D2 verification lane.
-5. Repeat until the first real blocker is cleared and the D2 lane reaches the actual D2 assertions.
-6. If D2 assertions fail, repair only the D2 implementation/contract.
-7. Re-run Engineering + D2 + Final Gate on the exact new head.
-8. Only after all required pre-merge gates pass, review #168 for scope purity and merge-readiness.
+2. Review #168 for scope purity and merge-readiness against the now-green D2 gate.
+3. Merge only the exact verified head `c5cd0aef6dcecde96a477585985c1344f8924b62` to `main`.
+4. After merge, perform the authorized read-only Production Supabase verification for the D2 schema/RLS/constraints.
+5. Update this Handoff and the Ledger with exact final SHA, migration version, merge evidence, and production verification evidence.
+6. Close D2 only when all required closure evidence exists.
+7. Only then identify the canonical D3 plan/contract/branch from repository evidence and continue to D3 — without pulling D3 work backward into D2.
 9. Merge #168 to `main).
 10. Only after merge, perform the authorized Production Supabase read-only verification for the D2 migration/schema/RLS/constraints.
 11. Update this Handoff and the Ledger with exact final SHA, migration version, CI evidence, merge evidence, and production verification evidence.
