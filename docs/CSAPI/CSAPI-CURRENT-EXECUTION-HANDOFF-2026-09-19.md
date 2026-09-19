@@ -1,14 +1,14 @@
 # CORE SYSTEM — CSAPI CURRENT EXECUTION HANDOFF
 
-**Updated:** 2026-09-19 20:28 +03  
+**Updated:** 2026-09-20  
 **Resume token:** `CSAPI`  
 **Workstream:** CSAPI — Gate 01 — Patient Flow  
 **Current execution stage:** D3 — Step 4 — Integrated Runtime  
 **Current state:** **OPEN / NOT CLOSED**  
 **Current canonical D3 branch:** `implementation/csapi-gate01-d3-lifecycle-authority-2026-09-19`  
 **Current PR:** #172 — open, draft, base `main`, mergeable  
-**Current PR Head:** `381302a2c34542502e2c58d1d39804d7e6152336`  
-**Current PR size:** 85 commits, 19 changed files, 3,957 additions, 134 deletions  
+**Current PR Head:** `60af39b1a8ae8d91d35939431689293cd7631b1d`  
+**Current PR size:** 111 commits, 24 changed files, 5,364 additions, 145 deletions  
 **D2 merged Main baseline:** `6013a9ffa4705738bc9e8de7c0d1403ff6a0858e`  
 **Vercel:** prohibited for current D3 verification  
 **Hosted Production Supabase:** not to be mutated during D3 implementation verification
@@ -382,6 +382,24 @@ The lane is provisioned by:
 The lane creates a disposable local Supabase environment and local Next production server. It must not call Vercel or hosted Production Supabase.
 
 ---
+
+## 9A. D3 Step 4 — Current Verification Remediation
+
+Run #597 (`35475796496`) on head `871c4506bb02eaaf35e5b5775d267d8f60b7ab29` failed in the integrated runtime because the CI lane patch for the hidden Register Arrival control targeted superseded selector text. The application was not reached at that point.
+
+The repair commits are:
+
+- `55ae5b8526f7eabe3dcbb90a4e53f77fc746378f` — corrected the CI arrival patch and made it fail-fast.
+- `593a746a2808848978d85332dc4c1049ea00968c` — added runtime projection assertions and direct clinical authorization rejection.
+- `972d5a490ed3447f26db66be56576f1d7adab282` — added a real two-transaction concurrent clinical-start verifier.
+- `f78d39d62f58b01ef0582eecfcaf6d4ffd00a4bd` — bound the concurrency proof into the D3 database lane.
+- `60af39b1a8ae8d91d35939431689293cd7631b1d` — expanded idempotency/retry coverage to all remaining lifecycle commands.
+
+These changes are verification hardening and test-contract completion. They do not change the Patient Flow business contract.
+
+The current CI candidate is Run #602 (`35476228528`) on exact head `60af39b1a8ae8d91d35939431689293cd7631b1d`. The run is currently in progress. No PASS may be inferred until all required jobs complete.
+
+Step 4 remains OPEN / NOT CLOSED.
 
 # 9. LATEST VERIFIED CI STATE
 
