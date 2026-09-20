@@ -25,7 +25,6 @@ let localCanonicalSubscriptionId = null;
 let localCanonicalPlanId = null;
 
 async function seed() {
-  await admin.from("clinic_user_permission_overrides").delete().eq("tenant_id", tenantId);
   for (const [kind, email] of [["doctor", doctorEmail], ["reception", receptionEmail]]) {
     const created = await admin.auth.admin.createUser({
       email, password, email_confirm: true,
