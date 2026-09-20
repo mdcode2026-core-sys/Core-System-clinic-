@@ -20,11 +20,12 @@ const receptionEmail = "d3-runtime-reception-" + stamp + "@example.test";
 
 let doctorAuthId = null;
 let receptionAuthId = null;
+let localCanonicalTenantCreated = false;
+let localCanonicalSubscriptionId = null;
 
 async function seed() {
   // Remove stale explicit permission overrides from prior interrupted fixture runs.
   await admin.from("clinic_user_permission_overrides").delete().eq("tenant_id", tenantId);
-  const users = [];
   for (const [kind, email] of [["doctor", doctorEmail], ["reception", receptionEmail]]) {
     const created = await admin.auth.admin.createUser({
       email, password, email_confirm: true,
@@ -32,20 +33,49 @@ async function seed() {
       user_metadata: { full_name: "D3 Runtime " + kind },
     });
     if (created.error || !created.data.user) throw new Error("Auth fixture failed: " + (created.error?.message || kind));
-    users.push(created.data.user);
     if (kind === "doctor") doctorAuthId = created.data.user.id;
     else receptionAuthId = created.data.user.id;
   }
 
-  const tenant = await admin.from("master_tenants").select("id,clinic_name,subscription_tier,is_active").eq("id", tenantId).single();
-  if (tenant.error || !tenant.data) throw new Error("Canonical Zada tenant lookup failed: " + (tenant.error?.message || "missing tenant"));
+  let tenant = await admin.from("master_tenants").select("id,clinic_name,subscription_tier,is_active").eq("id", tenantId).maybeSingle();
+  if (tenant.error) throw new Error("Canonical Zada tenant lookup failed: " + tenant.error.message);
+
+  // CI replays the migration chain into a clean local database. The real Zada
+  // tenant is a persistent hosted demo account, so if the clean replay does not
+  // contain it, materialize only the minimum canonical tenant/subscription shape
+  // needed for this local runtime test. These rows are deleted in cleanup.
+  if (!tenant.data) {
+    const createdTenant = await admin.from("master_tenants").insert({
+      id: tenantId,
+      clinic_name: "Zada Clinic",
+      clinic_name_ar: "عيادة زادا",
+      subscription_tier: "enterprise",
+      is_active: true,
+      currency: "JOD",
+      country_code: "JO",
+    }).select("id,clinic_name,subscription_tier,is_active").single();
+    if (createdTenant.error || !createdTenant.data) throw new Error("Canonical Zada local materialization failed: " + (createdTenant.error?.message || "missing tenant"));
+    tenant = createdTenant;
+    localCanonicalTenantCreated = true;
+  }
   if (!tenant.data.is_active) throw new Error("Canonical Zada tenant is inactive");
   if (tenant.data.subscription_tier !== "enterprise") throw new Error("Canonical Zada tenant tier mismatch: " + tenant.data.subscription_tier);
 
-  const subscription = await admin.from("subscriptions")
+  let subscription = await admin.from("subscriptions")
     .select("id,status,plan_id,subscription_plans!inner(plan_key,modules,is_active)")
     .eq("tenant_id", tenantId).eq("status", "active").limit(1).maybeSingle();
-  if (subscription.error || !subscription.data) throw new Error("Canonical Zada subscription lookup failed: " + (subscription.error?.message || "missing active subscription"));
+  if (subscription.error) throw new Error("Canonical Zada subscription lookup failed: " + subscription.error.message);
+  if (!subscription.data) {
+    const plan = await admin.from("subscription_plans").select("id,plan_key,modules,is_active").eq("plan_key", "enterprise").eq("is_active", true).is("deleted_at", null).maybeSingle();
+    if (plan.error || !plan.data) throw new Error("Canonical Enterprise plan lookup failed: " + (plan.error?.message || "missing enterprise plan"));
+    if (JSON.stringify(plan.data.modules) !== JSON.stringify(["all"])) throw new Error("Canonical Enterprise plan is not modules=[all]");
+    const createdSubscription = await admin.from("subscriptions").insert({
+      id: crypto.randomUUID(), tenant_id: tenantId, plan_id: plan.data.id, status: "active", started_at: new Date().toISOString(), auto_renew: true,
+    }).select("id,status,plan_id,subscription_plans!inner(plan_key,modules,is_active)").single();
+    if (createdSubscription.error || !createdSubscription.data) throw new Error("Canonical Zada local subscription materialization failed: " + (createdSubscription.error?.message || "missing subscription"));
+    subscription = createdSubscription;
+    localCanonicalSubscriptionId = createdSubscription.data.id;
+  }
   const canonicalPlan = subscription.data.subscription_plans;
   if (canonicalPlan?.plan_key !== "enterprise" || JSON.stringify(canonicalPlan?.modules) !== JSON.stringify(["all"]) || !canonicalPlan?.is_active) {
     throw new Error("Canonical Zada subscription is not full enterprise/all; plan=" + canonicalPlan?.plan_key + " modules=" + JSON.stringify(canonicalPlan?.modules));
@@ -66,6 +96,9 @@ async function seed() {
   ]);
   if (ps.error) throw new Error("Permissions lookup failed: " + ps.error.message);
   const pmap = new Map((ps.data || []).map((p) => [p.permission_key, p.id]));
+  for (const key of ["patient_flow:clinical","patient_flow:operations","sessions:update","sessions:close","visits:read","visits:update"]) {
+    if (!pmap.get(key)) throw new Error("Required D3 permission missing from canonical catalogue: " + key);
+  }
 
   const grants = [
     [doctorClinicId, ["patient_flow:clinical","sessions:update","visits:read","visits:update"]],
@@ -183,6 +216,8 @@ async function cleanup() {
   await admin.from("clinic_users").delete().eq("tenant_id", tenantId).in("id", [doctorClinicId, receptionClinicId]);
   if (doctorAuthId) await admin.auth.admin.deleteUser(doctorAuthId);
   if (receptionAuthId) await admin.auth.admin.deleteUser(receptionAuthId);
+  if (localCanonicalSubscriptionId) await admin.from("subscriptions").delete().eq("id", localCanonicalSubscriptionId).eq("tenant_id", tenantId);
+  if (localCanonicalTenantCreated) await admin.from("master_tenants").delete().eq("id", tenantId);
 }
 
 try {
