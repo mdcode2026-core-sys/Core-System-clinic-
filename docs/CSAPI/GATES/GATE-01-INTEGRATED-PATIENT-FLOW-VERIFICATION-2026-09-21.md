@@ -5,9 +5,11 @@
 **Status:** PASS — VERIFIED / READY FOR FINAL GATE 01 RELEASE
 **Gate:** CSAPI Gate 01 — Patient Flow
 **Baseline main SHA:** `5a92232bc5ffbababf6f8139b1b9654be6112ae7`
+**Final main SHA after closure merge:** `e087243204c1f8308be323bc4eea24b18252dfee`
 **D3 closure:** CLOSED — D3 Lifecycle Write Authority
 **D3 merge:** PR #172 → `c504897e01a1429e7729e27960e2f33cdb1b8f21`
 **Post-merge documentation reconciliation:** PR #173 → `5a92232bc5ffbababf6f8139b1b9654be6112ae7`
+**Integrated-stage closure merge:** PR #174 → `e087243204c1f8308be323bc4eea24b18252dfee`
 **Binding workstream contract:** `docs/testing/workstream-contracts/csapi-gate01-integrated-patient-flow.execution.json`
 
 ## 1. Purpose
@@ -132,11 +134,11 @@ No application code, Patient Flow runtime, D3 migration, D3 test, or implementat
 
 **Engineering:** pending
 
-**Integrated Patient Flow runtime:** pending
+**Integrated Patient Flow runtime:** PASS / CLOSED
 
-**Patient Flow Stage 6 regression:** pending
+**Patient Flow Stage 6 regression:** PASS / CLOSED
 
-**Final verification gate for this stage:** pending
+**Final verification gate for this stage:** PASS / CLOSED
 
 ## 8. Next stage
 
