@@ -37,7 +37,7 @@ const copy = {
 
 const allowedTargets: Record<PatientFlowContext, Record<SessionStatus, SessionStatus[]>> = {
   operations: {
-    waiting: ["in_consultation", "no_show", "cancelled"],
+    waiting: ["no_show", "cancelled"],
     in_consultation: [],
     pending_close: ["completed", "cancelled"],
     completed: [], cancelled: [], no_show: [],
