@@ -9,7 +9,6 @@ BEGIN;
 CREATE OR REPLACE FUNCTION public.csapi_guard_visit_lifecycle_writes()
 RETURNS trigger
 LANGUAGE plpgsql
-SECURITY DEFINER
 SET search_path = public, pg_catalog
 AS $function$
 BEGIN
