@@ -425,3 +425,13 @@ D3 remains formally CLOSED. This post-merge record does not advance CSAPI Gate 0
 **After integrated PASS:** Final Gate 01 Release / Production Verification
 
 **Final closure:** Gate 01 CLOSED only after production rollout + production runtime verification + documentation reconciliation.
+
+## 2026-09-21 CSAPI Gate 01 — Integrated Patient Flow Verification CLOSED
+
+| Date | Action | Evidence | Result | Decision | Next Action |
+|---|---|---|---|---|---|
+| 2026-09-21 | Integrated Patient Flow executable evidence reconciled | Run #657 (`35539734311`) fully green on `3676d5b0006cd3ea6083c3171873197cf8874e92` | Complete Reception → Waiting → Clinical Pull → Clinical Work → Finish → Pending Close → Reception Completion → Completed path proven, with DB state/projection/event and authorization evidence | Integrated stage PASS | Close integrated stage and advance to Final Gate 01 Release / Production Verification |
+| 2026-09-21 | Current-main implementation equivalence verified | GitHub compare: `3676d5b0006cd3ea6083c3171873197cf8874e92` → `5a92232bc5ffbababf6f8139b1b9654be6112ae7` | 7 commits ahead, 0 behind; changed files limited to execution ledger + CSAPI handoff + D3 verification plan | No implementation drift after green candidate | Treat Run #657 as immutable executable evidence; do not fabricate a new CI run |
+| 2026-09-21 | Integrated Patient Flow Verification closure | `GATE-01-INTEGRATED-PATIENT-FLOW-VERIFICATION-2026-09-21.md` | PASS / CLOSED | Gate 01 advances to its final release/production stage | Perform controlled Production rollout + Vercel/runtime verification |
+
+**Current Gate 01 stage:** Final Gate 01 Release / Production Verification
