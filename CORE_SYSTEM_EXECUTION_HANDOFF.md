@@ -303,17 +303,17 @@ Do not:
 - PR #168 merged to `main` with SHA `6013a9ffa4705738bc9e8de7c0d1403ff6a0858e`.
 - GitHub Actions #499 and #500 passed the D2 verification sequence.
 - Production Supabase was checked read-only after merge.
-- Migration `20260917192500` is not deployed to Production, and the three D2 tables are not present there.
+- Production rollout completed in the final stage; D2/D3 schema and command boundaries are verified in hosted Production Supabase.
 - Historical D2 state; superseded by final Gate 01 closure.
 - Historical D3 planning state; superseded. D3 is CLOSED.
 
 ### CSAPI Gate 01 master sequence
 
-D1 — application/contract foundation
-→ D2 — database foundations [MERGED + CI VERIFIED]
-→ D3 — lifecycle write authority / commands [NEXT]
-→ integrated Patient Flow verification
-→ final release/production stage
+D1 — application/contract foundation [CLOSED]
+→ D2 — database foundations [CLOSED]
+→ D3 — lifecycle write authority / commands [CLOSED]
+→ integrated Patient Flow verification [CLOSED]
+→ final release/production stage [CLOSED]
 → Gate 01 CLOSED
 
 ### D3 boundary
@@ -508,14 +508,14 @@ When the next conversation starts with **CSAPI**, use that file first.
 
 ### Current exact state
 
-- CSAPI Gate 01: OPEN.
+- CSAPI Gate 01: CLOSED.
 - D2: merged to `main`; baseline `6013a9ffa4705738bc9e8de7c0d1403ff6a0858e`.
 - D3 branch: `implementation/csapi-gate01-d3-lifecycle-authority-2026-09-19`.
-- PR #172: OPEN / DRAFT / MERGEABLE / NOT MERGED.
+- PR #172: MERGED / CLOSED. D3 implementation is part of main.
 - Current PR head: `381302a2c34542502e2c58d1d39804d7e6152336`.
 - Current PR body is stale plan-freeze text and must not override the current repository/CSAPI state.
 - D3 Steps 0, 1, 2A, 2B and 3 are complete at their respective CI gates.
-- D3 Step 4 — Integrated Runtime is OPEN and NOT PASSED.
+- D3 integrated runtime is CLOSED and verified by Run #657.
 
 ### Latest CI evidence
 
@@ -629,15 +629,15 @@ A non-blocking concurrency teardown cleanup warning was logged, but the lane its
 
 ### Step status
 
-**D3 Step 4 — PASS / VERIFIED AT CI LEVEL.**
+**D3 Step 4 — PASS / VERIFIED; D3 is CLOSED.**
 
 This supersedes the older Run #576 / Run #602 runtime-pending text in this handoff.
 
 **Historical next step at the time:** D3 Step 5 — Final Review. This was subsequently completed and D3 was closed; this text is retained only as execution history.
 
-**Boundaries remain unchanged:**
-- no Vercel;
-- no hosted Production Supabase mutation;
+**Historical D3 boundaries:**
+- Vercel was not used during D3;
+- hosted Production Supabase was not mutated during D3;
 - no unrelated domain implementation;
 - PR #172 remains unmerged until Step 5 review is complete.
 
@@ -709,3 +709,23 @@ A fresh GitHub Actions run was not created for the documentation-only integrated
 **Next authorized stage:** Final Gate 01 Release / Production Verification.
 
 **Production boundary now opened:** only the approved Gate 01 D2/D3 migration rollout, Production schema verification, Vercel release verification, authenticated Production Patient Flow verification, and final evidence reconciliation.
+
+# 2026-09-21 — GATE 01 FINAL CLOSURE
+
+**Current authoritative state:** **CSAPI Gate 01 — Patient Flow CLOSED**
+
+**Final main SHA:** `e087243204c1f8308be323bc4eea24b18252dfee`
+
+**D2:** CLOSED — implementation + Production rollout verified.
+
+**D3:** CLOSED — Run #657 verified; PR #172 merged.
+
+**Integrated Patient Flow Verification:** CLOSED — Run #657 + exact implementation-equivalence evidence.
+
+**Final Release / Production Verification:** CLOSED — Supabase Production rollout verified; Vercel deployment/build identity verified; Production authenticated runtime Run #32 passed.
+
+**Final release record:** `docs/CSAPI/GATES/GATE-01-FINAL-RELEASE-PRODUCTION-VERIFICATION-2026-09-21.md`
+
+**Gate 01 closure decision:** **CLOSED**
+
+Historical sections above are retained as chronological evidence only and must not override this final current-state block.
