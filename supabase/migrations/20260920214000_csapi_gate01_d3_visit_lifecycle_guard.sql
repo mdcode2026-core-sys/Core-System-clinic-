@@ -50,6 +50,6 @@ EXECUTE FUNCTION public.csapi_guard_visit_lifecycle_writes();
 REVOKE ALL ON FUNCTION public.csapi_guard_visit_lifecycle_writes() FROM PUBLIC, anon, authenticated;
 
 COMMENT ON FUNCTION public.csapi_guard_visit_lifecycle_writes() IS
-  'D3 database boundary: authenticated clients cannot directly change Visit lifecycle state, arrival/start/end/close timestamps, or clinical lock ownership. Canonical D3 commands are the lifecycle writers.';
+  'D3 database boundary: authenticated clients cannot directly change Visit lifecycle state or arrival/start/end/close timestamps. Canonical D3 commands are the lifecycle writers.';
 
 COMMIT;
