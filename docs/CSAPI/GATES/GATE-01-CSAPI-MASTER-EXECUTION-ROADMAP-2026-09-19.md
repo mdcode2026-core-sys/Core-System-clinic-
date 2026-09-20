@@ -1,10 +1,10 @@
 # CORE SYSTEM — CSAPI Gate 01 Master Execution Roadmap
 
 **Updated:** 2026-09-21
-**Current position:** **Gate 01 CLOSED** after Integrated Patient Flow Verification and Final Gate 01 Release / Production Verification.
+**Current position:** **Gate 01 CLOSED** after Integrated Patient Flow Verification and Final Gate 01 Release / Production Verification. A broad Clinic Admin smoke workflow retains one explicitly recorded Agenda-only failure outside Gate 01 scope.
 **Current main SHA:** `e087243204c1f8308be323bc4eea24b18252dfee`
 **D3 merge SHA:** `c504897e01a1429e7729e27960e2f33cdb1b8f21`
-**Final release documentation reconciliation:** pending merge of this final Gate 01 closure record
+**Final release documentation reconciliation:** scope-reconciled final record on promoted main `59d18b3b0ad8a097a01cff1bfd5f6ec1d7d9c90a`
 
 ## 1. Sequence
 
