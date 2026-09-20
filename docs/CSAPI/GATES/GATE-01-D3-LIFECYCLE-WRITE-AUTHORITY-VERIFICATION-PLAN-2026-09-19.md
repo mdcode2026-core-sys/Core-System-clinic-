@@ -84,7 +84,7 @@ Every D3 step must leave an evidence record:
 
 No step may be marked complete from source inspection alone.
 
-**Status:** PRE-IMPLEMENTATION VERIFICATION PLAN.
+**Status:** CLOSED — D3 FINAL VERIFICATION / CLOSURE.
 
 
 ## Current D3 Verification State
@@ -178,3 +178,18 @@ A separate proposal to require `patient_flow:operations` inside arrival registra
 **Step 4 is GREEN by CI evidence in Run #656 but remains OPEN for final reconciliation/documentation until the final branch and all lifecycle writers have been audited.**
 
 Step 5 and Step 6 must not begin until D3 closure is explicitly established.
+
+
+## 2026-09-21 D3 Final Review / Closure
+
+Final PR #172 head: `3676d5b0006cd3ea6083c3171873197cf8874e92`.
+
+Final CI Run #657 (`35539734311`) completed SUCCESS on that exact final branch head. All required verification jobs passed: build lane plan, engineering, D3 integrated runtime, D3 database/command, Patient Flow Stage 6 regression, and Final gate.
+
+The final-head comparison from the last implementation/runtime candidate `601a4ee9374fd7b56b23bed71031cb33ac2a5752` contains documentation-only changes. No implementation files changed after the fully green runtime candidate. This preserves the runtime evidence while proving the final documented branch state remains green.
+
+Final review reconciled the canonical seven-command D3 lifecycle authority, caller routing, direct-write classification, Work Session Hold/Resume as a separate Work Session operation, arrival/entity-creation semantics, runtime state/projection/event evidence, concurrency/idempotency coverage, tenant isolation, and Stage 6 regression boundary.
+
+**Closure decision: D3 Lifecycle Write Authority is CLOSED.**
+
+This closure does not close CSAPI Gate 01 as a whole; broader release/production stages remain governed by the Gate 01 execution contract.
