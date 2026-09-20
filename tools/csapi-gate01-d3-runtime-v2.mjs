@@ -255,6 +255,8 @@ try {
   const runtimeSession = await admin.from("clinic_visit_sessions").select("session_status,lock_holder_id,doctor_id").eq("id", visitId).eq("tenant_id", tenantId).single();
   console.log("D3_RUNTIME_SESSION_IDENTITY=" + JSON.stringify({ session: runtimeSession.data, error: runtimeSession.error?.message ?? null, expectedDoctorClinicId: doctorClinicId }));
   await page.waitForTimeout(1200);
+  const activeRow = await admin.from("clinic_visit_sessions").select("id,session_status,doctor_id,lock_holder_id").eq("id", visitId).single();
+  console.log("D3_RUNTIME_CLINICAL_STATE=" + JSON.stringify({activeRow: activeRow.data, activeError: activeRow.error?.message, doctorClinicId}));
   const textareaCount = await page.locator("textarea").count();
   const finishButtonCount = await page.getByRole("button", { name: /finish visit|finish/i }).count();
   const errorText = (await page.locator(".text-red-700").allInnerTexts()).join(" | ");
