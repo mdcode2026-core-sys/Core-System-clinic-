@@ -22,6 +22,7 @@ let doctorAuthId = null;
 let receptionAuthId = null;
 let localCanonicalTenantCreated = false;
 let localCanonicalSubscriptionId = null;
+let localCanonicalPlanId = null;
 
 async function seed() {
   await admin.from("clinic_user_permission_overrides").delete().eq("tenant_id", tenantId);
@@ -69,8 +70,20 @@ async function seed() {
     .eq("tenant_id", tenantId).eq("status", "active").limit(1).maybeSingle();
   if (subscription.error) throw new Error("Canonical Zada subscription lookup failed: " + subscription.error.message);
   if (!subscription.data) {
-    const plan = await admin.from("subscription_plans").select("id,plan_key,modules,is_active").eq("plan_key", "enterprise").eq("is_active", true).is("deleted_at", null).maybeSingle();
-    if (plan.error || !plan.data) throw new Error("Canonical Enterprise plan lookup failed: " + (plan.error?.message || "missing enterprise plan"));
+    let plan = await admin.from("subscription_plans").select("id,plan_key,modules,is_active").eq("plan_key", "enterprise").eq("is_active", true).is("deleted_at", null).maybeSingle();
+    if (plan.error) throw new Error("Canonical Enterprise plan lookup failed: " + plan.error.message);
+    // A clean CI replay may not include persistent commercial seed data. In that case,
+    // materialize only a transient local equivalent of the canonical full Enterprise plan.
+    if (!plan.data) {
+      const createdPlan = await admin.from("subscription_plans").insert({
+        id: crypto.randomUUID(), plan_key: "enterprise", plan_name: "Enterprise", plan_name_ar: "Enterprise",
+        max_users: 999, max_devices: 999, max_branches: 999, modules: ["all"], ai_limits: {},
+        storage_gb: 1000, api_rate_limit: 10000, is_active: true,
+      }).select("id,plan_key,modules,is_active").single();
+      if (createdPlan.error || !createdPlan.data) throw new Error("Canonical Enterprise local plan materialization failed: " + (createdPlan.error?.message || "missing plan"));
+      plan = createdPlan;
+      localCanonicalPlanId = createdPlan.data.id;
+    }
     if (JSON.stringify(plan.data.modules) !== JSON.stringify(["all"])) throw new Error("Canonical Enterprise plan is not modules=[all]");
     const createdSubscription = await admin.from("subscriptions").insert({
       id: crypto.randomUUID(), tenant_id: tenantId, plan_id: plan.data.id, status: "active", started_at: new Date().toISOString(), auto_renew: true,
@@ -216,6 +229,7 @@ async function cleanup() {
   if (doctorAuthId) await admin.auth.admin.deleteUser(doctorAuthId);
   if (receptionAuthId) await admin.auth.admin.deleteUser(receptionAuthId);
   if (localCanonicalSubscriptionId) await admin.from("subscriptions").delete().eq("id", localCanonicalSubscriptionId).eq("tenant_id", tenantId);
+  if (localCanonicalPlanId) await admin.from("subscription_plans").delete().eq("id", localCanonicalPlanId).eq("plan_key", "enterprise");
   if (localCanonicalTenantCreated) await admin.from("master_tenants").delete().eq("id", tenantId);
 }
 
