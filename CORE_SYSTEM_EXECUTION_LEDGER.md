@@ -187,7 +187,7 @@ D1 — application/contract foundation
         ↓
 D2 — database foundations [MERGED + CI VERIFIED]
         ↓
-D3 — lifecycle write authority / commands [NEXT]
+D3 — lifecycle write authority / commands [CLOSED]
         ↓
 Integrated Patient Flow verification
         ↓
@@ -408,3 +408,20 @@ D3 PR #172 was merged successfully into `main`.
 - No Vercel or hosted Production Supabase mutation was performed as part of D3 closure.
 
 D3 remains formally CLOSED. This post-merge record does not advance CSAPI Gate 01 into its broader production stage; that remains a separate authorized stage.
+
+
+## 2026-09-21 CSAPI Gate 01 — Integrated Patient Flow Verification Entry
+
+| Date | Action | Evidence | Result | Decision | Next Action |
+|---|---|---|---|---|---|
+| 2026-09-21 | D3 post-merge state re-verified | PR #172 merged; PR #173 documentation reconciliation merged; current main `5a92232bc5ffbababf6f8139b1b9654be6112ae7` | D3 remains CLOSED; no implementation drift introduced by post-merge documentation changes | Gate 01 remains OPEN and moves to its separate integrated verification stage | Establish and execute the binding Integrated Patient Flow verification contract against merged main |
+| 2026-09-21 | Gate 01 documentation reconciliation | Updated master roadmap, live Handoff and Ledger; added integrated verification record and workstream contract | Stale D3-current wording is superseded; current head and next stage are explicit | Integrated Patient Flow Verification is now the current Gate 01 execution head | Run exact-head integrated verification |
+| 2026-09-21 | Integrated verification scope freeze | `GATE-01-INTEGRATED-PATIENT-FLOW-VERIFICATION-2026-09-21.md` + `csapi-gate01-integrated-patient-flow.execution.json` | Verification-only scope: Engineering + D3 runtime scenario + Stage 6 regression; no Vercel/Production DB mutation | No new lifecycle authority and no unrelated domain work | Execute CI on exact merged-main candidate |
+
+**Current Gate 01 stage:** Integrated Patient Flow Verification — OPEN
+
+**Current main SHA:** `5a92232bc5ffbababf6f8139b1b9654be6112ae7`
+
+**After integrated PASS:** Final Gate 01 Release / Production Verification
+
+**Final closure:** Gate 01 CLOSED only after production rollout + production runtime verification + documentation reconciliation.
