@@ -1,16 +1,16 @@
 # CORE SYSTEM — CSAPI CURRENT EXECUTION HANDOFF
 
-**Updated:** 2026-09-20  
-**Resume token:** `CSAPI`  
-**Workstream:** CSAPI — Gate 01 — Patient Flow  
-**Current execution stage:** D3 — Step 4 — Integrated Runtime  
-**Current state:** **OPEN / NOT CLOSED**  
-**Current canonical D3 branch:** `implementation/csapi-gate01-d3-lifecycle-authority-2026-09-19`  
-**Current PR:** #172 — open, draft, base `main`, mergeable  
-**Current PR Head:** `60af39b1a8ae8d91d35939431689293cd7631b1d`  
-**Current PR size:** 111 commits, 24 changed files, 5,364 additions, 145 deletions  
-**D2 merged Main baseline:** `6013a9ffa4705738bc9e8de7c0d1403ff6a0858e`  
-**Vercel:** prohibited for current D3 verification  
+**Updated:** 2026-09-21
+**Resume token:** `CSAPI`
+**Workstream:** CSAPI — Gate 01 — Patient Flow
+**Current execution stage:** D3 — Step 4 — Integrated Runtime / Final Reconciliation
+**Current state:** **OPEN pending final reconciliation/closure**
+**Current canonical D3 branch:** `implementation/csapi-gate01-d3-lifecycle-authority-2026-09-19`
+**Current PR:** #172 — open, draft
+**Latest CI reference:** **Run #656 — SUCCESS**
+**Previous fully verified reference:** Run #653 — SUCCESS, head `601a4ee9374fd7b56b23bed71031cb33ac2a5752`
+**D2 merged Main baseline:** `6013a9ffa4705738bc9e8de7c0d1403ff6a0858e`
+**Vercel:** prohibited for current D3 verification
 **Hosted Production Supabase:** not to be mutated during D3 implementation verification
 
 ---
@@ -899,3 +899,340 @@ This supersedes the older Run #576 / Run #602 runtime-pending text in this hando
 - no hosted Production Supabase mutation;
 - no unrelated domain implementation;
 - PR #172 remains unmerged until Step 5 review is complete.
+
+
+---
+
+# 24. 2026-09-21 CONTINUATION RECORD — AUTHORITATIVE ADDENDUM
+
+This addendum records the work performed after the earlier 2026-09-20 handoff and is part of the canonical CSAPI resume state.
+
+## 24.1 Latest CI correction
+
+The execution drift around test numbers is resolved.
+
+The latest CI reference is **Run #656**, and it completed **SUCCESS**.
+
+Run #653 is historical and must not be treated as the current run. Run #645 is older still and must not be referenced as the latest candidate.
+
+Run #653 details retained for historical evidence:
+
+- Run ID: `35537464627`
+- HEAD: `601a4ee9374fd7b56b23bed71031cb33ac2a5752`
+- all required D3 jobs passed;
+- the immediate preceding #652 database mismatch was the pgTAP plan count (62 planned vs 65 actual);
+- #653 corrected the plan to 65 assertions.
+
+**Resume rule:** always verify the actual #656 head and jobs from GitHub before any new code change. If GitHub exposes a newer run, that newer run supersedes #656.
+
+## 24.2 What the green runtime evidence means
+
+A green integrated-runtime lane is evidence that the current verifier completed its defined scenario. It does not, by itself, prove that every historical implementation concern has been reconciled.
+
+Before D3 is formally CLOSED, the final branch must still be inspected for:
+
+- direct lifecycle writes;
+- duplicate lifecycle authority;
+- stale UI identity comparisons;
+- legacy Queue bypasses;
+- replay-only migration defects;
+- unsafe fixture cleanup;
+- experimental Work Session authority changes;
+- stale verification/documentation claims.
+
+This is a **reconciliation gate**, not a new implementation phase.
+
+## 24.3 Important fixes and discoveries made during this conversation
+
+### A. Reception actor identity
+
+The runtime exposed:
+
+```
+clinic_visit_sessions_initialized_by_receptionist_fkey
+```
+
+The field is in the clinic-domain identity space. The correct actor is the `clinic_users.id` corresponding to the authenticated Auth user, not the raw Auth UID.
+
+The implementation was corrected to resolve and use the canonical clinic-user identity.
+
+### B. Clinical actor identity
+
+D3 stores the clinical actor/lock holder using `clinic_users.id`.
+
+ClinicalWorkspace had previously compared the lock holder against Auth `user.id`.
+
+The current canonical comparison must use the current clinic-user ID.
+
+Relevant files:
+
+- `src/domain/queue/queue.queries.ts`
+- `src/features/workspaces/ClinicalWorkspace.tsx`
+
+### C. Legacy Queue lifecycle bypasses
+
+These legacy actions were identified as lifecycle bypass candidates:
+
+- `callNextPatient`
+- `markNoShow`
+- `cancelVisit`
+
+They were redirected to D3.
+
+`completeVisit` remains Reception-owned and must reject clinical completion.
+
+### D. Workstream verifier registration
+
+The binding execution contract calls:
+
+```
+node tools/csapi-gate01-d3-runtime-v2.mjs
+```
+
+The verification lane was corrected so v2 is actually registered/executed rather than the obsolete runtime verifier.
+
+### E. Clean CI Enterprise fixture
+
+Clean local replay may lack an Enterprise plan.
+
+The verifier can materialize a transient full-capability local Enterprise-equivalent fixture, then remove the transient fixture during cleanup.
+
+This is test infrastructure only and must never be treated as production subscription design.
+
+### F. Subscription schema replay correction
+
+Canonical schema:
+
+```
+subscriptions.tenant_id → master_tenants.id
+subscription_events.tenant_id → master_tenants.id
+```
+
+The replay migration was corrected to preserve those canonical relationships.
+
+This was a migration/replay correction, not a product-level workaround.
+
+### G. Zada demo reconciliation
+
+Migration:
+
+```
+supabase/migrations/20260920101500_csapi_gate01_d3_reconcile_zada_demo_patient_flow.sql
+```
+
+Scope:
+
+- Patient Flow permission definitions;
+- Zada subscription metadata reconciliation;
+- preservation of the existing role model;
+- explicit clinical Patient Flow capability for active doctors;
+- explicit operations Patient Flow capability for active receptionists;
+- no weakening of Clinic Admin authority.
+
+The active Zada subscription is the full-capability Enterprise baseline used by the deterministic scenario. The inconsistent legacy tenant metadata was treated as reconciliation data, not as permission-engine redesign.
+
+### H. Unsafe cleanup removed
+
+The runtime verifier previously performed a broad tenant-wide deletion against permission overrides.
+
+That was rejected because a verification fixture must not destroy canonical tenant data.
+
+Cleanup must target only transient records created by the verifier.
+
+### I. Stage 6 adapter restoration
+
+`moveFromPatientFlow` temporarily disappeared from `workspace.actions.ts` and caused Stage 6 regression failure.
+
+It was restored as an explicit adapter with these boundaries:
+
+- Operations cannot directly start clinical work.
+- Clinical cannot directly Complete Reception.
+- clinical start → D3 start command.
+- clinical finish → D3 finish command.
+- reception completion → D3 reception-complete command.
+- cancel/no-show → their D3 commands.
+- waiting must use Enter Waiting/Reorder Waiting rather than a generic lifecycle move.
+
+The final branch must be inspected to ensure the adapter remains correctly placed and imports/types remain valid.
+
+### J. pgTAP assertion-plan correction
+
+The database test lane reported:
+
+```
+planned 62 tests but ran 65
+```
+
+The plan was corrected to 65.
+
+This is the direct reason Run #653 became green after #652 was cancelled.
+
+## 24.4 Runtime failure chain that must not be forgotten
+
+Earlier runtime iterations included:
+
+1. local Supabase initialization failure;
+2. authentication/redirect fixture problems;
+3. route/permission fixture problems;
+4. Enterprise plan missing on clean replay;
+5. subscription FK mismatch during replay;
+6. Reception actor identity FK mismatch;
+7. Clinical Auth UID vs clinic-user identity mismatch;
+8. legacy lifecycle bypasses;
+9. runtime verifier route/selector patch drift;
+10. Stage 6 adapter disappearance;
+11. false-positive UI assertions where a click was reported as PASS despite the underlying server action failing;
+12. runtime diagnostics being added to distinguish actual lifecycle success from UI interaction success.
+
+The critical lesson is:
+
+> A UI click is not lifecycle evidence. The verifier must assert the resulting database state, projection rows, event evidence, and authorization outcome.
+
+## 24.5 Experimental Work Session authority changes — review before closure
+
+During the debugging loop, an additional migration was proposed/attempted:
+
+```
+supabase/migrations/20260920230000_csapi_gate01_d3_work_session_authority.sql
+```
+
+It proposed:
+
+- a direct lifecycle-write guard trigger;
+- explicit Work Session Hold RPC;
+- explicit Work Session Resume RPC;
+- Work Session events for hold/resume;
+- additional direct-write tests.
+
+Additional server actions were considered in:
+
+```
+src/domain/queue/work-session.actions.ts
+```
+
+and Hold/Resume caller routing in Queue actions.
+
+These changes must **not** be assumed canonical merely because they were attempted.
+
+Before D3 closure, determine from the actual final branch:
+
+1. whether this migration exists;
+2. whether it is part of the green #656 candidate;
+3. whether its trigger can distinguish legitimate Security Definer D3 commands from forbidden direct writes;
+4. whether Hold/Resume already have an approved Work Session authority;
+5. whether the added RPCs/events duplicate an existing Work Session contract.
+
+If the change is unnecessary or over-broad, remove/reconcile it rather than layering further patches on top.
+
+## 24.6 Experimental arrival permission change — review before closure
+
+A change was also considered to force `patient_flow:operations` inside `registerPatientArrival`.
+
+Do not automatically preserve that as canonical lifecycle authorization.
+
+Compare it to the frozen D3 authorization contract:
+
+- Patient Flow surface permission = workspace access;
+- D3 lifecycle authority = existing session permissions + state/ownership rules.
+
+Only retain an additional check if it is demonstrably consistent with the canonical authorization model and existing product semantics.
+
+## 24.7 Required final authority audit
+
+Before closure, search the final branch for writes to:
+
+- `clinic_visit_sessions`
+- `clinical_work_sessions`
+- `patient_flow_queue_entries`
+- `patient_flow_events`
+
+Search for:
+
+- `.update(`
+- `.insert(`
+- `.upsert(`
+- `.delete(`
+- direct SQL UPDATE/INSERT/DELETE;
+- lifecycle RPC calls;
+- legacy transition helpers;
+- Hold/Resume;
+- generic move functions;
+- Arrival;
+- Pull;
+- Finish;
+- Complete;
+- Cancel;
+- No Show.
+
+Classify every write as:
+
+1. canonical D3 command;
+2. legitimate non-lifecycle projection;
+3. migration;
+4. test fixture;
+5. legacy bypass;
+6. explicitly retained Work Session operation.
+
+Do not close D3 with an unexplained lifecycle writer.
+
+## 24.8 Exact resume sequence
+
+When the next conversation receives `CSAPI`:
+
+```
+1. Read this handoff.
+2. Verify PR #172 current head.
+3. Verify Run #656 and its jobs.
+4. Confirm whether a newer run exists.
+5. Inspect final D3 diff from the actual branch head.
+6. Audit lifecycle writes across the repository.
+7. Inspect the experimental Work Session migration/actions if present.
+8. Confirm the runtime verifier is trustworthy and not merely click-success based.
+9. Confirm D3 DB + Stage 6 + engineering + runtime evidence.
+10. Reconcile the D3 verification/plan/contract documents with the final branch.
+11. Only then mark D3 CLOSED if every closure criterion is satisfied.
+```
+
+No new patch should be created before steps 1–8 are reconciled.
+
+## 24.9 Historical commits that matter
+
+Important implementation/verification checkpoints:
+
+- D2 merged: `6013a9ffa4705738bc9e8de7c0d1403ff6a0858e`
+- Step 3 verified: `c57e35b791593175343c893d57368c582129fa24`
+- Runtime v2 registration: `c581132a2d7882a24e74ece4b185909ac1f596fa`
+- Clinical identity reconciliation: `08a494213708c9be7c82246d50da4f16e6b7ff87`
+- Legacy lifecycle routing: `0dfe6e05527a286b30607c8576b37db759a5b633`
+- Resume identity alignment: `a06c6ad9393fd674adfc0974a99d104eb131f260`
+- MyQueue identity reconciliation: `debdd017db21de1547e5e764f151abb84c8b9069`
+- Runtime diagnostic: `54a9497a508a4501e92ec6fde9cec365fb297b5e`
+- Stage 6 adapter restoration candidate: `aa495d4ac9953cd7d7a369e193e8732634aa3940`
+- pgTAP 65-assertion alignment / Run #653 green candidate: `601a4ee9374fd7b56b23bed71031cb33ac2a5752`
+
+These are historical evidence only. The final branch head and final green run are authoritative.
+
+## 24.10 Final closure criteria
+
+D3 may be marked CLOSED only if all are true:
+
+- frozen Patient Flow semantics remain unchanged;
+- seven D3 lifecycle commands are the canonical lifecycle authority;
+- all intended callers route through D3;
+- no unexplained direct lifecycle writer remains;
+- D2 projections remain intact;
+- event sequence is correct;
+- tenant isolation is proven;
+- authorization boundaries are proven;
+- concurrency is proven;
+- idempotency/retry behavior is proven;
+- Stage 6 is green;
+- engineering/build is green;
+- integrated runtime is green;
+- the green run corresponds to the final branch head;
+- experimental/unproven Work Session changes are reconciled;
+- runtime cleanup is safe;
+- documentation matches the actual branch;
+- only then is D3 formally closed.
+
+**END OF 2026-09-21 CSAPI CONTINUATION ADDENDUM**
