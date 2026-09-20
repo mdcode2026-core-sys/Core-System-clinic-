@@ -10,6 +10,7 @@ import {
   d3CompleteReception,
   d3EnterWaiting,
   d3FinishClinicalWork,
+  d3ReorderWaiting,
   d3MarkNoShow,
   d3StartClinicalWork,
 } from "./d3.actions";
@@ -164,10 +165,48 @@ export async function cancelFromReception(sessionId: string): Promise<EnrichedSe
   return d3CancelPatientFlow(sessionId);
 }
 
+export async function reorderWaitingFromReception(
+  sessionId: string,
+  targetPosition: number,
+  targetLaneKey?: string | null,
+  routingTarget?: string | null,
+): Promise<EnrichedSession> {
+  const { supabase, tenantId, permissions } = await getContext();
+  requirePermission(permissions, "patient_flow:operations");
+  requirePermission(permissions, "sessions:update");
+
+  if (!Number.isInteger(targetPosition) || targetPosition < 1) {
+    throw new Error("INVALID_QUEUE_POSITION");
+  }
+
+  const { data: queueEntry, error } = await supabase
+    .from("patient_flow_queue_entries")
+    .select("id")
+    .eq("tenant_id", tenantId)
+    .eq("visit_id", sessionId)
+    .is("exited_at", null)
+    .maybeSingle();
+
+  if (error || !queueEntry) {
+    throw new Error("ACTIVE_WAITING_QUEUE_ENTRY_REQUIRED");
+  }
+
+  const updated = await d3ReorderWaiting({
+    queueEntryId: queueEntry.id,
+    targetPosition,
+    targetLaneKey,
+    routingTarget,
+    correlationId: crypto.randomUUID(),
+  });
+
+  revalidateWorkspacePaths();
+  return updated;
+}
+
 export async function moveFromOperation(sessionId: string, target: SessionStatus): Promise<EnrichedSession> {
   switch (target) {
     case "in_consultation":
-      return d3StartClinicalWork(sessionId);
+      throw new Error("CLINICAL_START_OWNED_BY_CLINICAL_WORKSPACE");
     case "completed":
       return d3CompleteReception(sessionId);
     case "cancelled":
@@ -182,8 +221,14 @@ export async function moveFromOperation(sessionId: string, target: SessionStatus
 export async function moveFromPatientFlow(
   sessionId: string,
   target: SessionStatus,
-  _context: PatientFlowContext,
+  context: PatientFlowContext,
 ): Promise<EnrichedSession> {
+  if (context === "operations" && target === "in_consultation") {
+    throw new Error("CLINICAL_START_OWNED_BY_CLINICAL_WORKSPACE");
+  }
+  if (context === "clinical" && target === "completed") {
+    throw new Error("VISIT_COMPLETION_OWNED_BY_RECEPTION");
+  }
   switch (target) {
     case "in_consultation":
       return d3StartClinicalWork(sessionId);
