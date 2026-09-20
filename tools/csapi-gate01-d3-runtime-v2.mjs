@@ -252,6 +252,8 @@ try {
   await assertActiveQueueCount(0, "Clinical Pull closes active waiting queue");
   await assertWorkSessionState(1, 0, "Clinical Pull creates one active Work Session");
   await assertEvent("clinical_started", "Clinical Start event");
+  const runtimeSession = await admin.from("clinic_visit_sessions").select("session_status,lock_holder_id,doctor_id").eq("id", visitId).eq("tenant_id", tenantId).single();
+  console.log("D3_RUNTIME_SESSION_IDENTITY=" + JSON.stringify({ session: runtimeSession.data, error: runtimeSession.error?.message ?? null, expectedDoctorClinicId: doctorClinicId }));
   await page.waitForTimeout(1200);
   const textareaCount = await page.locator("textarea").count();
   const finishButtonCount = await page.getByRole("button", { name: /finish visit|finish/i }).count();
