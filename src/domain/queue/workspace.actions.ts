@@ -102,7 +102,6 @@ export async function registerPatientArrival(
         doctor_id: doctorId,
         room_id: roomId,
         agenda_event_id: agendaEventId,
-        arrived_at: new Date().toISOString(),
         initialized_by_receptionist: clinicUserId,
         updated_at: new Date().toISOString(),
       })
@@ -128,7 +127,6 @@ export async function registerPatientArrival(
       doctor_id: doctorId,
       room_id: roomId,
       agenda_event_id: agendaEventId,
-      arrived_at: now,
       initialized_by_receptionist: clinicUserId,
       session_status: "waiting",
       created_at: now,
@@ -217,36 +215,3 @@ export async function moveFromOperation(sessionId: string, target: SessionStatus
       throw new Error("Invalid workflow target");
   }
 }
-
-export async function moveFromPatientFlow(
-  sessionId: string,
-  target: SessionStatus,
-  context: PatientFlowContext,
-): Promise<EnrichedSession> {
-  if (context === "operations" && target === "in_consultation") {
-    throw new Error("CLINICAL_START_OWNED_BY_CLINICAL_WORKSPACE");
-  }
-  if (context === "clinical" && target === "completed") {
-    throw new Error("VISIT_COMPLETION_OWNED_BY_RECEPTION");
-  }
-  switch (target) {
-    case "in_consultation":
-      return d3StartClinicalWork(sessionId);
-    case "pending_close":
-      return d3FinishClinicalWork(sessionId);
-    case "completed":
-      return d3CompleteReception(sessionId);
-    case "cancelled":
-      return d3CancelPatientFlow(sessionId);
-    case "no_show":
-      return d3MarkNoShow(sessionId);
-    case "waiting":
-      throw new Error("Use waiting entry/reorder command for waiting state");
-    default:
-      throw new Error("Invalid workflow target");
-  }
-}
-
-// D1/D6 bounded-context contract:
-// Agenda ↔ Visit integration remains separate from D3 lifecycle ownership.
-// D3 mutates Visit + Patient Flow Queue/Event + Work Session projection only.
