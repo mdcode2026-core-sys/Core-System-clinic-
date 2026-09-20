@@ -272,9 +272,14 @@ try {
   await assertWorkSessionState(0, 1, "Finish closes Work Session");
   await assertActiveQueueCount(1, "Finish creates reception handoff queue", "reception");
   await assertEvent("clinical_finished", "Clinical Finish event");
-  if (!(await page.getByText("Pending", { exact: false }).count())) throw new Error("Pending close state was not rendered");
+  const returnedPatientCount = await page.getByText("D3 Runtime Patient", { exact: false }).count();
+  const clinicalFormCountAfterFinish = await page.locator("textarea").count();
+  if (returnedPatientCount < 1 || clinicalFormCountAfterFinish !== 0) {
+    throw new Error("Clinical surface did not render the Reception handoff after Finish. " +
+      JSON.stringify({ returnedPatientCount, clinicalFormCountAfterFinish, url: page.url() }));
+  }
   if (await page.getByRole("button", { name: /complete visit|complete/i }).count()) throw new Error("Clinical surface exposed reception completion");
-  console.log("PASS|Clinical cannot complete Reception-owned closure");
+  console.log("PASS|Clinical renders pending-close handoff without Reception completion authority");
 
   const doctorClient = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
   const doctorAuth = await doctorClient.auth.signInWithPassword({ email: doctorEmail, password });
