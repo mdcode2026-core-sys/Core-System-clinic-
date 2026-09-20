@@ -1,7 +1,7 @@
 # CORE SYSTEM — CSAPI Gate 01 — D3 Verification Plan
 
 **Updated:** 2026-09-19
-**Status:** IN PROGRESS — STEP 4 RUNTIME FAILED / REMEDIATION PENDING
+**Status:** IN PROGRESS — STEP 4 GREEN IN RUN #656 / FINAL RECONCILIATION PENDING
 **Stage:** D3 — Lifecycle Write Authority / Commands
 
 ## 1. Test architecture decision
@@ -126,3 +126,55 @@ The current runtime harness incorrectly treated the UI click as successful and c
 Therefore the runtime verifier is **not yet trustworthy lifecycle evidence**. The next Step 4 action is to make the verifier fail-fast, inspect the FK target/identity semantics, fix the smallest proven defect, and rerun the complete lifecycle.
 
 **Step 4 remains OPEN.** Step 5 and Step 6 must not start.
+
+
+---
+
+## 2026-09-21 Verification Reconciliation
+
+**Latest CI reference:** Run #656 — **SUCCESS**.
+
+Run #653 was the previous fully green reference and must be treated as historical evidence only. Run #653 corrected the pgTAP assertion plan from 62 planned assertions to the actual 65 assertions.
+
+The D3 runtime remediation sequence addressed, among other things:
+
+- Reception clinic-user identity vs Auth UID;
+- Clinical Work Session ownership identity;
+- legacy Queue lifecycle bypasses;
+- runtime-v2 lane registration;
+- clean-CI Enterprise fixture materialization;
+- subscription tenant FK replay alignment;
+- unsafe broad permission-override cleanup;
+- Stage 6 adapter restoration;
+- runtime false-positive/fail-fast behavior;
+- concurrency and idempotency verification coverage.
+
+### Step 4 current interpretation
+
+Run #656 being green is the required CI evidence for the current candidate, but D3 must not be declared CLOSED until the final branch is reconciled against the frozen contract.
+
+The remaining closure audit is:
+
+1. verify the exact #656 head equals the current PR head;
+2. inspect all final D3 files/migrations;
+3. search for direct writes to Visit, Work Session, Queue Entry and Event tables;
+4. classify every writer as canonical, legitimate projection, fixture, migration, or bypass;
+5. review any experimental Work Session authority migration/actions;
+6. verify runtime evidence is state/projection/event based rather than click-success based;
+7. reconcile this plan, the command contract, and the execution handoff with the final branch.
+
+### Important experimental-change caution
+
+A Work Session authority migration was proposed during debugging:
+
+`supabase/migrations/20260920230000_csapi_gate01_d3_work_session_authority.sql`
+
+It must be reviewed rather than assumed canonical. Hold/Resume are Work Session semantics and should not become a second Visit lifecycle authority.
+
+A separate proposal to require `patient_flow:operations` inside arrival registration must likewise be compared against the frozen D3 authorization model before closure.
+
+### Closure rule
+
+**Step 4 is GREEN by CI evidence in Run #656 but remains OPEN for final reconciliation/documentation until the final branch and all lifecycle writers have been audited.**
+
+Step 5 and Step 6 must not begin until D3 closure is explicitly established.
