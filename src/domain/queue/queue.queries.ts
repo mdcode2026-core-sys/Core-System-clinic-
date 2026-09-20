@@ -5,7 +5,7 @@
 import { createClient } from "@/infrastructure/supabase/server";
 import { resolveTenantId } from "@/core/auth/resolveTenantId";
 import { getEffectivePermissions } from "@/core/permissions/permissionEngine";
-import { EnrichedSession, QueueStats, QueueFilters } from "./queue.types";
+import { EnrichedSession, QueueStats, QueueFilters, VisitPriority } from "./queue.types";
 
 function computeWaitTimeMinutes(createdAt: string): number { return Math.floor((Date.now() - new Date(createdAt).getTime()) / 60000); }
 function getTodayRange(): { start: string; end: string } { const now = new Date(); const start = new Date(now.getFullYear(), now.getMonth(), now.getDate()); const end = new Date(start); end.setDate(end.getDate() + 1); return { start: start.toISOString(), end: end.toISOString() }; }
