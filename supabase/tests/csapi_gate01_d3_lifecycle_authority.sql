@@ -1,6 +1,6 @@
 BEGIN;
 
-SELECT plan(49);
+SELECT plan(62);
 
 CREATE TEMP TABLE d3_test_ids (
   key text primary key,
@@ -253,7 +253,36 @@ SELECT ok(
     '00000000-0000-0000-0000-00000000e303'
   )->>'new_status')='in_consultation',
   'Start Clinical Work moves Visit to in_consultation'
+);SELECT ok(
+  has_function_privilege('authenticated','public.csapi_work_session_hold(uuid,text,uuid)','EXECUTE'),
+  'authenticated can execute canonical Work Session Hold'
 );
+SELECT ok(
+  has_function_privilege('authenticated','public.csapi_work_session_resume(uuid,uuid)','EXECUTE'),
+  'authenticated can execute canonical Work Session Resume'
+);
+
+SELECT throws_ok(
+  $sql$UPDATE public.clinic_visit_sessions
+       SET lock_holder_id=NULL, lock_timestamp=NULL
+       WHERE id='00000000-0000-0000-0000-00000000d310'
+         AND tenant_id='00000000-0000-0000-0000-00000000d301'$sql$,
+  'P0001',
+  NULL,
+  'authenticated direct Visit lock mutation is rejected'
+);
+
+SELECT throws_ok(
+  $sql$UPDATE public.clinic_visit_sessions
+       SET doctor_id='00000000-0000-0000-0000-00000000d306'
+       WHERE id='00000000-0000-0000-0000-00000000d310'
+         AND tenant_id='00000000-0000-0000-0000-00000000d301'$sql$,
+  'P0001',
+  NULL,
+  'authenticated direct provider reassignment is rejected'
+);
+
+
 SELECT is(
   (SELECT count(*)::int FROM public.clinical_work_sessions WHERE tenant_id='00000000-0000-0000-0000-00000000d301' AND visit_id='00000000-0000-0000-0000-00000000d310' AND status='active'),
   1,
@@ -288,6 +317,101 @@ SELECT throws_ok(
   'P0001',
   NULL,
   'second clinical start is rejected'
+);
+
+SELECT ok(
+  (public.csapi_work_session_hold(
+    '00000000-0000-0000-0000-00000000d310',
+    'temporary interruption',
+    '00000000-0000-0000-0000-00000000e316'
+  )->>'status')='held',
+  'Hold moves the active Work Session to held'
+);
+SELECT is(
+  (SELECT count(*)::int FROM public.clinical_work_sessions
+   WHERE tenant_id='00000000-0000-0000-0000-00000000d301'
+     AND visit_id='00000000-0000-0000-0000-00000000d310'
+     AND status='held'),
+  1,
+  'Hold produces one held Work Session'
+);
+SELECT is(
+  (SELECT session_status FROM public.clinic_visit_sessions
+   WHERE tenant_id='00000000-0000-0000-0000-00000000d301'
+     AND id='00000000-0000-0000-0000-00000000d310'),
+  'in_consultation',
+  'Hold does not create a new Visit lifecycle state'
+);
+SELECT is(
+  (SELECT count(*)::int FROM public.patient_flow_events
+   WHERE tenant_id='00000000-0000-0000-0000-00000000d301'
+     AND visit_id='00000000-0000-0000-0000-00000000d310'
+     AND event_type='work_session_held'),
+  1,
+  'Hold emits a Work Session event'
+);
+SELECT ok(
+  (public.csapi_work_session_hold(
+    '00000000-0000-0000-0000-00000000d310',
+    'temporary interruption',
+    '00000000-0000-0000-0000-00000000e316'
+  )->>'event_id') IS NOT NULL,
+  'same Hold correlation returns existing outcome'
+);
+SELECT is(
+  (SELECT count(*)::int FROM public.patient_flow_events
+   WHERE tenant_id='00000000-0000-0000-0000-00000000d301'
+     AND visit_id='00000000-0000-0000-0000-00000000d310'
+     AND event_type='work_session_held'),
+  1,
+  'same Hold correlation does not duplicate the event'
+);
+
+SELECT ok(
+  (public.csapi_work_session_resume(
+    '00000000-0000-0000-0000-00000000d310',
+    '00000000-0000-0000-0000-00000000e317'
+  )->>'status')='active',
+  'Resume moves the same Work Session back to active'
+);
+SELECT is(
+  (SELECT count(*)::int FROM public.clinical_work_sessions
+   WHERE tenant_id='00000000-0000-0000-0000-00000000d301'
+     AND visit_id='00000000-0000-0000-0000-00000000d310'
+     AND status='active'),
+  1,
+  'Resume restores exactly one active Work Session'
+);
+SELECT is(
+  (SELECT count(*)::int FROM public.clinical_work_sessions
+   WHERE tenant_id='00000000-0000-0000-0000-00000000d301'
+     AND visit_id='00000000-0000-0000-0000-00000000d310'
+     AND status='held'),
+  0,
+  'Resume removes the held Work Session state'
+);
+SELECT is(
+  (SELECT count(*)::int FROM public.patient_flow_events
+   WHERE tenant_id='00000000-0000-0000-0000-00000000d301'
+     AND visit_id='00000000-0000-0000-0000-00000000d310'
+     AND event_type='work_session_resumed'),
+  1,
+  'Resume emits a Work Session event'
+);
+SELECT ok(
+  (public.csapi_work_session_resume(
+    '00000000-0000-0000-0000-00000000d310',
+    '00000000-0000-0000-0000-00000000e317'
+  )->>'event_id') IS NOT NULL,
+  'same Resume correlation returns existing outcome'
+);
+SELECT is(
+  (SELECT count(*)::int FROM public.patient_flow_events
+   WHERE tenant_id='00000000-0000-0000-0000-00000000d301'
+     AND visit_id='00000000-0000-0000-0000-00000000d310'
+     AND event_type='work_session_resumed'),
+  1,
+  'same Resume correlation does not duplicate the event'
 );
 
 SELECT ok(
