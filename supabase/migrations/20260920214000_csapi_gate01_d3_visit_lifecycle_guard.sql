@@ -2,8 +2,9 @@ BEGIN;
 
 -- CSAPI Gate 01 / D3 — database-level lifecycle write boundary.
 -- Ordinary authenticated clients may still edit non-lifecycle Visit data, but
--- lifecycle state, arrival/start/end/close timestamps, and clinical lock ownership
--- are writable only by the canonical SECURITY DEFINER D3 commands.
+-- lifecycle state and arrival/start/end/close timestamps are writable only by the
+-- canonical SECURITY DEFINER D3 commands. Work-session lock semantics remain outside
+-- the Visit lifecycle guard and are handled by the existing Hold/Resume path.
 
 CREATE OR REPLACE FUNCTION public.csapi_guard_visit_lifecycle_writes()
 RETURNS trigger
@@ -27,8 +28,6 @@ BEGIN
          OR NEW.session_started_at IS DISTINCT FROM OLD.session_started_at
          OR NEW.session_ended_at IS DISTINCT FROM OLD.session_ended_at
          OR NEW.visit_closed_at IS DISTINCT FROM OLD.visit_closed_at
-         OR NEW.lock_holder_id IS DISTINCT FROM OLD.lock_holder_id
-         OR NEW.lock_timestamp IS DISTINCT FROM OLD.lock_timestamp
        ) THEN
       RAISE EXCEPTION USING
         ERRCODE = 'P0001',
