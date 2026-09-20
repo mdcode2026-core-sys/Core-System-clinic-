@@ -8,9 +8,9 @@
 **Current canonical D3 branch:** `implementation/csapi-gate01-d3-lifecycle-authority-2026-09-19`
 **Current PR:** none — D3 PR #172 merged; final docs closure is a separate reconciliation record
 **Latest implementation CI reference:** **Run #657 — SUCCESS**
-**Final Production runtime reference:** **Run #32 — SUCCESS (35540492196)**
+**Production runtime reference:** Run #33 attempt 2 (`35541033478`): exact SHA + `/patient-flow` route PASS; Agenda-only subscenario FAILED outside Gate 01 scope
 **Previous fully verified reference:** Run #653 — SUCCESS, head `601a4ee9374fd7b56b23bed71031cb33ac2a5752`
-**Final promoted main SHA:** `e087243204c1f8308be323bc4eea24b18252dfee`
+**Final promoted main SHA:** `59d18b3b0ad8a097a01cff1bfd5f6ec1d7d9c90a`
 **D2 merged Main baseline:** `6013a9ffa4705738bc9e8de7c0d1403ff6a0858e`
 **Vercel:** final Production verification completed
 **Hosted Production Supabase:** final Gate 01 D2/D3 rollout completed and verified

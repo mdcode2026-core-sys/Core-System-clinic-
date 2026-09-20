@@ -5,7 +5,7 @@
 **Status:** PASS — VERIFIED / READY FOR FINAL GATE 01 RELEASE
 **Gate:** CSAPI Gate 01 — Patient Flow
 **Baseline main SHA:** `5a92232bc5ffbababf6f8139b1b9654be6112ae7`
-**Final main SHA after closure merge:** `e087243204c1f8308be323bc4eea24b18252dfee`
+**Final main SHA after final scope reconciliation:** `59d18b3b0ad8a097a01cff1bfd5f6ec1d7d9c90a`
 **D3 closure:** CLOSED — D3 Lifecycle Write Authority
 **D3 merge:** PR #172 → `c504897e01a1429e7729e27960e2f33cdb1b8f21`
 **Post-merge documentation reconciliation:** PR #173 → `5a92232bc5ffbababf6f8139b1b9654be6112ae7`
