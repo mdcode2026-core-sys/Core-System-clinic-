@@ -4,7 +4,7 @@
 **Workstream:** CSAPI — Gate 01 — Patient Flow
 **Current Stage:** **Gate 01 CLOSED — Final Release / Production Verification completed**
 **Current State:** **CSAPI Gate 01 — Patient Flow CLOSED**
-**Current main SHA:** `59d18b3b0ad8a097a01cff1bfd5f6ec1d7d9c90a`
+**Production application candidate SHA:** `59d18b3b0ad8a097a01cff1bfd5f6ec1d7d9c90a`
 **D2 PR:** #168 — merged
 **D3 PR:** #172 — merged / D3 CLOSED
 **D3 merge SHA:** `c504897e01a1429e7729e27960e2f33cdb1b8f21`
@@ -23,7 +23,7 @@ This handoff is now a **closed Gate 01 record**. The authoritative execution sta
 - Final Gate 01 Release / Production Verification CLOSED.
 - **CSAPI Gate 01 — Patient Flow CLOSED.**
 
-The final promoted `main` SHA is `e087243204c1f8308be323bc4eea24b18252dfee`.
+The final promoted **application candidate** SHA is `59d18b3b0ad8a097a01cff1bfd5f6ec1d7d9c90a`. Later `main` commits are documentation-only closure/reconciliation commits and do not change the deployed application implementation.
 
 The next conversation must not restart D3 or any earlier Gate 01 stage. A new CSAPI workstream, when explicitly opened, starts outside Gate 01 from its own approved contract.
 
