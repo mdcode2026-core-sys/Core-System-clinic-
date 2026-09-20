@@ -57,6 +57,7 @@ export async function registerPatientArrival(
 ): Promise<EnrichedSession> {
   const { supabase, user, tenantId, clinicUserId, permissions } = await getContext();
   requirePermission(permissions, "sessions:update");
+  requirePermission(permissions, "patient_flow:operations");
 
   let patientId = data.patient_id;
   let doctorId = data.doctor_id ?? null;
@@ -198,49 +199,3 @@ export async function reorderWaitingFromReception(
   });
 
   revalidateWorkspacePaths();
-  return updated;
-}
-
-export async function moveFromOperation(sessionId: string, target: SessionStatus): Promise<EnrichedSession> {
-  switch (target) {
-    case "in_consultation":
-      throw new Error("CLINICAL_START_OWNED_BY_CLINICAL_WORKSPACE");
-    case "completed":
-      return d3CompleteReception(sessionId);
-    case "cancelled":
-      return d3CancelPatientFlow(sessionId);
-    case "no_show":
-      return d3MarkNoShow(sessionId);
-    default:
-      throw new Error("Invalid workflow target");
-  }
-}
-
-export async function moveFromPatientFlow(
-  sessionId: string,
-  target: SessionStatus,
-  context: PatientFlowContext,
-): Promise<EnrichedSession> {
-  if (context === "operations" && target === "in_consultation") {
-    throw new Error("CLINICAL_START_OWNED_BY_CLINICAL_WORKSPACE");
-  }
-  if (context === "clinical" && target === "completed") {
-    throw new Error("VISIT_COMPLETION_OWNED_BY_RECEPTION");
-  }
-  switch (target) {
-    case "in_consultation":
-      return d3StartClinicalWork(sessionId);
-    case "pending_close":
-      return d3FinishClinicalWork(sessionId);
-    case "completed":
-      return d3CompleteReception(sessionId);
-    case "cancelled":
-      return d3CancelPatientFlow(sessionId);
-    case "no_show":
-      return d3MarkNoShow(sessionId);
-    case "waiting":
-      throw new Error("Use Enter Waiting/Reorder Waiting for waiting state");
-    default:
-      throw new Error("Invalid workflow target");
-  }
-}
