@@ -2,23 +2,45 @@
 
 **Updated:** 2026-09-21
 **Workstream:** CSAPI — Gate 01 — Patient Flow
-**Current Stage:** **Integrated Patient Flow Verification**
-**Current State:** **INTEGRATED PATIENT FLOW VERIFIED/CLOSED — READY FOR FINAL GATE 01 RELEASE / PRODUCTION VERIFICATION**
-**Current main SHA:** `5a92232bc5ffbababf6f8139b1b9654be6112ae7`
+**Current Stage:** **Gate 01 CLOSED — Final Release / Production Verification completed**
+**Current State:** **CSAPI Gate 01 — Patient Flow CLOSED**
+**Current main SHA:** `e087243204c1f8308be323bc4eea24b18252dfee`
 **D2 PR:** #168 — merged
 **D3 PR:** #172 — merged / D3 CLOSED
 **D3 merge SHA:** `c504897e01a1429e7729e27960e2f33cdb1b8f21`
 **Post-merge docs PR:** #173 — merged
 **Binding integrated verification record:** `docs/CSAPI/GATES/GATE-01-INTEGRATED-PATIENT-FLOW-VERIFICATION-2026-09-21.md`
 **Binding integrated workstream contract:** `docs/testing/workstream-contracts/csapi-gate01-integrated-patient-flow.execution.json`
-**Hosted Production Supabase:** **NOT YET MUTATED — reserved for Final Gate 01 Release / Production Verification**
-**Vercel:** **NOT AUTHORIZED YET — reserved for Final Gate 01 Release / Production Verification**
+**Hosted Production Supabase:** **Gate 01 D2/D3 migrations deployed and verified**
+**Vercel:** **Gate 01 Production deployment/runtime verified**
 
-## 1. Purpose of this handoff
+## 1. Current final status
+
+This handoff is now a **closed Gate 01 record**. The authoritative execution state is:
+- D2 CLOSED.
+- D3 CLOSED.
+- Integrated Patient Flow Verification CLOSED.
+- Final Gate 01 Release / Production Verification CLOSED.
+- **CSAPI Gate 01 — Patient Flow CLOSED.**
+
+The final promoted `main` SHA is `e087243204c1f8308be323bc4eea24b18252dfee`.
+
+The next conversation must not restart D3 or any earlier Gate 01 stage. A new CSAPI workstream, when explicitly opened, starts outside Gate 01 from its own approved contract.
+
+## 2. Final Gate 01 evidence
+
+- Integrated lifecycle evidence: Run #657 (`35539734311`).
+- Production release/runtime evidence: Production workflow Run #32 (`35540492196`) — SUCCESS.
+- Production deployment: `dpl_Cw1AutDTYQfahkTKMAP8FhGSSVdU` — READY.
+- Production build identity: exact SHA `e087243204c1f8308be323bc4eea24b18252dfee`.
+- Production Supabase D2/D3 migrations: applied and schema/grant/RLS verified.
+- Final closure record: `docs/CSAPI/GATES/GATE-01-FINAL-RELEASE-PRODUCTION-VERIFICATION-2026-09-21.md`.
+
+## 3. Historical execution record
 
 This is the conversation-independent resume point for the current CSAPI execution.
 
-The next conversation must begin from this exact state when the user sends **CSAPI**. Do not reconstruct the work from memory, old PRs, or an older handoff.
+Historical sections below remain as execution history. They are not the current execution head.
 
 The governing execution sequence remains:
 
@@ -282,8 +304,8 @@ Do not:
 - GitHub Actions #499 and #500 passed the D2 verification sequence.
 - Production Supabase was checked read-only after merge.
 - Migration `20260917192500` is not deployed to Production, and the three D2 tables are not present there.
-- D2 implementation is therefore merged and CI-verified; Gate 01 is still open.
-- D3 is the next implementation stage and must use its own contract, branch, PR, verification, and closure evidence.
+- Historical D2 state; superseded by final Gate 01 closure.
+- Historical D3 planning state; superseded. D3 is CLOSED.
 
 ### CSAPI Gate 01 master sequence
 
@@ -350,7 +372,7 @@ Step 0 evidence:
 
 No D3 production migration or application code has been changed at this point.
 
-**Current D3 next action:** verify the frozen plan branch through the applicable CI engineering gate. If it passes, proceed to Step 1: exact command/data/event contract. If it fails, fix only the concrete execution defect and re-verify before advancing.
+**Historical D3 next-action note — superseded by D3 closure and Gate 01 closure.**
 
 
 ## D3 Step 1 — Command / Data / Event Contract
@@ -624,11 +646,11 @@ This supersedes the older Run #576 / Run #602 runtime-pending text in this hando
 
 ## Current exact state
 
-**Gate 01 status:** OPEN
+**Gate 01 status:** CLOSED
 
 **D1:** prerequisite CLOSED / retained as dependency.
 
-**D2:** implementation CLOSED and merged via PR #168. Production rollout remains pending and belongs to the Final Gate 01 release stage.
+**D2:** implementation CLOSED and Production rollout completed in the final Gate 01 release stage.
 
 **D3:** lifecycle write authority CLOSED and merged via PR #172. Post-merge documentation reconciliation merged via PR #173.
 
