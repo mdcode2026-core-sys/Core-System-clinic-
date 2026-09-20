@@ -51,7 +51,8 @@ BEGIN
     RAISE EXCEPTION USING ERRCODE='P0001', MESSAGE='ACTOR_NOT_FOUND';
   END IF;
 
-  IF NOT public.has_effective_permission('sessions:update') THEN
+  IF NOT public.has_effective_permission('sessions:update')
+     OR NOT public.has_effective_permission('patient_flow:operations') THEN
     RAISE EXCEPTION USING ERRCODE='P0001', MESSAGE='PERMISSION_DENIED';
   END IF;
 
@@ -100,8 +101,6 @@ BEGIN
 
   v_operating_date := (v_now AT TIME ZONE v_timezone)::date;
 
-  -- Queue positions are a shared ordered resource. Serialize writers for the
-  -- tenant/day/lane before deriving MAX(position)+1.
   PERFORM pg_advisory_xact_lock(
     hashtextextended(
       v_tenant_id::text || ':queue:' || v_operating_date::text || ':' || p_lane_key,
@@ -676,7 +675,6 @@ BEGIN
 
   v_operating_date := (v_now AT TIME ZONE v_timezone)::date;
 
-  -- Reception handoff positions share the same ordered queue resource.
   PERFORM pg_advisory_xact_lock(
     hashtextextended(
       v_tenant_id::text || ':queue:' || v_operating_date::text || ':general',
@@ -1115,3 +1113,145 @@ BEGIN
   IF p_correlation_id IS NULL THEN
     RAISE EXCEPTION USING ERRCODE='P0001', MESSAGE='CORRELATION_ID_REQUIRED';
   END IF;
+
+  SELECT cu.id, cu.tenant_id
+  INTO v_actor_id, v_tenant_id
+  FROM public.clinic_users cu
+  WHERE cu.auth_user_id = auth.uid()
+    AND cu.is_active = true
+    AND cu.deleted_at IS NULL
+  LIMIT 1;
+
+  IF v_actor_id IS NULL THEN
+    RAISE EXCEPTION USING ERRCODE='P0001', MESSAGE='ACTOR_NOT_FOUND';
+  END IF;
+
+  IF NOT public.has_effective_permission('sessions:update')
+     OR NOT public.has_effective_permission('patient_flow:operations') THEN
+    RAISE EXCEPTION USING ERRCODE='P0001', MESSAGE='PERMISSION_DENIED';
+  END IF;
+
+  PERFORM pg_advisory_xact_lock(
+    hashtextextended(v_tenant_id::text || ':visit:' || p_visit_id::text, 0)
+  );
+  PERFORM pg_advisory_xact_lock(
+    hashtextextended(v_tenant_id::text || ':corr:' || p_correlation_id::text, 0)
+  );
+
+  SELECT e.*
+  INTO v_existing_event
+  FROM public.patient_flow_events e
+  WHERE e.tenant_id = v_tenant_id
+    AND e.correlation_id = p_correlation_id
+  ORDER BY e.occurred_at DESC, e.created_at DESC
+  LIMIT 1;
+
+  IF v_existing_event.id IS NOT NULL THEN
+    IF v_existing_event.event_type <> 'no_show' THEN
+      RAISE EXCEPTION USING ERRCODE='P0001', MESSAGE='CORRELATION_ID_ALREADY_USED';
+    END IF;
+    RETURN jsonb_build_object(
+      'command','csapi_d3_mark_no_show',
+      'tenant_id',v_tenant_id,
+      'visit_id',v_existing_event.visit_id,
+      'previous_status','waiting',
+      'new_status','no_show',
+      'work_session_id',NULL,
+      'queue_entry_id',v_existing_event.queue_entry_id,
+      'event_id',v_existing_event.id,
+      'correlation_id',p_correlation_id
+    );
+  END IF;
+
+  SELECT *
+  INTO v_visit
+  FROM public.clinic_visit_sessions
+  WHERE id = p_visit_id
+    AND tenant_id = v_tenant_id
+    AND deleted_at IS NULL
+  FOR UPDATE;
+
+  IF v_visit.id IS NULL THEN
+    RAISE EXCEPTION USING ERRCODE='P0001', MESSAGE='VISIT_NOT_FOUND';
+  END IF;
+
+  IF v_visit.session_status <> 'waiting' THEN
+    RAISE EXCEPTION USING ERRCODE='P0001', MESSAGE='NO_SHOW_REQUIRES_WAITING';
+  END IF;
+
+  SELECT q.*
+  INTO v_queue
+  FROM public.patient_flow_queue_entries q
+  WHERE q.tenant_id = v_tenant_id
+    AND q.visit_id = p_visit_id
+    AND q.exited_at IS NULL
+  ORDER BY q.entered_at DESC
+  LIMIT 1
+  FOR UPDATE;
+
+  IF v_queue.id IS NULL THEN
+    RAISE EXCEPTION USING ERRCODE='P0001', MESSAGE='ACTIVE_WAITING_QUEUE_ENTRY_REQUIRED';
+  END IF;
+
+  UPDATE public.patient_flow_queue_entries
+  SET exited_at = v_now,
+      exit_reason = 'no_show',
+      updated_at = v_now
+  WHERE id = v_queue.id
+    AND tenant_id = v_tenant_id;
+
+  UPDATE public.clinic_visit_sessions
+  SET session_status = 'no_show',
+      lock_holder_id = NULL,
+      lock_timestamp = NULL,
+      updated_at = v_now
+  WHERE id = p_visit_id
+    AND tenant_id = v_tenant_id;
+
+  INSERT INTO public.patient_flow_events (
+    tenant_id, visit_id, queue_entry_id, event_type, actor_clinic_user_id,
+    actor_context, occurred_at, source_context, destination_context,
+    reason, metadata, correlation_id
+  )
+  VALUES (
+    v_tenant_id, p_visit_id, v_queue.id, 'no_show', v_actor_id,
+    'operations', v_now,
+    jsonb_build_object('status','waiting'),
+    jsonb_build_object('status','no_show'),
+    p_reason, '{}'::jsonb, p_correlation_id
+  )
+  RETURNING id INTO v_event_id;
+
+  RETURN jsonb_build_object(
+    'command','csapi_d3_mark_no_show',
+    'tenant_id',v_tenant_id,
+    'visit_id',p_visit_id,
+    'previous_status','waiting',
+    'new_status','no_show',
+    'work_session_id',NULL,
+    'queue_entry_id',v_queue.id,
+    'event_id',v_event_id,
+    'correlation_id',p_correlation_id
+  );
+END;
+$function$;
+
+-- Application-facing D3 RPCs are deliberate authenticated APIs; no anonymous/public
+-- execution is allowed. Internal authorization remains inside the functions.
+REVOKE ALL ON FUNCTION public.csapi_d3_enter_waiting(uuid,text,text,text,text,uuid) FROM PUBLIC, anon;
+REVOKE ALL ON FUNCTION public.csapi_d3_reorder_waiting(uuid,integer,text,text,uuid) FROM PUBLIC, anon;
+REVOKE ALL ON FUNCTION public.csapi_d3_start_clinical_work(uuid,uuid) FROM PUBLIC, anon;
+REVOKE ALL ON FUNCTION public.csapi_d3_finish_clinical_work(uuid,uuid) FROM PUBLIC, anon;
+REVOKE ALL ON FUNCTION public.csapi_d3_complete_reception(uuid,uuid) FROM PUBLIC, anon;
+REVOKE ALL ON FUNCTION public.csapi_d3_cancel_patient_flow(uuid,text,uuid) FROM PUBLIC, anon;
+REVOKE ALL ON FUNCTION public.csapi_d3_mark_no_show(uuid,text,uuid) FROM PUBLIC, anon;
+
+GRANT EXECUTE ON FUNCTION public.csapi_d3_enter_waiting(uuid,text,text,text,text,uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.csapi_d3_reorder_waiting(uuid,integer,text,text,uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.csapi_d3_start_clinical_work(uuid,uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.csapi_d3_finish_clinical_work(uuid,uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.csapi_d3_complete_reception(uuid,uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.csapi_d3_cancel_patient_flow(uuid,text,uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.csapi_d3_mark_no_show(uuid,text,uuid) TO authenticated;
+
+COMMIT;
