@@ -1,0 +1,56 @@
+{
+  "contract_version": "1.0",
+  "contract_type": "workstream",
+  "workstream_id": "csapi-gate01-integrated-patient-flow",
+  "status": "binding",
+  "applicability": {
+    "match_any": [
+      "^docs/CSAPI/GATES/GATE-01-INTEGRATED-PATIENT-FLOW-VERIFICATION-2026-09-21\\.md$",
+      "^docs/testing/workstream-contracts/csapi-gate01-integrated-patient-flow\\.execution\\.json$"
+    ]
+  },
+  "required_engineering": [
+    "typecheck",
+    "lint",
+    "build"
+  ],
+  "required_suites": [
+    "engineering",
+    "csapi-gate01-d3-runtime",
+    "patient-flow-stage6-regression"
+  ],
+  "workstream_checks": [
+    {
+      "name": "integrated-patient-flow-runtime",
+      "command": "node tools/csapi-gate01-d3-runtime-v2.mjs",
+      "required": true,
+      "execution_owner": "workstream-verification"
+    },
+    {
+      "name": "patient-flow-stage6-regression",
+      "command": "npm run ux:patient-flow-stage6",
+      "required": true,
+      "execution_owner": "workstream-verification"
+    }
+  ],
+  "regression_level": "R3",
+  "required_evidence": [
+    "Reception arrival/intake enters Waiting through canonical D3 authority",
+    "Reception queue ordering/movement does not start clinical work",
+    "Clinical actor pulls the waiting patient and creates exactly one active Work Session",
+    "Clinical Work reaches Finish and produces Pending Close",
+    "Reception-owned completion reaches Completed",
+    "authorization boundary between clinical completion and reception completion",
+    "tenant isolation",
+    "Visit + Queue + Work Session + Event projection consistency",
+    "concurrency and retry/idempotency evidence inherited from the proven D3 runtime suite",
+    "Stage 6 Patient Flow regression remains green"
+  ],
+  "environment": {
+    "runtime": "isolated local Supabase + local Next production server",
+    "hosted_production_supabase": false,
+    "vercel": false,
+    "production_mutation": false
+  },
+  "closure_rule": "This Gate 01 integrated verification is PASS only when every required lane is green on the exact candidate head. A D3 historical PASS alone is not sufficient."
+}
