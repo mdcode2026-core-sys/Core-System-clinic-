@@ -110,7 +110,7 @@ WHERE p.permission_key IN ('patient_flow:clinical','sessions:update');
 INSERT INTO public.clinic_user_permission_overrides(tenant_id,user_id,permission_id,granted,created_by)
 SELECT '00000000-0000-0000-0000-00000000d301','00000000-0000-0000-0000-00000000d306',p.id,true,'00000000-0000-0000-0000-00000000d306'
 FROM public.permissions p
-WHERE p.permission_key IN ('patient_flow:operations','sessions:update','sessions:close');
+WHERE p.permission_key IN ('patient_flow:operations','sessions:create','sessions:update','sessions:close');
 
 INSERT INTO public.clinic_user_permission_overrides(tenant_id,user_id,permission_id,granted,created_by)
 SELECT '00000000-0000-0000-0000-00000000d301',
