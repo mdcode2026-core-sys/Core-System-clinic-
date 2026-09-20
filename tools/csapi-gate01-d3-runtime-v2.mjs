@@ -49,6 +49,11 @@ async function seed() {
   }, { onConflict: "id" });
   if (legacy.error) throw new Error("Legacy tenant fixture failed: " + legacy.error.message);
 
+  // Remove every prior subscription for the fixed fixture tenant so the permission
+  // ceiling cannot be selected from a stale/competing active subscription.
+  const staleSubscriptions = await admin.from("subscriptions").delete().eq("tenant_id", tenantId);
+  if (staleSubscriptions.error) throw new Error("Stale subscription cleanup failed: " + staleSubscriptions.error.message);
+
   const plan = await admin.from("subscription_plans").upsert({
     id: "00000000-0000-0000-0000-00000000d3bf",
     plan_key: "d3_runtime_enterprise", plan_name: "D3 Runtime Full Subscription", plan_name_ar: "D3 Runtime Full Subscription",
