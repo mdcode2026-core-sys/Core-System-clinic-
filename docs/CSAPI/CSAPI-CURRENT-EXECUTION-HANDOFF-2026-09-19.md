@@ -1302,3 +1302,15 @@ This closure is limited to D3. It does **not** declare CSAPI Gate 01 / Patient F
 - PR #172 is the controlled D3 implementation vehicle and must be merged through the normal protected-branch requirements before the code becomes part of `main`.
 
 **END OF D3 FINAL CLOSURE RECORD**
+
+
+## 2026-09-21 POST-MERGE RECONCILIATION
+
+D3 PR #172 was merged successfully into `main`.
+
+- Merge commit: `c504897e01a1429e7729e27960e2f33cdb1b8f21`
+- PR #172 state: merged/closed
+- `main` now resolves exactly to the merge commit.
+- No Vercel or hosted Production Supabase mutation was performed as part of D3 closure.
+
+D3 remains formally CLOSED. This post-merge record does not advance CSAPI Gate 01 into its broader production stage; that remains a separate authorized stage.
