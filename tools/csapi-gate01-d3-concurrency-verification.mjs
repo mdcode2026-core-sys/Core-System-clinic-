@@ -122,6 +122,8 @@ function inspect() {
 
 function teardown() {
   const result = psql([
+    "DELETE FROM public.audit_trail WHERE tenant_id='" + ids.tenant + "';",
+
     "DROP TRIGGER IF EXISTS d3_concurrency_pause_trigger ON public.clinic_visit_sessions;",
     "DROP FUNCTION IF EXISTS public.d3_concurrency_pause();",
     "DELETE FROM public.patient_flow_events WHERE tenant_id='" + ids.tenant + "';",
