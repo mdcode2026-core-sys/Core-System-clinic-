@@ -382,3 +382,17 @@ This supersedes the older Run #576 / Run #602 runtime-pending text in this hando
 - no hosted Production Supabase mutation;
 - no unrelated domain implementation;
 - PR #172 remains unmerged until Step 5 review is complete.
+
+
+## 2026-09-21 CSAPI Gate 01 — D3 Final Review / Closure
+
+| Date | Action | Evidence | Result | Decision | Next Action |
+|---|---|---|---|---|---|
+| 2026-09-21 | Final branch reconciliation | PR #172 final head `3676d5b0006cd3ea6083c3171873197cf8874e92`; comparison from green implementation candidate `601a4ee9374fd7b56b23bed71031cb33ac2a5752` | Final branch is ahead by 5 commits and the comparison contains documentation-only changes | No post-runtime implementation drift detected | Close D3 after final CI/documentation reconciliation |
+| 2026-09-21 | Final CI verification | Run #657 / ID `35539734311` | Build plan, Engineering, D3 runtime, D3 database/command, Stage 6 regression and Final gate all PASS | Final branch state is green | Proceed to D3 closure |
+| 2026-09-21 | Final authority review | D3 adapter/actions, D3 migration, Work Session authority, Visit/Queue/Work Session/Event writers | Seven lifecycle commands remain canonical; retained Hold/Resume is separate Work Session semantics; no unexplained lifecycle bypass remains | D3 authority contract reconciled with implementation | Document closure |
+| 2026-09-21 | D3 closure | Final closure record in CSAPI handoff and D3 verification plan | All D3 closure criteria satisfied | **D3 Lifecycle Write Authority CLOSED** | Continue only with the next Gate 01 release/production stage; do not reopen D3 |
+
+### D3 closure boundary
+
+D3 closure is implementation/verification closure only. It does not declare CSAPI Gate 01 / Patient Flow production-closed. Vercel and hosted Production Supabase remain outside this D3 verification stage and must be handled only at the authorized final release/production stage.
