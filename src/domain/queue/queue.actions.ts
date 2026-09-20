@@ -5,6 +5,7 @@ import { createClient } from "@/infrastructure/supabase/server";
 import { resolveTenantId } from "@/core/auth/resolveTenantId";
 import { EnrichedSession, SessionStatus } from "./queue.types";
 import { d3CancelPatientFlow, d3EnterWaiting, d3MarkNoShow, d3StartClinicalWork } from "./d3.actions";
+import { holdClinicalWorkSession, resumeClinicalWorkSession } from "./work-session.actions";
 import { getEffectivePermissions } from "@/core/permissions/permissionEngine";
 
 async function getAuthContext() {
@@ -34,6 +35,7 @@ export async function checkInPatient(
   const { supabase, tenantId, permissions } = await getAuthContext();
   requirePermission(permissions, "sessions:create");
   requirePermission(permissions, "sessions:update");
+  requirePermission(permissions, "patient_flow:operations");
 
   const now = new Date().toISOString();
   const insertData = {
@@ -74,46 +76,11 @@ export async function completeVisit(_sessionId: string): Promise<never> {
 }
 
 export async function holdVisit(sessionId: string): Promise<EnrichedSession> {
-  const { supabase, tenantId, permissions } = await getAuthContext();
-  requirePermission(permissions, "sessions:update");
-  const { data: session, error } = await supabase
-    .from("clinic_visit_sessions")
-    .update({ lock_holder_id: null, lock_timestamp: null, updated_at: new Date().toISOString() })
-    .eq("id", sessionId)
-    .eq("tenant_id", tenantId)
-    .eq("session_status", "in_consultation")
-    .select()
-    .single();
-  if (error) throw new Error(`Hold failed: ${error.message}`);
-  revalidateQueuePaths();
-  return session as EnrichedSession;
+  return holdClinicalWorkSession(sessionId);
 }
 
 export async function resumeVisit(sessionId: string): Promise<EnrichedSession> {
-  const { supabase, tenantId, permissions } = await getAuthContext();
-  requirePermission(permissions, "sessions:update");
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error("Not authenticated");
-  const { data: clinicUser, error: clinicUserError } = await supabase
-    .from("clinic_users")
-    .select("id")
-    .eq("tenant_id", tenantId)
-    .eq("auth_user_id", user.id)
-    .eq("is_active", true)
-    .is("deleted_at", null)
-    .maybeSingle();
-  if (clinicUserError || !clinicUser) throw new Error("Clinic user not resolved");
-  const { data: session, error } = await supabase
-    .from("clinic_visit_sessions")
-    .update({ lock_holder_id: clinicUser.id, lock_timestamp: new Date().toISOString(), updated_at: new Date().toISOString() })
-    .eq("id", sessionId)
-    .eq("tenant_id", tenantId)
-    .eq("session_status", "in_consultation")
-    .select()
-    .single();
-  if (error) throw new Error(`Resume failed: ${error.message}`);
-  revalidateQueuePaths();
-  return session as EnrichedSession;
+  return resumeClinicalWorkSession(sessionId);
 }
 
 export async function markNoShow(sessionId: string): Promise<EnrichedSession> {
