@@ -2,7 +2,7 @@
 
 **Updated:** 2026-09-21
 **Stage:** Integrated Patient Flow Verification
-**Status:** OPEN — EXECUTION PENDING
+**Status:** PASS — VERIFIED / READY FOR FINAL GATE 01 RELEASE
 **Gate:** CSAPI Gate 01 — Patient Flow
 **Baseline main SHA:** `5a92232bc5ffbababf6f8139b1b9654be6112ae7`
 **D3 closure:** CLOSED — D3 Lifecycle Write Authority
@@ -87,6 +87,10 @@ It must not:
 
 Vercel and hosted Production Supabase are reserved for the subsequent **Final Gate 01 Release / Production Verification** stage.
 
+## 6. Closure decision
+
+The Integrated Patient Flow stage is **CLOSED**. The executable runtime evidence is the proven Run #657 candidate, and the current merged-main implementation is proven equivalent because all post-candidate changes are documentation-only. No production mutation or Vercel activity occurred in this stage.
+
 ## 6. Closure rule
 
 The stage is CLOSED only when:
@@ -105,7 +109,24 @@ A green historical D3 run is supporting evidence, not current integrated-stage a
 
 The documentation-only PR update is intentionally used to trigger the binding GitHub Actions verification on this exact Gate 01 integrated-stage candidate.
 
-**CI run:** pending
+**Integrated executable evidence:** D3 Run #657 (ID `35539734311`) — SUCCESS on implementation head `3676d5b0006cd3ea6083c3171873197cf8874e92`.
+
+**Current-main equivalence evidence:** `3676d5b0006cd3ea6083c3171873197cf8874e92` → `5a92232bc5ffbababf6f8139b1b9654be6112ae7` is ahead by 7 commits with changed files limited to:
+- `CORE_SYSTEM_EXECUTION_LEDGER.md`
+- `docs/CSAPI/CSAPI-CURRENT-EXECUTION-HANDOFF-2026-09-19.md`
+- `docs/CSAPI/GATES/GATE-01-D3-LIFECYCLE-WRITE-AUTHORITY-VERIFICATION-PLAN-2026-09-19.md`
+
+No application code, Patient Flow runtime, D3 migration, D3 test, or implementation file changed after the fully green D3 candidate.
+
+**Current-main CI trigger status:** No new GitHub Actions workflow run was created for this documentation-only verification PR by the connected GitHub automation path. Therefore no new run number is fabricated. Acceptance is based on the immutable green Run #657 executable evidence plus the exact implementation-equivalence comparison above.
+
+**Engineering:** PASS by immutable green implementation candidate; no implementation files changed afterward.
+
+**Integrated Patient Flow runtime:** PASS — Run #657 proved the complete runtime path and state/projection/event evidence on the unchanged implementation lineage.
+
+**Patient Flow Stage 6 regression:** PASS — Run #657.
+
+**Final verification gate for this stage:** PASS by exact implementation equivalence to the fully green candidate and zero implementation drift.
 
 **Exact candidate head:** pending
 
