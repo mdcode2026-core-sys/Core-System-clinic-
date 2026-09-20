@@ -22,6 +22,8 @@ let doctorAuthId = null;
 let receptionAuthId = null;
 
 async function seed() {
+  // Remove stale explicit permission overrides from prior interrupted fixture runs.
+  await admin.from("clinic_user_permission_overrides").delete().eq("tenant_id", tenantId);
   const users = [];
   for (const [kind, email] of [["doctor", doctorEmail], ["reception", receptionEmail]]) {
     const created = await admin.auth.admin.createUser({
@@ -188,6 +190,7 @@ async function cleanup() {
   await admin.from("clinic_patients").delete().eq("tenant_id", tenantId);
   await admin.from("clinic_rooms").delete().eq("tenant_id", tenantId);
   await admin.from("clinic_user_permissions").delete().eq("tenant_id", tenantId);
+  await admin.from("clinic_user_permission_overrides").delete().eq("tenant_id", tenantId);
   await admin.from("clinic_users").delete().eq("tenant_id", tenantId);
   await admin.from("subscriptions").delete().eq("tenant_id", tenantId);
   await admin.from("master_tenants").delete().eq("id", tenantId);
