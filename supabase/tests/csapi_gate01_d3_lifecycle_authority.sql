@@ -1,6 +1,6 @@
 BEGIN;
 
-SELECT plan(47);
+SELECT plan(49);
 
 CREATE TEMP TABLE d3_test_ids (
   key text primary key,
@@ -334,6 +334,13 @@ SELECT throws_ok(
   'clinical actor cannot complete reception-owned close'
 );
 
+SELECT throws_ok(
+  $sql$SELECT public.csapi_d3_cancel_patient_flow('00000000-0000-0000-0000-00000000d310','clinical cancel pending close','00000000-0000-0000-0000-00000000e314')$sql$,
+  'P0001',
+  NULL,
+  'clinical actor cannot cancel Reception-owned pending close'
+);
+
 SELECT set_config('request.jwt.claims','{"sub":"00000000-0000-0000-0000-00000000d305","app_metadata":{"tenant_id":"00000000-0000-0000-0000-00000000d301"}}',true);
 SELECT ok(
   (public.csapi_d3_complete_reception(
@@ -368,6 +375,16 @@ SELECT is(
 
 SELECT set_config('request.jwt.claims','{"sub":"00000000-0000-0000-0000-00000000d305","app_metadata":{"tenant_id":"00000000-0000-0000-0000-00000000d301"}}',true);
 SELECT public.csapi_d3_enter_waiting('00000000-0000-0000-0000-00000000d312','general','normal','arrival',null,'00000000-0000-0000-0000-00000000e308');
+
+SELECT set_config('request.jwt.claims','{"sub":"00000000-0000-0000-0000-00000000d303","app_metadata":{"tenant_id":"00000000-0000-0000-0000-00000000d301"}}',true);
+SELECT throws_ok(
+  $sql$SELECT public.csapi_d3_cancel_patient_flow('00000000-0000-0000-0000-00000000d312','doctor cancel waiting','00000000-0000-0000-0000-00000000e315')$sql$,
+  'P0001',
+  NULL,
+  'clinical actor cannot cancel Reception-owned waiting'
+);
+
+SELECT set_config('request.jwt.claims','{"sub":"00000000-0000-0000-0000-00000000d305","app_metadata":{"tenant_id":"00000000-0000-0000-0000-00000000d301"}}',true);
 SELECT ok(
   (public.csapi_d3_mark_no_show('00000000-0000-0000-0000-00000000d312','no show','00000000-0000-0000-0000-00000000e309')->>'new_status')='no_show',
   'Mark No-show moves waiting Visit to no_show'
