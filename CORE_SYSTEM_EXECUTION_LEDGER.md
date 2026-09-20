@@ -178,7 +178,7 @@ D3 must not start implementation before D2 closure.
 | 2026-09-19 | D2 PR merge | PR #168 | Merged | Main now contains D2 implementation | Post-merge verification |
 | 2026-09-19 | Main merge evidence | SHA `6013a9ffa4705738bc9e8de7c0d1403ff6a0858e` | Merge completed | D2 implementation stage is merged | Keep D3 separate |
 | 2026-09-19 | Production read-only check | Supabase migration history + catalog | Migration `20260917192500` absent; all three D2 tables absent | Production rollout is not complete | Do not claim Production D2 deployment |
-| 2026-09-19 | Gate 01 transition | D2 implementation + CI + merge complete | Gate 01 remains OPEN | D3 is next | Establish D3 contract before code |
+| 2026-09-19 | Historical Gate 01 transition | D2 implementation + CI + merge complete | Gate 01 was OPEN at that historical point | D3 followed | Establish D3 contract before code |
 
 ### CSAPI Gate 01 execution model
 
@@ -407,7 +407,7 @@ D3 PR #172 was merged successfully into `main`.
 - `main` now resolves exactly to the merge commit.
 - No Vercel or hosted Production Supabase mutation was performed as part of D3 closure.
 
-D3 remains formally CLOSED. This post-merge record does not advance CSAPI Gate 01 into its broader production stage; that remains a separate authorized stage.
+D3 remained formally CLOSED at this historical record point; subsequent integrated and final production stages are recorded below.
 
 
 ## 2026-09-21 CSAPI Gate 01 — Integrated Patient Flow Verification Entry
@@ -420,7 +420,7 @@ D3 remains formally CLOSED. This post-merge record does not advance CSAPI Gate 0
 
 **Current Gate 01 stage:** Gate 01 CLOSED
 
-**Current main SHA:** `5a92232bc5ffbababf6f8139b1b9654be6112ae7`
+**Historical main SHA at integrated-stage entry:** `5a92232bc5ffbababf6f8139b1b9654be6112ae7`
 
 **After integrated PASS:** Final Gate 01 Release / Production Verification
 
