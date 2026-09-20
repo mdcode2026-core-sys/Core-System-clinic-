@@ -2012,6 +2012,47 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      csapi_d3_cancel_patient_flow: {
+        Args: { p_correlation_id: string; p_reason?: string; p_visit_id: string }
+        Returns: Json
+      }
+      csapi_d3_complete_reception: {
+        Args: { p_correlation_id: string; p_visit_id: string }
+        Returns: Json
+      }
+      csapi_d3_enter_waiting: {
+        Args: {
+          p_correlation_id: string
+          p_entry_reason?: string
+          p_lane_key?: string
+          p_priority_class?: string
+          p_routing_target?: string
+          p_visit_id: string
+        }
+        Returns: Json
+      }
+      csapi_d3_finish_clinical_work: {
+        Args: { p_correlation_id: string; p_visit_id: string }
+        Returns: Json
+      }
+      csapi_d3_mark_no_show: {
+        Args: { p_correlation_id: string; p_reason?: string; p_visit_id: string }
+        Returns: Json
+      }
+      csapi_d3_reorder_waiting: {
+        Args: {
+          p_correlation_id: string
+          p_queue_entry_id: string
+          p_routing_target?: string
+          p_target_lane_key?: string
+          p_target_position: number
+        }
+        Returns: Json
+      }
+      csapi_d3_start_clinical_work: {
+        Args: { p_correlation_id: string; p_visit_id: string }
+        Returns: Json
+      }
       adjust_inventory_stock: {
         Args: { p_delta: number; p_item_id: string; p_tenant_id: string }
         Returns: number

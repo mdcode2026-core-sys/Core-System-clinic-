@@ -195,3 +195,204 @@ Final release / production stage
         ↓
 Gate 01 CLOSED
 ```
+
+## 2026-09-19 D3 Plan Freeze / Test Suitability Review
+
+| Date | Action | Evidence | Result | Decision | Next Action |
+|---|---|---|---|---|---|
+| 2026-09-19 | D3 branch established | `implementation/csapi-gate01-d3-lifecycle-authority-2026-09-19` from current `main` | Controlled non-main execution path | Use this branch as the sole D3 implementation path | Verify frozen plan |
+| 2026-09-19 | D3 plan frozen | D3 lifecycle authority plan + verification plan + planned workstream contract | Scope, command intent, atomicity, security, test and closure boundaries documented before code | No code modification before plan verification | Run applicable CI |
+| 2026-09-19 | Test suitability review | Stage 6 audit, D2 pgTAP, existing Queue/Visit actions, D2 schema | Stage 6 = regression/static; D2 pgTAP = D2-only; neither proves D3 lifecycle writes | Add dedicated D3 DB/command and runtime evidence | Activate lanes only after tooling exists |
+| 2026-09-19 | Existing mutation-path finding | `queue.actions.ts`, `workspace.actions.ts`, `visit.actions.ts` | Direct legacy Visit mutations exist and broad generic Patient Flow mutation is not sufficient for D3 authority | D3 must centralize lifecycle writes and migrate callers | Step 1 exact command/data contract |
+
+
+## 2026-09-19 D3 Step 1 — Command/Data/Event Contract
+
+| Date | Action | Evidence | Result | Decision | Next Action |
+|---|---|---|---|---|---|
+| 2026-09-19 | D3 command/data/event contract frozen | `docs/CSAPI/GATES/GATE-01-D3-COMMAND-DATA-EVENT-CONTRACT-2026-09-19.md` | Seven lifecycle commands, owners, transitions, queue/work-session/event projections, atomicity, authorization, concurrency and idempotency rules fixed | Use this contract as the implementation boundary | Re-run CI on the exact post-contract head |
+| 2026-09-19 | D3 scope/implementation boundary reconfirmed | Existing Queue Engine + Queue/Workspace/Visit actions | Reuse canonical transition rules; migrate legacy direct mutations into one D3 command boundary; no second engine | No architecture expansion required | Step 2 database mutation boundary |
+
+## 2026-09-19 D3 Step 2A — Verification Harness Pass
+
+| Date | Action | Evidence | Result | Decision | Next Action |
+|---|---|---|---|---|---|
+| 2026-09-19 | D3 verification harness added | D3 pgTAP test, D3 DB runner, workstream lane/planner mappings | Engineering/verification infrastructure changes pass CI run #508 (`35433430969`) on `7b71fdfc57e20c04c9af0684ba191612ed127bf9` | Harness is ready; D3 DB migration can now be implemented and tested | Step 2B — D3 database mutation boundary |
+
+## 2026-09-19 D3 Step 2B — Database Mutation Boundary
+
+| Date | Action | Evidence | Result | Decision | Next Action |
+|---|---|---|---|---|---|
+| 2026-09-19 | D3 mutation migration added | `supabase/migrations/20260919090000_csapi_gate01_d3_lifecycle_authority.sql` | Seven lifecycle write commands + correlation boundary + ACL/security added | D3 write authority now exists only in the new command boundary | Verify by dedicated D3 DB lane |
+| 2026-09-19 | D3 verification contract activated | `docs/testing/workstream-contracts/csapi-gate01-d3.execution.json` | D3 DB + Stage 6 regression + Engineering are binding; runtime remains planned | Do not advance until these gates pass | Run CI on exact head |
+| 2026-09-19 | D3 test fixture/schema reconciliation | Auth fixture rows and PL/pgSQL record handling corrected | Test is aligned with actual Auth FK and SQL execution rules | Preserve production command design; fix test setup only | Verify exact current head |
+
+
+| 2026-09-19 | D3 Step 2B verification | Run #540 (`35439419179`) on `3fe7fa27bc533ad6dc7623274e237f756682db30` | D3 DB + Stage 6 + Engineering + Final gate all PASS | Close Step 2B CI verification | Proceed to Step 3 server action integration |
+
+
+| 2026-09-19 | D3 Step 3 — Server Action Integration | Exact head `c57e35b791593175343c893d57368c582129fa24`; GitHub Actions Run #548 (`35441891645`) | Build plan, Engineering, D3 database, Stage 6 regression and Final gate all PASS | Server lifecycle callers now dispatch to canonical D3 commands; old generic lifecycle mutation authority removed from active paths | Proceed to D3 Step 4 — Integrated Runtime |
+| 2026-09-19 | D3 Step 3 corrective regression update | Run #547 Stage 6 failed only because the static audit expected superseded pre-D3 helper structure; `tools/patient-flow-stage6-audit.mjs` was updated to verify the D3 adapter boundary and reject legacy generic lifecycle mutation | Run #548 re-verification PASS | Treat the audit as a regression contract for architecture, not a requirement to preserve obsolete implementation structure | Keep runtime evidence separate and execute Step 4 |
+
+
+## 2026-09-19 D3 Step 4 — Integrated Runtime Reconciliation / Conversation Resume
+
+| Date | Action | Evidence | Result | Decision | Next Action |
+|---|---|---|---|---|---|
+| 2026-09-19 | Step 3 server-action integration completed | Head `c57e35b791593175343c893d57368c582129fa24`; Run #548 `35441891645` | Build plan, Engineering, D3 DB, Stage 6 and Final gate all PASS | Step 3 closed at CI level | Start Step 4 integrated runtime |
+| 2026-09-19 | Runtime lane activated | `tools/csapi-gate01-d3-runtime.mjs`, then `tools/csapi-gate01-d3-runtime-v2.mjs`; local Supabase + local Next runtime | Initial runtime infrastructure/auth assumptions exposed several verifier/fixture defects | Keep runtime fully local; do not use Vercel/Production | Continue runtime hardening |
+| 2026-09-19 | Runtime local-environment correction | Lane runner now initializes missing local `supabase/config.toml`, replays migrations locally, provisions local auth/permissions, and tears the environment down after the test | Local environment became executable | Treat these as verification infrastructure only | Verify actual application path |
+| 2026-09-19 | Runtime auth correction | Temporary local runtime copy injects deterministic app claims; later diagnostics confirmed effective permissions | Authentication PASS; Reception actor can resolve expected D3/session permissions and read seeded Visit/Patient | Auth is not the remaining primary blocker | Investigate lifecycle arrival path |
+| 2026-09-19 | Latest runtime execution | Run #576 `35449505099`, current PR head `381302a2c34542502e2c58d1d39804d7e6152336` | Build plan PASS; Engineering PASS; D3 DB PASS; Stage 6 PASS; Runtime FAIL; Final gate FAIL | Step 4 remains OPEN | Fix truthful runtime harness + first real application defect |
+| 2026-09-19 | First real application defect identified | Runtime log: `clinic_visit_sessions_initialized_by_receptionist_fkey` | Reception arrival server action fails because the value written to `initialized_by_receptionist` violates its FK | Do not mask this error as a test fixture success; inspect FK target and canonical identity semantics | Determine smallest correct application/fixture correction |
+| 2026-09-19 | Runtime verifier false-positive identified | Same Run #576 continued after arrival failure and printed `PASS|Reception enters Waiting through D3`; later `ACTIVE_WAITING_QUEUE_ENTRY_REQUIRED` also did not abort | Current runtime verifier is not yet trustworthy lifecycle evidence | Harden fail-fast behavior before using another PASS as D3 proof | Update verifier and rerun |
+| 2026-09-19 | Current D3 resume point frozen | `docs/CSAPI/CSAPI-CURRENT-EXECUTION-HANDOFF-2026-09-19.md` created | Conversation-independent CSAPI resume state now records exact head, Step status, failed runtime evidence, scope boundaries and next action | New conversation must start with `CSAPI` and read the current handoff first | Continue Step 4 only |
+
+### Current D3 gate state
+
+**Step 0:** CLOSED  
+**Step 1:** CLOSED / CONTRACT FROZEN  
+**Step 2A:** CLOSED / VERIFICATION HARNESS PASS  
+**Step 2B:** CLOSED / CI PASS  
+**Step 3:** CLOSED / CI PASS  
+**Step 4:** **OPEN / RUNTIME NOT PASSED**  
+**Step 5:** NOT STARTED  
+**Step 6:** NOT STARTED
+
+### Current exact repository state
+
+PR #172:
+- open
+- draft
+- mergeable
+- not merged
+- current head: `381302a2c34542502e2c58d1d39804d7e6152336`
+- 85 commits
+- 19 changed files
+- 3,957 additions
+- 134 deletions
+
+The PR body still carries obsolete plan-freeze language. It must be reconciled later, after Step 4/5 evidence, and must not be treated as current execution scope.
+
+### Current runtime evidence boundary
+
+Run #576 proves:
+- local build/start can run;
+- local Supabase migration replay can run for the D3 lane;
+- authenticated runtime session can be established;
+- effective permissions can be resolved;
+- seeded Visit/Patient can be read.
+
+Run #576 does **not** prove:
+- Reception arrival succeeds;
+- Queue Entry is created by the runtime path;
+- Clinical Pull succeeds;
+- Clinical Work succeeds;
+- Finish succeeds;
+- Pending Close succeeds;
+- Reception Completion succeeds;
+- Completed lifecycle/event sequence succeeds.
+
+Therefore no runtime PASS may be inferred from #576.
+
+### Scope protection
+
+The D3 user-approved direction remains:
+- technical permissions may be used and broadened in tests;
+- role/plan mappings in fixtures are not final product design;
+- Full Subscription is a capability baseline for deterministic testing;
+- no final commercial subscription tiers are being designed in D3;
+- future capability gaps are findings for later authorization/entitlement stages;
+- no unrelated domain repairs are part of D3.
+
+### Hard boundary
+
+No Vercel verification.  
+No hosted Production Supabase mutation.  
+No unrelated Workforce/Payroll/Financial/Inventory implementation.  
+No UI redesign.  
+No second Queue engine.  
+No second permission engine.
+
+
+---
+
+# D3 Step 4 — Run #653 Verified State — 2026-09-20
+
+**Exact candidate head:** `601a4ee9374fd7b56b23bed71031cb33ac2a5752`  
+**GitHub Actions:** Run **#653** / ID `35537464627`  
+**PR:** #172  
+**Branch:** `implementation/csapi-gate01-d3-lifecycle-authority-2026-09-19`
+
+Run #653 completed **SUCCESS** with all required lanes passing:
+
+- Build applicable lane plan — PASS
+- Engineering — PASS
+- D3 integrated runtime — PASS
+- D3 database/command — PASS
+- Patient Flow Stage 6 regression — PASS
+- Final gate — PASS
+
+### Integrated runtime evidence
+
+The runtime verifier completed the real lifecycle:
+
+`Reception → Waiting → Clinical Pull → Clinical Work → Finish → Pending Close → Reception Complete → Completed`
+
+Verified runtime evidence includes:
+
+- Reception entered Waiting and emitted `waiting_entered`.
+- Clinical Pull changed Visit to `in_consultation`.
+- Active Waiting Queue Entry became 0.
+- Exactly one active Work Session was created.
+- `clinical_started` was emitted.
+- Runtime identity matched the canonical `clinic_users.id` domain for the provider/lock holder.
+- Clinical UI exposed 3 documentation textareas and one Finish action.
+- Finish changed Visit to `pending_close`.
+- Work Session became finished.
+- Reception handoff Queue Entry was created.
+- `clinical_finished` was emitted.
+- Clinical UI did not expose Reception completion authority.
+- Direct clinical attempt to call Reception completion RPC was rejected.
+- Reception Complete changed Visit to `completed`.
+- Active queue became 0.
+- `reception_completed` was emitted.
+- Final lifecycle/event sequence assertion passed.
+
+### Database evidence
+
+The D3 database lane executed all **65 pgTAP assertions** successfully.
+
+The earlier Run #652 failure was only a TAP plan mismatch (`62 planned / 65 executed`). Commit `601a4ee9374fd7b56b23bed71031cb33ac2a5752` corrected the plan to 65, after which Run #653 passed.
+
+Database concurrency evidence also passed: exactly one of two competing clinical starts succeeded and exactly one active Work Session remained.
+
+A non-blocking concurrency teardown cleanup warning was logged, but the lane itself returned PASS and the substantive concurrency assertion passed.
+
+### Step status
+
+**D3 Step 4 — PASS / VERIFIED AT CI LEVEL.**
+
+This supersedes the older Run #576 / Run #602 runtime-pending text in this handoff.
+
+**Next step:** D3 Step 5 — Final Review. This is a review/reconciliation stage, not a new implementation loop. It must verify that the green Run #653 candidate matches the frozen D3 contract and that no unintended authority/bypass was introduced by the late runtime-hardening changes.
+
+**Boundaries remain unchanged:**
+- no Vercel;
+- no hosted Production Supabase mutation;
+- no unrelated domain implementation;
+- PR #172 remains unmerged until Step 5 review is complete.
+
+
+## 2026-09-21 CSAPI Gate 01 — D3 Final Review / Closure
+
+| Date | Action | Evidence | Result | Decision | Next Action |
+|---|---|---|---|---|---|
+| 2026-09-21 | Final branch reconciliation | PR #172 final head `3676d5b0006cd3ea6083c3171873197cf8874e92`; comparison from green implementation candidate `601a4ee9374fd7b56b23bed71031cb33ac2a5752` | Final branch is ahead by 5 commits and the comparison contains documentation-only changes | No post-runtime implementation drift detected | Close D3 after final CI/documentation reconciliation |
+| 2026-09-21 | Final CI verification | Run #657 / ID `35539734311` | Build plan, Engineering, D3 runtime, D3 database/command, Stage 6 regression and Final gate all PASS | Final branch state is green | Proceed to D3 closure |
+| 2026-09-21 | Final authority review | D3 adapter/actions, D3 migration, Work Session authority, Visit/Queue/Work Session/Event writers | Seven lifecycle commands remain canonical; retained Hold/Resume is separate Work Session semantics; no unexplained lifecycle bypass remains | D3 authority contract reconciled with implementation | Document closure |
+| 2026-09-21 | D3 closure | Final closure record in CSAPI handoff and D3 verification plan | All D3 closure criteria satisfied | **D3 Lifecycle Write Authority CLOSED** | Continue only with the next Gate 01 release/production stage; do not reopen D3 |
+
+### D3 closure boundary
+
+D3 closure is implementation/verification closure only. It does not declare CSAPI Gate 01 / Patient Flow production-closed. Vercel and hosted Production Supabase remain outside this D3 verification stage and must be handled only at the authorized final release/production stage.

@@ -5,7 +5,7 @@
 import { createClient } from "@/infrastructure/supabase/server";
 import { resolveTenantId } from "@/core/auth/resolveTenantId";
 import { getEffectivePermissions } from "@/core/permissions/permissionEngine";
-import { EnrichedSession, QueueStats, QueueFilters } from "./queue.types";
+import { EnrichedSession, QueueStats, QueueFilters, VisitPriority } from "./queue.types";
 
 function computeWaitTimeMinutes(createdAt: string): number { return Math.floor((Date.now() - new Date(createdAt).getTime()) / 60000); }
 function getTodayRange(): { start: string; end: string } { const now = new Date(); const start = new Date(now.getFullYear(), now.getMonth(), now.getDate()); const end = new Date(start); end.setDate(end.getDate() + 1); return { start: start.toISOString(), end: end.toISOString() }; }
@@ -22,6 +22,23 @@ async function hydrateDurations(supabase: Awaited<ReturnType<typeof createClient
   return sessions.map((session) => { const agenda = session.agenda_event_id ? agendaMap.get(session.agenda_event_id) : null; const procedure = agenda?.procedure_id ? procedureMap.get(agenda.procedure_id) : null; return { ...session, procedure_name: procedure?.procedure_name ?? undefined, estimated_duration_minutes: procedure?.standard_duration_minutes ?? session.session_duration_minutes ?? null }; });
 }
 
+export async function getCurrentClinicUserId(): Promise<string> {
+  const supabase = await createClient();
+  const tenantId = await getTenantId();
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError || !user) throw new Error("Not authenticated");
+  const { data, error } = await supabase
+    .from("clinic_users")
+    .select("id")
+    .eq("tenant_id", tenantId)
+    .eq("auth_user_id", user.id)
+    .eq("is_active", true)
+    .is("deleted_at", null)
+    .maybeSingle();
+  if (error || !data?.id) throw new Error("Clinic user not resolved");
+  return data.id;
+}
+
 export async function getQueue(filters?: QueueFilters): Promise<EnrichedSession[]> {
   const supabase = await createClient(); const tenantId = await getTenantId(); const { start, end } = getTodayRange();
   // clinic_visit_sessions has both the base patient FK and a composite same-tenant FK.
@@ -30,7 +47,51 @@ export async function getQueue(filters?: QueueFilters): Promise<EnrichedSession[
   if (filters?.status?.length) query = query.in("session_status", filters.status); if (filters?.doctor_id) query = query.eq("doctor_id", filters.doctor_id);
   const { data, error } = await query; if (error) throw new Error(`Queue fetch failed: ${error.message}`);
   const hydrated = await hydrateDurations(supabase, tenantId, data || []);
-  return hydrated.map((session: any) => ({ ...session, patient_name: session.clinic_patients ? `${session.clinic_patients.first_name} ${session.clinic_patients.last_name}` : undefined, patient_phone: session.clinic_patients?.phone_primary, patient_file_number: session.clinic_patients?.file_number, doctor_name: session.clinic_users?.full_name, room_name: session.clinic_rooms?.room_name, wait_time_minutes: computeWaitTimeMinutes(session.created_at) })) as EnrichedSession[];
+  const sessionIds = (hydrated || []).map((session: any) => session.id).filter(Boolean);
+  const { data: queueEntries, error: queueError } = sessionIds.length
+    ? await supabase
+        .from("patient_flow_queue_entries")
+        .select("id,visit_id,lane_key,priority_class,position,routing_target,operating_date,entered_at,exited_at")
+        .eq("tenant_id", tenantId)
+        .in("visit_id", sessionIds)
+        .is("exited_at", null)
+    : { data: [], error: null };
+  if (queueError) throw new Error(`Queue entry fetch failed: ${queueError.message}`);
+  const queueByVisit = new Map((queueEntries ?? []).map((entry: any) => [entry.visit_id, entry]));
+  const enriched = (hydrated || []).map((session: any) => {
+    const queueEntry = queueByVisit.get(session.id);
+    const priorityMap: Record<string, VisitPriority> = {
+      low: VisitPriority.NORMAL,
+      normal: VisitPriority.NORMAL,
+      high: VisitPriority.HIGH,
+      urgent: VisitPriority.URGENT,
+    };
+    return {
+      ...session,
+      patient_name: session.clinic_patients ? `${session.clinic_patients.first_name} ${session.clinic_patients.last_name}` : undefined,
+      patient_phone: session.clinic_patients?.phone_primary,
+      patient_file_number: session.clinic_patients?.file_number,
+      doctor_name: session.clinic_users?.full_name,
+      room_name: session.clinic_rooms?.room_name,
+      wait_time_minutes: computeWaitTimeMinutes(session.created_at),
+      queue_position: queueEntry?.position ?? undefined,
+      lane: queueEntry?.lane_key ?? undefined,
+      priority: queueEntry ? priorityMap[queueEntry.priority_class] ?? VisitPriority.NORMAL : undefined,
+      routing_target: queueEntry?.routing_target ?? undefined,
+      queue_entry_id: queueEntry?.id ?? undefined,
+    };
+  });
+  return enriched.sort((a: any, b: any) => {
+    if (a.session_status !== "waiting" || b.session_status !== "waiting") {
+      return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+    }
+    const laneCompare = String(a.lane ?? "").localeCompare(String(b.lane ?? ""));
+    if (laneCompare !== 0) return laneCompare;
+    const positionA = a.queue_position ?? Number.MAX_SAFE_INTEGER;
+    const positionB = b.queue_position ?? Number.MAX_SAFE_INTEGER;
+    if (positionA !== positionB) return positionA - positionB;
+    return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+  }) as EnrichedSession[];
 }
 
 export async function getQueueStats(): Promise<QueueStats> {

@@ -37,6 +37,8 @@ export interface EnrichedSession extends QueueSession {
   lane?: QueueLane;
   notes?: string | null;
   queue_position?: number;
+  queue_entry_id?: string;
+  routing_target?: string | null;
 }
 
 export interface QueueStats { total_waiting: number; total_in_consultation: number; total_completed_today: number; total_no_show_today: number; avg_wait_time_minutes: number; longest_wait_minutes: number; }

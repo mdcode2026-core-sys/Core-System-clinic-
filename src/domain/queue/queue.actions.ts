@@ -3,8 +3,9 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/infrastructure/supabase/server";
 import { resolveTenantId } from "@/core/auth/resolveTenantId";
-import { QueueSession, SessionStatus, EnrichedSession } from "./queue.types";
-import { queueEngine } from "./queue.engine";
+import { EnrichedSession, SessionStatus } from "./queue.types";
+import { d3CancelPatientFlow, d3EnterWaiting, d3MarkNoShow, d3StartClinicalWork } from "./d3.actions";
+import { holdClinicalWorkSession, resumeClinicalWorkSession } from "./work-session.actions";
 import { getEffectivePermissions } from "@/core/permissions/permissionEngine";
 
 async function getAuthContext() {
@@ -21,27 +22,49 @@ function requirePermission(permissions: string[], permission: string) {
   if (!permissions.includes(permission)) throw new Error(`Permission denied: ${permission} required`);
 }
 
-export async function checkInPatient(data: { patient_id: string; doctor_id?: string; room_id?: string; agenda_event_id?: string; notes?: string }): Promise<EnrichedSession> {
+function revalidateQueuePaths() {
+  revalidatePath("/(dashboard)/queue");
+  revalidatePath("/(dashboard)/patient-flow");
+  revalidatePath("/(dashboard)/operation");
+  revalidatePath("/(dashboard)/clinical");
+}
+
+export async function checkInPatient(
+  data: { patient_id: string; doctor_id?: string; room_id?: string; agenda_event_id?: string; notes?: string },
+): Promise<EnrichedSession> {
   const { supabase, tenantId, permissions } = await getAuthContext();
   requirePermission(permissions, "sessions:create");
-  const insertData = { tenant_id: tenantId, patient_id: data.patient_id, doctor_id: data.doctor_id || null, room_id: data.room_id || null, agenda_event_id: data.agenda_event_id || null, session_status: "waiting" as SessionStatus, created_at: new Date().toISOString(), updated_at: new Date().toISOString() };
-  const { data: session, error } = await supabase.from("clinic_visit_sessions").insert(insertData).select().single();
-  if (error) throw new Error(`Check-in failed: ${error.message}`);
-  revalidatePath("/(dashboard)/queue"); revalidatePath("/(dashboard)/patient-flow");
-  return session as EnrichedSession;
+  requirePermission(permissions, "sessions:update");
+  requirePermission(permissions, "patient_flow:operations");
+
+  const now = new Date().toISOString();
+  const insertData = {
+    tenant_id: tenantId,
+    patient_id: data.patient_id,
+    doctor_id: data.doctor_id || null,
+    room_id: data.room_id || null,
+    agenda_event_id: data.agenda_event_id || null,
+    session_status: "waiting" as SessionStatus,
+    created_at: now,
+    updated_at: now,
+  };
+  const { data: session, error } = await supabase
+    .from("clinic_visit_sessions")
+    .insert(insertData)
+    .select("id")
+    .single();
+  if (error || !session) throw new Error(`Check-in failed: ${error?.message ?? "visit creation failed"}`);
+
+  // Initial Visit creation is separate entity creation; D3 owns the lifecycle projection into Waiting.
+  return d3EnterWaiting({
+    visitId: session.id,
+    entryReason: "arrival",
+    correlationId: crypto.randomUUID(),
+  });
 }
 
 export async function callNextPatient(sessionId: string): Promise<EnrichedSession> {
-  const { supabase, tenantId, userId, permissions } = await getAuthContext();
-  requirePermission(permissions, "sessions:update");
-  const { data: current } = await supabase.from("clinic_visit_sessions").select("session_status").eq("id", sessionId).eq("tenant_id", tenantId).single();
-  if (!current) throw new Error("Session not found");
-  const validation = queueEngine.validateTransition(current.session_status as SessionStatus, "in_consultation");
-  if (!validation.valid) throw new Error(validation.reason);
-  const { data: session, error } = await supabase.from("clinic_visit_sessions").update({ session_status: "in_consultation", lock_holder_id: userId, lock_timestamp: new Date().toISOString(), session_started_at: new Date().toISOString(), updated_at: new Date().toISOString() }).eq("id", sessionId).eq("tenant_id", tenantId).eq("session_status", "waiting").select().single();
-  if (error) throw new Error(`Call patient failed: ${error.message}`);
-  revalidatePath("/(dashboard)/queue"); revalidatePath("/(dashboard)/patient-flow");
-  return session as EnrichedSession;
+  return d3StartClinicalWork(sessionId);
 }
 
 /**
@@ -53,47 +76,25 @@ export async function completeVisit(_sessionId: string): Promise<never> {
 }
 
 export async function holdVisit(sessionId: string): Promise<EnrichedSession> {
-  const { supabase, tenantId, permissions } = await getAuthContext();
-  requirePermission(permissions, "sessions:update");
-  const { data: session, error } = await supabase.from("clinic_visit_sessions").update({ lock_holder_id: null, lock_timestamp: null, updated_at: new Date().toISOString() }).eq("id", sessionId).eq("tenant_id", tenantId).eq("session_status", "in_consultation").select().single();
-  if (error) throw new Error(`Hold failed: ${error.message}`);
-  revalidatePath("/(dashboard)/queue"); revalidatePath("/(dashboard)/patient-flow");
-  return session as EnrichedSession;
+  return holdClinicalWorkSession(sessionId);
 }
 
 export async function resumeVisit(sessionId: string): Promise<EnrichedSession> {
-  const { supabase, tenantId, userId, permissions } = await getAuthContext();
-  requirePermission(permissions, "sessions:update");
-  const { data: session, error } = await supabase.from("clinic_visit_sessions").update({ lock_holder_id: userId, lock_timestamp: new Date().toISOString(), updated_at: new Date().toISOString() }).eq("id", sessionId).eq("tenant_id", tenantId).eq("session_status", "in_consultation").select().single();
-  if (error) throw new Error(`Resume failed: ${error.message}`);
-  revalidatePath("/(dashboard)/queue"); revalidatePath("/(dashboard)/patient-flow");
-  return session as EnrichedSession;
+  return resumeClinicalWorkSession(sessionId);
 }
 
 export async function markNoShow(sessionId: string): Promise<EnrichedSession> {
-  const { supabase, tenantId, permissions } = await getAuthContext();
-  requirePermission(permissions, "sessions:update");
-  return transitionSimple(sessionId, "no_show", supabase, tenantId);
+  return d3MarkNoShow(sessionId);
 }
 
 export async function cancelVisit(sessionId: string): Promise<EnrichedSession> {
-  const { supabase, tenantId, permissions } = await getAuthContext();
-  requirePermission(permissions, "sessions:update");
-  return transitionSimple(sessionId, "cancelled", supabase, tenantId);
+  return d3CancelPatientFlow(sessionId);
 }
 
-async function transitionSimple(sessionId: string, newStatus: "no_show" | "cancelled", supabase: Awaited<ReturnType<typeof createClient>>, tenantId: string): Promise<EnrichedSession> {
-  const { data: current } = await supabase.from("clinic_visit_sessions").select("session_status").eq("id", sessionId).eq("tenant_id", tenantId).single();
-  if (!current) throw new Error("Session not found");
-  const validation = queueEngine.validateTransition(current.session_status as SessionStatus, newStatus);
-  if (!validation.valid) throw new Error(validation.reason);
-  const { data: session, error } = await supabase.from("clinic_visit_sessions").update({ session_status: newStatus, lock_holder_id: null, lock_timestamp: null, updated_at: new Date().toISOString() }).eq("id", sessionId).eq("tenant_id", tenantId).eq("session_status", current.session_status).select().single();
-  if (error) throw new Error(`Session update failed: ${error.message}`);
-  revalidatePath("/(dashboard)/queue"); revalidatePath("/(dashboard)/patient-flow");
-  return session as EnrichedSession;
-}
-
-export async function findPatientByPhone(phone: string, tenantId: string): Promise<{ id: string; first_name: string; last_name: string } | null> {
+export async function findPatientByPhone(
+  phone: string,
+  tenantId: string,
+): Promise<{ id: string; first_name: string; last_name: string } | null> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return null;
@@ -101,7 +102,13 @@ export async function findPatientByPhone(phone: string, tenantId: string): Promi
   if (!resolvedTenantId || resolvedTenantId !== tenantId) return null;
   const permissions = await getEffectivePermissions(user.id, resolvedTenantId);
   requirePermission(permissions, "patients:read");
-  const { data, error } = await supabase.from("clinic_patients").select("id, first_name, last_name").eq("tenant_id", resolvedTenantId).eq("phone_primary", phone).is("deleted_at", null).maybeSingle();
+  const { data, error } = await supabase
+    .from("clinic_patients")
+    .select("id, first_name, last_name")
+    .eq("tenant_id", resolvedTenantId)
+    .eq("phone_primary", phone)
+    .is("deleted_at", null)
+    .maybeSingle();
   if (error) return null;
   return data;
 }
