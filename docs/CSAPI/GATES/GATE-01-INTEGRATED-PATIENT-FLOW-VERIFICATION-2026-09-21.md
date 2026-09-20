@@ -99,6 +99,12 @@ A green historical D3 run is supporting evidence, not current integrated-stage a
 
 ## 7. Evidence record
 
+**Verification candidate branch:** `docs/csapi-gate01-integrated-verification-2026-09-21`
+
+**Verification candidate head:** `REQUIRES CI EXECUTION ON THIS PR HEAD`
+
+The documentation-only PR update is intentionally used to trigger the binding GitHub Actions verification on this exact Gate 01 integrated-stage candidate.
+
 **CI run:** pending
 
 **Exact candidate head:** pending
