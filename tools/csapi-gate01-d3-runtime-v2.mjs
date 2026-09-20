@@ -9,12 +9,12 @@ if (!supabaseUrl || !serviceRoleKey) throw new Error("Missing local Supabase run
 
 const admin = createClient(supabaseUrl, serviceRoleKey, { auth: { autoRefreshToken: false, persistSession: false } });
 const stamp = Date.now();
-const tenantId = "00000000-0000-0000-0000-00000000d3b1";
-const patientId = "00000000-0000-0000-0000-00000000d3b9";
-const visitId = "00000000-0000-0000-0000-00000000d3ba";
-const roomId = "00000000-0000-0000-0000-00000000d3bb";
-const doctorClinicId = "00000000-0000-0000-0000-00000000d3b4";
-const receptionClinicId = "00000000-0000-0000-0000-00000000d3b6";
+const tenantId = "2fa98983-8069-420f-9c27-7c36ef96ef6e";
+const patientId = crypto.randomUUID();
+const visitId = crypto.randomUUID();
+const roomId = crypto.randomUUID();
+const doctorClinicId = crypto.randomUUID();
+const receptionClinicId = crypto.randomUUID();
 const doctorEmail = "d3-runtime-doctor-" + stamp + "@example.test";
 const receptionEmail = "d3-runtime-reception-" + stamp + "@example.test";
 
@@ -37,35 +37,19 @@ async function seed() {
     else receptionAuthId = created.data.user.id;
   }
 
-  const tenant = await admin.from("master_tenants").upsert({
-    id: tenantId, clinic_name: "CSAPI D3 Runtime Clinic",
-    license_key: "CSAPI-D3-RUNTIME-" + stamp, timezone: "Asia/Amman", currency: "JOD", country_code: "JO",
-  }, { onConflict: "id" });
-  if (tenant.error) throw new Error("Tenant fixture failed: " + tenant.error.message);
+  const tenant = await admin.from("master_tenants").select("id,clinic_name,subscription_tier,is_active").eq("id", tenantId).single();
+  if (tenant.error || !tenant.data) throw new Error("Canonical Zada tenant lookup failed: " + (tenant.error?.message || "missing tenant"));
+  if (!tenant.data.is_active) throw new Error("Canonical Zada tenant is inactive");
+  if (tenant.data.subscription_tier !== "enterprise") throw new Error("Canonical Zada tenant tier mismatch: " + tenant.data.subscription_tier);
 
-  const legacy = await admin.from("tenants").upsert({
-    id: tenantId, clinic_name: "CSAPI D3 Runtime Legacy Clinic",
-    license_key: "CSAPI-D3-RUNTIME-" + stamp, timezone: "Asia/Amman", currency: "JOD", country_code: "JO", is_active: true,
-  }, { onConflict: "id" });
-  if (legacy.error) throw new Error("Legacy tenant fixture failed: " + legacy.error.message);
-
-  // Remove every prior subscription for the fixed fixture tenant so the permission
-  // ceiling cannot be selected from a stale/competing active subscription.
-  const staleSubscriptions = await admin.from("subscriptions").delete().eq("tenant_id", tenantId);
-  if (staleSubscriptions.error) throw new Error("Stale subscription cleanup failed: " + staleSubscriptions.error.message);
-
-  const plan = await admin.from("subscription_plans").upsert({
-    id: "00000000-0000-0000-0000-00000000d3bf",
-    plan_key: "d3_runtime_enterprise", plan_name: "D3 Runtime Full Subscription", plan_name_ar: "D3 Runtime Full Subscription",
-    max_users: 100, max_devices: 100, max_branches: 100, modules: ["all"], ai_limits: {}, storage_gb: 100, api_rate_limit: 1000, is_active: true,
-  }, { onConflict: "plan_key" }).select("id").single();
-  if (plan.error || !plan.data) throw new Error("Plan fixture failed: " + (plan.error?.message || "missing plan"));
-
-  const sub = await admin.from("subscriptions").upsert({
-    id: "00000000-0000-0000-0000-00000000d3bd",
-    tenant_id: tenantId, plan_id: plan.data.id, status: "active", billing_cycle: "monthly", started_at: new Date().toISOString(),
-  }, { onConflict: "id" });
-  if (sub.error) throw new Error("Subscription fixture failed: " + sub.error.message);
+  const subscription = await admin.from("subscriptions")
+    .select("id,status,plan_id,subscription_plans!inner(plan_key,modules,is_active)")
+    .eq("tenant_id", tenantId).eq("status", "active").limit(1).maybeSingle();
+  if (subscription.error || !subscription.data) throw new Error("Canonical Zada subscription lookup failed: " + (subscription.error?.message || "missing active subscription"));
+  const canonicalPlan = subscription.data.subscription_plans;
+  if (canonicalPlan?.plan_key !== "enterprise" || JSON.stringify(canonicalPlan?.modules) !== JSON.stringify(["all"]) || !canonicalPlan?.is_active) {
+    throw new Error("Canonical Zada subscription is not full enterprise/all; plan=" + canonicalPlan?.plan_key + " modules=" + JSON.stringify(canonicalPlan?.modules));
+  }
 
   const roles = await admin.from("roles").select("id,role_key").in("role_key", ["doctor","receptionist"]);
   if (roles.error) throw new Error("Roles lookup failed: " + roles.error.message);
@@ -197,9 +181,8 @@ async function cleanup() {
   await admin.from("clinic_user_permissions").delete().eq("tenant_id", tenantId);
   await admin.from("clinic_user_permission_overrides").delete().eq("tenant_id", tenantId);
   await admin.from("clinic_users").delete().eq("tenant_id", tenantId);
-  await admin.from("subscriptions").delete().eq("tenant_id", tenantId);
-  await admin.from("master_tenants").delete().eq("id", tenantId);
-  await admin.from("tenants").delete().eq("id", tenantId);
+  // Zada Clinic is persistent demo data. Only rows created by this runtime are cleaned.
+  await admin.from("subscriptions").delete().eq("id", "__never_delete__");
   if (doctorAuthId) await admin.auth.admin.deleteUser(doctorAuthId);
   if (receptionAuthId) await admin.auth.admin.deleteUser(receptionAuthId);
 }
