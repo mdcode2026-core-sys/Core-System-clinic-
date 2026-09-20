@@ -24,7 +24,6 @@ let localCanonicalTenantCreated = false;
 let localCanonicalSubscriptionId = null;
 
 async function seed() {
-  // Remove stale explicit permission overrides from prior interrupted fixture runs.
   await admin.from("clinic_user_permission_overrides").delete().eq("tenant_id", tenantId);
   for (const [kind, email] of [["doctor", doctorEmail], ["reception", receptionEmail]]) {
     const created = await admin.auth.admin.createUser({
@@ -40,19 +39,23 @@ async function seed() {
   let tenant = await admin.from("master_tenants").select("id,clinic_name,subscription_tier,is_active").eq("id", tenantId).maybeSingle();
   if (tenant.error) throw new Error("Canonical Zada tenant lookup failed: " + tenant.error.message);
 
-  // CI replays the migration chain into a clean local database. The real Zada
-  // tenant is a persistent hosted demo account, so if the clean replay does not
-  // contain it, materialize only the minimum canonical tenant/subscription shape
-  // needed for this local runtime test. These rows are deleted in cleanup.
+  // CI replays migrations into a clean local database. The real Zada tenant is
+  // persistent hosted demo data, so create only the minimum equivalent local
+  // tenant shape when the clean database has no Zada row. It is deleted in cleanup.
   if (!tenant.data) {
     const createdTenant = await admin.from("master_tenants").insert({
       id: tenantId,
       clinic_name: "Zada Clinic",
       clinic_name_ar: "عيادة زادا",
+      license_key: "D3-LOCAL-ZADA-" + stamp,
       subscription_tier: "enterprise",
+      max_devices: 20,
       is_active: true,
       currency: "JOD",
       country_code: "JO",
+      timezone: "Asia/Amman",
+      language: "en",
+      direction: "ltr",
     }).select("id,clinic_name,subscription_tier,is_active").single();
     if (createdTenant.error || !createdTenant.data) throw new Error("Canonical Zada local materialization failed: " + (createdTenant.error?.message || "missing tenant"));
     tenant = createdTenant;
@@ -84,7 +87,6 @@ async function seed() {
   const roles = await admin.from("roles").select("id,role_key").in("role_key", ["doctor","receptionist"]);
   if (roles.error) throw new Error("Roles lookup failed: " + roles.error.message);
   const roleMap = new Map((roles.data || []).map((r) => [r.role_key, r.id]));
-
   const cu = await admin.from("clinic_users").upsert([
     { id: doctorClinicId, tenant_id: tenantId, auth_user_id: doctorAuthId, full_name: "D3 Runtime Doctor", role: "doctor", role_id: roleMap.get("doctor"), employee_code: "D3-RD-" + stamp, pin_code: "0000", is_active: true },
     { id: receptionClinicId, tenant_id: tenantId, auth_user_id: receptionAuthId, full_name: "D3 Runtime Reception", role: "receptionist", role_id: roleMap.get("receptionist"), employee_code: "D3-RR-" + stamp, pin_code: "0001", is_active: true },
@@ -99,7 +101,6 @@ async function seed() {
   for (const key of ["patient_flow:clinical","patient_flow:operations","sessions:update","sessions:close","visits:read","visits:update"]) {
     if (!pmap.get(key)) throw new Error("Required D3 permission missing from canonical catalogue: " + key);
   }
-
   const grants = [
     [doctorClinicId, ["patient_flow:clinical","sessions:update","visits:read","visits:update"]],
     [receptionClinicId, ["patient_flow:operations","sessions:update","sessions:close"]],
@@ -117,13 +118,11 @@ async function seed() {
     id: roomId, tenant_id: tenantId, room_name: "D3 Runtime Room", room_type: "consultation", floor_number: 1, capacity: 1, is_active: true,
   }, { onConflict: "id" });
   if (room.error) throw new Error("Room fixture failed: " + room.error.message);
-
   const patient = await admin.from("clinic_patients").upsert({
     id: patientId, tenant_id: tenantId, first_name: "D3 Runtime", last_name: "Patient",
     phone_primary: "0799" + String(stamp).slice(-6), file_number: "D3-R-" + stamp,
   }, { onConflict: "id" });
   if (patient.error) throw new Error("Patient fixture failed: " + patient.error.message);
-
   const visit = await admin.from("clinic_visit_sessions").upsert({
     id: visitId, tenant_id: tenantId, patient_id: patientId, doctor_id: doctorClinicId, room_id: roomId,
     session_status: "waiting", created_at: new Date().toISOString(), updated_at: new Date().toISOString(),
@@ -249,21 +248,14 @@ try {
   await assertActiveQueueCount(1, "Finish creates reception handoff queue", "reception");
   await assertEvent("clinical_finished", "Clinical Finish event");
   if (!(await page.getByText("Pending", { exact: false }).count())) throw new Error("Pending close state was not rendered");
-  if (await page.getByRole("button", { name: /complete visit|complete/i }).count()) {
-    throw new Error("Clinical surface exposed reception completion");
-  }
+  if (await page.getByRole("button", { name: /complete visit|complete/i }).count()) throw new Error("Clinical surface exposed reception completion");
   console.log("PASS|Clinical cannot complete Reception-owned closure");
 
   const doctorClient = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
   const doctorAuth = await doctorClient.auth.signInWithPassword({ email: doctorEmail, password });
   if (doctorAuth.error || !doctorAuth.data.user) throw new Error("Negative authority fixture login failed: " + (doctorAuth.error?.message || "no user"));
-  const deniedCompletion = await doctorClient.rpc("csapi_d3_complete_reception", {
-    p_visit_id: visitId,
-    p_correlation_id: "00000000-0000-0000-0000-00000000e399",
-  });
-  if (!deniedCompletion.error || !/PERMISSION_DENIED/i.test(deniedCompletion.error.message || "")) {
-    throw new Error("Clinical direct reception completion was not rejected by D3 authority boundary");
-  }
+  const deniedCompletion = await doctorClient.rpc("csapi_d3_complete_reception", { p_visit_id: visitId, p_correlation_id: "00000000-0000-0000-0000-000000000e99" });
+  if (!deniedCompletion.error || !/PERMISSION_DENIED/i.test(deniedCompletion.error.message || "")) throw new Error("Clinical direct reception completion was not rejected by D3 authority boundary");
   console.log("PASS|Clinical direct reception-completion RPC rejected");
 
   await login(receptionEmail);
@@ -273,16 +265,12 @@ try {
   await assertVisitStatus("completed", "Reception Complete");
   await assertActiveQueueCount(0, "Reception Complete closes active queue");
   await assertEvent("reception_completed", "Reception Complete event");
-
   const final = await admin.from("clinic_visit_sessions").select("session_status").eq("id", visitId).single();
   if (final.error || final.data?.session_status !== "completed") throw new Error("Final visit status=" + (final.data?.session_status || final.error?.message));
-
   const events = await admin.from("patient_flow_events").select("event_type").eq("tenant_id", tenantId).eq("visit_id", visitId).order("occurred_at");
   if (events.error) throw new Error("Event read failed: " + events.error.message);
   const types = (events.data || []).map((e) => e.event_type);
-  for (const required of ["waiting_entered","clinical_started","clinical_finished","reception_completed"]) {
-    if (!types.includes(required)) throw new Error("Missing event " + required + " got=" + types.join(","));
-  }
+  for (const required of ["waiting_entered","clinical_started","clinical_finished","reception_completed"]) if (!types.includes(required)) throw new Error("Missing event " + required + " got=" + types.join(","));
   console.log("PASS|D3 runtime lifecycle and event sequence");
 } catch (error) {
   console.error("FAIL|" + (error instanceof Error ? error.message : String(error)));
