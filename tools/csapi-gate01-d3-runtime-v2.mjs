@@ -235,7 +235,7 @@ async function cleanup() {
 try {
   await seed();
   await login(receptionEmail);
-  await gotoPage("/patient-flow/operations");
+  await gotoPage("/operation");
   if (!(await page.getByText("D3 Runtime Patient", { exact: false }).count())) throw new Error("Reception cannot see seeded waiting patient");
   const card = page.getByText("D3 Runtime Patient", { exact: false }).first().locator("xpath=ancestor::div[contains(@class,'border')][1]");
   await card.getByRole("button", { name: /register arrival|register/i }).first().click();
@@ -244,14 +244,22 @@ try {
   await assertEvent("waiting_entered", "Reception Waiting event");
 
   await login(doctorEmail);
-  await gotoPage("/patient-flow/clinical");
+  await gotoPage("/clinical");
   await page.getByText("D3 Runtime Patient", { exact: false }).first().waitFor({ state: "visible", timeout: 30000 });
+  if (!page.url().endsWith("/clinical")) throw new Error("Clinical workspace route mismatch: " + page.url());
   await button(/take|start/i, "Clinical Pull");
   await assertVisitStatus("in_consultation", "Clinical Pull state");
   await assertActiveQueueCount(0, "Clinical Pull closes active waiting queue");
   await assertWorkSessionState(1, 0, "Clinical Pull creates one active Work Session");
   await assertEvent("clinical_started", "Clinical Start event");
-  await page.locator("textarea").first().waitFor({ state: "visible", timeout: 30000 });
+  await page.waitForTimeout(1200);
+  const textareaCount = await page.locator("textarea").count();
+  const finishButtonCount = await page.getByRole("button", { name: /finish visit|finish/i }).count();
+  const errorText = (await page.locator(".text-red-700").allInnerTexts()).join(" | ");
+  console.log("D3_RUNTIME_CLINICAL_UI=" + JSON.stringify({ textareaCount, finishButtonCount, errorText, url: page.url() }));
+  if (textareaCount < 3 || finishButtonCount < 1) {
+    throw new Error("Clinical workspace did not render active-visit documentation controls. " + JSON.stringify({ textareaCount, finishButtonCount, errorText, url: page.url() }));
+  }
   await page.locator("textarea").nth(0).fill("runtime examination");
   await page.locator("textarea").nth(1).fill("runtime findings");
   await page.locator("textarea").nth(2).fill("runtime decision");
