@@ -242,6 +242,11 @@ try {
   await page.waitForTimeout(700);
   await assertVisitStatus("waiting", "Reception enters Waiting through D3");
   await assertEvent("waiting_entered", "Reception Waiting event");
+  const receptionStartButtonCount = await page.getByRole("button", { name: /send to doctor|direct to provider|start clinical/i }).count();
+  if (receptionStartButtonCount !== 0) {
+    throw new Error("Operations workspace exposed a Reception clinical-start action");
+  }
+  console.log("PASS|Reception operations surface does not expose clinical start");
 
   await login(doctorEmail);
   await gotoPage("/clinical");
@@ -289,7 +294,7 @@ try {
   console.log("PASS|Clinical direct reception-completion RPC rejected");
 
   await login(receptionEmail);
-  await gotoPage("/patient-flow/operations");
+  await gotoPage("/operation");
   await page.getByText("D3 Runtime Patient", { exact: false }).first().waitFor({ state: "visible", timeout: 30000 });
   await button(/complete from reception|complete visit|complete/i, "Reception Complete");
   await assertVisitStatus("completed", "Reception Complete");
