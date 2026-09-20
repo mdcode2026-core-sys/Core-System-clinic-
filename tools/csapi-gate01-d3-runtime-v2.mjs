@@ -172,17 +172,15 @@ async function assertWorkSessionState(expectedActive, expectedFinished, label) {
 }
 
 async function cleanup() {
-  await admin.from("patient_flow_events").delete().eq("tenant_id", tenantId);
-  await admin.from("clinical_work_sessions").delete().eq("tenant_id", tenantId);
-  await admin.from("patient_flow_queue_entries").delete().eq("tenant_id", tenantId);
-  await admin.from("clinic_visit_sessions").delete().eq("tenant_id", tenantId);
-  await admin.from("clinic_patients").delete().eq("tenant_id", tenantId);
-  await admin.from("clinic_rooms").delete().eq("tenant_id", tenantId);
-  await admin.from("clinic_user_permissions").delete().eq("tenant_id", tenantId);
-  await admin.from("clinic_user_permission_overrides").delete().eq("tenant_id", tenantId);
-  await admin.from("clinic_users").delete().eq("tenant_id", tenantId);
-  // Zada Clinic is persistent demo data. Only rows created by this runtime are cleaned.
-  await admin.from("subscriptions").delete().eq("id", "__never_delete__");
+  await admin.from("patient_flow_events").delete().eq("tenant_id", tenantId).eq("visit_id", visitId);
+  await admin.from("clinical_work_sessions").delete().eq("tenant_id", tenantId).eq("visit_id", visitId);
+  await admin.from("patient_flow_queue_entries").delete().eq("tenant_id", tenantId).eq("visit_id", visitId);
+  await admin.from("clinic_visit_sessions").delete().eq("tenant_id", tenantId).eq("id", visitId);
+  await admin.from("clinic_patients").delete().eq("tenant_id", tenantId).eq("id", patientId);
+  await admin.from("clinic_rooms").delete().eq("tenant_id", tenantId).eq("id", roomId);
+  await admin.from("clinic_user_permissions").delete().eq("tenant_id", tenantId).in("user_id", [doctorClinicId, receptionClinicId]);
+  await admin.from("clinic_user_permission_overrides").delete().eq("tenant_id", tenantId).in("user_id", [doctorClinicId, receptionClinicId]);
+  await admin.from("clinic_users").delete().eq("tenant_id", tenantId).in("id", [doctorClinicId, receptionClinicId]);
   if (doctorAuthId) await admin.auth.admin.deleteUser(doctorAuthId);
   if (receptionAuthId) await admin.auth.admin.deleteUser(receptionAuthId);
 }
