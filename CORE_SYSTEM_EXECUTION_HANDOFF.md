@@ -3,7 +3,7 @@
 **Updated:** 2026-09-21
 **Workstream:** CSAPI — Gate 01 — Patient Flow
 **Current Stage:** **Integrated Patient Flow Verification**
-**Current State:** **OPEN — D3 CLOSED; Gate 01 Integrated Verification active**
+**Current State:** **INTEGRATED PATIENT FLOW VERIFIED/CLOSED — READY FOR FINAL GATE 01 RELEASE / PRODUCTION VERIFICATION**
 **Current main SHA:** `5a92232bc5ffbababf6f8139b1b9654be6112ae7`
 **D2 PR:** #168 — merged
 **D3 PR:** #172 — merged / D3 CLOSED
@@ -634,7 +634,7 @@ This supersedes the older Run #576 / Run #602 runtime-pending text in this hando
 
 **Current main:** `5a92232bc5ffbababf6f8139b1b9654be6112ae7`
 
-**Current stage:** **Integrated Patient Flow Verification**
+**Current stage:** **Final Gate 01 Release / Production Verification**
 
 ## Binding stage contract
 
@@ -665,3 +665,25 @@ Until the Integrated stage is closed:
 
 After the Integrated stage closes, the Final Gate 01 release stage may perform only the approved D2/D3 production rollout and production verification needed to close Gate 01.
 
+
+
+# 2026-09-21 — INTEGRATED PATIENT FLOW VERIFICATION CLOSED
+
+**Result:** PASS / CLOSED
+
+**Executable evidence:** Run #657 (`35539734311`) on implementation head `3676d5b0006cd3ea6083c3171873197cf8874e92`.
+
+**Current-main equivalence:** `3676d5b0006cd3ea6083c3171873197cf8874e92` → `5a92232bc5ffbababf6f8139b1b9654be6112ae7` changes only:
+- `CORE_SYSTEM_EXECUTION_LEDGER.md`
+- `docs/CSAPI/CSAPI-CURRENT-EXECUTION-HANDOFF-2026-09-19.md`
+- `docs/CSAPI/GATES/GATE-01-D3-LIFECYCLE-WRITE-AUTHORITY-VERIFICATION-PLAN-2026-09-19.md`
+
+No application code, Patient Flow implementation, D2/D3 migration, or D3 test changed after the proven green implementation candidate.
+
+A fresh GitHub Actions run was not created for the documentation-only integrated-verification PR by the connected GitHub automation path; no fictitious CI result is recorded. The integrated stage is accepted from immutable green executable evidence plus exact implementation equivalence.
+
+**Integrated stage decision:** CLOSED.
+
+**Next authorized stage:** Final Gate 01 Release / Production Verification.
+
+**Production boundary now opened:** only the approved Gate 01 D2/D3 migration rollout, Production schema verification, Vercel release verification, authenticated Production Patient Flow verification, and final evidence reconciliation.
