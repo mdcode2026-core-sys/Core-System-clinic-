@@ -313,3 +313,72 @@ No unrelated Workforce/Payroll/Financial/Inventory implementation.
 No UI redesign.  
 No second Queue engine.  
 No second permission engine.
+
+
+---
+
+# D3 Step 4 — Run #653 Verified State — 2026-09-20
+
+**Exact candidate head:** `601a4ee9374fd7b56b23bed71031cb33ac2a5752`  
+**GitHub Actions:** Run **#653** / ID `35537464627`  
+**PR:** #172  
+**Branch:** `implementation/csapi-gate01-d3-lifecycle-authority-2026-09-19`
+
+Run #653 completed **SUCCESS** with all required lanes passing:
+
+- Build applicable lane plan — PASS
+- Engineering — PASS
+- D3 integrated runtime — PASS
+- D3 database/command — PASS
+- Patient Flow Stage 6 regression — PASS
+- Final gate — PASS
+
+### Integrated runtime evidence
+
+The runtime verifier completed the real lifecycle:
+
+`Reception → Waiting → Clinical Pull → Clinical Work → Finish → Pending Close → Reception Complete → Completed`
+
+Verified runtime evidence includes:
+
+- Reception entered Waiting and emitted `waiting_entered`.
+- Clinical Pull changed Visit to `in_consultation`.
+- Active Waiting Queue Entry became 0.
+- Exactly one active Work Session was created.
+- `clinical_started` was emitted.
+- Runtime identity matched the canonical `clinic_users.id` domain for the provider/lock holder.
+- Clinical UI exposed 3 documentation textareas and one Finish action.
+- Finish changed Visit to `pending_close`.
+- Work Session became finished.
+- Reception handoff Queue Entry was created.
+- `clinical_finished` was emitted.
+- Clinical UI did not expose Reception completion authority.
+- Direct clinical attempt to call Reception completion RPC was rejected.
+- Reception Complete changed Visit to `completed`.
+- Active queue became 0.
+- `reception_completed` was emitted.
+- Final lifecycle/event sequence assertion passed.
+
+### Database evidence
+
+The D3 database lane executed all **65 pgTAP assertions** successfully.
+
+The earlier Run #652 failure was only a TAP plan mismatch (`62 planned / 65 executed`). Commit `601a4ee9374fd7b56b23bed71031cb33ac2a5752` corrected the plan to 65, after which Run #653 passed.
+
+Database concurrency evidence also passed: exactly one of two competing clinical starts succeeded and exactly one active Work Session remained.
+
+A non-blocking concurrency teardown cleanup warning was logged, but the lane itself returned PASS and the substantive concurrency assertion passed.
+
+### Step status
+
+**D3 Step 4 — PASS / VERIFIED AT CI LEVEL.**
+
+This supersedes the older Run #576 / Run #602 runtime-pending text in this handoff.
+
+**Next step:** D3 Step 5 — Final Review. This is a review/reconciliation stage, not a new implementation loop. It must verify that the green Run #653 candidate matches the frozen D3 contract and that no unintended authority/bypass was introduced by the late runtime-hardening changes.
+
+**Boundaries remain unchanged:**
+- no Vercel;
+- no hosted Production Supabase mutation;
+- no unrelated domain implementation;
+- PR #172 remains unmerged until Step 5 review is complete.
