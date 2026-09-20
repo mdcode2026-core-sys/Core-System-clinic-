@@ -1,17 +1,18 @@
 # CORE SYSTEM — EXECUTION HANDOFF
 
-**Updated:** 2026-09-19
+**Updated:** 2026-09-21
 **Workstream:** CSAPI — Gate 01 — Patient Flow
-**Current Stage:** D3 — Step 4 — Integrated Runtime
-**Canonical D2 PR:** #168
-**Canonical D2 Branch:** `implementation/csapi-gate-01-d2-database-foundations-canonical-2026-09-18`
-**Merged D2 Main SHA:** `6013a9ffa4705738bc9e8de7c0d1403ff6a0858e`
-**Post-merge documentation branch:** `docs/csapi-d2-post-merge-verification-2026-09-19`
-**D2 Status:** MERGED — PRODUCTION ROLLOUT / FINAL VERIFICATION PENDING
-**D3 Branch:** `implementation/csapi-gate01-d3-lifecycle-authority-2026-09-19`
-**D3 Status:** STEP 4 RUNTIME VERIFICATION IN PROGRESS — LATEST RUNTIME FAIL; REMEDIATION PENDING
-**Production Supabase:** NOT TOUCHED FOR D2
-**Vercel:** NOT TOUCHED FOR D2
+**Current Stage:** **Integrated Patient Flow Verification**
+**Current State:** **OPEN — D3 CLOSED; Gate 01 Integrated Verification active**
+**Current main SHA:** `5a92232bc5ffbababf6f8139b1b9654be6112ae7`
+**D2 PR:** #168 — merged
+**D3 PR:** #172 — merged / D3 CLOSED
+**D3 merge SHA:** `c504897e01a1429e7729e27960e2f33cdb1b8f21`
+**Post-merge docs PR:** #173 — merged
+**Binding integrated verification record:** `docs/CSAPI/GATES/GATE-01-INTEGRATED-PATIENT-FLOW-VERIFICATION-2026-09-21.md`
+**Binding integrated workstream contract:** `docs/testing/workstream-contracts/csapi-gate01-integrated-patient-flow.execution.json`
+**Hosted Production Supabase:** **NOT YET MUTATED — reserved for Final Gate 01 Release / Production Verification**
+**Vercel:** **NOT AUTHORIZED YET — reserved for Final Gate 01 Release / Production Verification**
 
 ## 1. Purpose of this handoff
 
@@ -91,7 +92,7 @@ Patient Flow semantics remain:
 
 The approved wording is **Finish**, not “Finish Clinical Work”.
 
-## 4. Current D2 verification reality
+## 4. Historical D2 verification evidence — CLOSED
 
 ### Latest verification — 2026-09-19
 
@@ -262,7 +263,7 @@ Do not:
 - revive old D2 PR #145 as the execution base;
 - use obsolete Unified Test Execution Engine evidence as current D2 proof.
 
-## 10. Exact next execution
+## 10. Historical exact next execution — SUPERSEDED
 
 1. Treat D2 implementation as merged and CI-verified.
 2. Keep Production Supabase unchanged; its post-merge read-only check confirmed that D2 migration `20260917192500` is not deployed.
@@ -476,7 +477,7 @@ Reception → Waiting → Reorder (when applicable) → Clinical Pull/Start → 
 **2026-09-19 Step 4 Runtime verifier revision:** The D3 integrated runtime lane now executes `tools/csapi-gate01-d3-runtime-v2.mjs`, retaining the original runner for comparison/reference. V2 uses a more deterministic local-authentication wait path; no production endpoint is used.
 
 
-## CSAPI CURRENT RESUME — 2026-09-19 20:28 +03
+## Historical D3 runtime resume snapshot — 2026-09-19
 
 **Authoritative CSAPI continuation file:**
 `docs/CSAPI/CSAPI-CURRENT-EXECUTION-HANDOFF-2026-09-19.md`
@@ -547,12 +548,12 @@ Continue at **D3 Step 4**:
 4. rerun the integrated runtime;
 5. only after a trustworthy runtime PASS proceed to Step 5 Final Review.
 
-No Vercel. No hosted Production Supabase mutation. No unrelated domain work.
+**Historical D3 boundary:** No Vercel, no hosted Production Supabase mutation, and no unrelated domain work.
 
 
 ---
 
-# D3 Step 4 — Run #653 Verified State — 2026-09-20
+# Historical D3 Step 4 — Run #653 Verified State — 2026-09-20
 
 **Exact candidate head:** `601a4ee9374fd7b56b23bed71031cb33ac2a5752`  
 **GitHub Actions:** Run **#653** / ID `35537464627`  
@@ -610,10 +611,57 @@ A non-blocking concurrency teardown cleanup warning was logged, but the lane its
 
 This supersedes the older Run #576 / Run #602 runtime-pending text in this handoff.
 
-**Next step:** D3 Step 5 — Final Review. This is a review/reconciliation stage, not a new implementation loop. It must verify that the green Run #653 candidate matches the frozen D3 contract and that no unintended authority/bypass was introduced by the late runtime-hardening changes.
+**Historical next step at the time:** D3 Step 5 — Final Review. This was subsequently completed and D3 was closed; this text is retained only as execution history.
 
 **Boundaries remain unchanged:**
 - no Vercel;
 - no hosted Production Supabase mutation;
 - no unrelated domain implementation;
 - PR #172 remains unmerged until Step 5 review is complete.
+
+
+# CSAPI CURRENT RESUME — 2026-09-21
+
+## Current exact state
+
+**Gate 01 status:** OPEN
+
+**D1:** prerequisite CLOSED / retained as dependency.
+
+**D2:** implementation CLOSED and merged via PR #168. Production rollout remains pending and belongs to the Final Gate 01 release stage.
+
+**D3:** lifecycle write authority CLOSED and merged via PR #172. Post-merge documentation reconciliation merged via PR #173.
+
+**Current main:** `5a92232bc5ffbababf6f8139b1b9654be6112ae7`
+
+**Current stage:** **Integrated Patient Flow Verification**
+
+## Binding stage contract
+
+`docs/CSAPI/GATES/GATE-01-INTEGRATED-PATIENT-FLOW-VERIFICATION-2026-09-21.md`
+
+`docs/testing/workstream-contracts/csapi-gate01-integrated-patient-flow.execution.json`
+
+## Required current verification
+
+1. Verify the exact merged-main candidate.
+2. Execute the binding Integrated Patient Flow CI lanes: Engineering, Integrated Patient Flow runtime, Patient Flow Stage 6 regression, and Final gate aggregation.
+3. Reconcile runtime state/projection/event evidence with the frozen D3 contract.
+4. Close Integrated Patient Flow Verification only on exact-head PASS.
+5. Only then enter Final Gate 01 Release / Production Verification.
+
+## Current business path
+
+`Reception → Waiting → Reception movement/order when applicable → Clinical Pull → Clinical Work → Finish → Pending Close → Reception Completion → Completed`
+
+Waiting remains a queue state, not clinical-start or role routing.
+
+## Release boundary
+
+Until the Integrated stage is closed:
+- no hosted Production Supabase mutation;
+- no Vercel verification;
+- no unrelated domain repairs.
+
+After the Integrated stage closes, the Final Gate 01 release stage may perform only the approved D2/D3 production rollout and production verification needed to close Gate 01.
+
