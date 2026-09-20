@@ -178,7 +178,7 @@ D3 must not start implementation before D2 closure.
 | 2026-09-19 | D2 PR merge | PR #168 | Merged | Main now contains D2 implementation | Post-merge verification |
 | 2026-09-19 | Main merge evidence | SHA `6013a9ffa4705738bc9e8de7c0d1403ff6a0858e` | Merge completed | D2 implementation stage is merged | Keep D3 separate |
 | 2026-09-19 | Production read-only check | Supabase migration history + catalog | Migration `20260917192500` absent; all three D2 tables absent | Production rollout is not complete | Do not claim Production D2 deployment |
-| 2026-09-19 | Gate 01 transition | D2 implementation + CI + merge complete | Gate 01 remains OPEN | D3 is next | Establish D3 contract before code |
+| 2026-09-19 | Historical Gate 01 transition | D2 implementation + CI + merge complete | Gate 01 was OPEN at that historical point | D3 followed | Establish D3 contract before code |
 
 ### CSAPI Gate 01 execution model
 
@@ -407,7 +407,7 @@ D3 PR #172 was merged successfully into `main`.
 - `main` now resolves exactly to the merge commit.
 - No Vercel or hosted Production Supabase mutation was performed as part of D3 closure.
 
-D3 remains formally CLOSED. This post-merge record does not advance CSAPI Gate 01 into its broader production stage; that remains a separate authorized stage.
+D3 remained formally CLOSED at this historical record point; subsequent integrated and final production stages are recorded below.
 
 
 ## 2026-09-21 CSAPI Gate 01 — Integrated Patient Flow Verification Entry
@@ -418,9 +418,9 @@ D3 remains formally CLOSED. This post-merge record does not advance CSAPI Gate 0
 | 2026-09-21 | Gate 01 documentation reconciliation | Updated master roadmap, live Handoff and Ledger; added integrated verification record and workstream contract | Stale D3-current wording is superseded; current head and next stage are explicit | Integrated Patient Flow Verification is now the current Gate 01 execution head | Run exact-head integrated verification |
 | 2026-09-21 | Integrated verification scope freeze | `GATE-01-INTEGRATED-PATIENT-FLOW-VERIFICATION-2026-09-21.md` + `csapi-gate01-integrated-patient-flow.execution.json` | Verification-only scope: Engineering + D3 runtime scenario + Stage 6 regression; no Vercel/Production DB mutation | No new lifecycle authority and no unrelated domain work | Execute CI on exact merged-main candidate |
 
-**Current Gate 01 stage:** Integrated Patient Flow Verification — OPEN
+**Current Gate 01 stage:** Gate 01 CLOSED
 
-**Current main SHA:** `5a92232bc5ffbababf6f8139b1b9654be6112ae7`
+**Historical main SHA at integrated-stage entry:** `5a92232bc5ffbababf6f8139b1b9654be6112ae7`
 
 **After integrated PASS:** Final Gate 01 Release / Production Verification
 
@@ -435,3 +435,18 @@ D3 remains formally CLOSED. This post-merge record does not advance CSAPI Gate 0
 | 2026-09-21 | Integrated Patient Flow Verification closure | `GATE-01-INTEGRATED-PATIENT-FLOW-VERIFICATION-2026-09-21.md` | PASS / CLOSED | Gate 01 advances to its final release/production stage | Perform controlled Production rollout + Vercel/runtime verification |
 
 **Current Gate 01 stage:** Final Gate 01 Release / Production Verification
+
+## 2026-09-21 CSAPI Gate 01 — FINAL RELEASE / PRODUCTION VERIFICATION CLOSURE
+
+| Date | Action | Evidence | Result | Decision | Next Action |
+|---|---|---|---|---|---|
+| 2026-09-21 | Production D2/D3 rollout | Supabase Production project `qaslsjyxjwvdoiczmhgq`; exact repository migration SQL applied | D2/D3 schema, indexes, RLS, and canonical command functions verified | Production database portion of Gate 01 PASS | Complete final production runtime verification |
+| 2026-09-21 | Production deployment identity | Vercel deployment `dpl_Cw1AutDTYQfahkTKMAP8FhGSSVdU`; live `/api/build-info` | READY Production deployment exposes exact main SHA `e087243204c1f8308be323bc4eea24b18252dfee` | Deployment identity PASS | Complete authenticated Production E2E |
+| 2026-09-21 | Authenticated Production runtime | GitHub Actions Production Runtime Verification Run #32, ID `35540492196` | SUCCESS; exact candidate resolution, build identity, Playwright setup, authenticated real-world Clinic Admin E2E and artifact publication all passed | Production runtime PASS | Reconcile final evidence and close Gate 01 |
+| 2026-09-21 | Final Gate 01 reconciliation | Final contract + final release record + roadmap + handoffs | D2 CLOSED, D3 CLOSED, Integrated Patient Flow CLOSED, Final Release CLOSED | **CSAPI Gate 01 — Patient Flow CLOSED** | Start only a separately-approved future CSAPI workstream |
+
+**Final Gate 01 status:** **CLOSED**
+
+**Final main SHA:** `e087243204c1f8308be323bc4eea24b18252dfee`
+
+**No Gate 01 implementation or production work remains open.**

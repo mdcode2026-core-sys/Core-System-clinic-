@@ -1,0 +1,34 @@
+{
+  "contract_version": "1.0",
+  "contract_type": "workstream",
+  "workstream_id": "csapi-gate01-final-release",
+  "status": "binding",
+  "scope": "Final Gate 01 Release / Production Verification",
+  "required_evidence": [
+    "D2 migration SQL applied to hosted Production Supabase from repository migration content",
+    "D3 migration SQL applied to hosted Production Supabase from repository migration content",
+    "D2 tables exist with RLS enabled",
+    "canonical seven D3 lifecycle command functions exist with authenticated EXECUTE and anon EXECUTE denied",
+    "production deployment is READY and targets main",
+    "production /api/build-info exposes the exact promoted main SHA",
+    "authenticated Production E2E workflow passes on the exact promoted main SHA",
+    "authenticated Production Patient Flow route is exercised by the real-world E2E suite",
+    "canonical full lifecycle remains proven by immutable Run #657 on the unchanged implementation lineage",
+    "no new Gate 01-specific runtime defect is introduced"
+  ],
+  "release_checks": {
+    "supabase_project": "qaslsjyxjwvdoiczmhgq",
+    "repository_main_sha": "e087243204c1f8308be323bc4eea24b18252dfee",
+    "production_deployment_id": "dpl_Cw1AutDTYQfahkTKMAP8FhGSSVdU",
+    "production_runtime_workflow": {
+      "run_number": 32,
+      "run_id": 35540492196,
+      "candidate_sha": "e087243204c1f8308be323bc4eea24b18252dfee",
+      "conclusion": "success"
+    }
+  },
+  "migration_lineage_note": "The hosted Supabase Management API records the applied D2/D3 migration executions under generated remote versions 20260920220417 and 20260920220432. The SQL content applied is the exact content of repository migrations 20260917192500 and 20260919090000 respectively. This remote-version discrepancy is recorded explicitly and is not silently rewritten through unsupported metadata mutation.",
+  "production_runtime_scope_note": "The production E2E proves authenticated Patient Flow surface access and broader clinic runtime behavior. Full canonical lifecycle/state/projection/event semantics were already proven by Run #657 on the unchanged implementation lineage; no production service-role mutation is used to manufacture lifecycle evidence.",
+  "known_non_gate01_observation": "Vercel runtime logs contain one AnalyticsEngine communications.messages error group with first occurrence 2026-08-30 and latest occurrence during the verification window. This predates the Gate 01 migration release and is outside Gate 01 scope; no unrelated repair is included.",
+  "closure_rule": "Gate 01 may be CLOSED only after all required evidence above is recorded and the final documentation reconciliation is merged to main."
+}

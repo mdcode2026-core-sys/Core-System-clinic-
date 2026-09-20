@@ -3,15 +3,17 @@
 **Updated:** 2026-09-21
 **Resume token:** `CSAPI`
 **Workstream:** CSAPI — Gate 01 — Patient Flow
-**Current execution stage:** D3 — Step 6 — Documentation / Closure
-**Current state:** **CLOSED — D3 Lifecycle Write Authority**
+**Current execution stage:** **CSAPI Gate 01 — CLOSED**
+**Current state:** **CLOSED — Gate 01 Patient Flow**
 **Current canonical D3 branch:** `implementation/csapi-gate01-d3-lifecycle-authority-2026-09-19`
-**Current PR:** #172 — open, draft
-**Latest CI reference:** **Run #657 — SUCCESS**
+**Current PR:** none — D3 PR #172 merged; final docs closure is a separate reconciliation record
+**Latest implementation CI reference:** **Run #657 — SUCCESS**
+**Final Production runtime reference:** **Run #32 — SUCCESS (35540492196)**
 **Previous fully verified reference:** Run #653 — SUCCESS, head `601a4ee9374fd7b56b23bed71031cb33ac2a5752`
+**Final promoted main SHA:** `e087243204c1f8308be323bc4eea24b18252dfee`
 **D2 merged Main baseline:** `6013a9ffa4705738bc9e8de7c0d1403ff6a0858e`
-**Vercel:** prohibited for current D3 verification
-**Hosted Production Supabase:** not to be mutated during D3 implementation verification
+**Vercel:** final Production verification completed
+**Hosted Production Supabase:** final Gate 01 D2/D3 rollout completed and verified
 
 ---
 
@@ -26,16 +28,13 @@ CSAPI
 ```
 
 the assistant must:
-
 1. read this file first;
-2. verify the current PR #172 head against GitHub;
-3. verify the current CI result before making any new implementation change;
-4. continue from **D3 Step 4**, not restart architectural discovery;
-5. not reopen D2, D1, Patient Journey, Global Experience, Header, Communications, or other already-settled work;
-6. not infer that D3 Step 4 passed merely because D3 database tests pass;
-7. not use historical handoffs as a newer authority than this file and the current repository head.
+2. verify that Gate 01 remains closed on the current main lineage;
+3. not reopen D1, D2, D3, Integrated Patient Flow Verification, or the Gate 01 production stage;
+4. treat the final Gate 01 release record as the closure authority;
+5. begin only a separately approved future CSAPI workstream.
 
-The current unresolved task is narrowly defined below.
+**There is no unresolved Gate 01 task.**
 
 ---
 
@@ -1314,3 +1313,24 @@ D3 PR #172 was merged successfully into `main`.
 - No Vercel or hosted Production Supabase mutation was performed as part of D3 closure.
 
 D3 remains formally CLOSED. This post-merge record does not advance CSAPI Gate 01 into its broader production stage; that remains a separate authorized stage.
+
+
+# 2026-09-21 — FINAL GATE 01 CLOSURE
+
+**Gate:** CSAPI Gate 01 — Patient Flow
+
+**Final state:** **CLOSED**
+
+**Main SHA:** `e087243204c1f8308be323bc4eea24b18252dfee`
+
+**D2:** CLOSED / Production rollout verified.
+
+**D3:** CLOSED / Run #657 verified and merged.
+
+**Integrated Patient Flow Verification:** CLOSED.
+
+**Final Release / Production Verification:** CLOSED / Run #32 SUCCESS.
+
+**Final record:** `docs/CSAPI/GATES/GATE-01-FINAL-RELEASE-PRODUCTION-VERIFICATION-2026-09-21.md`
+
+**No further Gate 01 work remains open.**
