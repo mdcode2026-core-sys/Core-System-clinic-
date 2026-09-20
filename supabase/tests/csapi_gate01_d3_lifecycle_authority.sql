@@ -1,6 +1,6 @@
 BEGIN;
 
-SELECT plan(44);
+SELECT plan(45);
 
 CREATE TEMP TABLE d3_test_ids (
   key text primary key,
@@ -162,6 +162,13 @@ SELECT is(
   (SELECT count(*)::int FROM public.patient_flow_events WHERE tenant_id='00000000-0000-0000-0000-00000000d301' AND visit_id='00000000-0000-0000-0000-00000000d310' AND event_type='waiting_entered'),
   1,
   'Enter Waiting emits waiting_entered'
+);
+
+SELECT throws_ok(
+  $sql$SELECT public.csapi_d3_start_clinical_work('00000000-0000-0000-0000-00000000d310','00000000-0000-0000-0000-00000000e303')$sql$,
+  'P0001',
+  NULL,
+  'reception actor cannot start provider-owned clinical work'
 );
 
 SELECT ok(
