@@ -1,23 +1,23 @@
 # CORE SYSTEM — CSAPI Gate 01 Master Execution Roadmap
 
 **Updated:** 2026-09-21
-**Current position:** **Integrated Patient Flow Verification — OPEN** after D3 implementation/verification closure and post-merge documentation reconciliation.
-**Current main SHA:** `5a92232bc5ffbababf6f8139b1b9654be6112ae7`
+**Current position:** **Gate 01 CLOSED** after Integrated Patient Flow Verification and Final Gate 01 Release / Production Verification.
+**Current main SHA:** `e087243204c1f8308be323bc4eea24b18252dfee`
 **D3 merge SHA:** `c504897e01a1429e7729e27960e2f33cdb1b8f21`
-**Post-merge documentation reconciliation:** PR #173 → `5a92232bc5ffbababf6f8139b1b9654be6112ae7`
+**Final release documentation reconciliation:** pending merge of this final Gate 01 closure record
 
 ## 1. Sequence
 
 ```text
 D1 — application / contract foundation
         ↓
-D2 — database foundations
+D2 — database foundations [CLOSED]
         ↓
-D3 — lifecycle write authority / commands
+D3 — lifecycle write authority / commands [CLOSED]
         ↓
-Integrated Patient Flow verification
+Integrated Patient Flow verification [CLOSED]
         ↓
-Final Gate 01 release / production verification
+Final Gate 01 release / production verification [CLOSED]
         ↓
 Gate 01 CLOSED
 ```
@@ -35,12 +35,13 @@ Evidence:
 - Run #500 (`35431848948`) passed the final documented pre-merge head.
 - PR #168 merged to `main` as `6013a9ffa4705738bc9e8de7c0d1403ff6a0858e`.
 
-Production state:
-- Production Supabase was checked read-only after merge.
-- Migration `20260917192500` is not deployed.
-- The three D2 tables are not present in Production.
+Production state after final release:
+- Repository D2 migration SQL was applied to hosted Production Supabase.
+- Repository D3 migration SQL was applied to hosted Production Supabase.
+- Remote migration history records generated application versions `20260920220417` and `20260920220432`; their SQL content matches the repository D2/D3 migration files and the discrepancy is explicitly recorded in the final release record.
+- The three D2 tables are present with RLS enabled.
 
-Therefore D2 implementation is complete and merged, while Production rollout remains pending.
+Therefore D2 implementation and its Production rollout are complete.
 
 ## 4. D3 — CLOSED
 
@@ -64,41 +65,36 @@ Before D3 implementation, its contract must explicitly lock:
 
 Canonical D3 commands are frozen in the D3 command/data/event contract and remain the sole lifecycle write authority.
 
-## 5. Remaining work for CSAPI Gate 01
+## 5. Gate 01 final status
 
-### 5.1 Integrated Patient Flow Verification — CURRENT
+### 5.1 Integrated Patient Flow Verification — CLOSED
 
-Binding record:
+Record:
 `docs/CSAPI/GATES/GATE-01-INTEGRATED-PATIENT-FLOW-VERIFICATION-2026-09-21.md`
 
-Binding workstream contract:
-`docs/testing/workstream-contracts/csapi-gate01-integrated-patient-flow.execution.json`
+Evidence:
+- Run #657 (`35539734311`) fully green on implementation head `3676d5b0006cd3ea6083c3171873197cf8874e92`.
+- Current-main equivalence showed no application/runtime/migration/test implementation drift after that green candidate.
 
-Required verification:
-- exact merged-main candidate;
-- Engineering: typecheck, lint, build;
-- integrated Patient Flow runtime;
-- Patient Flow Stage 6 regression;
-- evidence reconciliation against the frozen D3 authority contract.
+### 5.2 Final Gate 01 Release / Production Verification — CLOSED
 
-This stage is verification-only and does not create new Patient Flow authority.
+Binding contract:
+`docs/testing/workstream-contracts/csapi-gate01-final-release.execution.json`
 
-### 5.2 Final Gate 01 Release / Production Verification — AFTER 5.1
+Final record:
+`docs/CSAPI/GATES/GATE-01-FINAL-RELEASE-PRODUCTION-VERIFICATION-2026-09-21.md`
 
-Only after Integrated Patient Flow Verification is PASS/CLOSED:
-- roll out the approved Gate 01 D2/D3 database migrations to hosted Production Supabase using the repository migration lineage;
-- verify Production migration history/schema;
-- verify the exact merged-main release through Vercel;
-- verify authenticated Production Patient Flow behavior and post-deploy runtime identity/state;
-- reconcile final release evidence.
+Evidence:
+- Hosted Production Supabase D2/D3 rollout completed from repository migration SQL.
+- Production Vercel deployment `dpl_Cw1AutDTYQfahkTKMAP8FhGSSVdU` is READY and targets `main`.
+- Live `/api/build-info` exposes exact promoted SHA `e087243204c1f8308be323bc4eea24b18252dfee`.
+- Production authenticated runtime workflow Run #32 (`35540492196`) completed SUCCESS.
 
-### 5.3 Gate 01 Closure
+### 5.3 Gate 01 closure
 
-Only after the final release/production stage passes:
-- reconcile roadmap, Handoff, Ledger, D2/D3 evidence and integrated verification record;
-- formally mark **CSAPI Gate 01 — Patient Flow CLOSED**.
+**CSAPI Gate 01 — Patient Flow is CLOSED.**
 
-No later CSAPI workstream may be pulled backward into Gate 01.
+No further implementation, migration, Vercel, or Production Supabase work belongs to Gate 01. Any subsequent work starts as a new explicitly-scoped CSAPI workstream and must not reopen Gate 01 implicitly.
 
 ## 6. Hard boundaries
 
