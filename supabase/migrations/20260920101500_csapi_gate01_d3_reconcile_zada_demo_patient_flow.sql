@@ -1,5 +1,22 @@
 BEGIN;
 
+-- The historical remote-schema snapshot still declares these tenant FKs against the
+-- retired legacy tenants table. The current/live canonical schema and database types
+-- use master_tenants. D3 depends on the active subscriptions table for the existing
+-- subscription-bound permission ceiling, so clean migration replay must reproduce the
+-- canonical live relationship rather than teaching the runtime fixture the legacy shape.
+ALTER TABLE public.subscriptions
+  DROP CONSTRAINT IF EXISTS subscriptions_tenant_id_fkey;
+ALTER TABLE public.subscriptions
+  ADD CONSTRAINT subscriptions_tenant_id_fkey
+  FOREIGN KEY (tenant_id) REFERENCES public.master_tenants(id) ON DELETE CASCADE;
+
+ALTER TABLE public.subscription_events
+  DROP CONSTRAINT IF EXISTS subscription_events_tenant_id_fkey;
+ALTER TABLE public.subscription_events
+  ADD CONSTRAINT subscription_events_tenant_id_fkey
+  FOREIGN KEY (tenant_id) REFERENCES public.master_tenants(id) ON DELETE CASCADE;
+
 -- Canonical Patient Flow access permissions were historically introduced by Stage 6,
 -- but the persistent database currently lacks the rows. Restore the canonical
 -- permission definitions without changing the lifecycle authority model.
