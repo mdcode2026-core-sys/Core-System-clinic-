@@ -47,7 +47,51 @@ export async function getQueue(filters?: QueueFilters): Promise<EnrichedSession[
   if (filters?.status?.length) query = query.in("session_status", filters.status); if (filters?.doctor_id) query = query.eq("doctor_id", filters.doctor_id);
   const { data, error } = await query; if (error) throw new Error(`Queue fetch failed: ${error.message}`);
   const hydrated = await hydrateDurations(supabase, tenantId, data || []);
-  return hydrated.map((session: any) => ({ ...session, patient_name: session.clinic_patients ? `${session.clinic_patients.first_name} ${session.clinic_patients.last_name}` : undefined, patient_phone: session.clinic_patients?.phone_primary, patient_file_number: session.clinic_patients?.file_number, doctor_name: session.clinic_users?.full_name, room_name: session.clinic_rooms?.room_name, wait_time_minutes: computeWaitTimeMinutes(session.created_at) })) as EnrichedSession[];
+  const sessionIds = (hydrated || []).map((session: any) => session.id).filter(Boolean);
+  const { data: queueEntries, error: queueError } = sessionIds.length
+    ? await supabase
+        .from("patient_flow_queue_entries")
+        .select("id,visit_id,lane_key,priority_class,position,routing_target,operating_date,entered_at,exited_at")
+        .eq("tenant_id", tenantId)
+        .in("visit_id", sessionIds)
+        .is("exited_at", null)
+    : { data: [], error: null };
+  if (queueError) throw new Error(`Queue entry fetch failed: ${queueError.message}`);
+  const queueByVisit = new Map((queueEntries ?? []).map((entry: any) => [entry.visit_id, entry]));
+  const enriched = (hydrated || []).map((session: any) => {
+    const queueEntry = queueByVisit.get(session.id);
+    const priorityMap: Record<string, VisitPriority> = {
+      low: VisitPriority.NORMAL,
+      normal: VisitPriority.NORMAL,
+      high: VisitPriority.HIGH,
+      urgent: VisitPriority.URGENT,
+    };
+    return {
+      ...session,
+      patient_name: session.clinic_patients ? `${session.clinic_patients.first_name} ${session.clinic_patients.last_name}` : undefined,
+      patient_phone: session.clinic_patients?.phone_primary,
+      patient_file_number: session.clinic_patients?.file_number,
+      doctor_name: session.clinic_users?.full_name,
+      room_name: session.clinic_rooms?.room_name,
+      wait_time_minutes: computeWaitTimeMinutes(session.created_at),
+      queue_position: queueEntry?.position ?? undefined,
+      lane: queueEntry?.lane_key ?? undefined,
+      priority: queueEntry ? priorityMap[queueEntry.priority_class] ?? VisitPriority.NORMAL : undefined,
+      routing_target: queueEntry?.routing_target ?? undefined,
+      queue_entry_id: queueEntry?.id ?? undefined,
+    };
+  });
+  return enriched.sort((a: any, b: any) => {
+    if (a.session_status !== "waiting" || b.session_status !== "waiting") {
+      return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+    }
+    const laneCompare = String(a.lane ?? "").localeCompare(String(b.lane ?? ""));
+    if (laneCompare !== 0) return laneCompare;
+    const positionA = a.queue_position ?? Number.MAX_SAFE_INTEGER;
+    const positionB = b.queue_position ?? Number.MAX_SAFE_INTEGER;
+    if (positionA !== positionB) return positionA - positionB;
+    return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+  }) as EnrichedSession[];
 }
 
 export async function getQueueStats(): Promise<QueueStats> {
