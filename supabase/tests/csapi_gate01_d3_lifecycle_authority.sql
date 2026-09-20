@@ -1,6 +1,6 @@
 BEGIN;
 
-SELECT plan(45);
+SELECT plan(47);
 
 CREATE TEMP TABLE d3_test_ids (
   key text primary key,
@@ -221,6 +221,31 @@ SELECT is(
 );
 
 SELECT set_config('request.jwt.claims','{"sub":"00000000-0000-0000-0000-00000000d303","app_metadata":{"tenant_id":"00000000-0000-0000-0000-00000000d301"}}',true);
+
+SELECT throws_ok(
+  $sql$UPDATE public.clinic_visit_sessions
+       SET session_status='in_consultation'
+       WHERE id='00000000-0000-0000-0000-00000000d310'
+         AND tenant_id='00000000-0000-0000-0000-00000000d301'$sql$,
+  'P0001',
+  NULL,
+  'authenticated direct Visit lifecycle update is rejected'
+);
+
+SELECT throws_ok(
+  $sql$INSERT INTO public.clinic_visit_sessions(
+       id,tenant_id,patient_id,doctor_id,session_status
+     ) VALUES (
+       '00000000-0000-0000-0000-00000000d320',
+       '00000000-0000-0000-0000-00000000d301',
+       '00000000-0000-0000-0000-00000000d309',
+       '00000000-0000-0000-0000-00000000d304',
+       'in_consultation'
+     )$sql$,
+  'P0001',
+  NULL,
+  'authenticated direct Visit clinical-state insert is rejected'
+);
 
 SELECT ok(
   (public.csapi_d3_start_clinical_work(
