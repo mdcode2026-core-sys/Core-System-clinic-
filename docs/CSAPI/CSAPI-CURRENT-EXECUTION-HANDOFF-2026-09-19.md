@@ -3,11 +3,11 @@
 **Updated:** 2026-09-21
 **Resume token:** `CSAPI`
 **Workstream:** CSAPI — Gate 01 — Patient Flow
-**Current execution stage:** D3 — Step 4 — Integrated Runtime / Final Reconciliation
-**Current state:** **OPEN pending final reconciliation/closure**
+**Current execution stage:** D3 — Step 6 — Documentation / Closure
+**Current state:** **CLOSED — D3 Lifecycle Write Authority**
 **Current canonical D3 branch:** `implementation/csapi-gate01-d3-lifecycle-authority-2026-09-19`
 **Current PR:** #172 — open, draft
-**Latest CI reference:** **Run #656 — SUCCESS**
+**Latest CI reference:** **Run #657 — SUCCESS**
 **Previous fully verified reference:** Run #653 — SUCCESS, head `601a4ee9374fd7b56b23bed71031cb33ac2a5752`
 **D2 merged Main baseline:** `6013a9ffa4705738bc9e8de7c0d1403ff6a0858e`
 **Vercel:** prohibited for current D3 verification
@@ -1236,3 +1236,69 @@ D3 may be marked CLOSED only if all are true:
 - only then is D3 formally closed.
 
 **END OF 2026-09-21 CSAPI CONTINUATION ADDENDUM**
+
+
+# 25. 2026-09-21 D3 FINAL REVIEW / CLOSURE — AUTHORITATIVE
+
+## 25.1 Final branch and CI reconciliation
+
+Final PR #172 head verified:
+
+`3676d5b0006cd3ea6083c3171873197cf8874e92`
+
+Run #657 (`35539734311`) on that exact head completed **SUCCESS**.
+
+All required jobs passed:
+- Build applicable lane plan
+- Engineering
+- D3 integrated runtime
+- D3 database/command
+- Patient Flow Stage 6 regression
+- Final gate
+
+The comparison from the last fully verified implementation candidate `601a4ee9374fd7b56b23bed71031cb33ac2a5752` to the final head is documentation-only: 5 commits, 0 implementation-file changes. Therefore the implementation/runtime proven by Run #653 remains the implementation executed by the final branch, while #657 proves the final documented branch state remains green.
+
+## 25.2 Final authority audit
+
+The final branch review confirmed the canonical lifecycle callers remain routed through the D3 adapter and canonical PostgreSQL commands:
+
+- Enter Waiting → `csapi_d3_enter_waiting`
+- Reorder Waiting → `csapi_d3_reorder_waiting`
+- Start Clinical Work → `csapi_d3_start_clinical_work`
+- Finish → `csapi_d3_finish_clinical_work`
+- Reception Complete → `csapi_d3_complete_reception`
+- Cancel → `csapi_d3_cancel_patient_flow`
+- No Show → `csapi_d3_mark_no_show`
+
+The remaining direct Visit writes are classified as legitimate entity/documentation/procedure operations rather than alternate Visit lifecycle authorities. Clinical documentation writes remain separate from lifecycle completion and then dispatch Finish through D3.
+
+The Work Session Hold/Resume migration is retained as an explicitly separate Work Session operation. It does not introduce new Visit lifecycle states and does not replace the seven D3 lifecycle commands. Its authorization is constrained by existing session/Patient Flow clinical permissions, ownership/lock checks, tenant scoping, correlation/idempotency behavior, and event recording.
+
+The arrival/Visit-creation path remains entity creation plus D3 Waiting projection; it is not treated as a second lifecycle engine. The Patient Flow operations permission remains an access/operation boundary consistent with the existing application semantics.
+
+## 25.3 Runtime truthfulness
+
+The final runtime evidence is state/projection/event based. The earlier false-positive behavior from Run #576 is superseded by the verified runtime-v2 path. Run #653 demonstrated the complete lifecycle and the final branch's Run #657 revalidated the complete verification workstream.
+
+Verified lifecycle:
+
+`Reception → Waiting → Clinical Pull → Clinical Work → Finish → Pending Close → Reception Complete → Completed`
+
+Verified boundaries include tenant isolation, clinical/reception completion separation, active Work Session uniqueness, lifecycle/event sequence, concurrency, and retry/idempotency coverage.
+
+## 25.4 D3 closure decision
+
+All D3 closure criteria are satisfied. Therefore:
+
+**D3 — Lifecycle Write Authority is formally CLOSED.**
+
+This closure is limited to D3. It does **not** declare CSAPI Gate 01 / Patient Flow fully production-closed. Gate 01 still follows its broader remaining release/production stages.
+
+## 25.5 Post-closure boundary
+
+- No Vercel verification was performed during D3.
+- No hosted Production Supabase mutation was performed during D3.
+- No unrelated domain implementation was introduced as part of this closure.
+- PR #172 is the controlled D3 implementation vehicle and must be merged through the normal protected-branch requirements before the code becomes part of `main`.
+
+**END OF D3 FINAL CLOSURE RECORD**
