@@ -49,7 +49,7 @@ async function seed() {
 
   const plan = await admin.from("subscription_plans").upsert({
     id: "00000000-0000-0000-0000-00000000d3bf",
-    plan_key: "enterprise", plan_name: "D3 Runtime Full Subscription", plan_name_ar: "D3 Runtime Full Subscription",
+    plan_key: "d3_runtime_enterprise", plan_name: "D3 Runtime Full Subscription", plan_name_ar: "D3 Runtime Full Subscription",
     max_users: 100, max_devices: 100, max_branches: 100, modules: ["all"], ai_limits: {}, storage_gb: 100, api_rate_limit: 1000, is_active: true,
   }, { onConflict: "plan_key" }).select("id").single();
   if (plan.error || !plan.data) throw new Error("Plan fixture failed: " + (plan.error?.message || "missing plan"));
