@@ -974,10 +974,16 @@ BEGIN
     RAISE EXCEPTION USING ERRCODE='P0001', MESSAGE='INVALID_CANCEL_STATE';
   END IF;
 
-  IF v_previous_status = 'in_consultation'
-     AND NOT v_admin_override
-     AND NOT public.has_effective_permission('sessions:update') THEN
-    RAISE EXCEPTION USING ERRCODE='P0001', MESSAGE='PERMISSION_DENIED';
+  IF NOT v_admin_override THEN
+    IF v_previous_status IN ('waiting','pending_close')
+       AND NOT public.has_effective_permission('patient_flow:operations') THEN
+      RAISE EXCEPTION USING ERRCODE='P0001', MESSAGE='PERMISSION_DENIED';
+    END IF;
+
+    IF v_previous_status = 'in_consultation'
+       AND NOT public.has_effective_permission('patient_flow:clinical') THEN
+      RAISE EXCEPTION USING ERRCODE='P0001', MESSAGE='PERMISSION_DENIED';
+    END IF;
   END IF;
 
   SELECT q.*
