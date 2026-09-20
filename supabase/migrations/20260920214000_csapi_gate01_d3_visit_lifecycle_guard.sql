@@ -46,7 +46,8 @@ BEFORE INSERT OR UPDATE ON public.clinic_visit_sessions
 FOR EACH ROW
 EXECUTE FUNCTION public.csapi_guard_visit_lifecycle_writes();
 
-REVOKE ALL ON FUNCTION public.csapi_guard_visit_lifecycle_writes() FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION public.csapi_guard_visit_lifecycle_writes() FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.csapi_guard_visit_lifecycle_writes() TO authenticated;
 
 COMMENT ON FUNCTION public.csapi_guard_visit_lifecycle_writes() IS
   'D3 database boundary: authenticated clients cannot directly change Visit lifecycle state or arrival/start/end/close timestamps. Canonical D3 commands are the lifecycle writers.';
