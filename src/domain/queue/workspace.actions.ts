@@ -199,6 +199,9 @@ export async function reorderWaitingFromReception(
   });
 
   revalidateWorkspacePaths();
+  return updated;
+}
+
 export async function moveFromPatientFlow(
   sessionId: string,
   target: SessionStatus,
