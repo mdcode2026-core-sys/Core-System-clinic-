@@ -76,7 +76,7 @@ function setup() {
     "DROP TRIGGER IF EXISTS d3_concurrency_pause_trigger ON public.clinic_visit_sessions;",
     "DROP FUNCTION IF EXISTS public.d3_concurrency_pause();",
     "DELETE FROM public.audit_trail WHERE tenant_id='" + ids.tenant + "';",
-    "DELETE FROM public.patient_flow_events WHERE tenant_id='" + ids.tenant + "';"
+    "DELETE FROM public.patient_flow_events WHERE tenant_id='" + ids.tenant + "';",
     "DELETE FROM public.clinical_work_sessions WHERE tenant_id='" + ids.tenant + "';",
     "DELETE FROM public.patient_flow_queue_entries WHERE tenant_id='" + ids.tenant + "';",
     "DELETE FROM public.clinic_visit_sessions WHERE tenant_id='" + ids.tenant + "';",
