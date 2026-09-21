@@ -2,7 +2,7 @@
 
 Date: 2026-09-21
 Gate: CSAPI Gate 02 — Patient Journey
-Status: OPEN — PRECHECK READY
+Status: OPEN — DECISION READY
 Previous Gate: Gate 01 — Patient Flow — CLOSED
 Execution mode: Decision-first; no implementation before Product Owner approval
 
