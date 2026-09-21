@@ -19,7 +19,7 @@ Previous Gate: Gate 01 — Patient Flow — CLOSED
 | 08 | Financial & Commercial Flow | Commercial commitment, financial plan, invoice, payment, refund, insurance, expense, revenue | OPEN |
 | 09 | Workforce & Resource Eligibility | Staff/provider, skills, qualifications, availability, schedules, leave, rooms, devices, procedure eligibility | OPEN |
 | 10 | Inventory & Procurement | Consumption, inventory, reorder, procurement, suppliers, receiving, obligations, supplier payment | OPEN |
-| 11 | Follow-up & Retention | Event → follow-up → communication/notification → operational work → completion; one engine only | OPEN |
+| 11 | Follow-up & Retention | Follow-up lifecycle, retention continuity, scheduling/automation, and controlled integrations with Communications, Agenda and Journey Coordination; one Follow-up engine only | OPEN |
 | 12 | Communications & Chat | Clinic-wide authorized internal communications; Chat as a compact surface over Communications | OPEN |
 | 13 | Notifications & Operational Work | Distinguish Communication, Notification, Operational Work; event-to-output rules | OPEN |
 | 14 | Medical Files & Patient Portal | File metadata/storage, clinical relationship, annotations, measurements, AI, portal release permissions, audit | OPEN |
@@ -43,3 +43,12 @@ Gate 02 examines the longitudinal continuity contract around the existing Patien
 Patient → Clinical/Operational interaction → Result → Next Action / No Next Action → Future Appointment / Follow-up / Operational Work → Next Interaction → Continuation
 
 The purpose is to prove ownership and continuity, not to create a universal workflow engine.
+
+
+## Gate 02 ↔ Gate 11 dependency rule
+
+Gate 02 remains the longitudinal continuity decision/integration gate. Gate 11 remains the independent Follow-up & Retention implementation gate.
+
+Gate 02 defines the continuity contract. Gate 11 implements and verifies Follow-up-owned behavior within that contract. Gate 11 does not own Communications, Agenda, Notification delivery infrastructure, or Journey Coordination Work Items.
+
+The map is therefore unchanged; the Gate 11 scope wording above is the reconciled interpretation of its ownership. Any later gate split, merge or reorder requires a separate explicit CSAPI decision recorded in the ledger.
