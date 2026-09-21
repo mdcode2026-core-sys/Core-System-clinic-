@@ -217,3 +217,16 @@ This file is append-only for material CSAPI events. Historical entries remain ev
 - Implementation consequence: Future correction must preserve Treatment Plan clinical ownership, Agenda appointment ownership, Follow-up ownership and Coordination Work ownership without introducing a second continuation engine.
 - Verification evidence: Current source inspection + live data inspection.
 - Status: DEFERRED TO OWNING GATES
+
+
+### CSAPI-2026-09-21-017
+- Date: 2026-09-21
+- Gate: Gate 02 — Patient Journey
+- Type: Decision Gate Transition
+- Source(s): Gate 02 current-state matrix; Gate 02 ↔ Gate 11 reconciliation; Product Decision Report; current repository/database evidence
+- Statement: Gate 02 precheck evidence is complete enough to move the gate to DECISION READY. The 20-gate map remains unchanged and Gate 11 remains independent.
+- Evidence: Longitudinal entity/ownership map, live relationship/integrity checks, Follow-up/Treatment boundary findings, 42-scenario traceability, duplicate-engine audit, and Product Decision Report are recorded.
+- Product Owner decision: Explicit approval is required before any implementation begins.
+- Implementation consequence: No code/database implementation may start until the Product Decision Report is explicitly approved.
+- Verification evidence: `docs/CSAPI/GATES/GATE-02-PRODUCT-DECISION-REPORT-2026-09-21.md`.
+- Status: DECISION READY / APPROVAL PENDING
