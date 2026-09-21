@@ -158,6 +158,7 @@ No Agenda repair is authorized from this record alone.
 - current Follow-up/Retention records
 - current Journey Coordination records
 - current Communications/Portal boundaries
+- docs/CSAPI/CSAPI-GATE02-GATE11-DEPENDENCY-BOUNDARY-RECONCILIATION-2026-09-21.md
 
 ### Implementation truth
 - current main
@@ -227,6 +228,12 @@ Documentation alone is never closure evidence.
 
 ## 13. Immediate next action
 
-Start with Gate 02 PRECHECK from current main.
+Continue Gate 02 PRECHECK from current main using the reconciled Gate 02 ↔ Gate 11 boundary.
 
-Do not implement a fix before the longitudinal current-state/reality/ownership/gap reconciliation is complete.
+The current evidence does not require Gate 11 to be merged into Gate 02 or the 20-gate map to be reordered. Complete the remaining longitudinal current-state/reality/ownership/gap reconciliation before implementation.
+
+Current Follow-up boundary findings to carry forward (without production mutation during precheck):
+- Follow-up automation still has a live business-level coupling to notification_queue.
+- A completed Follow-up can still generate a generic operational Work Item from next-action metadata.
+
+These are later owning-gate remediation items, not permission to create a second engine inside Gate 02.
