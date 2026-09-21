@@ -228,9 +228,7 @@ Documentation alone is never closure evidence.
 
 ## 13. Immediate next action
 
-Continue Gate 02 PRECHECK from current main using the reconciled Gate 02 ↔ Gate 11 boundary.
-
-The current evidence does not require Gate 11 to be merged into Gate 02 or the 20-gate map to be reordered. Complete the remaining longitudinal current-state/reality/ownership/gap reconciliation before implementation.
+Gate 02 precheck is now complete as a decision package. The current evidence does not require Gate 11 to be merged into Gate 02 or the 20-gate map to be reordered. The Product Decision Report is the next approval artifact.
 
 Current Follow-up boundary findings to carry forward (without production mutation during precheck):
 - Follow-up automation still has a live business-level coupling to notification_queue.
