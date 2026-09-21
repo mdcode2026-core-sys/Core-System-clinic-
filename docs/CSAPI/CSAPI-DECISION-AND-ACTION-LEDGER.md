@@ -230,3 +230,15 @@ This file is append-only for material CSAPI events. Historical entries remain ev
 - Implementation consequence: No code/database implementation may start until the Product Decision Report is explicitly approved.
 - Verification evidence: `docs/CSAPI/GATES/GATE-02-PRODUCT-DECISION-REPORT-2026-09-21.md`.
 - Status: DECISION READY / APPROVAL PENDING
+
+### CSAPI-2026-09-22-018
+- Date: 2026-09-22
+- Gate: Gate 02 — Patient Journey
+- Type: Approval / Decision
+- Source(s): Gate 02 Product Decision Report; Product Owner approval in CSAPI execution conversation
+- Statement: Product Owner approved binding decisions P1–P7 and approved keeping the existing 20-gate map unchanged.
+- Evidence: Explicit Product Owner approval of all seven decisions and clarification that the map is sequential; the unchanged map does not authorize skipping Gate 03–10 to Gate 11.
+- Product Owner decision: Approved. Gate 02 may proceed to focused implementation within the documented boundaries.
+- Implementation consequence: Implement longitudinal continuity/traceability only; preserve domain ownership; do not create duplicate Patient Journey, Follow-up, Agenda, Communications, Notification or Work engines. Gate 11/12/13 remain downstream gates/dependencies.
+- Verification evidence: Gate 02 verification contract remains binding and must be satisfied before closure.
+- Status: APPROVED FOR IMPLEMENTATION
