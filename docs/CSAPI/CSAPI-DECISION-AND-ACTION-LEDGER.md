@@ -204,3 +204,16 @@ This file is append-only for material CSAPI events. Historical entries remain ev
 - Implementation consequence: Continue with Gate 02 PRECHECK, then proceed to owning gates according to their clarified contracts.
 - Verification evidence: Updated CSAPI gate plan and reconciliation artifact.
 - Status: ADOPTED / MAP STABLE
+
+
+### CSAPI-2026-09-21-016
+- Date: 2026-09-21
+- Gate: Gate 02 / Gate 06 / Gate 13
+- Type: Finding / Boundary Drift
+- Source(s): `src/domain/treatment-plan/treatment-plan.actions.ts`; R02 cross-domain implementation contract; current CSAPI continuity decisions
+- Statement: Treatment Plan completion currently calls `ensureNextAction()`, which materializes an `operational_work_items` record of kind `next_action` for the next Treatment Plan item. The current helper also infers a booking requirement from the planned date. This is a valid historical implementation path but is broader than the current CSAPI rule that Next Action is not automatically Operational Work.
+- Evidence: Current main implementation creates Work Item from `clinic_treatment_plan_items` after item completion; current live data contain 4 plan items and 3 completed items. Current CSAPI ledger entry 009 establishes conditional fan-out and explicit operational-work threshold.
+- Product Owner decision: Treat the current helper as a later boundary-reconciliation target, not as the universal Gate 02 model. Do not repair it during Gate 02 precheck.
+- Implementation consequence: Future correction must preserve Treatment Plan clinical ownership, Agenda appointment ownership, Follow-up ownership and Coordination Work ownership without introducing a second continuation engine.
+- Verification evidence: Current source inspection + live data inspection.
+- Status: DEFERRED TO OWNING GATES
