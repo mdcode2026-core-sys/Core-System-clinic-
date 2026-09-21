@@ -29,6 +29,7 @@ Read, in this order:
 9. PJ_STAGE15_CLOSURE.md
 10. relevant cross-domain implementation contracts and current source/database/runtime
 11. docs/CSAPI/CSAPI-GATE02-WORKING-CONTEXT-RECONCILIATION-2026-09-21.md
+12. docs/CSAPI/CSAPI-GATE02-GATE11-DEPENDENCY-BOUNDARY-RECONCILIATION-2026-09-21.md
 
 ## 2. What was completed in this conversation
 
@@ -120,6 +121,8 @@ When an action becomes Operational Work, which Coordination path owns it and how
 ### Retention continuity
 How Follow-up is triggered, scheduled/executed, communicated and linked back to the patient/visit without becoming a second workflow engine.
 
+The Gate 02 ↔ Gate 11 reconciliation is now complete as a precheck boundary decision: Gate 02 remains current; Gate 11 remains independent; no gate reorder is required; Follow-up integrations are downstream contracts rather than Follow-up-owned domain logic.
+
 ### Financial/resource continuity
 Which financial/resource effects are downstream consequences versus prerequisites for the patient journey, and where ownership boundaries remain.
 
@@ -130,7 +133,7 @@ What happens when a downstream next action fails, retries, is cancelled or becom
 
 READ → INSPECT → VERIFY → RECONCILE → DECISION REPORT → PRODUCT OWNER APPROVAL → IMPLEMENT → TEST → RUNTIME VERIFY → DOCUMENT → CLOSE
 
-The next conversation is currently before the Decision Report. The immediate architectural task is Gate 02 ↔ Gate 11 Follow-up dependency/boundary reconciliation.
+The Gate 02 ↔ Gate 11 Follow-up dependency/boundary reconciliation is now completed as a precheck input. The next task is to complete the remaining Gate 02 longitudinal evidence package and prepare the Product Decision Report.
 
 No code/database change should be made until:
 - current state is known;
@@ -190,4 +193,4 @@ Gate 02: OPEN — PRECHECK READY
 Implementation status: NOT STARTED
 Product Decision: PENDING PRECHECK EVIDENCE
 Open PRs: 0
-Current execution authority: this handoff + Gate 02 record + current PJ authority + current repository/database/runtime
+Current execution authority: this handoff + Gate 02 record + Gate 02 ↔ Gate 11 reconciliation + current PJ authority + current repository/database/runtime
