@@ -1,0 +1,48 @@
+{
+  "contract_version": "1.0",
+  "contract_type": "workstream",
+  "workstream_id": "csapi-gate02-patient-journey",
+  "status": "binding",
+  "scope": "Gate 02 — Patient Journey — longitudinal patient lifecycle over time; next actions and continuity",
+  "required_engineering": [
+    "typecheck",
+    "lint",
+    "build"
+  ],
+  "required_suites": [
+    "engineering"
+  ],
+  "precheck_required": true,
+  "implementation_allowed_before_approval": false,
+  "required_precheck_evidence": [
+    "current longitudinal Patient Journey map",
+    "canonical ownership matrix",
+    "Patient Identity continuity across repeated Visits/Sessions",
+    "Treatment Plan → Next Action continuity",
+    "Next Action → Appointment / Follow-up / Operational Work mapping",
+    "Visit completion → continuation evidence",
+    "Follow-up linkage and next-action behavior",
+    "optional Portal and non-blocking Medical Photos boundaries preserved",
+    "tenant isolation and authorization boundaries",
+    "duplicate-engine audit",
+    "Gate 01 lifecycle authority remains unchanged",
+    "Agenda-only Gate 01 production observation classified for dependency impact",
+    "42-scenario chain reconciled against current implementation"
+  ],
+  "required_decision_artifacts": [
+    "current-state longitudinal map",
+    "ownership matrix",
+    "reality/gap matrix",
+    "Product Decision Report",
+    "explicit in-scope/out-of-scope decision",
+    "post-approval implementation boundary",
+    "verification/closure contract"
+  ],
+  "environment": {
+    "precheck_runtime": "current repository + isolated/local validation where available",
+    "hosted_production_supabase": false,
+    "vercel": false,
+    "production_mutation": false
+  },
+  "closure_rule": "Gate 02 cannot close from documentation alone. After explicit Product Owner approval, approved implementation must pass applicable engineering, database/security, integration and runtime evidence plus synchronized documentation."
+}
