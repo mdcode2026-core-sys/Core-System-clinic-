@@ -10,7 +10,7 @@ Previous Gate: Gate 01 — Patient Flow — CLOSED
 | # | Gate | Scope | Status |
 |---|---|---|---|
 | 01 | Patient Flow | Queue, Clinical Visit, Pending Close, Reception Workflow, Completed; Procedure/Session; boundaries with Treatment Plan and Follow-up | CLOSED |
-| 02 | Patient Journey | Longitudinal patient lifecycle over time; next actions and continuity | OPEN — PRECHECK READY |
+| 02 | Patient Journey | Longitudinal patient lifecycle over time; next actions and continuity | OPEN — DECISION READY |
 | 03 | Patient & Identity | Canonical identity, clinic relationship, duplicate detection, search, history, insurance, portal relationship | OPEN |
 | 04 | Agenda & Scheduling | Agenda authority, Calendar representation, provider/resource availability, conflicts, cancel/reschedule/no-show/context | OPEN |
 | 05 | Clinical Care | Clinical Visit, Clinical Decision, Medical Record, Medical Files, Measurements, Photos, Procedure, Session | OPEN |
