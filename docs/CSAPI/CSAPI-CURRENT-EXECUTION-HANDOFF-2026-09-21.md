@@ -3,7 +3,7 @@
 Updated: 2026-09-21
 Purpose: Conversation-independent handoff for the next CSAPI execution conversation.
 Current Gate: Gate 02 — Patient Journey
-Current Stage: DECISION READY
+Current Stage: APPROVED — IMPLEMENTATION AUTHORIZED
 Gate 01: CLOSED
 Open CSAPI PRs: 0
 Current main SHA: 2b39b22a6c0faf29227e85d05b8147a3865f3501
@@ -133,13 +133,11 @@ What happens when a downstream next action fails, retries, is cancelled or becom
 
 READ → INSPECT → VERIFY → RECONCILE → DECISION REPORT → PRODUCT OWNER APPROVAL → IMPLEMENT → TEST → RUNTIME VERIFY → DOCUMENT → CLOSE
 
-The Gate 02 ↔ Gate 11 Follow-up dependency/boundary reconciliation and current-state longitudinal evidence package are complete enough for decision review. The Product Decision Report is now ready for Product Owner approval.
+The Gate 02 ↔ Gate 11 Follow-up dependency/boundary reconciliation and current-state longitudinal evidence package are complete enough for decision review. The Product Decision Report was approved by the Product Owner: P1–P7 are approved, and the 20-gate map remains unchanged.
 
-No code/database change should be made until:
-- current state is known;
-- Gate 02 gaps are classified;
-- any architectural conflict is surfaced;
-- the Product Owner approves the necessary decision.
+Important execution clarification: the unchanged map remains sequential. Gate 11 is **not** the next gate after Gate 02. After Gate 02 closes, continue with Gate 03 → Gate 04 → … → Gate 11 → Gate 12 → Gate 13 → … → Gate 20.
+
+Gate 02 implementation is now authorized only within the approved longitudinal-continuity boundary.
 
 ## 9. Required Gate 02 evidence package before implementation
 
@@ -186,11 +184,21 @@ Only then move the gate to DECISION READY.
 
 The dedicated Gate 02 documentation branch is `docs/csapi-gate02-postmerge-finalize-2026-09-21`. The working-context reconciliation on that branch records the decisions and constraints established before implementation. Continue adding subsequent material reconciliation to this same branch; do not create additional documentation branches without a real scope/ownership reason.
 
-## 13. Final handoff state
+## 13. Product Owner approval record
+
+Approved: P1–P7.
+
+Approved: keep the 20-gate map unchanged.
+
+Clarification: the gate map is a sequential execution map; Gate 11/12/13 are downstream dependency/ownership references, not an instruction to skip Gates 03–10.
+
+Implementation authorization: Gate 02 only, within the approved Product Decision Report boundary.
+
+## 14. Final handoff state
 
 Gate 01: CLOSED
-Gate 02: OPEN — DECISION READY
-Implementation status: NOT STARTED
-Product Decision: PENDING OWNER APPROVAL
+Gate 02: APPROVED — IMPLEMENTATION AUTHORIZED
+Implementation status: NOT STARTED — ready to begin on dedicated Gate 02 branch
+Product Decision: P1–P7 APPROVED
 Open PRs: 0
 Current execution authority: this handoff + Gate 02 record + Gate 02 ↔ Gate 11 reconciliation + current PJ authority + current repository/database/runtime
