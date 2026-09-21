@@ -2,7 +2,7 @@
 
 **Date:** 2026-09-21  
 **Gate:** Gate 02 — Patient Journey  
-**Status:** DECISION READY — PRODUCT OWNER APPROVAL REQUIRED  
+**Status:** APPROVED FOR IMPLEMENTATION — PRODUCT OWNER APPROVED  
 **Implementation:** NOT STARTED  
 **Production mutation:** NONE
 
@@ -313,13 +313,15 @@ Gate 02 implementation, once approved, must be verified against the following:
 
 ## 9. Product Owner approval
 
-**Decision package status:** READY FOR APPROVAL
+**Decision package status:** APPROVED
 
-**Approval required before implementation:** YES
+**Approval required before implementation:** YES — satisfied
 
-**Approved implementation scope:** To be recorded after approval.
+**Product Owner approval:** P1–P7 approved. The existing 20-gate map is approved unchanged; this does **not** mean Gate 11 becomes the next execution gate after Gate 02. The normal execution map remains Gate 03 → Gate 04 → … → Gate 11 → Gate 12 → Gate 13 → … → Gate 20.
 
-**Approved verification contract:** To be recorded after approval.
+**Approved implementation scope:** Implement only genuine Gate 02 longitudinal-continuity requirements within the documented ownership boundaries. No second Patient Journey/Follow-up/Agenda/Communications/Notification/Work engine.
+
+**Approved verification contract:** The Gate 02 verification contract in Section 8 is binding for implementation and closure evidence.
 
 ---
 
@@ -331,9 +333,9 @@ PRECHECK
    ↓
 Current-state / ownership / reality / gap reconciliation COMPLETE
    ↓
-DECISION READY  ← current state
+DECISION READY
    ↓
-Product Owner Approval
+Product Owner Approval  ← APPROVED
    ↓
 Focused implementation
    ↓
@@ -342,4 +344,4 @@ Verification
 Closure
 ```
 
-**No implementation has started.**
+**Approval is complete. Implementation may now begin on a dedicated Gate 02 implementation branch.**
