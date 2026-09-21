@@ -106,3 +106,52 @@ This file is append-only for material CSAPI events. Historical entries remain ev
 - Implementation consequence: No application/database change was introduced; Gate 02 remains unimplemented pending precheck and decision approval.
 - Verification evidence: Open PR count returned 0 after merge; main is at acaab351cab0f17542bcca0f28d020cad10f0b0d.
 - Status: CLOSED / TRANSITION COMPLETE
+
+
+### CSAPI-2026-09-21-008
+- Date: 2026-09-21
+- Gate: Gate 02 — Patient Journey
+- Type: Documentation / Finding / Boundary Reconciliation
+- Source(s): Current Gate 02 working discussion; approved PJ records; Gate 02 gate plan; current Follow-up implementation review; CSAPI gate map
+- Statement: Gate 02 cannot be treated as architecturally independent from Gate 11 — Follow-up & Retention. Follow-up is an independent CORE Module, while Patient Journey is the longitudinal continuity layer. Their ownership, dependency, and execution ordering must be reconciled before Gate 02 implementation planning is finalized.
+- Evidence: Gate 11 is a dedicated CSAPI gate; Follow-up has its own current implementation/data/automation/permissions; Gate 02 explicitly covers continuity and next actions.
+- Product Owner decision: No gate reorder, merge, new gate, or Gate 11-first execution has been approved yet. Perform dependency/boundary reconciliation first.
+- Implementation consequence: No Gate 02 or Gate 11 implementation is authorized from this finding alone. Do not create a second Follow-up/PJ engine. Do not assume the current linear Gate 11 wording is final.
+- Verification evidence: Working-context reconciliation record created on the dedicated Gate 02 documentation branch.
+- Status: PRECHECK / DECISION PENDING
+
+### CSAPI-2026-09-21-009
+- Date: 2026-09-21
+- Gate: Gate 02 — Patient Journey
+- Type: Architectural/Product Context
+- Source(s): Current working discussion and approved Patient Flow/PJ boundaries
+- Statement: Longitudinal continuity is fan-out. A completed clinical interaction may produce zero, one, or many downstream consequences; Next Action is not a universal scalar and is not automatically Operational Work.
+- Evidence: Clinical Recommendations + patient decision model; Appointment, Follow-up, Treatment Plan, Review, Communication and Operational Work ownership boundaries.
+- Product Owner decision: Preserve domain ownership and patient agency; no universal workflow/state engine.
+- Implementation consequence: Continuity design must support branching consequences and historical patient decisions without forcing fake appointments or work items.
+- Verification evidence: To be established during Gate 02 precheck.
+- Status: BINDING WORKING PRINCIPLE
+
+### CSAPI-2026-09-21-010
+- Date: 2026-09-21
+- Gate: Gate 02 — Patient Journey
+- Type: Architectural/Product Context
+- Source(s): Current working discussion; Gate 01 closure semantics; PJ continuity review
+- Statement: Patient Journey is continuous and has no universal Completed/Closed terminal state. Patient Flow Completed only closes the current operational visit cycle.
+- Evidence: Gate 01 canonical lifecycle and longitudinal continuity model.
+- Product Owner decision: Preserve this distinction.
+- Implementation consequence: Never model Patient Flow completion as Patient Journey termination; continuity may remain with no immediate next action.
+- Verification evidence: To be established during Gate 02 precheck.
+- Status: BINDING WORKING PRINCIPLE
+
+### CSAPI-2026-09-21-011
+- Date: 2026-09-21
+- Gate: Gate 02 — Patient Journey
+- Type: Product Context
+- Source(s): Current working discussion
+- Statement: Clinical Recommendations may contain multiple recommendations. Each recommendation carries its own patient decision: Accepted, Declined or Deferred, followed by execution where applicable. Patient decision history remains traceable; reuse/reopen is allowed only when the same decision context remains valid, otherwise a new decision is created.
+- Evidence: Treatment recommendation/acceptance examples and decision-context rules established in the current work.
+- Product Owner decision: Preserve patient agency and medical-documentary integrity.
+- Implementation consequence: Full medical recommendation remains documented even when only part is accepted or the entire plan is declined.
+- Verification evidence: To be mapped during Gate 02/Treatment Planning reconciliation.
+- Status: BINDING WORKING PRINCIPLE
