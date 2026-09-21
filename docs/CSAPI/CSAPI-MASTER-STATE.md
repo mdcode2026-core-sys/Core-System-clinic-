@@ -61,6 +61,7 @@ The CSAPI documentation pack defines:
 
 Gate 02 — Patient Journey
 Scope: Longitudinal patient lifecycle over time; next actions and continuity.
+Status: OPEN — DECISION READY.
 
 Gate 02 is therefore not a rebuild of the historical PJ Stage 0–15 implementation. Current repository records already describe the Patient Journey as substantially implemented and closed at the PJ stage level.
 
