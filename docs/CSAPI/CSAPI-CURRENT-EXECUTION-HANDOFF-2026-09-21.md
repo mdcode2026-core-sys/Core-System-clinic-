@@ -6,14 +6,14 @@ Current Gate: Gate 02 — Patient Journey
 Current Stage: DECISION READY
 Gate 01: CLOSED
 Open CSAPI PRs: 0
-Current main SHA: acaab351cab0f17542bcca0f28d020cad10f0b0d
+Current main SHA: 2b39b22a6c0faf29227e85d05b8147a3865f3501
 Gate 01 production application candidate: 59d18b3b0ad8a097a01cff1bfd5f6ec1d7d9c90a
 
 ## 1. Start here
 
 The next conversation starts with:
 
-CSAPI → Gate 02 → Patient Journey → PRECHECK
+CSAPI → Gate 02 → Patient Journey → DECISION READY
 
 Do not reopen Gate 01.
 
