@@ -2,9 +2,9 @@
 
 Date: 2026-09-21
 Gate: CSAPI Gate 02 — Patient Journey
-Status: OPEN — DECISION READY
+Status: APPROVED — IMPLEMENTATION AUTHORIZED
 Previous Gate: Gate 01 — Patient Flow — CLOSED
-Execution mode: Decision-first; no implementation before Product Owner approval
+Execution mode: Focused implementation within approved P1–P7 boundaries
 
 ## 1. Official scope
 
@@ -228,7 +228,18 @@ Documentation alone is never closure evidence.
 
 ## 13. Immediate next action
 
-Gate 02 precheck is now complete as a decision package. The current evidence does not require Gate 11 to be merged into Gate 02 or the 20-gate map to be reordered. The Product Decision Report is the next approval artifact.
+Gate 02 precheck is complete and P1–P7 are approved by the Product Owner. The 20-gate map remains unchanged. Implementation now proceeds on a dedicated Gate 02 implementation branch.
+
+The normal gate sequence remains sequential: Gate 02 → Gate 03 → Gate 04 → … → Gate 11 → Gate 12 → Gate 13 → … → Gate 20. Gate 11/12/13 are downstream ownership dependencies, not the immediate next gates after Gate 02.
+
+Approved Gate 02 decisions to carry forward:
+- P1 longitudinal integration graph over existing domain-owned records;
+- P2 continuation fan-out rather than one scalar Next Action;
+- P3 Work Item only for actual operational action/request/handoff/escalation;
+- P4 Follow-up remains an independent module and Gate 11 remains separate;
+- P5 Agenda remains sole Appointment owner;
+- P6 Patient Journey has no universal terminal state;
+- P7 patient decisions remain explicit, per recommendation, historical and context-sensitive.
 
 Current Follow-up boundary findings to carry forward (without production mutation during precheck):
 - Follow-up automation still has a live business-level coupling to notification_queue.
