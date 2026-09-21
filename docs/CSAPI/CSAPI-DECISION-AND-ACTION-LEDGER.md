@@ -155,3 +155,52 @@ This file is append-only for material CSAPI events. Historical entries remain ev
 - Implementation consequence: Full medical recommendation remains documented even when only part is accepted or the entire plan is declined.
 - Verification evidence: To be mapped during Gate 02/Treatment Planning reconciliation.
 - Status: BINDING WORKING PRINCIPLE
+
+
+### CSAPI-2026-09-21-012
+- Date: 2026-09-21
+- Gate: Gate 02 ↔ Gate 11
+- Type: Decision / Boundary Reconciliation
+- Source(s): Gate 02 record; Gate 11 current map; ADR-014; Journey Coordination blueprint; current Follow-up implementation; current Supabase state
+- Statement: Gate 02 remains the longitudinal continuity decision/integration gate. Gate 11 remains an independent Follow-up & Retention implementation gate. They are coupled by an explicit contract but must not be merged.
+- Evidence: Follow-up has its own table, permissions, automation and UI; Gate 02 owns longitudinal continuity; Communications, Agenda and Coordination retain independent source-of-truth ownership.
+- Product Owner decision: Adopt this execution boundary for CSAPI.
+- Implementation consequence: Gate 02 proceeds without absorbing Gate 11 implementation. Gate 11 later implements/validates Follow-up-specific behavior against the Gate 02 contract.
+- Verification evidence: Reconciliation artifact `docs/CSAPI/CSAPI-GATE02-GATE11-DEPENDENCY-BOUNDARY-RECONCILIATION-2026-09-21.md`.
+- Status: ADOPTED / PREIMPLEMENTATION
+
+### CSAPI-2026-09-21-013
+- Date: 2026-09-21
+- Gate: Gate 11 — Follow-up & Retention
+- Type: Finding / Architectural Drift
+- Source(s): Supabase read-only verification; `20260904214323_route_followup_notifications_through_communications.sql`; `20260904214347_route_followup_notifications_through_communications_v2.sql`; ADR-014
+- Statement: The live Follow-up automation path still reaches `notification_queue` through `enqueue_followup_notification()`, which directly inserts delivery rows. This is implementation evidence of residual business-level coupling even though the migration was intended as a Communications-boundary remediation.
+- Evidence: Live function definition; `run_followup_automation()` calls `enqueue_followup_notification()`; current notification queue has 812 rows, with 623 tagged `communication_source=followup` and 744 carrying a Follow-up identifier.
+- Product Owner decision: Preserve as a later owning-gate remediation finding; do not mutate production during Gate 02 precheck.
+- Implementation consequence: Gate 11/Communications integration must move the business responsibility to the canonical Communications boundary without creating a second delivery engine or deleting historical Follow-up data.
+- Verification evidence: 2026-09-21 read-only Supabase query set recorded in the reconciliation artifact.
+- Status: DEFERRED TO OWNING GATE
+
+### CSAPI-2026-09-21-014
+- Date: 2026-09-21
+- Gate: Gate 11 ↔ Gate 13
+- Type: Finding / Boundary Drift
+- Source(s): Supabase read-only verification; `20260830206000_ideal_scenario_followup_next_action_bridge.sql`; Journey Coordination blueprint; ADR-014
+- Statement: A live `retention_followups` trigger can create an `operational_work_items` row from a completed Follow-up whenever next-action metadata is present, without independently proving that an actual operational action/request/handoff/escalation is required.
+- Evidence: Trigger `trg_bridge_completed_followup_next_action` and function `bridge_completed_followup_to_next_action()` are active in Supabase. The function inserts kind=`next_action`, source_type=`retention_followup`. Current live Follow-up rows contain no populated `next_action_type`, so the trigger was not exercised by the currently inspected Follow-up dataset.
+- Product Owner decision: Preserve as a later boundary correction; do not repair inside Gate 02 precheck.
+- Implementation consequence: Follow-up should emit an explicit operational requirement only when such work is actually needed; Coordination remains the sole owner of Work Items.
+- Verification evidence: Live trigger/function definition and current data distribution.
+- Status: DEFERRED TO GATE 11 / GATE 13
+
+### CSAPI-2026-09-21-015
+- Date: 2026-09-21
+- Gate: CSAPI gate map
+- Type: Decision / Scope Clarification
+- Source(s): CSAPI-GATES-PLAN.md; Gate 02 ↔ Gate 11 reconciliation; ADR-014; Journey Coordination blueprint
+- Statement: The 20-gate CSAPI map remains unchanged. Gate 11 wording is clarified to describe Follow-up lifecycle/retention plus controlled integrations; it does not own Communications, Agenda, Notification delivery, or Coordination Work Items.
+- Evidence: No dependency requires Gate 11 to execute before Gate 02, and no architectural benefit was found in merging independently owned modules into one gate. Gate 12 and Gate 13 already provide dedicated ownership for Communications and Notifications/Operational Work.
+- Product Owner decision: Adopt current gate ordering; do not reorder, merge, split or add gates based on the present evidence.
+- Implementation consequence: Continue with Gate 02 PRECHECK, then proceed to owning gates according to their clarified contracts.
+- Verification evidence: Updated CSAPI gate plan and reconciliation artifact.
+- Status: ADOPTED / MAP STABLE
