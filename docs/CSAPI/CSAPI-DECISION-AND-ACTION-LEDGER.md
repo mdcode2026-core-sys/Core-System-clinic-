@@ -93,3 +93,16 @@ Purpose: Append-only operational record so a future conversation can determine e
 ## Ledger rule
 
 This file is append-only for material CSAPI events. Historical entries remain evidence. Current status is determined by the latest applicable gate records and exact evidence chain.
+
+
+### CSAPI-2026-09-21-007
+- Date: 2026-09-21
+- Gate: CSAPI Gate 02 transition
+- Type: Closure / Documentation
+- Source(s): PR #178; GitHub merge result; Run #666
+- Statement: Gate 01 → Gate 02 documentation reconciliation was merged to main. The current CSAPI documentation authority is now present on main.
+- Evidence: PR #178 merged successfully as acaab351cab0f17542bcca0f28d020cad10f0b0d; Run #666 passed all required verification lanes before merge.
+- Product Owner decision: Begin the next conversation from Gate 02 PRECHECK.
+- Implementation consequence: No application/database change was introduced; Gate 02 remains unimplemented pending precheck and decision approval.
+- Verification evidence: Open PR count returned 0 after merge; main is at acaab351cab0f17542bcca0f28d020cad10f0b0d.
+- Status: CLOSED / TRANSITION COMPLETE
