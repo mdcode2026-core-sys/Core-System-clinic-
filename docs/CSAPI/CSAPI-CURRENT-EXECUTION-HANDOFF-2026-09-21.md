@@ -3,7 +3,7 @@
 Updated: 2026-09-21
 Purpose: Conversation-independent handoff for the next CSAPI execution conversation.
 Current Gate: Gate 02 — Patient Journey
-Current Stage: PRECHECK READY
+Current Stage: DECISION READY
 Gate 01: CLOSED
 Open CSAPI PRs: 0
 Current main SHA: acaab351cab0f17542bcca0f28d020cad10f0b0d
@@ -133,7 +133,7 @@ What happens when a downstream next action fails, retries, is cancelled or becom
 
 READ → INSPECT → VERIFY → RECONCILE → DECISION REPORT → PRODUCT OWNER APPROVAL → IMPLEMENT → TEST → RUNTIME VERIFY → DOCUMENT → CLOSE
 
-The Gate 02 ↔ Gate 11 Follow-up dependency/boundary reconciliation is now completed as a precheck input. The next task is to complete the remaining Gate 02 longitudinal evidence package and prepare the Product Decision Report.
+The Gate 02 ↔ Gate 11 Follow-up dependency/boundary reconciliation and current-state longitudinal evidence package are complete enough for decision review. The Product Decision Report is now ready for Product Owner approval.
 
 No code/database change should be made until:
 - current state is known;
@@ -189,8 +189,8 @@ The dedicated Gate 02 documentation branch is `docs/csapi-gate02-postmerge-final
 ## 13. Final handoff state
 
 Gate 01: CLOSED
-Gate 02: OPEN — PRECHECK READY
+Gate 02: OPEN — DECISION READY
 Implementation status: NOT STARTED
-Product Decision: PENDING PRECHECK EVIDENCE
+Product Decision: PENDING OWNER APPROVAL
 Open PRs: 0
 Current execution authority: this handoff + Gate 02 record + Gate 02 ↔ Gate 11 reconciliation + current PJ authority + current repository/database/runtime
