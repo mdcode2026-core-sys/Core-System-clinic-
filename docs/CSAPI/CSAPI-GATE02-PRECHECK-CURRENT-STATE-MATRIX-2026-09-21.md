@@ -462,3 +462,40 @@ Before marking Gate 02 **DECISION READY**, complete:
 No application or production database change is authorized before these are complete and the Product Owner approves the decision package.
 
 **End of current-state matrix.**
+
+
+## 17. Duplicate-engine audit
+
+The current evidence does not identify a second Patient Journey engine, but it does identify multiple **continuation materialization paths** that must remain conditional and domain-owned:
+
+- Patient Flow owns the in-clinic visit lifecycle.
+- Treatment Plan has a next-stage helper that currently materializes a Coordination Work Item.
+- Follow-up has a trigger that can materialize a Coordination Work Item.
+- Coordination owns the Work Item store and lifecycle.
+- Agenda owns appointment scheduling.
+- Communications owns communication requests/messages.
+- Notification Queue remains delivery infrastructure.
+
+These are not evidence of multiple Patient Journey engines. They are evidence that older cross-domain bridges need contract reconciliation so that one user-facing continuity concept does not become several competing backend owners.
+
+The Gate 02 architectural target is therefore **one continuity model over multiple domain-owned records**, not one universal continuity table/engine.
+
+## 18. Precheck status after this evidence pass
+
+**Current state:** Gate 02 remains OPEN — PRECHECK.
+
+**Evidence completed so far:**
+- Gate 02 ↔ Gate 11 boundary reconciliation;
+- current entity/ownership map;
+- live patient/visit/appointment/treatment/follow-up/financial relationship evidence;
+- current Follow-up and Treatment Plan boundary findings;
+- 42-scenario continuity traceability classification;
+- duplicate-engine audit baseline.
+
+**Still required before DECISION READY:**
+- exact current implementation traces for the remaining relevant continuation paths;
+- targeted automated/runtime evidence available without Vercel or production mutation;
+- final Agenda dependency classification;
+- final separation of Gate 02 defects from Gate 06/11/12/13/18 findings;
+- Product Decision Report;
+- verification/closure contract.
