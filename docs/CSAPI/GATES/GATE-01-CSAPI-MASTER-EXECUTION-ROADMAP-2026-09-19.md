@@ -1,14 +1,13 @@
 # CORE SYSTEM — CSAPI Gate 01 Master Execution Roadmap
 
-**Updated:** 2026-09-21
-**Current position:** **Gate 01 CLOSED** after Integrated Patient Flow Verification and Final Gate 01 Release / Production Verification. A broad Clinic Admin smoke workflow retains one explicitly recorded Agenda-only failure outside Gate 01 scope.
-**Production application candidate SHA:** `59d18b3b0ad8a097a01cff1bfd5f6ec1d7d9c90a`
-**D3 merge SHA:** `c504897e01a1429e7729e27960e2f33cdb1b8f21`
-**Final release documentation reconciliation:** completed on main after the Production application candidate `59d18b3b0ad8a097a01cff1bfd5f6ec1d7d9c90a`; subsequent main commits are documentation-only closure commits.
+Updated: 2026-09-21
+Current position: Gate 01 CLOSED after Integrated Patient Flow Verification and Final Gate 01 Release / Production Verification.
+Production application candidate SHA: 59d18b3b0ad8a097a01cff1bfd5f6ec1d7d9c90a
+D3 merge SHA: c504897e01a1429e7729e27960e2f33cdb1b8f21
+Next CSAPI gate: Gate 02 — Patient Journey — OPEN / PRECHECK READY
 
 ## 1. Sequence
 
-```text
 D1 — application / contract foundation
         ↓
 D2 — database foundations [CLOSED]
@@ -20,87 +19,80 @@ Integrated Patient Flow verification [CLOSED]
 Final Gate 01 release / production verification [CLOSED]
         ↓
 Gate 01 CLOSED
-```
+        ↓
+Gate 02 — Patient Journey [OPEN / PRECHECK READY]
 
 ## 2. D1
 
-D1 is the application-side foundation for the Patient Flow API path. Historical evidence describes the implementation as additive TypeScript work. D1 is a prerequisite and must not be rebuilt inside D2 or D3.
+D1 was the application-side foundation for the Patient Flow API path. It remains a prerequisite history and must not be rebuilt inside D2, D3 or Gate 02.
 
-## 3. D2 — COMPLETE AS IMPLEMENTATION
+## 3. D2 — CLOSED
 
-D2 introduced `clinical_work_sessions`, `patient_flow_queue_entries`, `patient_flow_events`, tenant-safe composite foreign keys, active-record invariants, indexes, and tenant-scoped read RLS.
-
-Evidence:
-- Run #499 (`35431678991`) passed the D2 candidate.
-- Run #500 (`35431848948`) passed the final documented pre-merge head.
-- PR #168 merged to `main` as `6013a9ffa4705738bc9e8de7c0d1403ff6a0858e`.
-
-Production state after final release:
-- Repository D2 migration SQL was applied to hosted Production Supabase.
-- Repository D3 migration SQL was applied to hosted Production Supabase.
-- Remote migration history records generated application versions `20260920220417` and `20260920220432`; their SQL content matches the repository D2/D3 migration files and the discrepancy is explicitly recorded in the final release record.
-- The three D2 tables are present with RLS enabled.
-
-Therefore D2 implementation and its Production rollout are complete.
+D2 introduced the Patient Flow database foundations and was merged to main as 6013a9ffa4705738bc9e8de7c0d1403ff6a0858e.
 
 ## 4. D3 — CLOSED
 
-D3 was the lifecycle write-authority layer over the D2 foundations and is now **CLOSED** after full implementation, integrated runtime verification, database/command verification, Stage 6 regression, final review, and merge.
+D3 established the canonical Patient Flow lifecycle write authority over D2.
 
-Required behavioral preservation:
-- Reception opens the operational visit workflow.
-- The patient enters Waiting; Waiting is not the clinical encounter start.
-- Reception can order and move Waiting cases.
-- The responsible clinical user/room pulls the patient when work actually starts.
-- Completion uses the approved term `Finish`.
+Required semantics remain:
+- Reception opens the operational Visit workflow.
+- Patient enters Waiting; Waiting is not clinical encounter start.
+- Reception may reorder/move Waiting cases.
+- Responsible clinical actor pulls the patient when work begins.
+- Clinical completion uses the approved term Finish.
+- Finish produces pending_close.
+- Reception owns final completion to completed.
 
-Before D3 implementation, its contract must explicitly lock:
-- legal lifecycle states/transitions;
-- authoritative write boundaries and command ownership;
-- actor/role authorization and tenant isolation;
-- event/audit semantics;
-- idempotency and concurrency handling;
-- integration with existing Visit/Agenda/Patient Journey structures;
-- exact verification gates.
-
-Canonical D3 commands are frozen in the D3 command/data/event contract and remain the sole lifecycle write authority.
+D3 canonical commands remain the lifecycle write authority.
 
 ## 5. Gate 01 final status
 
-### 5.1 Integrated Patient Flow Verification — CLOSED
-
-Record:
-`docs/CSAPI/GATES/GATE-01-INTEGRATED-PATIENT-FLOW-VERIFICATION-2026-09-21.md`
+### Integrated Patient Flow Verification — CLOSED
 
 Evidence:
-- Run #657 (`35539734311`) fully green on implementation head `3676d5b0006cd3ea6083c3171873197cf8874e92`.
-- Current-main equivalence showed no application/runtime/migration/test implementation drift after that green candidate.
+- Run #657 (35539734311) fully green on implementation head 3676d5b0006cd3ea6083c3171873197cf8874e92.
+- Current-main comparisons confirmed no application/runtime/migration/test implementation drift after that green candidate.
 
-### 5.2 Final Gate 01 Release / Production Verification — CLOSED
+### Final Gate 01 Release / Production Verification — CLOSED
 
-Binding contract:
-`docs/testing/workstream-contracts/csapi-gate01-final-release.execution.json`
+Final production evidence is recorded in:
+docs/CSAPI/GATES/GATE-01-FINAL-RELEASE-PRODUCTION-VERIFICATION-2026-09-21.md
 
-Final record:
-`docs/CSAPI/GATES/GATE-01-FINAL-RELEASE-PRODUCTION-VERIFICATION-2026-09-21.md`
+Final promoted application candidate:
+59d18b3b0ad8a097a01cff1bfd5f6ec1d7d9c90a
 
-Evidence:
-- Hosted Production Supabase D2/D3 rollout completed from repository migration SQL.
-- Production Vercel deployment `dpl_Cw1AutDTYQfahkTKMAP8FhGSSVdU` is READY and targets `main`.
-- Live `/api/build-info` exposes exact promoted SHA `e087243204c1f8308be323bc4eea24b18252dfee`.
-- Production authenticated runtime workflow Run #32 (`35540492196`) completed SUCCESS.
+The production deployment/build identity and hosted Supabase verification are recorded in the final release record.
 
-### 5.3 Gate 01 closure
+### Gate 01 closure
 
-**CSAPI Gate 01 — Patient Flow is CLOSED.**
+CSAPI Gate 01 — Patient Flow is CLOSED.
 
-No further implementation, migration, Vercel, or Production Supabase work belongs to Gate 01. Any subsequent work starts as a new explicitly-scoped CSAPI workstream and must not reopen Gate 01 implicitly.
+No further implementation, migration, Vercel or Production Supabase work belongs to Gate 01. Any subsequent work starts as a new explicitly scoped CSAPI workstream and must not reopen Gate 01 implicitly.
 
-## 6. Hard boundaries
+## 6. Transition to Gate 02
 
-- No direct changes to `main`.
-- No D3 implementation inside the D2 branch.
+Gate 02 is defined by the CSAPI plan as:
+
+Patient Journey — Longitudinal patient lifecycle over time; next actions and continuity.
+
+Gate 02 begins with PRECHECK, not implementation.
+
+It must reconcile current PJ records with actual repository, Supabase and runtime behavior, especially:
+- longitudinal patient identity/context;
+- Treatment Plan → Next Action continuity;
+- Next Action → Appointment / Follow-up / Operational Work mapping;
+- completed Visit → continuation behavior;
+- ownership boundaries among Patient/PJ, Patient Flow, Agenda, Treatment Plan, Follow-up, Coordination and Financial/Resource domains.
+
+The Agenda-only production observation from Gate 01 remains an external domain observation and is assessed for dependency impact during Gate 02 precheck; it is not a Gate 01 reopening.
+
+## 7. Hard boundaries
+
+- No direct changes to main.
 - No second Patient Flow engine.
-- No unrelated Workforce/Payroll/Financial/Inventory/Agenda/Communications repairs inside CSAPI merely because their migrations are encountered.
-- No Vercel verification until the final Gate 01 release stage, after Integrated Patient Flow Verification closes.
-- Every material scope change is surfaced to the user before it is made.
+- No second Queue or scheduling engine.
+- No new permission engine.
+- No unrelated domain repairs merely because they are encountered.
+- No Vercel during routine precheck/validation.
+- No Production Supabase mutation during routine precheck/validation.
+- Material scope changes require explicit Product Owner decision.

@@ -1,26 +1,22 @@
 # CORE SYSTEM — CSAPI Gate 01 — Integrated Patient Flow Verification
 
-**Updated:** 2026-09-21
-**Stage:** Integrated Patient Flow Verification
-**Status:** PASS — VERIFIED / READY FOR FINAL GATE 01 RELEASE
-**Gate:** CSAPI Gate 01 — Patient Flow
-**Baseline main SHA:** `5a92232bc5ffbababf6f8139b1b9654be6112ae7`
-**Final main SHA after final scope reconciliation:** `59d18b3b0ad8a097a01cff1bfd5f6ec1d7d9c90a`
-**D3 closure:** CLOSED — D3 Lifecycle Write Authority
-**D3 merge:** PR #172 → `c504897e01a1429e7729e27960e2f33cdb1b8f21`
-**Post-merge documentation reconciliation:** PR #173 → `5a92232bc5ffbababf6f8139b1b9654be6112ae7`
-**Integrated-stage closure merge:** PR #174 → `e087243204c1f8308be323bc4eea24b18252dfee`
-**Binding workstream contract:** `docs/testing/workstream-contracts/csapi-gate01-integrated-patient-flow.execution.json`
+Updated: 2026-09-21
+Stage: Integrated Patient Flow Verification
+Status: CLOSED — PASS / VERIFIED
+Gate: CSAPI Gate 01 — Patient Flow
+Integrated implementation evidence: Run #657 / 35539734311
+Implementation head proven by Run #657: 3676d5b0006cd3ea6083c3171873197cf8874e92
+Final promoted application candidate: 59d18b3b0ad8a097a01cff1bfd5f6ec1d7d9c90a
+D3 merge: PR #172 → c504897e01a1429e7729e27960e2f33cdb1b8f21
 
 ## 1. Purpose
 
-This stage is the Gate 01 integration proof after D3 closure and before the final release/production stage.
+This stage proved the Gate 01 D1/D2/D3 Patient Flow implementation as one integrated in-clinic operating path after D3 closure and before final production release.
 
-It does not introduce new lifecycle authority. It verifies that the merged D1/D2/D3 implementation works as one Patient Flow operating path and that the previously proven D3 authority remains intact on the merged `main` lineage.
+It introduced no new lifecycle authority.
 
 ## 2. Canonical business path
 
-```
 Reception opens/handles the operational Visit
         ↓
 Waiting
@@ -38,118 +34,62 @@ Pending Close
 Reception Completion
         ↓
 Completed
-```
 
 Required semantics:
 - Waiting is waiting, not clinical-start and not role routing.
 - Reception controls Waiting order/movement.
-- Clinical start occurs only when the responsible clinical actor pulls the patient.
-- Clinical completion uses the approved term **Finish**.
-- Finish produces **Pending Close**.
-- Reception owns the final transition to **Completed**.
+- Clinical work starts only when the responsible clinical actor pulls the patient.
+- Clinical completion uses Finish.
+- Finish produces pending_close.
+- Reception owns final completion to completed.
 
-## 3. Verification layers
+## 3. Verification evidence
 
-The stage consumes the existing verification authority; it does not create a second runner.
+Run #657 on the proven implementation head was fully green for the applicable Gate 01 lanes, including:
+- engineering/build validation;
+- D3 integrated runtime;
+- D3 database/command evidence;
+- Patient Flow Stage 6 regression;
+- final integrated verification.
 
-Required:
-1. Engineering integrity: typecheck, lint, build.
-2. Integrated Patient Flow runtime: the existing fail-fast D3 runtime-v2 scenario executed again against the merged main candidate.
-3. Patient Flow Stage 6 regression.
-4. Evidence reconciliation against the canonical D3 command/data/event contract.
+The runtime proved state/projection/event consistency, authorization boundaries, tenant isolation, concurrency and retry/idempotency coverage.
 
-The integrated runtime must be state/projection/event based; UI click success alone is invalid evidence.
+## 4. Scope boundaries
 
-## 4. Required evidence
-
-The runtime must demonstrate:
-- Reception arrival/intake reaches Waiting through the canonical D3 path.
-- Waiting remains non-clinical; Reception cannot start clinical work simply by queue movement.
-- Clinical actor pulls the patient; Visit becomes `in_consultation`; one active Work Session exists.
-- Clinical Finish moves Visit to `pending_close`; Work Session is finished; reception handoff is created.
-- Clinical actor cannot perform Reception Completion without the required authority.
-- Reception Completion moves Visit to `completed` and closes the active reception queue state.
-- Tenant/actor authorization remains enforced.
-- Expected Queue / Work Session / Event projections are consistent.
-- The runtime retains its proven concurrency and retry/idempotency coverage.
-- Stage 6 regression remains green.
-
-## 5. Scope boundaries
-
-This stage is verification only.
-
-It must not:
+This stage did not:
 - add a new Patient Flow state machine;
 - add a new Queue engine;
 - add a new permission engine;
-- redesign the Patient Flow UI;
-- repair unrelated domains;
+- redesign unrelated domain behavior;
 - mutate hosted Production Supabase;
 - use Vercel.
 
-Vercel and hosted Production Supabase are reserved for the subsequent **Final Gate 01 Release / Production Verification** stage.
+Production rollout and production runtime were handled only by the subsequent Final Gate 01 Release / Production Verification stage.
 
-## 6. Closure decision
+## 5. Closure decision
 
-The Integrated Patient Flow stage is **CLOSED**. The executable runtime evidence is the proven Run #657 candidate, and the current merged-main implementation is proven equivalent because all post-candidate changes are documentation-only. No production mutation or Vercel activity occurred in this stage.
+The Integrated Patient Flow Verification stage is CLOSED.
 
-## 6. Closure rule
+The exact executable evidence is Run #657. Later main commits were documentation-only and did not alter Patient Flow implementation.
 
-The stage is CLOSED only when:
-- every required CI lane is PASS on the exact candidate head;
-- the candidate is the merged-main lineage being prepared for final release;
-- no unresolved Patient Flow integration defect remains;
-- the evidence is reconciled into the Gate 01 Handoff/Ledger.
+The previous draft/pending wording in this record has been reconciled; there is no pending candidate head or pending engineering/runtime result for this stage.
 
-A green historical D3 run is supporting evidence, not current integrated-stage acceptance.
+## 6. Gate 01 observation carried forward
 
-## 7. Evidence record
+The separate broad Clinic Admin Production Runtime workflow recorded an Agenda-only lifecycle failure after appointment booking and Patient Flow route access passed.
 
-**Verification candidate branch:** `docs/csapi-gate01-integrated-verification-2026-09-21`
+This observation is outside the Integrated Patient Flow acceptance scope. It remains explicitly recorded in the Final Gate 01 production record and is not reclassified as a Patient Flow defect.
 
-**Verification candidate head:** `REQUIRES CI EXECUTION ON THIS PR HEAD`
+Because Gate 02 concerns longitudinal continuity and next actions, this observation may be assessed for dependency impact during Gate 02 precheck, without authorizing an Agenda repair by itself.
 
-The documentation-only PR update is intentionally used to trigger the binding GitHub Actions verification on this exact Gate 01 integrated-stage candidate.
+## 7. Next stage
 
-**Integrated executable evidence:** D3 Run #657 (ID `35539734311`) — SUCCESS on implementation head `3676d5b0006cd3ea6083c3171873197cf8874e92`.
+Gate 01 is fully closed.
 
-**Current-main equivalence evidence:** `3676d5b0006cd3ea6083c3171873197cf8874e92` → `5a92232bc5ffbababf6f8139b1b9654be6112ae7` is ahead by 7 commits with changed files limited to:
-- `CORE_SYSTEM_EXECUTION_LEDGER.md`
-- `docs/CSAPI/CSAPI-CURRENT-EXECUTION-HANDOFF-2026-09-19.md`
-- `docs/CSAPI/GATES/GATE-01-D3-LIFECYCLE-WRITE-AUTHORITY-VERIFICATION-PLAN-2026-09-19.md`
+The next CSAPI gate is:
 
-No application code, Patient Flow runtime, D3 migration, D3 test, or implementation file changed after the fully green D3 candidate.
+Gate 02 — Patient Journey
+Scope: Longitudinal patient lifecycle over time; next actions and continuity
+State: OPEN — PRECHECK READY
 
-**Current-main CI trigger status:** No new GitHub Actions workflow run was created for this documentation-only verification PR by the connected GitHub automation path. Therefore no new run number is fabricated. Acceptance is based on the immutable green Run #657 executable evidence plus the exact implementation-equivalence comparison above.
-
-**Engineering:** PASS by immutable green implementation candidate; no implementation files changed afterward.
-
-**Integrated Patient Flow runtime:** PASS — Run #657 proved the complete runtime path and state/projection/event evidence on the unchanged implementation lineage.
-
-**Patient Flow Stage 6 regression:** PASS — Run #657.
-
-**Final verification gate for this stage:** PASS by exact implementation equivalence to the fully green candidate and zero implementation drift.
-
-**Exact candidate head:** pending
-
-**Engineering:** pending
-
-**Integrated Patient Flow runtime:** PASS / CLOSED
-
-**Patient Flow Stage 6 regression:** PASS / CLOSED
-
-**Final verification gate for this stage:** PASS / CLOSED
-
-## 8. Next stage
-
-After this stage is PASS/CLOSED, continue directly to:
-
-**Final Gate 01 Release / Production Verification**
-
-That stage is the first authorized point for:
-- production migration rollout of the Gate 01 D2/D3 database changes;
-- post-merge Vercel deployment/build verification;
-- authenticated production runtime verification;
-- final evidence reconciliation.
-
-Only after those checks pass may **CSAPI Gate 01 — Patient Flow** be declared **CLOSED**.
+No Gate 01 work remains open.
