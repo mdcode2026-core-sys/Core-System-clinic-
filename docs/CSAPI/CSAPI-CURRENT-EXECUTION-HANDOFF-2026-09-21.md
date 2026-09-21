@@ -28,6 +28,7 @@ Read, in this order:
 8. PJ_FINAL_IMPLEMENTATION_STATE.md
 9. PJ_STAGE15_CLOSURE.md
 10. relevant cross-domain implementation contracts and current source/database/runtime
+11. docs/CSAPI/CSAPI-GATE02-WORKING-CONTEXT-RECONCILIATION-2026-09-21.md
 
 ## 2. What was completed in this conversation
 
@@ -129,7 +130,7 @@ What happens when a downstream next action fails, retries, is cancelled or becom
 
 READ → INSPECT → VERIFY → RECONCILE → DECISION REPORT → PRODUCT OWNER APPROVAL → IMPLEMENT → TEST → RUNTIME VERIFY → DOCUMENT → CLOSE
 
-The next conversation is currently before the Decision Report.
+The next conversation is currently before the Decision Report. The immediate architectural task is Gate 02 ↔ Gate 11 Follow-up dependency/boundary reconciliation.
 
 No code/database change should be made until:
 - current state is known;
@@ -178,7 +179,11 @@ Precheck is complete when the next agent can answer, with evidence:
 
 Only then move the gate to DECISION READY.
 
-## 12. Final handoff state
+## 12. Documentation continuity for the next conversation
+
+The dedicated Gate 02 documentation branch is `docs/csapi-gate02-postmerge-finalize-2026-09-21`. The working-context reconciliation on that branch records the decisions and constraints established before implementation. Continue adding subsequent material reconciliation to this same branch; do not create additional documentation branches without a real scope/ownership reason.
+
+## 13. Final handoff state
 
 Gate 01: CLOSED
 Gate 02: OPEN — PRECHECK READY
