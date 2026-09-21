@@ -5,7 +5,7 @@ Last reconciled: 2026-09-21
 Canonical implementation base: main; focused branches for changes
 Current Gate: Gate 02 — Patient Journey
 Previous Gate: Gate 01 — Patient Flow — CLOSED
-Execution mode: Decision-first; no Gate 02 implementation before Product Owner approval
+Execution mode: Approved focused implementation within P1–P7 boundaries
 
 ## 1. Purpose
 
@@ -61,7 +61,7 @@ The CSAPI documentation pack defines:
 
 Gate 02 — Patient Journey
 Scope: Longitudinal patient lifecycle over time; next actions and continuity.
-Status: OPEN — DECISION READY.
+Status: APPROVED — IMPLEMENTATION.
 
 Gate 02 is therefore not a rebuild of the historical PJ Stage 0–15 implementation. Current repository records already describe the Patient Journey as substantially implemented and closed at the PJ stage level.
 
@@ -113,7 +113,7 @@ Before any code or database change, Gate 02 must answer:
 - Which documented PJ capabilities are real, which are partial, and which are historical?
 - Which gaps are Gate 02 scope versus later domain gates?
 
-No implementation is authorized merely because a missing link is observed.
+No implementation is authorized merely because a missing link is observed. After the Product Owner approval recorded below, only the approved Gate 02 implementation boundary is authorized.
 
 ## 10. Required Gate 02 precheck
 
