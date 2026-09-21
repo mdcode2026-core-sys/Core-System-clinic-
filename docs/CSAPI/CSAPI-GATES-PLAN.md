@@ -10,7 +10,7 @@ Previous Gate: Gate 01 — Patient Flow — CLOSED
 | # | Gate | Scope | Status |
 |---|---|---|---|
 | 01 | Patient Flow | Queue, Clinical Visit, Pending Close, Reception Workflow, Completed; Procedure/Session; boundaries with Treatment Plan and Follow-up | CLOSED |
-| 02 | Patient Journey | Longitudinal patient lifecycle over time; next actions and continuity | OPEN — DECISION READY |
+| 02 | Patient Journey | Longitudinal patient lifecycle over time; next actions and continuity | APPROVED — IMPLEMENTATION |
 | 03 | Patient & Identity | Canonical identity, clinic relationship, duplicate detection, search, history, insurance, portal relationship | OPEN |
 | 04 | Agenda & Scheduling | Agenda authority, Calendar representation, provider/resource availability, conflicts, cancel/reschedule/no-show/context | OPEN |
 | 05 | Clinical Care | Clinical Visit, Clinical Decision, Medical Record, Medical Files, Measurements, Photos, Procedure, Session | OPEN |
@@ -52,3 +52,5 @@ Gate 02 remains the longitudinal continuity decision/integration gate. Gate 11 r
 Gate 02 defines the continuity contract. Gate 11 implements and verifies Follow-up-owned behavior within that contract. Gate 11 does not own Communications, Agenda, Notification delivery infrastructure, or Journey Coordination Work Items.
 
 The map is therefore unchanged; the Gate 11 scope wording above is the reconciled interpretation of its ownership. Any later gate split, merge or reorder requires a separate explicit CSAPI decision recorded in the ledger.
+
+**Execution clarification:** Approval of the unchanged map does not authorize skipping from Gate 02 to Gate 11. After Gate 02 closes, execution continues through Gate 03, then Gate 04 and onward in the existing map. Gate 11/12/13 are referenced here only as downstream ownership dependencies.
