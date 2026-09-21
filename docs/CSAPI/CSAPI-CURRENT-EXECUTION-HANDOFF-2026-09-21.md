@@ -6,7 +6,7 @@ Current Gate: Gate 02 — Patient Journey
 Current Stage: PRECHECK READY
 Gate 01: CLOSED
 Open CSAPI PRs: 0
-Current main SHA: 203e7935e56e20a583b8f9f79ee6a797eeb7f3c6
+Current main SHA: acaab351cab0f17542bcca0f28d020cad10f0b0d
 Gate 01 production application candidate: 59d18b3b0ad8a097a01cff1bfd5f6ec1d7d9c90a
 
 ## 1. Start here
