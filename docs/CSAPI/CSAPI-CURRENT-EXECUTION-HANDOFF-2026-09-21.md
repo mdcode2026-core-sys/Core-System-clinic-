@@ -7,7 +7,7 @@ Current Stage: CLOSED — Gate 02 verified; Gate 03 next
 Gate 01: CLOSED
 Gate 02: CLOSED — VERIFIED / PRODUCTION VERIFIED
 Open CSAPI PRs: 0
-Current main SHA: acaab351cab0f17542bcca0f28d020cad10f0b0d
+Current main SHA: authoritative `main` ref (verify exact SHA from GitHub before execution)
 Gate 01 production application candidate: 59d18b3b0ad8a097a01cff1bfd5f6ec1d7d9c90a
 
 ## 1. Start here
