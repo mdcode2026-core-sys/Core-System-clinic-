@@ -36,6 +36,12 @@ export function PatientForm({ patient, isOpen, onClose, onSuccess }: PatientForm
   const [formData, setFormData] = useState({
     first_name: patient?.first_name || "",
     last_name: patient?.last_name || "",
+    father_name: patient?.father_name || "",
+    family_name: patient?.family_name || patient?.last_name || "",
+    mother_name: patient?.mother_name || "",
+    national_id: "",
+    age_at_registration: patient?.age_at_registration?.toString() || "",
+    age_reference_date: patient?.age_reference_date || "",
     first_name_ar: patient?.first_name_ar || "",
     last_name_ar: patient?.last_name_ar || "",
     phone_primary: patient?.phone_primary || "",
@@ -52,8 +58,10 @@ export function PatientForm({ patient, isOpen, onClose, onSuccess }: PatientForm
   const validate = () => {
     const nextErrors: Record<string, string> = {};
     if (!formData.first_name.trim()) nextErrors.first_name = t.requiredFirst;
-    if (!formData.last_name.trim()) nextErrors.last_name = t.requiredLast;
+    if (!formData.father_name.trim()) nextErrors.father_name = t.requiredFather;
+    if (!formData.family_name.trim()) nextErrors.family_name = t.requiredFamily;
     if (!formData.phone_primary.trim()) nextErrors.phone_primary = t.requiredPhone;
+    if (!formData.date_of_birth.trim() && !formData.age_at_registration.trim()) nextErrors.date_of_birth = t.requiredDobOrAge;
     setErrors(nextErrors);
     return Object.keys(nextErrors).length === 0;
   };
@@ -130,6 +138,10 @@ export function PatientForm({ patient, isOpen, onClose, onSuccess }: PatientForm
             <Field id="last_name" label={t.lastName} required value={formData.last_name} error={errors.last_name} onChange={(value) => handleChange("last_name", value)} />
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <Field id="father_name" label={t.fatherName} required value={formData.father_name} error={errors.father_name} onChange={(value) => handleChange("father_name", value)} />
+            <Field id="family_name" label={t.familyName} required value={formData.family_name} error={errors.family_name} onChange={(value) => handleChange("family_name", value)} />
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Field id="first_name_ar" label={t.firstNameAr} value={formData.first_name_ar} onChange={(value) => handleChange("first_name_ar", value)} />
             <Field id="last_name_ar" label={t.lastNameAr} value={formData.last_name_ar} onChange={(value) => handleChange("last_name_ar", value)} />
           </div>
@@ -138,8 +150,13 @@ export function PatientForm({ patient, isOpen, onClose, onSuccess }: PatientForm
             <Field id="phone_secondary" label={t.secondaryPhone} value={formData.phone_secondary} onChange={(value) => handleChange("phone_secondary", value)} type="tel" />
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <Field id="mother_name" label={t.motherName} value={formData.mother_name} onChange={(value) => handleChange("mother_name", value)} />
+            <Field id="national_id" label={t.nationalId} value={formData.national_id} onChange={(value) => handleChange("national_id", value)} />
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Field id="email" label={t.email} value={formData.email} onChange={(value) => handleChange("email", value)} type="email" />
-            <Field id="date_of_birth" label={t.dob} value={formData.date_of_birth} onChange={(value) => handleChange("date_of_birth", value)} type="date" />
+            <Field id="date_of_birth" label={t.dob} value={formData.date_of_birth} error={errors.date_of_birth} onChange={(value) => handleChange("date_of_birth", value)} type="date" />
+            <Field id="age_at_registration" label="Age" value={formData.age_at_registration} onChange={(value) => handleChange("age_at_registration", value)} type="number" />
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <SelectField label={t.gender} placeholder={t.chooseGender} value={formData.gender} onChange={(value) => handleChange("gender", value)} items={[["male", t.male], ["female", t.female], ["other", t.other]]} />
