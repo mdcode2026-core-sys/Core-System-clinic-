@@ -3,7 +3,7 @@
 Updated: 2026-09-22
 Purpose: Conversation-independent handoff for the next CSAPI execution conversation.
 Current Gate: Gate 03 — Patient & Identity
-Current Stage: Gate 03 — IMPLEMENTATION DESIGN DRAFTED / DESIGN REVIEW PENDING
+Current Stage: Gate 03 — IMPLEMENTATION DESIGN COMPLETE / EXECUTION APPROVAL PENDING
 Gate 01: CLOSED
 Gate 02: CLOSED — VERIFIED / PRODUCTION VERIFIED
 Open CSAPI PRs: 0
@@ -286,3 +286,15 @@ The design establishes one canonical System Patient Identity, an explicit Clinic
 The phone-overlap scenario is explicitly treated as a test of the general matching rule, not as a business rule. Required registration fields are validation requirements, not uniqueness rules. No single field is sufficient by itself to decide identity, duplication, or rejection.
 
 Current state: IMPLEMENTATION DESIGN DRAFTED / DESIGN REVIEW PENDING. Do not execute migrations or application changes until the design is reviewed and explicitly approved.
+
+
+## Gate 03 Implementation Design Completion — 2026-09-22
+
+Design Review Resolution is complete. The authoritative revised design is:
+`docs/CSAPI/GATES/GATE-03-PATIENT-IDENTITY-IMPLEMENTATION-DESIGN-REVISED-2026-09-22.md`
+
+DR-01 through DR-12 are resolved, including canonical reuse of `patient_identities`, separation into `patient_portal_identities`, clinic-owned demographic truth, age/DOB semantics, versioned patient-match-v1, composite tenant integrity, automatic non-auth Portal binding, RLS/security redesign, history read-model boundary, Insurance boundary, and Administrative merge governance.
+
+No code, migration, production DB mutation, or deployment has been authorized.
+
+Next state: explicit Product Owner execution approval.
