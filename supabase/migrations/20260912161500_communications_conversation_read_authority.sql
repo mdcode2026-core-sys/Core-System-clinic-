@@ -37,10 +37,10 @@ USING (
       kind = 'patient'
       AND EXISTS (
         SELECT 1
-        FROM patient_identities pi
+        FROM patient_portal_identities ppi
         JOIN patient_clinic_relationships pcr ON pcr.patient_identity_id = pi.id
-        WHERE pi.auth_user_id = auth.uid()
-          AND pi.status = 'active'
+        WHERE ppi.auth_user_id = auth.uid()
+          AND ppi.status = 'active'
           AND pcr.tenant_id = communication_conversations.tenant_id
           AND pcr.clinic_patient_id = communication_conversations.clinic_patient_id
           AND pcr.status = 'active'
