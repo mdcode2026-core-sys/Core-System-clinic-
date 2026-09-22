@@ -7,8 +7,8 @@ async function patientContext(tenantId: string) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("Authentication required");
   const { data: identity } = await supabase
-    .from("patient_identities")
-    .select("id,status")
+    .from("patient_portal_identities")
+    .select("patient_identity_id,status")
     .eq("auth_user_id", user.id)
     .eq("status", "active")
     .maybeSingle();
@@ -16,7 +16,7 @@ async function patientContext(tenantId: string) {
   const { data: relationship } = await supabase
     .from("patient_clinic_relationships")
     .select("tenant_id,clinic_patient_id,status")
-    .eq("patient_identity_id", identity.id)
+    .eq("patient_identity_id", identity.patient_identity_id)
     .eq("tenant_id", tenantId)
     .eq("status", "active")
     .maybeSingle();
