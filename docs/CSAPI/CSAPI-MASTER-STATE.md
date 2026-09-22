@@ -1,11 +1,11 @@
 # CORE SYSTEM — CSAPI MASTER STATE
 
 Status: ACTIVE — Decision-Gate Workstream
-Last reconciled: 2026-09-21
+Last reconciled: 2026-09-22
 Canonical implementation base: main; focused branches for changes
-Current Gate: Gate 02 — Patient Journey
+Current Gate: Gate 03 — Patient & Identity
 Previous Gate: Gate 01 — Patient Flow — CLOSED
-Execution mode: Decision-first; no Gate 02 implementation before Product Owner approval
+Execution mode: Decision-first; Gate 02 is CLOSED; continue sequentially from Gate 03
 
 ## 1. Purpose
 
@@ -55,7 +55,13 @@ Gate 02 must preserve this authority and must not reopen or replace it.
 - Gate 01 production verification record: docs/CSAPI/GATES/GATE-01-FINAL-RELEASE-PRODUCTION-VERIFICATION-2026-09-21.md
 - Gate 01 is closed; no Gate 01 implementation work remains open.
 
-## 5. Current Gate 02 intent
+## 5. Gate 02 closure state
+
+Gate 02 — Patient Journey is CLOSED. P1–P7 were approved and the focused longitudinal continuity implementation was verified through structural checks, live Supabase continuity integrity queries, main merge and production runtime verification. No second Patient Journey engine was introduced.
+
+Deferred findings remain assigned to their owning downstream gates. The next gate is Gate 03 — Patient & Identity.
+
+## 6. Current Gate 03 intent
 
 The CSAPI documentation pack defines:
 
@@ -66,7 +72,7 @@ Gate 02 is therefore not a rebuild of the historical PJ Stage 0–15 implementat
 
 Gate 02 exists to verify and decide the longitudinal continuity contract across the already-existing domains and to identify any real gaps between the approved Patient Journey model and current executable reality.
 
-## 6. Gate 02 canonical cross-domain chain
+## 7. Gate 02 canonical cross-domain chain
 
 The inherited historical reference chain remains:
 
@@ -76,7 +82,7 @@ This is an integration reference, not a new runtime engine.
 
 Gate 02 must determine which transitions are synchronous or asynchronous, which domain owns each transition, what data/event/work object carries continuity, what is required versus optional, and which links are already runtime-verified versus only documented.
 
-## 7. Canonical ownership boundaries
+## 8. Canonical ownership boundaries
 
 - Patient truth: Patient/PJ-owned.
 - Appointment truth: Agenda-owned.
@@ -91,7 +97,7 @@ Gate 02 must determine which transitions are synchronous or asynchronous, which 
 - Authorization/entitlement: existing Team & Access / permission architecture.
 - No second Patient Journey, Queue, scheduling, permission, or workflow engine.
 
-## 8. Gate 01 inherited cross-domain observation
+## 9. Gate 01 inherited cross-domain observation
 
 The Gate 01 broad Production Runtime workflow reproduced an Agenda-only lifecycle failure after appointment booking and Patient Flow route access passed.
 
