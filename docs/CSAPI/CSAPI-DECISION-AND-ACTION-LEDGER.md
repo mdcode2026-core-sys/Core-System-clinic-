@@ -252,3 +252,15 @@ This file is append-only for material CSAPI events. Historical entries remain ev
 
 
 | 2026-09-22 | Gate 03 Implementation Design Review Resolution | `011b58040240ed72cebdf7665970ce5724fb5d5d` | IMPLEMENTATION DESIGN COMPLETE | DR-01..DR-12 resolved; revised design is execution authority | Explicit Product Owner execution approval |
+
+
+## Gate 03 authority reconciliation correction — 2026-09-22
+
+- Decision: Reconcile Gate 03 CSAPI state across the Gate Plan, Master State, Handoff, architectural contract and Implementation Design records.
+- Result: Architectural baseline APPROVED; Implementation Design COMPLETE; explicit execution approval PENDING.
+- Authority: `docs/CSAPI/GATES/GATE-03-PATIENT-IDENTITY-IMPLEMENTATION-DESIGN-REVISED-2026-09-22.md` is the sole current implementation-design authority.
+- Historical: `GATE-03-PATIENT-IDENTITY-IMPLEMENTATION-DESIGN-2026-09-22.md` is superseded and retained only as historical evidence.
+- Scope: documentation/authority reconciliation only. No application code, migration, production DB mutation, or production deployment.
+- Gate 01: CLOSED. Gate 02: CLOSED / VERIFIED / PRODUCTION VERIFIED. Neither is reopened.
+- Next transition: explicit Product Owner execution approval for Gate 03.
+- Status: RECONCILED / WAITING FOR EXECUTION APPROVAL
