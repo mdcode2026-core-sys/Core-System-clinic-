@@ -320,3 +320,12 @@ This file is append-only for material CSAPI events. Historical entries remain ev
 - Statement: Engineering verification, migration-history reconciliation, live Supabase structural/security verification and runtime verification are complete. Production deployment for the current main SHA remains the final closure prerequisite.
 - Evidence: Live Supabase identity/relationship/portal continuity is reconciled; production currently serves an older main SHA and has no runtime error clusters in the inspected window.
 - Status: FINAL PRODUCTION VERIFICATION PENDING.
+
+
+### CSAPI-2026-09-22-G03-CLOSURE
+- Date: 2026-09-22
+- Gate: Gate 03 — Patient & Identity
+- Type: Closure / Verification
+- Statement: Gate 03 implementation, engineering verification, clean migration verification, live Supabase verification, runtime verification and production deployment verification have completed successfully for the final main candidate.
+- Evidence: Production deployment is READY for the exact final main SHA; production build-info resolves to that SHA; production login returns HTTP 200; production runtime-error aggregation is clear for the verification window; live Supabase integrity/security verification is complete.
+- Status: CLOSED — VERIFIED / PRODUCTION VERIFIED.
