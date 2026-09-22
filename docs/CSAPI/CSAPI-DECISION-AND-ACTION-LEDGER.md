@@ -186,3 +186,40 @@ This file is append-only for material CSAPI events. Historical entries remain ev
 - Implementation consequence: No further Gate 02 implementation is authorized unless a new explicit CSAPI decision reopens/supersedes the closure. Deferred Treatment Plan, Follow-up, Agenda, Communications and Operational Work boundary findings remain with their owning gates.
 - Verification evidence: Gate 02 closure record and final handoff.
 - Status: CLOSED
+
+
+### CSAPI-2026-09-22-027
+- Date: 2026-09-22
+- Gate: Gate 03 — Patient & Identity
+- Type: Reconciliation / Decision
+- Source(s): CSAPI Gates Plan; CSAPI Master State; current execution handoff; Gate 03 Architectural Decision / Requirements Contract; Gate 03 Reconciliation Report; historical baseline; current repository/database/runtime evidence
+- Statement: A final pre-Implementation Design authority check found documentation-state drift but no unresolved product-architecture contradiction affecting the Gate 03 path.
+- Evidence: Gate Plan still labeled Gate 03 as NEXT; Gate 03 contract retained stale UNDER REVIEW/DRAFT wording and referred to five approved directions although seven were recorded; the ledger had not yet recorded the Gate 03 approval/reconciliation event. The underlying architectural baseline and reconciliation evidence were already complete.
+- Product Owner decision: Treat these as documentation-authority drift and reconcile them before Implementation Design. Do not introduce application or database changes as part of this correction.
+- Implementation consequence: Gate 03 remains the active gate and Gate 01/02 remain closed. No implementation starts from the stale wording.
+- Verification evidence: Current branch comparison against main; zero open PRs; current Gate 03 contract/reconciliation report; live evidence already recorded in the reconciliation report.
+- Status: RESOLVED — DOCUMENTATION AUTHORITY RECONCILED
+
+### CSAPI-2026-09-22-028
+- Date: 2026-09-22
+- Gate: Gate 03 — Patient & Identity
+- Type: Approval / State Decision
+- Source(s): Product Owner-approved Gate 03 decisions A1–A7; Gate 03 reconciliation report
+- Statement: The Gate 03 architectural/product baseline is approved. This approval covers the target architecture and requirements, not the yet-to-be-completed physical Implementation Design.
+- Evidence: Approved model Real Person → System Patient Identity → Clinic Relationship → Clinic Patient Record; stable system Patient ID plus independent clinic file identity; multi-attribute duplicate prevention with human review; Administrative merge; demographic continuity; domain-bounded history; separate Portal Identity; bounded Insurance relationship; tenant isolation.
+- Product Owner decision: Gate 03 state is APPROVED — ARCHITECTURAL BASELINE / IMPLEMENTATION DESIGN PENDING.
+- Implementation consequence: Proceed to Implementation Design only. Do not begin migrations, code changes, production database mutation or production deployment until the design is complete and execution is explicitly authorized.
+- Verification evidence: Full Gate 03 reconciliation completed; no production mutation/deployment for Gate 03.
+- Status: APPROVED — DESIGN PENDING
+
+### CSAPI-2026-09-22-029
+- Date: 2026-09-22
+- Gate: Gate 03 — Patient & Identity
+- Type: Scope Decision
+- Source(s): Gate 03 Reconciliation Report; approved architectural baseline
+- Statement: Implementation Design must resolve only the remaining bounded physical/execution details: exact matching confidence/result vocabulary and thresholds; identifier registry physical schema; merge transaction/recovery/audit mechanics; final physical Person/Patient Identity decomposition; migration/data transition strategy; and exact verification contract.
+- Evidence: Reconciliation report explicitly classifies these as implementation-design details and excludes unrelated domain rebuilds.
+- Product Owner decision: Preserve the approved scope boundary. Do not reopen Gate 01/02 or absorb Agenda, Clinical, Financial/Insurance lifecycle, Follow-up, Communications, Portal UI, or permission-engine work into Gate 03.
+- Implementation consequence: Implementation Design is the sole next stage before execution approval.
+- Verification evidence: Gate 03 scope/non-scope and later-gate ownership reconciled.
+- Status: BINDING NEXT STAGE
