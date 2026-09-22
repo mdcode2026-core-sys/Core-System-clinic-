@@ -50,6 +50,11 @@ export interface PatientInsert {
 
 export interface PatientUpdate {
   first_name?: string;
+  father_name?: string;
+  family_name?: string;
+  mother_name?: string;
+  age_at_registration?: number;
+  age_reference_date?: string;
   last_name?: string;
   first_name_ar?: string;
   last_name_ar?: string;
