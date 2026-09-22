@@ -28,6 +28,7 @@ const laneRegistry = {
   "csapi-gate01-d3-database": { id: "csapi-gate01-d3-database" },
   "csapi-gate01-d3-runtime": { id: "csapi-gate01-d3-runtime" },
   "patient-flow-stage6-regression": { id: "patient-flow-stage6-regression" },
+  "gate03_identity": { id: "gate03_identity" },
 };
 
 const commandToLane = new Map([
@@ -42,6 +43,7 @@ const commandToLane = new Map([
   ["node tools/csapi-gate01-d3-runtime.mjs", "csapi-gate01-d3-runtime"],
   ["node tools/csapi-gate01-d3-runtime-v2.mjs", "csapi-gate01-d3-runtime"],
   ["npm run ux:patient-flow-stage6", "patient-flow-stage6-regression"],
+  ["npm run csapi:gate03-identity", "gate03_identity"],
 ]);
 
 const lanes = new Map([["engineering", { id: "engineering" }]]);
