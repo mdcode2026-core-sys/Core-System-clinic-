@@ -197,8 +197,8 @@ Implementation authorization: Gate 02 only, within the approved Product Decision
 ## 14. Final handoff state
 
 Gate 01: CLOSED
-Gate 02: APPROVED — IMPLEMENTATION AUTHORIZED
-Implementation status: NOT STARTED — ready to begin on dedicated Gate 02 branch
+Gate 02: APPROVED — IMPLEMENTATION IN PROGRESS
+Implementation status: IN PROGRESS — dedicated branch `csapi/gate02-patient-journey-implementation-2026-09-22-r1` / draft implementation PR #180 was closed because its base included unreconciled documentation history; implementation is being reconstructed against the approved Gate 02 documentation baseline.
 Product Decision: P1–P7 APPROVED
 Open PRs: 0
 Current execution authority: this handoff + Gate 02 record + Gate 02 ↔ Gate 11 reconciliation + current PJ authority + current repository/database/runtime
