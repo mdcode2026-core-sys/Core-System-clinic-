@@ -106,3 +106,17 @@ This file is append-only for material CSAPI events. Historical entries remain ev
 - Implementation consequence: No application/database change was introduced; Gate 02 remains unimplemented pending precheck and decision approval.
 - Verification evidence: Open PR count returned 0 after merge; main is at acaab351cab0f17542bcca0f28d020cad10f0b0d.
 - Status: CLOSED / TRANSITION COMPLETE
+
+
+### CSAPI-2026-09-22-021
+- Date: 2026-09-22
+- Gate: Gate 02 — Patient Journey
+- Type: Verification / Canonical Continuity Links
+- Source(s): Current repository source inspection; live Supabase schema/row evidence; approved P1–P7 boundaries
+- Statement: Canonical continuity links were rechecked without introducing a universal Patient Journey engine. Patient is the longitudinal identity; Visit is the current interaction record; Agenda owns booking and links to Visit through agenda_event_id; Treatment Plan links to Patient and source Visit plus the explicit Plan↔Visit link table; Follow-up links to Patient and optionally Visit through session_id; Coordination Work links to Patient and carries source_type/source_id rather than owning upstream domain state.
+- Evidence: Live Supabase rows: 391 patients, 139 visit sessions, 8 treatment plans, 4 treatment plan items, 3 treatment-plan/visit links, 813 follow-ups, 337 agenda events, 17 operational work items, and 0 patient_history rows. Relevant tables have RLS enabled. Composite tenant-aware foreign keys exist for Patient↔Visit, Visit↔Agenda, Treatment Plan↔Patient/Visit, Treatment Plan Visit links, Agenda↔Patient, and Work↔Patient.
+- Finding: Treatment Plan completion currently materializes kind=next_action Operational Work through ensureNextAction(), and Follow-up retains next_action fields/legacy bridge paths. These are boundary findings already assigned to later owning gates; they are not reimplemented inside Gate 02.
+- Product Owner decision: Preserve P1–P7. Gate 02 implementation remains limited to longitudinal traceability/read-model correction; downstream domain ownership stays unchanged.
+- Implementation consequence: Continue with focused automated tests and runtime evidence; no production DB mutation and no Vercel deployment.
+- Verification evidence: Live Supabase schema inspection plus current source inspection of Visit, Agenda, Treatment Plan, Follow-up and Coordination paths.
+- Status: CANONICAL LINKS VERIFIED / DOWNSTREAM DRIFT DEFERRED
