@@ -4,7 +4,7 @@ Status: ACTIVE — Decision-Gate Workstream
 Last reconciled: 2026-09-22
 Canonical implementation base: main; focused branches for changes
 Current Gate: Gate 03 — Patient & Identity
-Previous Gate: Gate 01 — Patient Flow — CLOSED
+Previous Gate: Gate 02 — Patient Journey — CLOSED / VERIFIED / PRODUCTION VERIFIED
 Execution mode: Decision-first; Gate 02 is CLOSED; continue sequentially from Gate 03
 
 ## 1. Purpose
