@@ -12,8 +12,8 @@ alter table public.communication_messages add constraint communication_messages_
 drop policy if exists communications_patient_messages_read on public.communication_messages;
 create policy communications_patient_messages_read on public.communication_messages for select to authenticated using (
   tenant_id = public.get_current_tenant_id() and message_kind = 'message' and exists (
-    select 1 from public.patient_portal_identities ppi join public.patient_clinic_relationships pcr on pcr.patient_identity_id = pi.id
-    where ppi.auth_user_id = auth.uid() and ppi.status = 'active' and pcr.tenant_id = communication_messages.tenant_id
+    select 1 from public.patient_identities pi join public.patient_clinic_relationships pcr on pcr.patient_identity_id = pi.id
+    where pi.auth_user_id = auth.uid() and pi.status = 'active' and pcr.tenant_id = communication_messages.tenant_id
       and pcr.clinic_patient_id = (select clinic_patient_id from public.communication_conversations cc where cc.id = communication_messages.conversation_id and cc.tenant_id = communication_messages.tenant_id)
       and pcr.status = 'active' and pcr.deleted_at is null
   )
@@ -22,8 +22,8 @@ create policy communications_patient_messages_read on public.communication_messa
 drop policy if exists communications_patient_conversations_read on public.communication_conversations;
 create policy communications_patient_conversations_read on public.communication_conversations for select to authenticated using (
   tenant_id = public.get_current_tenant_id() and kind = 'patient' and exists (
-    select 1 from public.patient_portal_identities ppi join public.patient_clinic_relationships pcr on pcr.patient_identity_id = pi.id
-    where ppi.auth_user_id = auth.uid() and ppi.status = 'active' and pcr.tenant_id = communication_conversations.tenant_id
+    select 1 from public.patient_identities pi join public.patient_clinic_relationships pcr on pcr.patient_identity_id = pi.id
+    where pi.auth_user_id = auth.uid() and pi.status = 'active' and pcr.tenant_id = communication_conversations.tenant_id
       and pcr.clinic_patient_id = communication_conversations.clinic_patient_id and pcr.status = 'active' and pcr.deleted_at is null
   )
 );
@@ -31,8 +31,8 @@ create policy communications_patient_conversations_read on public.communication_
 drop policy if exists communications_patient_conversations_insert on public.communication_conversations;
 create policy communications_patient_conversations_insert on public.communication_conversations for insert to authenticated with check (
   tenant_id = public.get_current_tenant_id() and kind = 'patient' and status = 'open' and exists (
-    select 1 from public.patient_portal_identities ppi join public.patient_clinic_relationships pcr on pcr.patient_identity_id = pi.id
-    where ppi.auth_user_id = auth.uid() and ppi.status = 'active' and pcr.tenant_id = communication_conversations.tenant_id
+    select 1 from public.patient_identities pi join public.patient_clinic_relationships pcr on pcr.patient_identity_id = pi.id
+    where pi.auth_user_id = auth.uid() and pi.status = 'active' and pcr.tenant_id = communication_conversations.tenant_id
       and pcr.clinic_patient_id = communication_conversations.clinic_patient_id and pcr.status = 'active' and pcr.deleted_at is null
   )
 );
