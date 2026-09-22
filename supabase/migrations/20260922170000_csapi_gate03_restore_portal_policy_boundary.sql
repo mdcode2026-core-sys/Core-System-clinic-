@@ -1,4 +1,24 @@
 begin;
+drop policy if exists clinic_patients_portal_patient_read on public.clinic_patients;
+drop policy if exists patient_file_release_read on public.patient_portal_medical_file_releases;
+drop policy if exists patient_file_release_staff_write on public.patient_portal_medical_file_releases;
+drop policy if exists medical_files_patient_portal_read on public.medical_files;
+drop policy if exists medical_files_patient_portal_storage_select on storage.objects;
+drop policy if exists master_agenda_events_patient_portal_read on public.master_agenda_events;
+drop policy if exists patient_messages_read on public.patient_portal_messages;
+drop policy if exists patient_messages_patient_insert on public.patient_portal_messages;
+drop policy if exists patient_messages_clinic_insert on public.patient_portal_messages;
+drop policy if exists tenant_entitlements_scoped_read on public.tenant_entitlements;
+drop policy if exists communications_conversations_read on public.communication_conversations;
+drop policy if exists communications_messages_read on public.communication_messages;
+drop policy if exists communications_patient_conversations_read on public.communication_conversations;
+drop policy if exists communications_patient_conversations_insert on public.communication_conversations;
+drop policy if exists communications_patient_messages_read on public.communication_messages;
+drop policy if exists communications_patient_messages_insert on public.communication_messages;
+drop policy if exists communications_message_attachments_delete on public.communication_message_attachments;
+drop policy if exists communications_message_attachments_select on public.communication_message_attachments;
+drop policy if exists communications_message_attachments_insert on public.communication_message_attachments;
+drop policy if exists communications_storage_select on storage.objects;
 
 create policy clinic_patients_portal_patient_read on public.clinic_patients for select to authenticated using (
   exists (
