@@ -733,7 +733,7 @@ No scope expansion by convenience.
 
 Gate 03 is currently:
 
-**UNDER REVIEW / ARCHITECTURAL CONTRACT DRAFT**
+**APPROVED — ARCHITECTURAL BASELINE / IMPLEMENTATION DESIGN PENDING**
 
 This document establishes the target requirements and decision questions.
 
