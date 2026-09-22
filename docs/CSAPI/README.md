@@ -1,6 +1,6 @@
 # CORE SYSTEM — CSAPI
 
-Status: CURRENT — Gate 03 decision ready
+Status: CURRENT — Gate 03 architectural baseline approved; implementation design pending
 Current Gate: Gate 03 — Patient & Identity
 Previous Gate: Gate 02 — Patient Journey — CLOSED / VERIFIED / PRODUCTION VERIFIED
 
@@ -28,7 +28,7 @@ Previous Gate: Gate 02 — Patient Journey — CLOSED / VERIFIED / PRODUCTION VE
 
 ## Governing rule
 
-CSAPI is a decision-gate workstream. Existing Patient Journey implementation is evidence to inspect and reuse; Gate 02 is closed. Gate 03 is the current decision-ready gate and does not authorize implementation until its approved baseline is applied through the normal execution sequence.
+CSAPI is a decision-gate workstream. Existing Patient Journey implementation is evidence to inspect and reuse; Gate 02 is closed. Gate 03 is the current approved architectural baseline; Implementation Design is pending and implementation remains unauthorized until that design is complete and execution is explicitly approved.
 
 Every gate follows:
 
