@@ -173,3 +173,16 @@ This file is append-only for material CSAPI events. Historical entries remain ev
 - Implementation consequence: Gate 02 may proceed to synchronized closure documentation. The separate Agenda observation and downstream Treatment Plan/Follow-up boundary drifts remain deferred to their owning gates.
 - Verification evidence: Exact main SHA → exact production deployment SHA → HTTP 200 → no runtime error clusters.
 - Status: VERIFIED / CLOSURE READY
+
+
+### CSAPI-2026-09-22-026
+- Date: 2026-09-22
+- Gate: Gate 02 — Patient Journey
+- Type: Closure
+- Source(s): Gate 02 Product Decision Report; approved P1–P7; structural verification; live Supabase verification; PR #182; production deployment verification; synchronized closure documents
+- Statement: Gate 02 — Patient Journey is CLOSED. Closure is limited to the approved longitudinal-continuity decision/implementation scope and does not terminate the Patient Journey or patient relationship.
+- Evidence: P1–P7 implemented and verified; canonical continuity links passed runtime integrity checks; PR #182 merged to main; exact production deployment READY for main SHA 101034d30fc4f1f30516f470a1d024847d65225c; production HTTP 200; no runtime error clusters in selected 30-minute window; closure documentation reconciled.
+- Product Owner decision: Gate 02 closed. Continue sequentially to Gate 03 — Patient & Identity. Do not skip Gates 03–10 to downstream Follow-up/Communications/Operational Work gates.
+- Implementation consequence: No further Gate 02 implementation is authorized unless a new explicit CSAPI decision reopens/supersedes the closure. Deferred Treatment Plan, Follow-up, Agenda, Communications and Operational Work boundary findings remain with their owning gates.
+- Verification evidence: Gate 02 closure record and final handoff.
+- Status: CLOSED
