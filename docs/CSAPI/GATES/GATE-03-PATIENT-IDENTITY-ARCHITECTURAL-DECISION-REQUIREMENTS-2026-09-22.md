@@ -890,5 +890,5 @@ The remaining precheck must still reconcile:
 - runtime behavior;
 - tests and migrations.
 
-Gate 03 remains **UNDER REVIEW** until that reconciliation produces the complete Decision Report and all remaining architectural choices are either confirmed, explicitly deferred, or handed to their owning gates.
+The complete Decision Report is now recorded, the approved baseline has been reconciled against repository/database/runtime evidence, and Gate 03 is now **DECISION READY**. Remaining implementation-design details are explicitly bounded and must be finalized before code or migration changes.
 
