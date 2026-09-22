@@ -2,7 +2,7 @@
 
 Date: 2026-09-21
 Gate: CSAPI Gate 02 — Patient Journey
-Status: OPEN — IMPLEMENTATION / VERIFICATION
+Status: CLOSED — VERIFIED / PRODUCTION VERIFIED
 Previous Gate: Gate 01 — Patient Flow — CLOSED
 Execution mode: Decision-first; Product Owner approval P1–P7 recorded; implementation limited to approved longitudinal continuity boundary
 
@@ -253,3 +253,42 @@ The approved narrow implementation replaces the Patient Context Visit summary so
 ### Verification state
 
 Canonical continuity links have been inspected against current repository source and live Supabase schema/data evidence. Treatment Plan → Operational Work and Follow-up → Notification/Operational Work boundary drifts remain deferred to their owning downstream gates. Automated structural verification and runtime verification remain required before closure.
+
+
+## 15. Gate 02 closure record — 2026-09-22
+
+Gate 02 is CLOSED.
+
+### Approved scope implemented
+
+- Product Owner decisions P1–P7 remain binding.
+- Patient Context Visit continuity now reads canonical `clinic_visit_sessions` records rather than legacy/summary `patient_history`.
+- No universal Patient Journey state engine was introduced.
+- Agenda remains the sole Appointment owner.
+- Follow-up remains an independent CORE Module and Gate 11 remains a separate gate.
+- Operational Work remains Coordination-owned.
+
+### Verification evidence
+
+- Gate 02 execution-equivalent structural verification: PASS.
+- Live Supabase continuity integrity verification: PASS.
+- Current live counts: 391 patients, 139 visits, 8 Treatment Plans, 4 Treatment Plan items, 3 Plan↔Visit links, 813 Follow-ups, 337 Agenda events, 17 Operational Work items, 0 patient_history rows.
+- Integrity checks: zero Visit→Patient orphans; zero Visit→Agenda patient/tenant mismatches; zero Treatment Plan source-Visit orphans; zero Plan↔Visit patient mismatches; zero Follow-up→Patient orphans; zero Follow-up→Visit orphans; zero populated Follow-up next_action_type rows in the current dataset.
+- PR #182 merged to main as `101034d30fc4f1f30516f470a1d024847d65225c`.
+- Production deployment `dpl_Gua6zUjSLohUaptAhoKnAPtFZn7V` reached READY for that exact main SHA.
+- Production application returned HTTP 200 at `https://core-system-clinic.vercel.app/`.
+- Vercel reported no runtime error clusters in the selected 30-minute verification window.
+
+### Deferred findings
+
+The following are intentionally not Gate 02 closure blockers because they belong to later owning gates:
+
+- Treatment Plan completion currently materializes `next_action` Operational Work through its existing implementation path; boundary correction remains with the owning Treatment Planning / Operational Work gates.
+- Follow-up retains downstream notification/operational-work bridge behavior; boundary correction remains with Gate 11 / Gate 12 / Gate 13 as applicable.
+- The Agenda-only production observation from Gate 01 remains an Agenda-domain observation and is not silently repaired by Gate 02.
+
+Gate 02 closure does not imply Patient Journey or patient relationship termination. Patient Journey remains continuous; only this CSAPI Gate 02 decision/continuity scope is closed.
+
+### Next path
+
+The 20-gate map remains unchanged. The next CSAPI gate is Gate 03 — Patient & Identity.
