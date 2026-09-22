@@ -6,6 +6,7 @@ export interface Patient {
   father_name?: string;
   family_name?: string;
   mother_name?: string;
+  national_id?: string;
   age_at_registration?: number;
   age_reference_date?: string;
   first_name_ar?: string;
@@ -32,6 +33,7 @@ export interface PatientInsert {
   father_name?: string;
   family_name?: string;
   mother_name?: string;
+  national_id?: string;
   age_at_registration?: number;
   age_reference_date?: string;
   first_name_ar?: string;
