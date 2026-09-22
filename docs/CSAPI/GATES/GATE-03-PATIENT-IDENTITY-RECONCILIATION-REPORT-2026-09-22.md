@@ -2,7 +2,7 @@
 ## Full Reconciliation / Decision Report
 
 Date: 2026-09-22
-Status: DECISION READY — PRODUCT OWNER BASELINE APPROVED; IMPLEMENTATION NOT YET STARTED
+Status: APPROVED — ARCHITECTURAL BASELINE / IMPLEMENTATION DESIGN PENDING
 Main inspected: 67717ea306a3fce160d40f05a611049d33aeb4c0
 
 ## 1. Conclusion
@@ -13,7 +13,7 @@ The approved target architecture is supported by the historical architecture and
 
 The central gap is not the absence of a Patient Module. The Patient Module already exists and clinic-scoped patient records are widely referenced. The missing layer is a trustworthy reusable system-level identity that can connect independent clinic patient records without granting cross-clinic access.
 
-Gate 03 is therefore DECISION READY. Implementation is not authorized merely by the existence of gaps; the next implementation must follow this reconciled contract.
+Gate 03 is therefore APPROVED at the architectural/product level. Implementation is not authorized merely by the existence of gaps; the next step is bounded Implementation Design, followed by explicit execution approval.
 
 No production database mutation or production deployment was performed during this reconciliation.
 
@@ -356,7 +356,7 @@ The reconciliation satisfies the Gate 03 Definition of Ready:
 - scope and non-scope defined.
 
 Gate 03 is now:
-**DECISION READY**
+**APPROVED — ARCHITECTURAL BASELINE / IMPLEMENTATION DESIGN PENDING**
 
 The exact matching thresholds, identifier registry physical schema, merge transaction/recovery mechanics and final physical Person/Patient Identity decomposition are implementation-design details to be finalized before migrations/code changes.
 
@@ -380,3 +380,8 @@ Core rule:
 CORE SYSTEM may recognize that patient records in different clinics represent the same real person, but that recognition never grants one clinic access to another clinic's patient record.
 
 The clinic owns the clinic patient record; the system maintains the identity/linkage mechanism needed for continuity without becoming the owner of the clinic's clinical data.
+
+
+### Pre-Implementation Design authority reconciliation — 2026-09-22
+
+The final authority check found documentation-state drift but no unresolved architectural contradiction. The corrected status is APPROVED — ARCHITECTURAL BASELINE / IMPLEMENTATION DESIGN PENDING. Remaining design details are bounded to matching thresholds/result vocabulary, identifier registry schema, merge/recovery/audit mechanics, physical Person/Patient Identity decomposition, migration/data-transition strategy, and the exact verification contract.
