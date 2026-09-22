@@ -377,3 +377,14 @@ Remaining implementation-critical work before verification:
 4. Add the Gate 03 automated test contract and execute build/type/test verification.
 5. Run migration validation against a clean database and inspect migration-history parity before any remote application.
 6. Only after all checks pass: apply the migration to the appropriate environment, verify live data/security/runtime, reconcile documentation, merge, and perform post-main production verification.
+
+
+## Gate 03 post-main verification state — 2026-09-22
+
+Gate 03 implementation PR #186 is merged into main at `e0b07e715a3eb7eeecab51374754646a8ae31d32`.
+
+Live Supabase implementation and database-level verification are complete. Main now contains the implementation and synchronized implementation documentation.
+
+Final closure remains contingent only on post-main production deployment verification. The connected Vercel integration has not yet produced a deployment for the merged main SHA; recent branch deployment status is affected by the Vercel build-rate-limit status. The connected Vercel tool surface does not currently expose a working deployment-write operation.
+
+Gate 03 must not be marked CLOSED until the production deployment for the merged main SHA is READY and post-main runtime verification passes.
