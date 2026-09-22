@@ -1,3 +1,10 @@
+# HISTORICAL / SUPERSEDED — DO NOT USE AS EXECUTION AUTHORITY
+
+> This initial Gate 03 Implementation Design has been superseded by the reviewed and reconciled design:
+> `docs/CSAPI/GATES/GATE-03-PATIENT-IDENTITY-IMPLEMENTATION-DESIGN-REVISED-2026-09-22.md`
+>
+> It is retained only as historical design-review evidence. No implementation authority derives from this document.
+
 # CORE SYSTEM — CSAPI Gate 03 — Patient & Identity
 ## Implementation Design
 Date: 2026-09-22
