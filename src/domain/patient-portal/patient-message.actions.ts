@@ -85,7 +85,7 @@ export async function sendPatientMessage(tenantId: string, body: string) {
     tenant_id: relationship.tenant_id,
     conversation_id: conversationId,
     sender_clinic_user_id: null,
-    sender_patient_identity_id: identity.id,
+    sender_patient_identity_id: identity.patient_identity_id,
     sender_type: "patient",
     body: text,
     message_kind: "message",
