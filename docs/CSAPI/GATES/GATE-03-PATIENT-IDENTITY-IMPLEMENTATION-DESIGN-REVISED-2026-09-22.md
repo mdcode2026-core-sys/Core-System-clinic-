@@ -249,7 +249,11 @@ Evidence is normalized before comparison.
 
 ### 11.1 Evidence weights
 
-Maximum contribution by evidence class:
+The previous parameterization made EXACT_MATCH mathematically unreachable whenever national ID/card was absent. The national identifier is optional by the approved product baseline, so that parameterization is rejected.
+
+The revised patient-match-v1 keeps the weighted score for ranking and audit, retains the 80-point high-confidence threshold, and adds a narrowly controlled deterministic core-profile path for strong matches without a government identifier.
+
+Maximum contribution by evidence class remains:
 
 - verified national ID/card exact: 30
 - exact DOB: 20
@@ -271,6 +275,7 @@ When DOB is unavailable, age-at-registration evidence contributes at most 8 poin
 Age evidence cannot be combined with DOB points for the same candidate.
 
 ### 11.2 Normalization
+
 
 Name comparison uses the approved normalization layer for:
 - Unicode normalization;
@@ -296,21 +301,52 @@ Examples of strong conflict:
 
 A strong conflict moves the candidate to `REVIEW_REQUIRED` when enough other evidence exists, otherwise it contributes to `NO_MATCH`.
 
-### 11.4 Result thresholds
+### 11.4 EXACT_MATCH paths
 
-The score is interpreted as:
+**Path A — weighted high-confidence match**
 
-- `EXACT_MATCH`: score >= 80, at least 3 independent evidence classes, and no strong conflict.
-- `REVIEW_REQUIRED`: score 55–79, or any meaningful candidate with a strong conflict, or an otherwise incomplete high-value evidence combination.
-- `NO_MATCH`: score < 55 and no review-triggering conflict/candidate condition.
+A candidate qualifies when:
+- score >= 80;
+- at least 3 independent evidence classes contribute;
+- no strong conflict.
 
-No single field can reach `EXACT_MATCH`.
+**Path B — non-government-ID core-profile match**
 
-The policy version, weights, normalization rules and thresholds are persisted/versioned and included in audit metadata for every matching decision.
+A candidate may qualify without national ID/card when all of the following are true:
+- exact DOB is present and matches;
+- exact first name matches;
+- exact father name matches;
+- exact family name matches;
+- exact sex matches;
+- normalized phone matches;
+- no strong conflict;
+- at least two additional corroborating evidence classes agree from available evidence such as mother name, email, or another governed non-government identifier with verified/current status;
+- the candidate is unique after candidate generation.
 
-These values are implementation parameters proposed by this design, not a new product/business rule. Any change after execution begins requires controlled matching-policy change, test updates and explicit documentation.
+This path does not make any single field a unique identifier. Name+phone alone is never sufficient.
 
----
+If the core profile is complete but corroboration or uniqueness is insufficient, the result is REVIEW_REQUIRED.
+
+### 11.5 REVIEW_REQUIRED / NO_MATCH
+
+The weighted score remains the primary ambiguity/ranking signal:
+
+- REVIEW_REQUIRED: score 55–79, any meaningful candidate with a strong conflict, or a core-profile candidate that fails the Path B corroboration/uniqueness requirement.
+- NO_MATCH: score <55 and no review-triggering candidate/conflict condition.
+
+No single field can reach EXACT_MATCH.
+
+The policy version, weights, normalization rules, path requirements and thresholds are persisted/versioned and included in audit metadata for every matching decision.
+
+These values are implementation parameters, not a new product/business rule. Any change after execution begins requires controlled matching-policy change, test updates and explicit documentation.
+
+### 11.6 Blocker resolution
+
+The previous design had a mathematical inconsistency: without national ID, the maximum score with DOB was 70 while EXACT_MATCH required 80.
+
+The correction does not simply lower the 80 threshold. It retains the high-confidence weighted threshold and adds the controlled Path B deterministic pattern so a sufficiently complete non-government-ID profile can reach EXACT_MATCH safely.
+
+National ID absence therefore does not block registration and does not make automatic identity recognition mathematically impossible. Ambiguous cases still require human review.
 
 ## 12. Matching result behavior
 
@@ -703,9 +739,20 @@ This design does NOT authorize:
 
 ---
 
+## 27. Match-policy blocker resolution — 2026-09-22
+
+The pre-implementation verification blocker is resolved at the implementation-design level.
+
+Authoritative resolution: docs/CSAPI/GATES/GATE-03-PATIENT-IDENTITY-MATCH-POLICY-RESOLUTION-2026-09-22.md
+
+No application code, migration, production database mutation, or deployment was introduced by this resolution.
+
+Current transition:
+PRE-IMPLEMENTATION VERIFICATION → MATCH-POLICY BLOCKER RESOLVED → PRE-IMPLEMENTATION VERIFICATION CONTINUES.
+
 ## 28. Final implementation-design status
 
-**IMPLEMENTATION DESIGN COMPLETE — EXECUTION APPROVED — PRE-IMPLEMENTATION VERIFICATION**
+**IMPLEMENTATION DESIGN COMPLETE — EXECUTION APPROVED — PRE-IMPLEMENTATION VERIFICATION CONTINUES AFTER MATCH-POLICY RESOLUTION**
 
 The next valid state transition is:
 
