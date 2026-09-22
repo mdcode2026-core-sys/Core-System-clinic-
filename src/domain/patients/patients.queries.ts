@@ -55,6 +55,35 @@ export function usePatientHistory(patientId: string | null) {
   });
 }
 
+
+export interface PatientVisitContinuity {
+  id: string;
+  patient_id: string;
+  session_status: string;
+  session_started_at: string | null;
+  session_ended_at: string | null;
+  visit_closed_at: string | null;
+  agenda_event_id: string | null;
+  created_at: string;
+}
+
+export function usePatientVisits(patientId: string | null) {
+  return useQuery({
+    queryKey: ["patient-visits", patientId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("clinic_visit_sessions")
+        .select("id,patient_id,session_status,session_started_at,session_ended_at,visit_closed_at,agenda_event_id,created_at")
+        .eq("patient_id", patientId)
+        .is("deleted_at", null)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return (data ?? []) as PatientVisitContinuity[];
+    },
+    enabled: !!patientId,
+  });
+}
+
 export function useDeletePatient() {
   const queryClient = useQueryClient();
   return useMutation({
