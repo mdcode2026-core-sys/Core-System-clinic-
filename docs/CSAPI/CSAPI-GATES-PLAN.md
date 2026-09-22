@@ -57,9 +57,9 @@ Gate 03 architectural/product decisions were explicitly approved and the full RE
 The Implementation Design is now complete and reconciled in:
 `docs/CSAPI/GATES/GATE-03-PATIENT-IDENTITY-IMPLEMENTATION-DESIGN-REVISED-2026-09-22.md`
 
-**Current State:** IMPLEMENTATION DESIGN COMPLETE — EXECUTION APPROVAL PENDING.
+**Current State:** EXECUTION APPROVED — PRE-IMPLEMENTATION VERIFICATION CONTINUES; MATCH-POLICY BLOCKER RESOLVED.
 
-This state does not authorize application code, migrations, production database mutation, or deployment. The next CSAPI transition is explicit Product Owner execution approval, followed by implementation and the normal verification/closure sequence.
+This state does not authorize application code, migrations, production database mutation, or deployment. The match-policy pre-implementation blocker has been resolved in the authoritative Revised Implementation Design. Continue pre-implementation dependency verification, then proceed to implementation and the normal verification/closure sequence.
 
 The earlier non-revised Implementation Design document is historical/superseded and is not an execution authority.
 
@@ -69,3 +69,12 @@ The 20-gate map remains unchanged. Gate 01 and Gate 02 remain CLOSED and must no
 ### Gate 03 execution approval — 2026-09-22
 
 Execution has been explicitly approved by the Product Owner. Gate 03 is now authorized to proceed through Pre-Implementation Verification → Implement → Test → Runtime Verify → Document → Close, within the approved scope.
+
+
+### Gate 03 match-policy blocker resolution — 2026-09-22
+
+The initial patient-match-v1 parameters were internally inconsistent: without national ID/card, the maximum score with DOB was 70 while EXACT_MATCH required 80. This was resolved without lowering the 80 threshold. The revised policy retains the weighted high-confidence path and adds a controlled non-government-ID core-profile EXACT_MATCH path requiring exact DOB, first/father/family names, sex, normalized phone, two additional corroborating evidence classes, no strong conflict, and a unique candidate. National ID remains optional and no single field is a unique identity key.
+
+Authoritative resolution: `docs/CSAPI/GATES/GATE-03-PATIENT-IDENTITY-MATCH-POLICY-RESOLUTION-2026-09-22.md`.
+
+Current Gate 03 state: EXECUTION APPROVED — PRE-IMPLEMENTATION VERIFICATION CONTINUES. Gate 01 and Gate 02 remain CLOSED.
