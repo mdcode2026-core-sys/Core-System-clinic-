@@ -146,3 +146,17 @@ This file is append-only for material CSAPI events. Historical entries remain ev
 - Implementation consequence: Gate 02 structural/static test lane is green. No database or production mutation.
 - Verification evidence: Gate 02 structural verification: PASS.
 - Status: VERIFIED / RUNTIME NEXT
+
+
+### CSAPI-2026-09-22-024
+- Date: 2026-09-22
+- Gate: Gate 02 — Patient Journey
+- Type: Runtime Verification
+- Source(s): Live Supabase project `core-system-clinic`; read-only SQL continuity integrity queries; live schema/RLS inspection
+- Statement: Runtime continuity integrity verification passed for the canonical links in scope. No orphan or cross-patient/cross-tenant mismatch was found across Patient→Visit, Visit→Agenda, Treatment Plan→source Visit, Treatment Plan↔Visit, or Follow-up→Patient/Visit relationships in the current dataset.
+- Evidence: 391 patients; 139 visits; 8 treatment plans; 4 treatment-plan items; 3 plan↔visit links; 813 follow-ups; 337 agenda events; 17 operational work items; 0 patient_history rows. Integrity query results: visit_patient_orphans=0; visit_agenda_mismatches=0; treatment_source_visit_orphans=0; plan_visit_patient_mismatches=0; followup_patient_orphans=0; followup_visit_orphans=0; followups_with_next_action_type=0; next_action_work_items=4. Relevant tables are RLS-enabled and composite tenant-aware FKs are present for the inspected core links.
+- Finding: The four existing `next_action` Work Items remain historical/runtime data and do not prove that the current implementation satisfies P3; the source-path boundary remains deferred to owning gates. No currently populated Follow-up next_action_type exercised the legacy bridge path.
+- Product Owner decision: Runtime continuity evidence is sufficient for the approved Gate 02 implementation scope; do not repair downstream boundary drift here.
+- Implementation consequence: No production mutation. Proceed to final repository/PR verification and Gate 02 closure documentation; Vercel remains out of scope until the later final production verification rule.
+- Verification evidence: Live Supabase read-only verification passed.
+- Status: RUNTIME VERIFIED / CLOSURE PREPARATION
