@@ -15,7 +15,7 @@ export function useRooms(tenantId: string | null, options?: { includeInactive?: 
 
       let query = supabase
         .from("clinic_rooms")
-        .select("id, tenant_id, room_name, room_type, floor_number, capacity, is_active, created_at, updated_at")
+        .select("id, tenant_id, room_name, room_type, floor_number, capacity, is_active, created_at, updated_at, deleted_at")
         .eq("tenant_id", tenantId)
         .order("room_name");
 
