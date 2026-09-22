@@ -4,8 +4,15 @@
   "workstream_id": "csapi-gate03-patient-identity",
   "status": "binding",
   "scope": "Gate 03 — Patient & Identity",
-  "required_engineering": ["typecheck", "lint", "build"],
-  "required_suites": ["engineering", "gate03_identity"],
+  "required_engineering": [
+    "typecheck",
+    "lint",
+    "build"
+  ],
+  "required_suites": [
+    "engineering",
+    "gate03_identity"
+  ],
   "precheck_required": true,
   "implementation_allowed_before_approval": true,
   "matching_policy": {
@@ -46,5 +53,17 @@
     "insurance remains domain-owned",
     "no parallel identity engine"
   ],
-  "closure_rule": "Gate 03 closes only after implementation, engineering tests, database/security verification, runtime evidence, documentation reconciliation, main integration, and post-main production verification."
+  "closure_rule": "Gate 03 closes only after implementation, engineering tests, database/security verification, runtime evidence, documentation reconciliation, main integration, and post-main production verification.",
+  "applicability": {
+    "match_any": [
+      "^src/domain/patients/",
+      "^src/features/patients/",
+      "^src/domain/patient-portal/",
+      "^src/app/api/patients/",
+      "^supabase/migrations/2026092213",
+      "^tools/csapi-gate03-patient-identity-audit\\.mjs$",
+      "^docs/CSAPI/GATES/GATE-03-",
+      "^docs/testing/workstream-contracts/csapi-gate03-patient-identity\\.execution\\.json$"
+    ]
+  }
 }
