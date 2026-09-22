@@ -242,3 +242,16 @@ This file is append-only for material CSAPI events. Historical entries remain ev
 - Implementation consequence: Implement longitudinal continuity/traceability only; preserve domain ownership; do not create duplicate Patient Journey, Follow-up, Agenda, Communications, Notification or Work engines. Gate 11/12/13 remain downstream gates/dependencies.
 - Verification evidence: Gate 02 verification contract remains binding and must be satisfied before closure.
 - Status: APPROVED FOR IMPLEMENTATION
+
+
+### CSAPI-2026-09-22-019
+- Date: 2026-09-22
+- Gate: Gate 02 — Patient Journey
+- Type: Implementation Start / Scope Correction
+- Source(s): Approved Gate 02 Product Decision Report; current implementation inspection; Gate 02 continuity boundary audit
+- Statement: Gate 02 implementation begins with a narrow longitudinal-continuity correction: Patient Context must read Visit continuity from the canonical `clinic_visit_sessions` records rather than the legacy/summary `patient_history` record. No new Patient Journey state engine or cross-domain owner is introduced.
+- Evidence: Current Patient Context consumed `patient_history` for visit count/last visit while live/current evidence shows the canonical Visit/session records contain the actual longitudinal interaction history.
+- Product Owner decision: This implementation is within the already approved Gate 02 scope of continuity/traceability; downstream Treatment Plan, Follow-up, Agenda, Communications, Notification and Coordination findings remain deferred to their owning gates.
+- Implementation consequence: Added a canonical Visit continuity read query and switched the existing Patient Context Visit summary to that source; added a focused Gate 02 structural audit. No database or production mutation.
+- Verification evidence: Static repository inspection completed; automated audit is added and will be executed with the engineering verification cycle.
+- Status: IMPLEMENTATION IN PROGRESS
