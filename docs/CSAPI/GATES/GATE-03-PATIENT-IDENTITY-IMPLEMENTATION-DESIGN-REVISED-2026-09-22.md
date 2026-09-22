@@ -2,7 +2,7 @@
 ## Revised Implementation Design / Design Review Resolution
 Date: 2026-09-22
 Gate: CSAPI Gate 03 — Patient & Identity
-Status: IMPLEMENTATION DESIGN COMPLETE — AWAITING EXPLICIT EXECUTION APPROVAL
+Status: IMPLEMENTATION DESIGN COMPLETE — EXECUTION APPROVED — PRE-IMPLEMENTATION VERIFICATION
 Authority: Approved Gate 03 Architectural Decision / Requirements Contract + Design Review Resolution
 Scope: Physical implementation design only. No application code, migration, production mutation, or deployment is authorized by this document.
 
@@ -16,7 +16,7 @@ The first design draft was found directionally correct but not execution-ready. 
 
 This document is the execution-design authority for Gate 03. The earlier draft remains historical evidence of the review process and is superseded for implementation planning by this document.
 
-Execution remains a separate Product Owner approval step.
+Product Owner execution approval was granted on 2026-09-22. This document remains the implementation-design authority; execution now proceeds through the defined verification and implementation sequence.
 
 ---
 
@@ -558,7 +558,7 @@ Backfill is idempotent and must be dry-run/reconciled before live mutation.
 
 ## 22. Migration and rollback sequence
 
-No production migration is authorized by this document.
+Production migration remains prohibited until post-main verification criteria are satisfied; implementation migrations may be prepared and validated on the approved execution branch.
 
 When execution is approved, migration order is:
 
@@ -705,16 +705,17 @@ This design does NOT authorize:
 
 ## 28. Final implementation-design status
 
-**IMPLEMENTATION DESIGN COMPLETE — READY FOR EXPLICIT EXECUTION APPROVAL**
+**IMPLEMENTATION DESIGN COMPLETE — EXECUTION APPROVED — PRE-IMPLEMENTATION VERIFICATION**
 
 The next valid state transition is:
 
 IMPLEMENTATION DESIGN COMPLETE
-→ PRODUCT OWNER EXECUTION APPROVAL
+→ EXECUTION APPROVED
+→ PRE-IMPLEMENTATION VERIFICATION
 → IMPLEMENT
 → BUILD / TEST
 → RUNTIME / DATA / SECURITY VERIFY
 → DOCUMENT
 → CLOSE
 
-No implementation action should begin before the explicit execution approval.
+Execution is authorized as of 2026-09-22. No production mutation or deployment occurs before the required verification sequence.
