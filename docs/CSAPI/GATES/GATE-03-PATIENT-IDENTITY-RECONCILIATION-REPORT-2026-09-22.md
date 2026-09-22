@@ -103,21 +103,14 @@ The existing patient_identities table is currently tied to Portal authentication
 
 Therefore it cannot simply be assumed to be the canonical reusable Patient Identity without architectural correction.
 
-### B. Current phone uniqueness conflicts with the approved product rule
+### B. Current phone uniqueness is an implementation constraint that must be reconciled with the matching architecture
 
 Live database constraint:
 UNIQUE (tenant_id, phone_primary)
 
-The approved requirement explicitly allows different people to share a phone number, such as family members.
+This constraint is not itself a product decision. The approved architecture requires mandatory phone validation and multi-attribute identity matching. A phone overlap is evidence for matching/review; it is not by itself proof of duplicate identity or a reason to reject a valid registration.
 
-Therefore phone must become matching evidence, not a universal unique Patient key.
-
-Target behavior:
-- shared phone → alert/candidate evidence;
-- ambiguous case → authorized human review;
-- sufficiently different person → allow creation;
-- no silent merge;
-- no automatic rejection from one matching field.
+Therefore the implementation must preserve valid phone-format/number validation while ensuring that a phone overlap cannot block a valid registration solely because the value already exists. The exact replacement index/constraint behavior is an Implementation Design detail and must be finalized after inspecting all phone consumers and historical assumptions.
 
 ### C. Patient Module search is not yet identity authority
 
@@ -358,7 +351,7 @@ The reconciliation satisfies the Gate 03 Definition of Ready:
 Gate 03 is now:
 **APPROVED — ARCHITECTURAL BASELINE / IMPLEMENTATION DESIGN PENDING**
 
-The exact matching thresholds, identifier registry physical schema, merge transaction/recovery mechanics and final physical Person/Patient Identity decomposition are implementation-design details to be finalized before migrations/code changes.
+The exact matching thresholds, identifier registry physical schema, merge transaction/recovery mechanics, final physical Person/Patient Identity decomposition, migration/backfill sequence and exact verification contract are now defined in the Gate 03 Implementation Design document; execution remains pending design review and explicit approval.
 
 All approved decisions remain subject to the normal CSAPI change-control process in later stages.
 
@@ -390,3 +383,16 @@ The final authority check found documentation-state drift but no unresolved arch
 ### Portal ID semantic decision — 2026-09-22
 
 The final pre-Implementation Design review resolved one semantic ambiguity in the approved Portal requirement. The background **Portal ID** is a stable non-authentication identity/binding associated with the System Patient Identity. It exists before Portal subscription/activation, but it is not a login account, does not authenticate the patient, and does not grant access. Authentication/account binding remains separate; subscription/entitlement controls access and visibility. This preserves the approved rule that identity exists before Portal activation without coupling canonical identity to authentication.
+
+
+### Implementation Design reconciliation — 2026-09-22
+
+The Gate 03 Implementation Design has been drafted and reconciled against the approved architectural baseline, current main source, and live Supabase schema/constraints.
+
+The design explicitly separates:
+1. Registration Validity — required-field and phone-format validation;
+2. Identity Matching — multi-attribute evidence against existing System Patient Identities.
+
+The design does not promote any example into a product rule. In particular, a shared/overlapping phone scenario is a verification fixture for the broader matching contract, not a rule that phone numbers are universally non-unique.
+
+No application code, migration, production database mutation, or production deployment has been performed. Current state: IMPLEMENTATION DESIGN DRAFTED / DESIGN REVIEW PENDING.
