@@ -3,7 +3,7 @@
 Updated: 2026-09-22
 Purpose: Conversation-independent handoff for the next CSAPI execution conversation.
 Current Gate: Gate 03 — Patient & Identity
-Current Stage: Gate 03 — DECISION READY / reconciliation complete
+Current Stage: Gate 03 — APPROVED ARCHITECTURAL BASELINE / Implementation Design pending
 Gate 01: CLOSED
 Gate 02: CLOSED — VERIFIED / PRODUCTION VERIFIED
 Open CSAPI PRs: 0
@@ -235,7 +235,7 @@ Product Owner baseline approved:
 - Portal access is entitlement-controlled and separate from canonical Patient Identity.
 
 Current reconciliation conclusion:
-- Gate 03 = DECISION READY.
+- Gate 03 = APPROVED — ARCHITECTURAL BASELINE / IMPLEMENTATION DESIGN PENDING.
 - Implementation has not started.
 - Production Supabase was not mutated.
 - No production Vercel deployment was made for Gate 03.
@@ -259,3 +259,12 @@ Implementation boundary:
 - Preserve tenant isolation and existing domain ownership.
 
 The next step is implementation design and Product Owner-approved execution of this Gate 03 baseline, not a return to Gate 02.
+
+
+### Gate 03 pre-Implementation Design authority reconciliation — 2026-09-22
+
+A final cross-document authority check found documentation-state drift only: the Gate Plan still labeled Gate 03 as NEXT, the Gate 03 contract retained stale pre-reconciliation status wording and said five rather than seven approved directions, and the decision ledger lacked the Gate 03 approval/reconciliation entries. These inconsistencies have been reconciled. No application/database change was introduced.
+
+**Current authority:** Gate 03 — APPROVED ARCHITECTURAL BASELINE / IMPLEMENTATION DESIGN PENDING.
+
+This approval is architectural/product approval only. It does not authorize implementation. The next and only execution-preparation step is Implementation Design, followed by explicit execution approval.
