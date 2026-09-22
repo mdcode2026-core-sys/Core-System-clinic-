@@ -85,7 +85,7 @@ export async function createCommunicationAttachmentUpload(input: { messageId: st
     if (participant || conversation.kind === "patient") uploader = { clinicUserId: ctx.clinicUser.id, patientIdentityId: null };
   }
   if (!uploader.clinicUserId && conversation.kind === "patient" && message.message_kind === "message") {
-    const { data: identity } = await ctx.supabase.from("patient_identities").select("id").eq("auth_user_id", ctx.user.id).eq("status", "active").maybeSingle();
+    const { data: identity } = await ctx.supabase.from("patient_portal_identities").select("patient_identity_id").eq("auth_user_id", ctx.user.id).eq("status", "active").maybeSingle();
     const { data: relationship } = identity && conversation.clinic_patient_id ? await ctx.supabase.from("patient_clinic_relationships").select("clinic_patient_id").eq("patient_identity_id", identity.id).eq("tenant_id", ctx.tenantId).eq("clinic_patient_id", conversation.clinic_patient_id).eq("status", "active").maybeSingle() : { data: null };
     if (identity && relationship) uploader = { clinicUserId: null, patientIdentityId: identity.id };
   }
