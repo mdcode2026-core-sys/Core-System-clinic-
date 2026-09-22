@@ -163,3 +163,21 @@ Current execution state is:
 - Next execution sequence: READ → INSPECT → VERIFY → RECONCILE → DECISION REPORT → PRODUCT OWNER APPROVAL → IMPLEMENT → TEST → RUNTIME VERIFY → DOCUMENT → CLOSE.
 - Do not reopen Gate 02 unless a new explicit CSAPI decision supersedes its closure.
 - The 20-gate map remains unchanged.
+
+
+## 12. Gate 03 reconciliation state — 2026-09-22
+
+Gate 03 — Patient & Identity is now **DECISION READY**.
+
+The full reconciliation is recorded in:
+- docs/CSAPI/GATES/GATE-03-PATIENT-IDENTITY-RECONCILIATION-REPORT-2026-09-22.md
+- docs/CSAPI/GATES/GATE-03-PATIENT-IDENTITY-ARCHITECTURAL-DECISION-REQUIREMENTS-2026-09-22.md
+
+The Product Owner-approved baseline is recorded and reconciled against current repository, live Supabase and runtime/deployment evidence.
+
+No Gate 03 implementation or production mutation has been performed.
+
+Next sequence:
+DECISION READY → IMPLEMENTATION DESIGN → APPROVED EXECUTION → TEST → RUNTIME VERIFY → DOCUMENT → CLOSE
+
+Do not reopen Gate 01 or Gate 02.
