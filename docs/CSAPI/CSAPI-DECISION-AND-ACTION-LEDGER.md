@@ -255,3 +255,16 @@ This file is append-only for material CSAPI events. Historical entries remain ev
 - Implementation consequence: Added a canonical Visit continuity read query and switched the existing Patient Context Visit summary to that source; added a focused Gate 02 structural audit. No database or production mutation.
 - Verification evidence: Static repository inspection completed; automated audit is added and will be executed with the engineering verification cycle.
 - Status: IMPLEMENTATION IN PROGRESS
+
+
+### CSAPI-2026-09-22-020
+- Date: 2026-09-22
+- Gate: Gate 02 — Patient Journey
+- Type: Verification / Path Reconciliation
+- Source(s): GitHub compare main ↔ Gate 02 implementation branch; current Gate 02 implementation files
+- Statement: Before continuing runtime verification, branch ancestry was rechecked. The implementation branch is 35 commits ahead and 1 commit behind main because it still carries the approved Gate 02 documentation history plus implementation commits; it is not yet a clean implementation-only branch against current main.
+- Evidence: GitHub compare reports base main SHA 2b39b22a6c0faf29227e85d05b8147a3865f3501, merge-base acaab351cab0f17542bcca0f28d020cad10f0b0d, ahead_by 35, behind_by 1. The implementation diff contains the Gate 02 documentation baseline plus the narrow Patient Context continuity correction and audit.
+- Product Owner decision: Preserve the approved documentation baseline; do not bypass branch reconciliation or merge a mixed-history implementation PR.
+- Implementation consequence: Complete continuity evidence and verification on the working branch, then reconstruct/retarget the final implementation PR against the current main baseline before merge. No direct main change.
+- Verification evidence: GitHub compare result and source inspection.
+- Status: PATH RECONCILED / IMPLEMENTATION CONTINUES
