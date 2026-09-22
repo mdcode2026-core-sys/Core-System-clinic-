@@ -2,9 +2,9 @@
 
 Date: 2026-09-21
 Gate: CSAPI Gate 02 — Patient Journey
-Status: OPEN — PRECHECK READY
+Status: OPEN — IMPLEMENTATION / VERIFICATION
 Previous Gate: Gate 01 — Patient Flow — CLOSED
-Execution mode: Decision-first; no implementation before Product Owner approval
+Execution mode: Decision-first; Product Owner approval P1–P7 recorded; implementation limited to approved longitudinal continuity boundary
 
 ## 1. Official scope
 
@@ -230,3 +230,26 @@ Documentation alone is never closure evidence.
 Start with Gate 02 PRECHECK from current main.
 
 Do not implement a fix before the longitudinal current-state/reality/ownership/gap reconciliation is complete.
+
+
+## 14. Approved implementation boundaries and verification contract
+
+### P6 — Continuous Patient Journey
+
+Patient Journey has no universal terminal state. Patient Flow Completed closes only the current operational visit cycle; it does not complete or close the longitudinal Patient Journey.
+
+### Appointment ownership
+
+Agenda remains the sole owner of Appointment lifecycle and scheduling. No Agenda repair is authorized from Gate 02 continuity work unless a separately approved Agenda decision requires it.
+
+### Follow-up ownership
+
+Follow-up remains an independent CORE Module and Gate 11 remains a separate gate. Gate 02 may reference Follow-up as a continuity consequence, but does not absorb Follow-up lifecycle implementation.
+
+### Gate 02 implementation already applied
+
+The approved narrow implementation replaces the Patient Context Visit summary source from legacy/summary `patient_history` to canonical `clinic_visit_sessions`. No universal Patient Journey state engine, database migration, production Supabase mutation, or Vercel deployment was introduced.
+
+### Verification state
+
+Canonical continuity links have been inspected against current repository source and live Supabase schema/data evidence. Treatment Plan → Operational Work and Follow-up → Notification/Operational Work boundary drifts remain deferred to their owning downstream gates. Automated structural verification and runtime verification remain required before closure.
