@@ -1,12 +1,16 @@
 name: CORE SYSTEM Production Runtime Verification
 
 on:
-  push:
-    branches: [main]
+  workflow_call:
+    inputs:
+      candidate_sha:
+        description: Exact production candidate SHA to verify
+        required: true
+        type: string
   workflow_dispatch:
     inputs:
       candidate_sha:
-        description: Exact promoted main SHA to verify
+        description: Exact production candidate SHA to verify
         required: true
         type: string
 
@@ -27,13 +31,12 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          SHA="${{ inputs.candidate_sha || github.sha }}"
+          SHA="${{ inputs.candidate_sha }}"
           if ! [[ "$SHA" =~ ^[0-9a-fA-F]{40}$ ]]; then
             echo "Invalid candidate SHA: $SHA" >&2
             exit 1
           fi
           echo "sha=$SHA" >> "$GITHUB_OUTPUT"
-          echo "PRODUCTION_E2E_CANDIDATE_SHA=$SHA"
 
       - name: Checkout exact candidate
         uses: actions/checkout@v4
