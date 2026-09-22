@@ -3,7 +3,7 @@
 Updated: 2026-09-22
 Purpose: Conversation-independent handoff for the next CSAPI execution conversation.
 Current Gate: Gate 03 — Patient & Identity
-Current Stage: Gate 03 — APPROVED ARCHITECTURAL BASELINE / Implementation Design pending
+Current Stage: Gate 03 — IMPLEMENTATION DESIGN DRAFTED / DESIGN REVIEW PENDING
 Gate 01: CLOSED
 Gate 02: CLOSED — VERIFIED / PRODUCTION VERIFIED
 Open CSAPI PRs: 0
@@ -21,7 +21,11 @@ Do not reopen Gate 01.
 Read, in this order:
 1. docs/CSAPI/CSAPI-MASTER-STATE.md
 2. docs/CSAPI/CSAPI-GATES-PLAN.md
-3. docs/CSAPI/GATES/GATE-02-PATIENT-JOURNEY.md
+3. docs/CSAPI/GATES/GATE-03-PATIENT-IDENTITY-ARCHITECTURAL-DECISION-REQUIREMENTS-2026-09-22.md
+4. docs/CSAPI/GATES/GATE-03-PATIENT-IDENTITY-RECONCILIATION-REPORT-2026-09-22.md
+5. docs/CSAPI/GATES/GATE-03-PATIENT-IDENTITY-IMPLEMENTATION-DESIGN-2026-09-22.md
+6. docs/CSAPI/CSAPI-DECISION-AND-ACTION-LEDGER.md
+7. docs/CSAPI/GATES/GATE-02-PATIENT-JOURNEY.md
 4. docs/CSAPI/CSAPI-HISTORICAL-BASELINE.md
 5. docs/CSAPI/CSAPI-DECISION-AND-ACTION-LEDGER.md
 6. Gate 01 final closure records
@@ -268,3 +272,17 @@ A final cross-document authority check found documentation-state drift only: the
 **Current authority:** Gate 03 — APPROVED ARCHITECTURAL BASELINE / IMPLEMENTATION DESIGN PENDING.
 
 This approval is architectural/product approval only. It does not authorize implementation. The next and only execution-preparation step is Implementation Design, followed by explicit execution approval.
+
+
+### Gate 03 Implementation Design — 2026-09-22
+
+Implementation Design has been drafted after repository and live Supabase inspection. No application code, migration, production database mutation, or production deployment was performed.
+
+Design authority:
+- docs/CSAPI/GATES/GATE-03-PATIENT-IDENTITY-IMPLEMENTATION-DESIGN-2026-09-22.md
+
+The design establishes one canonical System Patient Identity, an explicit Clinic Relationship boundary, a separate Portal Identity/authentication boundary, registration-validity validation before multi-attribute identity matching, authoritative Patient Module search, staged identity seeding, identity auditability, Administrative merge mechanics, and tenant-safe cross-clinic recognition without cross-clinic data exposure.
+
+The phone-overlap scenario is explicitly treated as a test of the general matching rule, not as a business rule. Required registration fields are validation requirements, not uniqueness rules. No single field is sufficient by itself to decide identity, duplication, or rejection.
+
+Current state: IMPLEMENTATION DESIGN DRAFTED / DESIGN REVIEW PENDING. Do not execute migrations or application changes until the design is reviewed and explicitly approved.
