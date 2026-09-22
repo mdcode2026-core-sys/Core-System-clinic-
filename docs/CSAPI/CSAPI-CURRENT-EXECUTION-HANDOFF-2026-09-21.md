@@ -317,3 +317,32 @@ Gate 01 and Gate 02 remain CLOSED. The 20-gate CSAPI sequence is unchanged.
 Product Owner explicitly approved execution of Gate 03 against the authoritative Revised Implementation Design. This approval authorizes implementation and verification within the already approved Gate 03 scope. It does not authorize unrelated domain repairs, direct main changes, or production mutation before the required verification sequence.
 
 Current transition: EXECUTION APPROVED → PRE-IMPLEMENTATION VERIFICATION.
+
+
+## 17. Gate 03 pre-implementation verification blocker — 2026-09-22
+
+Execution approval is recorded, but Pre-Implementation Verification identified one material inconsistency inside the already-approved patient-match-v1 implementation parameters before any database migration or application implementation was allowed to proceed.
+
+### Blocker: patient-match-v1 threshold reachability
+
+The approved weights are:
+- national ID: 30
+- DOB: 20
+- father: 12
+- family: 12
+- first: 8
+- mother: 5
+- sex: 5
+- phone: 5
+- email: 3
+
+Without national ID, the maximum score with DOB is 70. If DOB is absent and age evidence replaces it, the maximum is 58.
+
+Therefore the approved EXACT_MATCH threshold of 80 is unreachable for any patient who does not provide national ID. This means a patient with complete demographic/contact evidence but no national ID can never reach EXACT_MATCH under the current parameter set.
+
+This is not an execution detail that may be silently changed. It affects the approved identity-matching behavior and therefore requires Product Owner resolution before implementation continues.
+
+No migration or application implementation was retained from the attempted implementation preparation. Production database and production deployment remain unchanged.
+
+Current state:
+**EXECUTION APPROVED → PRE-IMPLEMENTATION VERIFICATION → BLOCKED ON MATCH-POLICY PARAMETER RECONCILIATION.**
