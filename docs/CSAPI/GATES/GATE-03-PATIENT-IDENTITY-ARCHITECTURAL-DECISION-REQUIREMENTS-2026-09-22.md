@@ -3,7 +3,7 @@
 
 Date: 2026-09-22
 Gate: CSAPI Gate 03 — Patient & Identity
-Status: DECISION CONTRACT — PRECHECK / OWNER APPROVAL REQUIRED
+Status: DECISION READY — PRODUCT OWNER BASELINE APPROVED / IMPLEMENTATION NOT YET STARTED
 Previous Gate: Gate 02 — Patient Journey — CLOSED / VERIFIED / PRODUCTION VERIFIED
 Execution mode: Decision-first; no implementation authorized by this document alone
 
