@@ -29,7 +29,7 @@ create policy medical_files_patient_portal_read on public.medical_files for sele
   exists (
     select 1 from public.patient_portal_medical_file_releases r
     join public.patient_portal_identities ppi on ppi.auth_user_id=(select auth.uid())
-    join public.patient_clinic_relationships pcr on pcr.patient_identity_id=pi.id and pcr.clinic_patient_id=r.clinic_patient_id and pcr.tenant_id=r.tenant_id and pcr.status='active'
+    join public.patient_clinic_relationships pcr on pcr.patient_identity_id=ppi.patient_identity_id and pcr.clinic_patient_id=r.clinic_patient_id and pcr.tenant_id=r.tenant_id and pcr.status='active'
     where r.medical_file_id=medical_files.id and r.status='active' and (r.expires_at is null or r.expires_at > now())
   )
 );
@@ -38,7 +38,7 @@ create policy medical_files_patient_portal_storage_select on storage.objects for
     select 1 from public.medical_files mf
     join public.patient_portal_medical_file_releases r on r.medical_file_id=mf.id and r.status='active' and (r.expires_at is null or r.expires_at > now())
     join public.patient_portal_identities ppi on ppi.auth_user_id=(select auth.uid())
-    join public.patient_clinic_relationships pcr on pcr.patient_identity_id=pi.id and pcr.clinic_patient_id=r.clinic_patient_id and pcr.tenant_id=r.tenant_id and pcr.status='active'
+    join public.patient_clinic_relationships pcr on pcr.patient_identity_id=ppi.patient_identity_id and pcr.clinic_patient_id=r.clinic_patient_id and pcr.tenant_id=r.tenant_id and pcr.status='active'
     where mf.storage_path=storage.objects.name and mf.tenant_id=r.tenant_id
   )
 );
