@@ -1,11 +1,19 @@
 {
-  "contract_version": "1.1",
+  "contract_version": "1.2",
   "contract_type": "workstream",
   "workstream_id": "csapi-gate03-patient-identity",
   "status": "binding",
   "scope": "Gate 03 — Patient & Identity",
-  "required_engineering": ["typecheck", "lint", "build"],
-  "required_suites": ["engineering", "gate03_identity", "patient-journey"],
+  "required_engineering": [
+    "typecheck",
+    "lint",
+    "build"
+  ],
+  "required_suites": [
+    "engineering",
+    "gate03_identity",
+    "patient-journey"
+  ],
   "precheck_required": true,
   "implementation_allowed_before_approval": true,
   "matching_policy": {
@@ -13,24 +21,54 @@
     "threshold_exact": 80,
     "threshold_review_min": 55,
     "national_id_optional": true,
-    "weights": {"national_id":20,"dob":25,"father":18,"family":15,"first":10,"mother":5,"sex":4,"phone":2,"email":1},
+    "weights": {
+      "national_id": 20,
+      "dob": 25,
+      "father": 18,
+      "family": 15,
+      "first": 10,
+      "mother": 5,
+      "sex": 4,
+      "phone": 2,
+      "email": 1
+    },
     "age_evidence_max": 8
   },
   "scenarios": [
-    "required registration validation","valid registration without national ID","exact match without national ID",
-    "national ID strengthens matching","phone overlap is evidence, not proof","ambiguous match produces REVIEW_REQUIRED",
-    "human LINK_EXISTING resolution","human CREATE_NEW resolution","demographic update preserves identity",
-    "cross-clinic recognition without record leakage","authoritative Patient Module search",
-    "Portal Identity auto-created independently of auth","Portal auth binds through patient_portal_identities",
-    "tenant composite relationship integrity","identity internals deny direct authenticated access",
-    "patient_history remains a projection","insurance remains domain-owned","no parallel identity engine"
+    "required registration validation",
+    "valid registration without national ID",
+    "exact match without national ID",
+    "national ID strengthens matching",
+    "phone overlap is evidence, not proof",
+    "ambiguous match produces REVIEW_REQUIRED",
+    "human LINK_EXISTING resolution",
+    "human CREATE_NEW resolution",
+    "demographic update preserves identity",
+    "cross-clinic recognition without record leakage",
+    "authoritative Patient Module search",
+    "Portal Identity auto-created independently of auth",
+    "Portal auth binds through patient_portal_identities",
+    "tenant composite relationship integrity",
+    "identity internals deny direct authenticated access",
+    "patient_history remains a projection",
+    "insurance remains domain-owned",
+    "no parallel identity engine",
+    "patients:create enforced in canonical RPC",
+    "patients:update enforced in canonical RPC",
+    "legacy identity backfill provenance reconciled",
+    "national ID identifier registry reconciled",
+    "production deployment cannot precede local authenticated E2E"
   ],
   "closure_rule": "Gate 03 closes only after implementation, engineering tests, database/security verification, local authenticated E2E, runtime evidence, documentation reconciliation, main integration, production deployment, and post-main production E2E verification.",
   "applicability": {
     "match_any": [
-      "^src/domain/patients/","^src/features/patients/","^src/domain/patient-portal/",
-      "^src/app/api/patients/","^supabase/migrations/2026092213",
-      "^tools/csapi-gate03-patient-identity-audit\\.mjs$","^docs/CSAPI/GATES/GATE-03-",
+      "^src/domain/patients/",
+      "^src/features/patients/",
+      "^src/domain/patient-portal/",
+      "^src/app/api/patients/",
+      "^supabase/migrations/20260922",
+      "^tools/csapi-gate03-patient-identity-audit\\.mjs$",
+      "^docs/CSAPI/GATES/GATE-03-",
       "^docs/testing/workstream-contracts/csapi-gate03-patient-identity\\.execution\\.json$"
     ]
   }
