@@ -61,6 +61,7 @@ export function PatientForm({ patient, isOpen, onClose, onSuccess }: PatientForm
     if (!formData.father_name.trim()) nextErrors.father_name = t.requiredFather;
     if (!formData.family_name.trim()) nextErrors.family_name = t.requiredFamily;
     if (!formData.phone_primary.trim()) nextErrors.phone_primary = t.requiredPhone;
+    if (!formData.gender.trim()) nextErrors.gender = t.chooseGender;
     if (!formData.date_of_birth.trim() && !formData.age_at_registration.trim()) nextErrors.date_of_birth = t.requiredDobOrAge;
     setErrors(nextErrors);
     return Object.keys(nextErrors).length === 0;
@@ -71,6 +72,7 @@ export function PatientForm({ patient, isOpen, onClose, onSuccess }: PatientForm
       PATIENT_TENANT_MISSING: t.clinicNotFound,
       PATIENT_DATABASE_ERROR: t.unexpected,
       PATIENT_INVALID_REQUEST: t.unexpected,
+      PATIENT_REVIEW_REQUIRED: t.reviewRequired,
     }[code] || t.unexpected);
 
   const handleSubmit = async (event: React.FormEvent) => {
@@ -156,10 +158,10 @@ export function PatientForm({ patient, isOpen, onClose, onSuccess }: PatientForm
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Field id="email" label={t.email} value={formData.email} onChange={(value) => handleChange("email", value)} type="email" />
             <Field id="date_of_birth" label={t.dob} value={formData.date_of_birth} error={errors.date_of_birth} onChange={(value) => handleChange("date_of_birth", value)} type="date" />
-            <Field id="age_at_registration" label="Age" value={formData.age_at_registration} onChange={(value) => handleChange("age_at_registration", value)} type="number" />
+            <Field id="age_at_registration" label={t.age} value={formData.age_at_registration} onChange={(value) => handleChange("age_at_registration", value)} type="number" />
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <SelectField label={t.gender} placeholder={t.chooseGender} value={formData.gender} onChange={(value) => handleChange("gender", value)} items={[["male", t.male], ["female", t.female], ["other", t.other]]} />
+            <SelectField label={t.gender} placeholder={t.chooseGender} value={formData.gender} error={errors.gender} onChange={(value) => handleChange("gender", value)} items={[["male", t.male], ["female", t.female], ["other", t.other]]} />
             <SelectField label={t.preferredChannel} placeholder={t.chooseChannel} value={formData.preferred_channel} onChange={(value) => handleChange("preferred_channel", value)} items={[["whatsapp", t.whatsapp], ["sms", t.sms], ["email", t.emailChannel], ["phone", t.phoneChannel]]} />
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -186,6 +188,6 @@ function Field({ id, label, required, value, error, onChange, type = "text", pla
   return <div className="space-y-2"><Label htmlFor={id}>{label}{required ? " *" : ""}</Label><Input id={id} type={type} value={value} onChange={(event) => onChange(event.target.value)} placeholder={placeholder} className={error ? "border-destructive" : ""} />{error && <p className="text-sm text-destructive">{error}</p>}</div>;
 }
 
-function SelectField({ label, placeholder, value, onChange, items }: { label: string; placeholder: string; value: string; onChange: (value: string) => void; items: [string, string][] }) {
+function SelectField({ label, placeholder, value, error, onChange, items }: { label: string; placeholder: string; value: string; error?: string; onChange: (value: string) => void; items: [string, string][] }) {
   return <div className="space-y-2"><Label>{label}</Label><Select value={value} onValueChange={onChange}><SelectTrigger><SelectValue placeholder={placeholder} /></SelectTrigger><SelectContent>{items.map(([itemValue, itemLabel]) => <SelectItem key={itemValue} value={itemValue}>{itemLabel}</SelectItem>)}</SelectContent></Select></div>;
 }
