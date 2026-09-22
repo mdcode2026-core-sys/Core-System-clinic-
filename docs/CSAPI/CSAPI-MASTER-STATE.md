@@ -149,3 +149,17 @@ Do not trust old PR numbers or old status labels as current reality.
 - No Vercel as a substitute for CI/local verification.
 - Preserve tenant isolation, authorization, idempotency and data integrity.
 - Documentation status must match evidence.
+
+
+## 11. Current Gate 03 authority — 2026-09-22
+
+The sections above that describe Gate 02 precheck questions and decision-first implementation are retained as historical/current-gate evidence for the now-closed Gate 02 record. They are not instructions to reopen Gate 02.
+
+Current execution state is:
+
+- Gate 01 — Patient Flow: CLOSED.
+- Gate 02 — Patient Journey: CLOSED / VERIFIED / PRODUCTION VERIFIED.
+- Current Gate: Gate 03 — Patient & Identity.
+- Next execution sequence: READ → INSPECT → VERIFY → RECONCILE → DECISION REPORT → PRODUCT OWNER APPROVAL → IMPLEMENT → TEST → RUNTIME VERIFY → DOCUMENT → CLOSE.
+- Do not reopen Gate 02 unless a new explicit CSAPI decision supersedes its closure.
+- The 20-gate map remains unchanged.
