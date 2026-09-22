@@ -756,3 +756,139 @@ and only after Product Owner approval may implementation begin.
 The goal of Gate 03 is simple:
 
 > **CORE SYSTEM must know who the patient is, know which clinic relationship is being used, prevent unsafe duplicate identities, find the correct patient reliably, preserve the patient's real longitudinal record, keep insurance relationships correct, and keep Portal identity separate from staff identity — all without crossing tenant boundaries or creating competing sources of truth.**
+
+
+---
+
+# 19. Product Owner approval — 2026-09-22
+
+The Product Owner explicitly approves the following five architectural directions as the current Gate 03 baseline.
+
+### A1 — Identity relationship model — APPROVED
+
+The target conceptual relationship is:
+
+    Real Person
+        ↓
+    System Patient Identity
+        ↓
+    Clinic Relationship
+        ↓
+    Clinic Patient Record
+
+The same real person may have an independent clinic relationship and independent clinic record in each clinic.
+
+The existence of a reusable system-level identity is for identity recognition, continuity, duplicate prevention, and future Portal capability. It does **not** grant one clinic visibility into another clinic's records.
+
+This decision remains subject to controlled revision if later architectural stages reveal a justified need to modify it.
+
+### A2 — Patient Module and identity authority — APPROVED
+
+Patient is an independent CORE SYSTEM Module under the existing ADR-006 module architecture.
+
+Within that Module, Patient/Identity is the authority for:
+
+- patient identity;
+- patient identifiers;
+- patient ↔ clinic relationships;
+- patient matching / duplicate detection;
+- patient identity continuity.
+
+The Patient Module does **not** become the owner of other domains' source-of-truth records.
+
+Patient Identity does not depend on Patient Portal subscription or activation.
+
+### A3 — System Patient ID + clinic-specific patient file — APPROVED
+
+The patient receives a stable system-level Patient ID representing the same person within CORE SYSTEM.
+
+Each clinic retains its own independent clinic-specific patient record and clinic file number/identifier.
+
+The clinic file number is not the global identity key.
+
+Name, phone, email and other demographic attributes are search/matching evidence; they are not, individually, the canonical Patient ID.
+
+Global Search remains a general cross-module search surface. It does not replace the Patient Module's authoritative patient-search and matching process.
+
+### A4 — Duplicate prevention and matching — APPROVED
+
+Duplicate prevention is a mandatory identity-safety process.
+
+The system must:
+
+1. search existing identities before creating a new patient;
+2. use multiple relevant attributes as matching evidence;
+3. recognize that shared values such as a family phone number do not prove identity;
+4. alert staff when an existing identity may represent the same person;
+5. require the appropriate human verification/authorization for ambiguous cases;
+6. allow creation of a genuinely different person when the evidence supports that conclusion;
+7. never silently merge or reject a patient solely because one field matches.
+
+Matching must consider appropriate demographic evidence, including where available:
+
+- date of birth / age;
+- gender;
+- first name;
+- father/parent name where applicable;
+- family name;
+- phone;
+- email;
+- other governed identifiers.
+
+The exact confidence vocabulary and thresholds remain an implementation-stage design detail and may be refined after full precheck evidence.
+
+### A5 — Merge authority — APPROVED
+
+Patient merge is required as a governed capability because duplicate records can arise from human error.
+
+Merge is an **Administrative** operation, not a Clinical or Operational operation.
+
+No merge may be destructive or silent.
+
+Before implementation, the gate must define:
+
+- initiation and approval authority;
+- evidence requirements;
+- downstream record reconciliation;
+- identifier continuity;
+- portal consequences;
+- financial/insurance consequences;
+- audit trail;
+- recovery/rollback strategy.
+
+### A6 — Demographic continuity — APPROVED
+
+Changing patient demographics must update the existing identity/record and must never create a new patient merely because identifying attributes changed.
+
+### A7 — Controlled future change — APPROVED
+
+These decisions are the current architectural baseline, not an irreversible prohibition against future evolution.
+
+A later gate may propose a change only through the normal CSAPI decision/change-control process, with explicit evidence and impact analysis.
+
+No later implementation may silently reinterpret these decisions.
+
+---
+
+# 20. Decision status after Product Owner approval
+
+The five owner-approved directions above are now part of the Gate 03 architectural baseline.
+
+This approval does **not** mean Gate 03 is implementation-ready.
+
+The remaining precheck must still reconcile:
+
+- current repository implementation;
+- live database structure and constraints;
+- current matching/search behavior;
+- patient history source-of-truth;
+- insurance/coverage boundary;
+- Portal identity binding/access;
+- authorization and tenant isolation;
+- merge/recovery mechanics;
+- identifier governance;
+- runtime behavior;
+- tests and migrations.
+
+Gate 03 remains **UNDER REVIEW** until that reconciliation produces the complete Decision Report and all remaining architectural choices are either confirmed, explicitly deferred, or handed to their owning gates.
+
