@@ -3,7 +3,7 @@
 Updated: 2026-09-22
 Purpose: Conversation-independent handoff for the next CSAPI execution conversation.
 Current Gate: Gate 03 — Patient & Identity
-Current Stage: Gate 03 — IMPLEMENTATION DESIGN COMPLETE / EXECUTION APPROVAL PENDING
+Current Stage: Gate 03 — IMPLEMENTATION DESIGN COMPLETE / EXECUTION APPROVAL PENDING — AUTHORITY RECONCILED
 Gate 01: CLOSED
 Gate 02: CLOSED — VERIFIED / PRODUCTION VERIFIED
 Open CSAPI PRs: 0
@@ -14,7 +14,7 @@ Gate 01 production application candidate: 59d18b3b0ad8a097a01cff1bfd5f6ec1d7d9c9
 
 The current execution continues with:
 
-CSAPI → Gate 03 → Patient & Identity → READ → INSPECT → VERIFY → RECONCILE → DECISION REPORT → APPROVAL → IMPLEMENT → VERIFY → CLOSE
+CSAPI → Gate 03 → Patient & Identity → ARCHITECTURAL BASELINE APPROVED → IMPLEMENTATION DESIGN COMPLETE → EXPLICIT EXECUTION APPROVAL → IMPLEMENT → TEST → RUNTIME VERIFY → DOCUMENT → CLOSE
 
 Do not reopen Gate 01.
 
@@ -23,7 +23,7 @@ Read, in this order:
 2. docs/CSAPI/CSAPI-GATES-PLAN.md
 3. docs/CSAPI/GATES/GATE-03-PATIENT-IDENTITY-ARCHITECTURAL-DECISION-REQUIREMENTS-2026-09-22.md
 4. docs/CSAPI/GATES/GATE-03-PATIENT-IDENTITY-RECONCILIATION-REPORT-2026-09-22.md
-5. docs/CSAPI/GATES/GATE-03-PATIENT-IDENTITY-IMPLEMENTATION-DESIGN-2026-09-22.md
+5. docs/CSAPI/GATES/GATE-03-PATIENT-IDENTITY-IMPLEMENTATION-DESIGN-REVISED-2026-09-22.md
 6. docs/CSAPI/CSAPI-DECISION-AND-ACTION-LEDGER.md
 7. docs/CSAPI/GATES/GATE-02-PATIENT-JOURNEY.md
 4. docs/CSAPI/CSAPI-HISTORICAL-BASELINE.md
@@ -239,7 +239,10 @@ Product Owner baseline approved:
 - Portal access is entitlement-controlled and separate from canonical Patient Identity.
 
 Current reconciliation conclusion:
-- Gate 03 = APPROVED — ARCHITECTURAL BASELINE / IMPLEMENTATION DESIGN PENDING.
+- Gate 03 architectural baseline = APPROVED.
+- Implementation Design = COMPLETE.
+- Execution approval = PENDING.
+- Gate 03 implementation has NOT started.
 - Implementation has not started.
 - Production Supabase was not mutated.
 - No production Vercel deployment was made for Gate 03.
@@ -262,7 +265,7 @@ Implementation boundary:
 - Do not rebuild Patient Flow, Patient Journey, Agenda, Clinical, Financial, Insurance lifecycle, Follow-up, Communications, Portal UI or permissions.
 - Preserve tenant isolation and existing domain ownership.
 
-The next step is implementation design and Product Owner-approved execution of this Gate 03 baseline, not a return to Gate 02.
+The next step is explicit Product Owner execution approval. Do not begin implementation until that approval is recorded. Do not return to Gate 02.
 
 
 ### Gate 03 pre-Implementation Design authority reconciliation — 2026-09-22
@@ -298,3 +301,12 @@ DR-01 through DR-12 are resolved, including canonical reuse of `patient_identiti
 No code, migration, production DB mutation, or deployment has been authorized.
 
 Next state: explicit Product Owner execution approval.
+
+
+## Gate 03 authority reconciliation correction — 2026-09-22
+
+The prior handoff contained stale/duplicated Gate 03 sequencing and referenced the pre-review Implementation Design as if it were current authority. This has been corrected.
+
+Canonical Gate 03 state: architectural baseline APPROVED; Implementation Design COMPLETE; authoritative design is `docs/CSAPI/GATES/GATE-03-PATIENT-IDENTITY-IMPLEMENTATION-DESIGN-REVISED-2026-09-22.md`; execution approval PENDING; implementation NOT STARTED; no Gate 03 production DB mutation or deployment.
+
+Gate 01 and Gate 02 remain CLOSED. The 20-gate CSAPI sequence is unchanged.
