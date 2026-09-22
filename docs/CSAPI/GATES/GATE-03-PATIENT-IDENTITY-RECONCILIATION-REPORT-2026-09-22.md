@@ -417,3 +417,17 @@ Implemented: canonical System Patient Identity foundation, multi-attribute patie
 Live Supabase migration history records the applied Gate 03 migrations as versions `20260922130830`, `20260922130928`, `20260922131239`, `20260922131621`, and `20260922131803`.
 
 Production deployment remains pending until engineering verification, main integration, and post-main production verification are complete.
+
+
+## Final verification correction — 2026-09-22
+
+The previous closure wording in this reconciliation report is superseded by later GitHub Actions evidence. A required E2E verification lane is failing. This is an execution/verification blocker, not documentation drift.
+
+Accordingly:
+- Gate 03 is NOT CLOSED.
+- The implementation remains on main and live Supabase verification remains valid evidence, but it is insufficient for closure while required E2E is failing.
+- Production deployment/runtime success does not override the failed E2E requirement.
+- The failed E2E must be traced to its authoritative Actions evidence, classified, fixed at the correct layer if necessary, and rerun successfully.
+- Only after the required E2E passes may final production verification, documentation reconciliation and Gate 03 closure be recorded.
+
+Current status: IMPLEMENTATION COMPLETE — VERIFICATION BLOCKED BY FAILED E2E.

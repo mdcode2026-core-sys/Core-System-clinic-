@@ -1,6 +1,6 @@
 # CORE SYSTEM — CSAPI
 
-Status: CURRENT — Gate 03 architectural baseline approved; implementation design pending
+Status: CURRENT — Gate 03 implementation complete; verification blocked by failed required E2E
 Current Gate: Gate 03 — Patient & Identity
 Previous Gate: Gate 02 — Patient Journey — CLOSED / VERIFIED / PRODUCTION VERIFIED
 
@@ -25,6 +25,12 @@ Previous Gate: Gate 02 — Patient Journey — CLOSED / VERIFIED / PRODUCTION VE
 - GATES/GATE-02-PATIENT-JOURNEY.md — closed Gate 02 scope and closure record
 - GATES/GATE-03-PATIENT-IDENTITY-ARCHITECTURAL-DECISION-REQUIREMENTS-2026-09-22.md — approved Gate 03 architectural baseline
 - GATES/GATE-03-PATIENT-IDENTITY-RECONCILIATION-REPORT-2026-09-22.md — full Gate 03 repository/database/runtime reconciliation
+
+## Current resume rule
+
+If a new conversation begins with CSAPI, resume Gate 03 from the active verification blocker. Do not restart Gate 03 architecture, do not begin Gate 04, and do not assume any CLOSED label is authoritative without checking current GitHub Actions, main SHA, Production and Supabase evidence.
+
+Immediate objective: investigate and resolve the required E2E failure, rerun the exact required verification, then reconcile and close Gate 03 only when the full closure rule is satisfied.
 
 ## Governing rule
 

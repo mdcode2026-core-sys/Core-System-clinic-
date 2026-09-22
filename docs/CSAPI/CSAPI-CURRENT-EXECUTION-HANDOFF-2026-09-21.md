@@ -3,7 +3,7 @@
 Updated: 2026-09-22
 Purpose: Conversation-independent handoff for the next CSAPI execution conversation.
 Current Gate: Gate 03 — Patient & Identity
-Current Stage: Gate 03 — CLOSED — VERIFIED / PRODUCTION VERIFIED
+Current Stage: Gate 03 — IMPLEMENTATION COMPLETE / VERIFICATION BLOCKED BY FAILED E2E
 Gate 01: CLOSED
 Gate 02: CLOSED — VERIFIED / PRODUCTION VERIFIED
 Open CSAPI PRs: 0
@@ -388,3 +388,35 @@ Live Supabase implementation and database-level verification are complete. Main 
 Final closure remains contingent only on post-main production deployment verification. The connected Vercel integration has not yet produced a deployment for the merged main SHA; recent branch deployment status is affected by the Vercel build-rate-limit status. The connected Vercel tool surface does not currently expose a working deployment-write operation.
 
 Gate 03 must not be marked CLOSED until the production deployment for the merged main SHA is READY and post-main runtime verification passes.
+
+
+## 19. Gate 03 E2E verification correction — 2026-09-22
+
+A later verification check found that the previous Gate 03 closure statement was premature. The failure is NOT documentation-only.
+
+### Current authoritative state
+
+Gate 03 implementation is present on main, live Supabase structural/security verification has passed, and Production is serving a SHA-matched deployment. However, GitHub Actions E2E evidence is not green, so Gate 03 is NOT CLOSED.
+
+The applicable Gate 03 verification contract requires engineering plus the explicit gate03_identity lane. The repository maps that lane to npm run csapi:gate03-identity; broader authenticated/real-world E2E lanes also remain part of the repository verification architecture where applicable.
+
+### E2E failure rule
+
+Any failed required E2E lane blocks Gate 03 closure until the failure is:
+1. reproduced or otherwise evidenced from the authoritative Actions run;
+2. classified as test defect, environment defect, or real product/runtime defect;
+3. fixed at the correct layer when it is a real product/runtime defect;
+4. rerun on the corrected exact candidate and passed;
+5. reconciled into the Gate 03 verification record.
+
+No weakening, deletion, skipping, or reclassification of a failed E2E is allowed merely to obtain green CI.
+
+### Current resume point
+
+GATE 03 → VERIFY → INVESTIGATE FAILED E2E → ROOT-CAUSE FIX IF REQUIRED → RE-RUN REQUIRED E2E → ONLY THEN FINAL RECONCILIATION / CLOSE.
+
+Do not start Gate 04. Do not reopen Gate 01 or Gate 02. Do not treat a successful Vercel deployment or a clean database audit as a substitute for failed GitHub Actions E2E evidence.
+
+### Conversation resume contract
+
+When a new conversation starts with CSAPI, first read this handoff, the Master State, Gate Plan, Decision/Action Ledger and Gate 03 verification/reconciliation records. Then inspect current main, GitHub Actions and current Production/DB evidence. The first objective is to resolve the Gate 03 E2E blocker—not to restart architectural discovery or begin a new gate.

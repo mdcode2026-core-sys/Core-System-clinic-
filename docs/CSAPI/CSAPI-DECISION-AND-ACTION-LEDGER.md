@@ -329,3 +329,14 @@ This file is append-only for material CSAPI events. Historical entries remain ev
 - Statement: Gate 03 implementation, engineering verification, clean migration verification, live Supabase verification, runtime verification and production deployment verification have completed successfully for the final main candidate.
 - Evidence: Production deployment is READY for the exact final main SHA; production build-info resolves to that SHA; production login returns HTTP 200; production runtime-error aggregation is clear for the verification window; live Supabase integrity/security verification is complete.
 - Status: CLOSED — VERIFIED / PRODUCTION VERIFIED.
+
+
+### CSAPI-2026-09-22-G03-E2E-BLOCKER
+- Date: 2026-09-22
+- Gate: Gate 03 — Patient & Identity
+- Type: Verification correction / active blocker
+- Statement: A required GitHub Actions E2E failure was identified after the prior closure record. Therefore the prior CLOSED — VERIFIED / PRODUCTION VERIFIED statement is superseded and Gate 03 remains open for verification.
+- Evidence boundary: Engineering/database/live Supabase evidence and production deployment evidence do not override a failed required E2E lane. The repository explicitly wires gate03_identity to the Gate 03 verification command, and authenticated/real-world E2E remains part of the applicable verification architecture.
+- Required action: inspect the authoritative failed Actions run, classify the failure, fix the root cause at the correct layer if required, rerun the exact required E2E, and only then perform final reconciliation and closure.
+- Prohibited action: do not weaken, skip, delete, or relabel the failing E2E merely to obtain green CI.
+- Status: OPEN — VERIFICATION BLOCKED.

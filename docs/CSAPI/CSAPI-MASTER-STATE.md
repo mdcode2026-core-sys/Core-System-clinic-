@@ -151,7 +151,7 @@ Do not trust old PR numbers or old status labels as current reality.
 - Documentation status must match evidence.
 
 
-## 11. Current Gate 03 authority — 2026-09-22
+## 11. Historical Gate 03 authority record — superseded by later verification evidence — 2026-09-22
 
 The sections above that describe Gate 02 precheck questions and decision-first implementation are retained as historical/current-gate evidence for the now-closed Gate 02 record. They are not instructions to reopen Gate 02.
 
@@ -240,3 +240,21 @@ Implemented: canonical System Patient Identity foundation, multi-attribute patie
 Live Supabase migration history records the applied Gate 03 migrations as versions `20260922130830`, `20260922130928`, `20260922131239`, `20260922131621`, and `20260922131803`.
 
 Production deployment remains pending until engineering verification, main integration, and post-main production verification are complete.
+
+
+## 20. Current Gate 03 verification authority — 2026-09-22
+
+The previous Gate 03 closure records are superseded where they state CLOSED / VERIFIED / PRODUCTION VERIFIED without accounting for the failed required GitHub Actions E2E evidence.
+
+Current authoritative state:
+- Gate 01 — CLOSED.
+- Gate 02 — CLOSED / VERIFIED / PRODUCTION VERIFIED.
+- Gate 03 — IMPLEMENTATION COMPLETE / VERIFICATION BLOCKED.
+- Current blocker: required E2E evidence is not fully passing.
+- Production deployment success is necessary but not sufficient for Gate 03 closure.
+- Live Supabase structural/security verification is evidence of database correctness only; it does not override a failed application E2E.
+
+Required continuation:
+READ current verification evidence → inspect failed Actions E2E → determine root cause → fix at owning layer if required → rerun exact required E2E → verify engineering/build/DB/runtime again as affected → final documentation reconciliation → CLOSE only after all required evidence passes.
+
+The failed E2E must not be weakened, skipped, deleted, or relabeled to obtain closure. Gate 04 must not start until Gate 03 is actually closed.
