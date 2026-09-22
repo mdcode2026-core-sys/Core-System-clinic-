@@ -5,7 +5,7 @@ Last reconciled: 2026-09-22
 Canonical implementation base: main; focused branches for changes
 Current Gate: Gate 03 — Patient & Identity
 Previous Gate: Gate 02 — Patient Journey — CLOSED / VERIFIED / PRODUCTION VERIFIED
-Execution mode: Decision-first; Gate 02 is CLOSED; Gate 03 architectural baseline is APPROVED; implementation design is pending
+Execution mode: Decision-first; Gate 02 is CLOSED; Gate 03 architectural baseline is APPROVED; Implementation Design drafted and pending design review
 
 ## 1. Purpose
 
@@ -167,7 +167,7 @@ Current execution state is:
 
 ## 12. Gate 03 reconciliation state — 2026-09-22
 
-Gate 03 — Patient & Identity is now **DECISION READY**.
+Gate 03 — Patient & Identity is **APPROVED — ARCHITECTURAL BASELINE / IMPLEMENTATION DESIGN PENDING**.
 
 The full reconciliation is recorded in:
 - docs/CSAPI/GATES/GATE-03-PATIENT-IDENTITY-RECONCILIATION-REPORT-2026-09-22.md
@@ -177,8 +177,11 @@ The Product Owner-approved baseline is recorded and reconciled against current r
 
 No Gate 03 implementation or production mutation has been performed.
 
-Next sequence:
-DECISION READY → IMPLEMENTATION DESIGN → APPROVED EXECUTION → TEST → RUNTIME VERIFY → DOCUMENT → CLOSE
+Implementation Design has now been drafted in:
+- docs/CSAPI/GATES/GATE-03-PATIENT-IDENTITY-IMPLEMENTATION-DESIGN-2026-09-22.md
+
+Current next state:
+APPROVED ARCHITECTURAL BASELINE → IMPLEMENTATION DESIGN REVIEW → EXECUTION APPROVAL → IMPLEMENT → TEST → RUNTIME VERIFY → DOCUMENT → CLOSE
 
 Do not reopen Gate 01 or Gate 02.
 
