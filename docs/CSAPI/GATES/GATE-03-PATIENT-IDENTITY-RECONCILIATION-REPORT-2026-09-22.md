@@ -385,3 +385,8 @@ The clinic owns the clinic patient record; the system maintains the identity/lin
 ### Pre-Implementation Design authority reconciliation — 2026-09-22
 
 The final authority check found documentation-state drift but no unresolved architectural contradiction. The corrected status is APPROVED — ARCHITECTURAL BASELINE / IMPLEMENTATION DESIGN PENDING. Remaining design details are bounded to matching thresholds/result vocabulary, identifier registry schema, merge/recovery/audit mechanics, physical Person/Patient Identity decomposition, migration/data-transition strategy, and the exact verification contract.
+
+
+### Portal ID semantic decision — 2026-09-22
+
+The final pre-Implementation Design review resolved one semantic ambiguity in the approved Portal requirement. The background **Portal ID** is a stable non-authentication identity/binding associated with the System Patient Identity. It exists before Portal subscription/activation, but it is not a login account, does not authenticate the patient, and does not grant access. Authentication/account binding remains separate; subscription/entitlement controls access and visibility. This preserves the approved rule that identity exists before Portal activation without coupling canonical identity to authentication.
