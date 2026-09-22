@@ -420,3 +420,32 @@ Do not start Gate 04. Do not reopen Gate 01 or Gate 02. Do not treat a successfu
 ### Conversation resume contract
 
 When a new conversation starts with CSAPI, first read this handoff, the Master State, Gate Plan, Decision/Action Ledger and Gate 03 verification/reconciliation records. Then inspect current main, GitHub Actions and current Production/DB evidence. The first objective is to resolve the Gate 03 E2E blocker—not to restart architectural discovery or begin a new gate.
+
+
+## 20. Gate 03 execution reconciliation correction — 2026-09-22
+
+The full Gate 03 execution reconciliation found implementation drift against the approved Revised Implementation Design. The drift is being corrected on the controlled Gate 03 correction branch before any further E2E/production progression.
+
+Corrective implementation committed on branch `csapi/gate03-deployment-sequencing-fix-2026-09-22`:
+- `20260922190000_csapi_gate03_execution_reconciliation.sql`
+  - restores the canonical `patients:create` / `patients:update` authorization boundary inside SECURITY DEFINER Patient/Identity RPCs;
+  - implements the approved patient-match-v2 Path A + Path B constraints, candidate uniqueness and conflict handling;
+  - adds identity attribute provenance/verification metadata;
+  - makes Patient search enforce `patients:read`;
+  - preserves optional demographic fields during updates instead of silently nulling them;
+  - reconciles legacy identity rows with explicit backfill provenance and governed national-ID identifier rows;
+  - preserves automatic unclaimed Portal Identity creation.
+- `20260922191000_csapi_gate03_review_resolution_authorization.sql`
+  - enforces `patients:create` for LINK_EXISTING / CREATE_NEW human review resolution.
+- Binding Gate 03 execution contract updated to v1.2 and expanded to cover the complete implementation path and deployment sequencing.
+
+Important state rule: these corrective migrations are repository changes only until clean migration verification and live verification pass. They have NOT been applied to Live Supabase by this reconciliation action.
+
+The Live Supabase environment currently still exposes the older `register_patient_identity` implementation, proving that the corrective migration is not yet verified remotely. No claim of Gate 03 closure is permitted.
+
+A Live migration-history item `20260922165018` is also present without a corresponding repository migration file. Its exact semantic effect must be reconciled against the live schema/policy/function state during the clean migration/live verification stage; it must not be silently ignored or replaced by a guessed migration.
+
+Current Gate 03 state remains:
+**IMPLEMENTATION CORRECTION IN PROGRESS → CLEAN MIGRATION VERIFICATION REQUIRED → LIVE VERIFICATION REQUIRED → E2E VERIFICATION REQUIRED → PRODUCTION SEQUENCE → FINAL RECONCILIATION / CLOSE.**
+
+Gate 01 and Gate 02 remain CLOSED and are not reopened by these Gate 03 findings. Findings outside Gate 03 ownership remain deferred to their owning gate.
