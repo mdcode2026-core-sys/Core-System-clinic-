@@ -285,3 +285,16 @@ This file is append-only for material CSAPI events. Historical entries remain ev
 - Product Owner direction: Continue Gate 03 execution without treating national ID/card as a prerequisite for identity matching.
 - Implementation consequence: No code or database mutation was introduced by the resolution. Continue repository/database dependency verification before implementation.
 - Status: RESOLVED — PRECHECK CONTINUES
+
+
+### CSAPI-2026-09-22-033
+- Date: 2026-09-22
+- Gate: Gate 03 — Patient & Identity
+- Type: Implementation execution start
+- State: EXECUTION APPROVED → IMPLEMENTATION IN PROGRESS
+- Match-policy blocker: RESOLVED before implementation continued.
+- Branch: `csapi/gate03-patient-identity-implementation-2026-09-22`
+- Implemented branch scope: identity foundation migration, canonical registration RPC, existing identity seed migration, registration API/action routing, registration UX required fields, initial Portal Identity separation.
+- Live Supabase: unchanged by this branch; no production DB mutation.
+- Production: unchanged; no production deployment.
+- Remaining critical work: Portal/RLS separation, demographic update continuity, authoritative Patient search/review flow, test contract, clean migration/build/type verification, runtime/data/security verification, then normal main integration and closure.
