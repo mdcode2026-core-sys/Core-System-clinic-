@@ -140,7 +140,7 @@ export function PatientForm({ patient, isOpen, onClose, onSuccess }: PatientForm
         setServerError(localizeServerError(result.error || "PATIENT_DATABASE_ERROR"));
         return;
       }
-      setReviewCandidate(null);
+      setReviewCandidate(undefined);
       onSuccess?.();
       onClose();
       invalidateAll(tenantId);
