@@ -31,7 +31,8 @@
     "ajm:migrations": "node tools/ajm-migration-sequence-audit.mjs",
     "db:types": "supabase gen types typescript --project-id qaslsjyxjwvdoiczmhgq --schema public > src/infrastructure/supabase/database.types.ts",
     "db:migrate": "supabase migration up",
-    "db:reset": "supabase db reset"
+    "db:reset": "supabase db reset",
+    "csapi:gate02-continuity": "node tools/csapi-gate02-continuity-audit.mjs"
   },
   "dependencies": {
     "sonner": "^1.7.4",
