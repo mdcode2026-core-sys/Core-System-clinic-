@@ -75,7 +75,7 @@ export function usePatientVisits(patientId: string | null) {
         .from("clinic_visit_sessions")
         .select("id,patient_id,session_status,session_started_at,session_ended_at,visit_closed_at,agenda_event_id,created_at")
         .eq("patient_id", patientId)
-        .eq("deleted_at", null)
+        .is("deleted_at", null)
         .order("created_at", { ascending: false });
       if (error) throw error;
       return (data ?? []) as PatientVisitContinuity[];
