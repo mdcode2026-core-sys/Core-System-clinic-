@@ -3,7 +3,7 @@
 Updated: 2026-09-22
 Purpose: Conversation-independent handoff for the next CSAPI execution conversation.
 Current Gate: Gate 03 — Patient & Identity
-Current Stage: Gate 03 — EXECUTION APPROVED / PRE-IMPLEMENTATION VERIFICATION
+Current Stage: Gate 03 — EXECUTION APPROVED / PRE-IMPLEMENTATION VERIFICATION CONTINUES — MATCH-POLICY BLOCKER RESOLVED
 Gate 01: CLOSED
 Gate 02: CLOSED — VERIFIED / PRODUCTION VERIFIED
 Open CSAPI PRs: 0
@@ -319,30 +319,36 @@ Product Owner explicitly approved execution of Gate 03 against the authoritative
 Current transition: EXECUTION APPROVED → PRE-IMPLEMENTATION VERIFICATION.
 
 
-## 17. Gate 03 pre-implementation verification blocker — 2026-09-22
+## 17. Gate 03 pre-implementation verification — match-policy blocker resolved — 2026-09-22
 
-Execution approval is recorded, but Pre-Implementation Verification identified one material inconsistency inside the already-approved patient-match-v1 implementation parameters before any database migration or application implementation was allowed to proceed.
+Pre-Implementation Verification identified and resolved one inconsistency in the initial patient-match-v1 parameterization.
 
-### Blocker: patient-match-v1 threshold reachability
+### Finding
 
-The approved weights are:
-- national ID: 30
-- DOB: 20
-- father: 12
-- family: 12
-- first: 8
-- mother: 5
-- sex: 5
-- phone: 5
-- email: 3
+The initial weights plus EXACT_MATCH >=80 made automatic EXACT_MATCH mathematically unreachable when national ID/card was absent:
+- maximum with national ID absent and exact DOB = 70;
+- age evidence instead of DOB = maximum 58.
 
-Without national ID, the maximum score with DOB is 70. If DOB is absent and age evidence replaces it, the maximum is 58.
+This unintentionally made an optional government identifier a practical prerequisite.
 
-Therefore the approved EXACT_MATCH threshold of 80 is unreachable for any patient who does not provide national ID. This means a patient with complete demographic/contact evidence but no national ID can never reach EXACT_MATCH under the current parameter set.
+### Resolution
 
-This is not an execution detail that may be silently changed. It affects the approved identity-matching behavior and therefore requires Product Owner resolution before implementation continues.
+The 80-point threshold is retained.
 
-No migration or application implementation was retained from the attempted implementation preparation. Production database and production deployment remain unchanged.
+patient-match-v1 now has two EXACT_MATCH paths:
+1. weighted high-confidence path: score >=80, at least 3 independent evidence classes, no strong conflict;
+2. non-government-ID core-profile path: exact DOB + first/father/family + sex + normalized phone, no strong conflict, at least two additional corroborating evidence classes, and a unique candidate.
+
+The second path exists specifically so national ID absence does not make automatic matching mathematically impossible. It does not make any single field a unique identifier.
+
+Cases failing the deterministic path remain REVIEW_REQUIRED or NO_MATCH according to the weighted score and conflict rules.
+
+Authoritative resolution:
+`docs/CSAPI/GATES/GATE-03-PATIENT-IDENTITY-MATCH-POLICY-RESOLUTION-2026-09-22.md`
+
+No application code, migration, production database mutation, or deployment was introduced by this resolution.
 
 Current state:
-**EXECUTION APPROVED → PRE-IMPLEMENTATION VERIFICATION → BLOCKED ON MATCH-POLICY PARAMETER RECONCILIATION.**
+**EXECUTION APPROVED → PRE-IMPLEMENTATION VERIFICATION → MATCH-POLICY BLOCKER RESOLVED → PRE-IMPLEMENTATION VERIFICATION CONTINUES.**
+
+The next execution action is to continue the pre-implementation repository/database dependency verification.
