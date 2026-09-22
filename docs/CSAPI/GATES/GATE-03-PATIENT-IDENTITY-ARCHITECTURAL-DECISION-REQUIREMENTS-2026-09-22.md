@@ -631,7 +631,7 @@ The classification vocabulary must be:
 
 # 14. Architectural decisions required from the Product Owner
 
-The following decisions require explicit approval before implementation if the precheck confirms they are genuine choices:
+The following decisions were the explicit Product Owner decision set. Their architectural direction is now approved. Exact physical/design details remain implementation-design work and are not implied by this approval:
 
 ### D1 — Identity scope
 Is Patient Identity clinic-scoped only, or is a reusable cross-clinic person identity required now?
@@ -762,7 +762,7 @@ The goal of Gate 03 is simple:
 
 # 19. Product Owner approval — 2026-09-22
 
-The Product Owner explicitly approves the following five architectural directions as the current Gate 03 baseline.
+The Product Owner explicitly approves the following seven architectural directions as the current Gate 03 baseline.
 
 ### A1 — Identity relationship model — APPROVED
 
