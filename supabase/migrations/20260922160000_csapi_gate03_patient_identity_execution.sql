@@ -66,8 +66,6 @@ alter table public.patient_clinic_relationships
   foreign key (tenant_id, clinic_patient_id)
   references public.clinic_patients(tenant_id, id);
 
-alter table public.clinic_patients
-  add constraint clinic_patients_tenant_id_id_unique unique (tenant_id, id);
 
 alter table public.patient_identity_identifiers enable row level security;
 alter table public.patient_portal_identities enable row level security;
