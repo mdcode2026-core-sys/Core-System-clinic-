@@ -167,7 +167,7 @@ Current execution state is:
 
 ## 12. Gate 03 reconciliation state — 2026-09-22
 
-Gate 03 — Patient & Identity is **APPROVED — ARCHITECTURAL BASELINE / IMPLEMENTATION DESIGN PENDING**.
+Gate 03 — Patient & Identity has an **APPROVED architectural baseline** and **COMPLETE Implementation Design**; execution approval is pending.
 
 The full reconciliation is recorded in:
 - docs/CSAPI/GATES/GATE-03-PATIENT-IDENTITY-RECONCILIATION-REPORT-2026-09-22.md
@@ -181,7 +181,7 @@ Implementation Design has now been completed and reconciled in:
 - docs/CSAPI/GATES/GATE-03-PATIENT-IDENTITY-IMPLEMENTATION-DESIGN-REVISED-2026-09-22.md
 
 Current next state:
-APPROVED ARCHITECTURAL BASELINE → IMPLEMENTATION DESIGN COMPLETE → EXECUTION APPROVAL → IMPLEMENT → TEST → RUNTIME VERIFY → DOCUMENT → CLOSE
+APPROVED ARCHITECTURAL BASELINE → IMPLEMENTATION DESIGN COMPLETE → EXPLICIT EXECUTION APPROVAL → IMPLEMENT → TEST → RUNTIME VERIFY → DOCUMENT → CLOSE
 
 Do not reopen Gate 01 or Gate 02.
 
@@ -215,3 +215,12 @@ The next step is Implementation Design. Do not begin implementation until that d
 The Implementation Design Review Resolution is complete. DR-01 through DR-12 are resolved in the revised design. Gate 03 is execution-design complete but remains unimplemented pending explicit Product Owner execution approval.
 
 No migration, application code, production mutation, or deployment was performed.
+
+
+## Gate 03 authority correction — 2026-09-22
+
+Final CSAPI authority reconciliation corrected documentation-state drift across the Gate Plan, Handoff and Gate 03 records. The 20-gate map and Gate 01/Gate 02 closures are unchanged.
+
+Canonical Gate 03 state: architectural/product baseline APPROVED; Implementation Design COMPLETE; authoritative design `docs/CSAPI/GATES/GATE-03-PATIENT-IDENTITY-IMPLEMENTATION-DESIGN-REVISED-2026-09-22.md`; execution approval PENDING; implementation/migrations NOT STARTED; no production DB mutation.
+
+The pre-review Implementation Design document is historical/superseded and is not execution authority.
