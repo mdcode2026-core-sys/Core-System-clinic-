@@ -109,8 +109,8 @@ export async function deleteCommunicationAttachment(attachmentId: string) {
   if (!attachment) return;
   const canManage = await hasEffectivePermission(ctx.user.id, "communications:manage");
   const isClinicUploader = attachment.uploaded_by_clinic_user_id === ctx.clinicUser.id;
-  const { data: identity } = await ctx.supabase.from("patient_identities").select("id").eq("auth_user_id", ctx.user.id).eq("status", "active").maybeSingle();
-  const isPatientUploader = !!identity && attachment.uploaded_by_patient_identity_id === identity.patient_identity_id;
+  const { data: portalIdentity } = await ctx.supabase.from("patient_portal_identities").select("patient_identity_id").eq("auth_user_id", ctx.user.id).eq("status", "active").maybeSingle();
+  const isPatientUploader = !!portalIdentity && attachment.uploaded_by_patient_identity_id === portalIdentity.patient_identity_id;
   if (!canManage && !isClinicUploader && !isPatientUploader) return;
   const { error: storageError } = await ctx.supabase.storage.from(attachment.storage_bucket).remove([attachment.storage_path]);
   if (storageError) return;
