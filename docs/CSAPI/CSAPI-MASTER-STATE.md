@@ -5,7 +5,7 @@ Last reconciled: 2026-09-22
 Canonical implementation base: main; focused branches for changes
 Current Gate: Gate 03 — Patient & Identity
 Previous Gate: Gate 02 — Patient Journey — CLOSED / VERIFIED / PRODUCTION VERIFIED
-Execution mode: Decision-first; Gate 02 is CLOSED; continue sequentially from Gate 03
+Execution mode: Decision-first; Gate 02 is CLOSED; Gate 03 architectural baseline is APPROVED; implementation design is pending
 
 ## 1. Purpose
 
@@ -181,3 +181,27 @@ Next sequence:
 DECISION READY → IMPLEMENTATION DESIGN → APPROVED EXECUTION → TEST → RUNTIME VERIFY → DOCUMENT → CLOSE
 
 Do not reopen Gate 01 or Gate 02.
+
+
+## 13. Gate 03 pre-Implementation Design reconciliation decision — 2026-09-22
+
+A final authority check was performed before Implementation Design against the governing CSAPI plan, Master State, current handoff, Gate 03 architectural contract, reconciliation report, historical baseline and decision ledger.
+
+The audit found documentation-state drift, not a product-architecture contradiction affecting the Gate 03 path:
+
+- the Gate Plan still labeled Gate 03 as **NEXT**;
+- the Gate 03 contract still contained stale **UNDER REVIEW / ARCHITECTURAL CONTRACT DRAFT** and pre-reconciliation wording;
+- the Gate 03 contract described the approved directions as **five** although seven owner-approved directions are recorded;
+- the decision ledger had no Gate 03 approval/reconciliation entries even though the current Gate 03 baseline had been approved and reconciled.
+
+These are documentation-authority issues and have been reconciled. No application code, migration, production database or production deployment is authorized by these corrections.
+
+### Decision
+
+Gate 03 is now classified as:
+
+**APPROVED — ARCHITECTURAL BASELINE / IMPLEMENTATION DESIGN PENDING**
+
+Here, APPROVED means the architectural/product baseline is approved. It does not authorize migrations or code changes until the Implementation Design is complete and execution is explicitly authorized under the normal CSAPI sequence.
+
+The next step is Implementation Design. Do not begin implementation until that design is complete and approved.
