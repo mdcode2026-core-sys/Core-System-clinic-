@@ -2,7 +2,7 @@
 ## Implementation Design
 Date: 2026-09-22
 Gate: CSAPI Gate 03 — Patient & Identity
-Status: IMPLEMENTATION DESIGN — PENDING EXECUTION APPROVAL
+Status: DESIGN REVIEWED — CORRECTIONS REQUIRED BEFORE EXECUTION APPROVAL
 Authority: Approved Gate 03 Architectural Decision / Requirements Contract
 Execution rule: This document defines the physical implementation design. It does not authorize application code, migrations, production mutation, or deployment.
 
@@ -791,7 +791,140 @@ Gate 03 implementation is Done only when:
 
 ---
 
-## 23. Explicit non-authorizations
+## 23. Design Review findings — 2026-09-22
+
+The first formal Design Review was completed against:
+- approved Gate 03 architectural baseline;
+- current main source;
+- live Supabase schema and constraints;
+- original Portal foundation migration and current RLS policies;
+- downstream references to `patient_identities`.
+
+The design is directionally correct, but execution approval is **not yet granted**. The following corrections are mandatory before implementation:
+
+### DR-01 — Canonical identity profile vs clinic-owned demographic truth
+
+The System Patient Identity must not become a second editable clinic patient record.
+
+Resolution:
+- `clinic_patients` remains the clinic-owned source for clinic registration/profile truth.
+- System Patient Identity stores only the minimum normalized identity/matching representation required for continuity and matching.
+- Every identity attribute copied into the system identity must have provenance/verification semantics.
+- A clinic update does not automatically overwrite another clinic's record.
+- Identity correction and clinic demographic correction remain distinct operations.
+
+### DR-02 — Required registration fields and physical storage
+
+The approved registration contract requires father name and family name, while current `clinic_patients` has only `first_name` and `last_name`.
+
+Resolution:
+- inspect all existing consumers of `last_name`, `first_name_ar`, and `last_name_ar`;
+- add explicit father/family/mother representation without silently changing the meaning of `last_name`;
+- preserve backward compatibility until all consumers are migrated;
+- do not use `age` as a persistent identity field.
+
+### DR-03 — Age/DOB semantics
+
+The product contract allows age or DOB as a required registration input.
+
+Resolution:
+- DOB is the canonical stored birth datum when known;
+- if DOB is unavailable and age is supplied, store an explicit `age_at_registration` plus `age_reference_date` as provisional evidence;
+- never treat a changing current age as a stable identity attribute;
+- when DOB is later supplied, replace the provisional age evidence through an audited correction;
+- matching must distinguish exact DOB from approximate age evidence.
+
+### DR-04 — Matching thresholds must be implementation-defined before execution
+
+The previous draft left thresholds as a later parameter.
+
+Resolution:
+- the implementation design must contain the initial deterministic evidence model, field weights/authority classes, conflict handling, candidate floor, exact-match threshold, review range, and no-match floor;
+- configuration must be versioned and audited;
+- tests must bind to the versioned configuration;
+- changing thresholds later is a controlled matching-policy change, not an ad-hoc code tweak.
+
+### DR-05 — Existing `patient_identities` is a Portal-auth table and has live security semantics
+
+The current table contains `auth_user_id`, has self-service INSERT/UPDATE RLS, and is referenced by Portal/Communications.
+
+Resolution:
+- retain the table name only if migration can safely transform it into canonical System Patient Identity;
+- remove Portal-auth semantics from the canonical identity table only after all references are inventoried;
+- create `patient_portal_identities` as the authentication binding;
+- migrate existing `auth_user_id` relationships to the new binding;
+- revoke old self-service identity INSERT/UPDATE semantics;
+- ensure clinic staff never receive unrestricted system-wide identity reads.
+
+### DR-06 — Tenant integrity of `patient_clinic_relationships`
+
+Current live schema has separate FKs for `tenant_id` and `clinic_patient_id`, but no composite FK enforcing that they refer to the same tenant.
+
+Resolution:
+- add a composite FK `(tenant_id, clinic_patient_id) → clinic_patients(tenant_id, id)`;
+- retain the tenant-aware relationship invariants and verify them before backfill;
+- review every write path for tenant mismatch attempts.
+
+### DR-07 — Portal ID creation timing
+
+The approved architecture says the patient receives a Portal ID in the background when first entered, independent of Portal subscription.
+
+Resolution:
+- creation of the canonical System Patient Identity must atomically or transactionally create the non-auth Portal Identity/binding row;
+- binding status is `unclaimed`/equivalent until authentication is established;
+- no auth user is required for this row;
+- entitlement determines access, not existence of the binding.
+
+### DR-08 — RLS/security redesign is mandatory
+
+The current Portal foundation permits authenticated patients to insert/update their own `patient_identities` using `auth_user_id`.
+
+That policy cannot survive canonical identity ownership.
+
+Resolution:
+- canonical identity writes go through the authorized Patient/Identity server boundary;
+- patient-facing authentication may read only its own Portal binding and permitted relationship data;
+- any privileged cross-clinic candidate lookup must be narrowly scoped and security-reviewed;
+- no SECURITY DEFINER is introduced merely to bypass RLS.
+
+### DR-09 — Downstream reference inventory before auth_user_id removal
+
+Current `patient_identities.id` is already referenced by communications and other Portal structures.
+
+Resolution:
+- enumerate every FK/query/policy/function referencing `patient_identities` and `auth_user_id`;
+- classify each reference as canonical identity, Portal authentication, or historical compatibility;
+- migrate only the authentication-specific references;
+- preserve canonical identity references.
+
+### DR-10 — History transition is read-model work, not identity migration
+
+The current `patient_history` table references `clinic_patients`.
+
+Resolution:
+- do not relink it directly to System Patient Identity as a shortcut;
+- first define the Patient Module history composition contract over domain-owned sources;
+- retain projection compatibility until consumers are migrated.
+
+### DR-11 — Merge is not executable solely from Gate 03
+
+The identity survivor/superseded mechanics can be owned here, but downstream domain reconciliation belongs to each domain.
+
+Resolution:
+- Gate 03 merge must create an auditable merge transaction/state;
+- downstream reassignment is delegated through explicit domain adapters/contracts;
+- merge cannot complete as "done" while required domain reconciliation remains unresolved.
+
+### DR-12 — No implementation migration may be generated yet
+
+Because DR-01 through DR-11 affect physical schema and security semantics, the design is not execution-ready.
+
+Required next artifact:
+**Gate 03 Design Review Resolution / Revised Implementation Design**
+
+Only after those corrections are reconciled may execution approval be requested.
+
+## 24. Explicit non-authorizations
 
 This design does NOT authorize:
 
@@ -810,7 +943,7 @@ This design does NOT authorize:
 
 ---
 
-## 24. Design conclusion
+## 25. Design conclusion
 
 The implementation path is one canonical Patient / Identity authority with an explicit clinic relationship boundary and a separate Portal authentication boundary.
 
