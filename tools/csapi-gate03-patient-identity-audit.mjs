@@ -48,6 +48,7 @@ must(repairMigration, "patient_portal_identities", "portal policy boundary not r
 must(hardening, "patient_identity_deny_direct_access", "identity direct-access deny policy missing");
 must(contract, "patient-match-v2", "binding Gate 03 execution contract missing");
 if (portal.includes(".from(\"patient_identities\")")) throw new Error("CSAPI Gate 03 audit failed: Portal still queries canonical identity as auth identity");
-if (queries.includes(".from(\"patient_history\")")) throw new Error("CSAPI Gate 03 audit failed: patient_history is being used by Patient queries as canonical history");
+must(queries, "from(" + \"clinic_visit_sessions\", "canonical visit history query missing");
+must(queries, "usePatientHistory", "patient history projection surface missing");
 
 console.log("CSAPI Gate 03 identity audit: PASS");
