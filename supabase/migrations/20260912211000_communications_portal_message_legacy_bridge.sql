@@ -12,5 +12,5 @@ select p.tenant_id, c.id, case when p.sender_type='clinic' then cu.id else null 
 from public.patient_portal_messages p
 join public.communication_conversations c on c.tenant_id=p.tenant_id and c.clinic_patient_id=p.clinic_patient_id and c.kind='patient' and c.status <> 'archived'
 left join public.clinic_users cu on cu.tenant_id=p.tenant_id and cu.auth_user_id=p.sender_auth_user_id and p.sender_type='clinic'
-left join public.patient_portal_identities ppi on ppi.auth_user_id=p.sender_auth_user_id and p.sender_type='patient'
+left join public.patient_identities pi on pi.auth_user_id=p.sender_auth_user_id and p.sender_type='patient'
 where p.deleted_at is null and not exists (select 1 from public.communication_messages m where m.legacy_portal_message_id=p.id);
