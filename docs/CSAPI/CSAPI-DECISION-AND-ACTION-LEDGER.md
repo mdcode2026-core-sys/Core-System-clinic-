@@ -106,3 +106,57 @@ This file is append-only for material CSAPI events. Historical entries remain ev
 - Implementation consequence: No application/database change was introduced; Gate 02 remains unimplemented pending precheck and decision approval.
 - Verification evidence: Open PR count returned 0 after merge; main is at acaab351cab0f17542bcca0f28d020cad10f0b0d.
 - Status: CLOSED / TRANSITION COMPLETE
+
+
+### CSAPI-2026-09-22-021
+- Date: 2026-09-22
+- Gate: Gate 02 — Patient Journey
+- Type: Verification / Canonical Continuity Links
+- Source(s): Current repository source inspection; live Supabase schema/row evidence; approved P1–P7 boundaries
+- Statement: Canonical continuity links were rechecked without introducing a universal Patient Journey engine. Patient is the longitudinal identity; Visit is the current interaction record; Agenda owns booking and links to Visit through agenda_event_id; Treatment Plan links to Patient and source Visit plus the explicit Plan↔Visit link table; Follow-up links to Patient and optionally Visit through session_id; Coordination Work links to Patient and carries source_type/source_id rather than owning upstream domain state.
+- Evidence: Live Supabase rows: 391 patients, 139 visit sessions, 8 treatment plans, 4 treatment plan items, 3 treatment-plan/visit links, 813 follow-ups, 337 agenda events, 17 operational work items, and 0 patient_history rows. Relevant tables have RLS enabled. Composite tenant-aware foreign keys exist for Patient↔Visit, Visit↔Agenda, Treatment Plan↔Patient/Visit, Treatment Plan Visit links, Agenda↔Patient, and Work↔Patient.
+- Finding: Treatment Plan completion currently materializes kind=next_action Operational Work through ensureNextAction(), and Follow-up retains next_action fields/legacy bridge paths. These are boundary findings already assigned to later owning gates; they are not reimplemented inside Gate 02.
+- Product Owner decision: Preserve P1–P7. Gate 02 implementation remains limited to longitudinal traceability/read-model correction; downstream domain ownership stays unchanged.
+- Implementation consequence: Continue with focused automated tests and runtime evidence; no production DB mutation and no Vercel deployment.
+- Verification evidence: Live Supabase schema inspection plus current source inspection of Visit, Agenda, Treatment Plan, Follow-up and Coordination paths.
+- Status: CANONICAL LINKS VERIFIED / DOWNSTREAM DRIFT DEFERRED
+
+
+### CSAPI-2026-09-22-022
+- Date: 2026-09-22
+- Gate: Gate 02 — Patient Journey
+- Type: Test Finding / Documentation Correction
+- Source(s): Gate 02 structural verification against the committed audit contract
+- Statement: The first execution-equivalent structural verification failed on the Gate 02 documentation contract because the current Gate 02 record did not contain the exact approved-boundary phrases required by the audit for P6, Agenda non-repair, and Gate 11 separation.
+- Evidence: Verification failed at the P6 assertion before later assertions were evaluated. The underlying architectural decisions are already approved; this is documentation/test-contract drift, not a new product decision.
+- Product Owner decision: Preserve P1–P7 and the existing gate boundaries. Reconcile the current Gate 02 record to the approved decision language, then rerun the same verification.
+- Implementation consequence: Documentation-only correction; no application/database behavior change.
+- Verification evidence: First execution-equivalent structural verification returned P6 assertion failure.
+- Status: CORRECTIVE DOCUMENTATION WORK / RERUN REQUIRED
+
+
+### CSAPI-2026-09-22-023
+- Date: 2026-09-22
+- Gate: Gate 02 — Patient Journey
+- Type: Verification
+- Source(s): Committed Gate 02 continuity audit contract; current branch source/docs
+- Statement: After reconciling the documentation contract to the already-approved P1/P6, Agenda and Gate 11 boundaries, the full execution-equivalent structural verification passed.
+- Evidence: Canonical Visit source/query, Patient Context consumption, removal of legacy Visit summary usage, no parallel Patient Journey engine markers, P6 terminal-state boundary, Agenda non-repair boundary, Gate 11 separation, package script and audit PASS contract all verified.
+- Product Owner decision: No new decision required; continue to runtime verification.
+- Implementation consequence: Gate 02 structural/static test lane is green. No database or production mutation.
+- Verification evidence: Gate 02 structural verification: PASS.
+- Status: VERIFIED / RUNTIME NEXT
+
+
+### CSAPI-2026-09-22-024
+- Date: 2026-09-22
+- Gate: Gate 02 — Patient Journey
+- Type: Runtime Verification
+- Source(s): Live Supabase project `core-system-clinic`; read-only SQL continuity integrity queries; live schema/RLS inspection
+- Statement: Runtime continuity integrity verification passed for the canonical links in scope. No orphan or cross-patient/cross-tenant mismatch was found across Patient→Visit, Visit→Agenda, Treatment Plan→source Visit, Treatment Plan↔Visit, or Follow-up→Patient/Visit relationships in the current dataset.
+- Evidence: 391 patients; 139 visits; 8 treatment plans; 4 treatment-plan items; 3 plan↔visit links; 813 follow-ups; 337 agenda events; 17 operational work items; 0 patient_history rows. Integrity query results: visit_patient_orphans=0; visit_agenda_mismatches=0; treatment_source_visit_orphans=0; plan_visit_patient_mismatches=0; followup_patient_orphans=0; followup_visit_orphans=0; followups_with_next_action_type=0; next_action_work_items=4. Relevant tables are RLS-enabled and composite tenant-aware FKs are present for the inspected core links.
+- Finding: The four existing `next_action` Work Items remain historical/runtime data and do not prove that the current implementation satisfies P3; the source-path boundary remains deferred to owning gates. No currently populated Follow-up next_action_type exercised the legacy bridge path.
+- Product Owner decision: Runtime continuity evidence is sufficient for the approved Gate 02 implementation scope; do not repair downstream boundary drift here.
+- Implementation consequence: No production mutation. Proceed to final repository/PR verification and Gate 02 closure documentation; Vercel remains out of scope until the later final production verification rule.
+- Verification evidence: Live Supabase read-only verification passed.
+- Status: RUNTIME VERIFIED / CLOSURE PREPARATION
