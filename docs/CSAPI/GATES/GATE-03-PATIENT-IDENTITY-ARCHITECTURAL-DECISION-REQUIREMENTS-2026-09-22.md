@@ -733,7 +733,7 @@ No scope expansion by convenience.
 
 Gate 03 is currently:
 
-**APPROVED — ARCHITECTURAL BASELINE / IMPLEMENTATION DESIGN PENDING**
+**APPROVED — ARCHITECTURAL BASELINE / IMPLEMENTATION DESIGN COMPLETE / EXECUTION APPROVAL PENDING**
 
 This document establishes the target requirements and decision questions.
 
@@ -741,10 +741,10 @@ It does not claim that CORE SYSTEM currently satisfies them.
 
 The reconciliation against this contract is complete and recorded in the Gate 03 Reconciliation Report.
 
-The next execution artifact is the Gate 03 Implementation Design:
-`docs/CSAPI/GATES/GATE-03-PATIENT-IDENTITY-IMPLEMENTATION-DESIGN-2026-09-22.md`
+The authoritative execution design is:
+`docs/CSAPI/GATES/GATE-03-PATIENT-IDENTITY-IMPLEMENTATION-DESIGN-REVISED-2026-09-22.md`
 
-Implementation remains unauthorized until that design is reviewed and explicitly approved.
+Implementation remains unauthorized until explicit Product Owner execution approval is recorded.
 
 ---
 
@@ -898,3 +898,12 @@ No implementation begins until the Implementation Design is complete and executi
 ## Implementation Design Closure — 2026-09-22
 
 The architectural baseline is unchanged. The Implementation Design is now complete and reconciled in `docs/CSAPI/GATES/GATE-03-PATIENT-IDENTITY-IMPLEMENTATION-DESIGN-REVISED-2026-09-22.md`. This contract does not authorize implementation; explicit execution approval remains required.
+
+
+## Authority reconciliation correction — 2026-09-22
+
+This document remains the Gate 03 architectural requirements/decision contract. Its baseline is approved. The Implementation Design phase is complete and is authoritative in the Revised Implementation Design document.
+
+Current state: architectural baseline APPROVED; Implementation Design COMPLETE; execution approval PENDING; implementation NOT STARTED. No application code, migration, production database mutation, or production deployment has occurred.
+
+The earlier non-revised Implementation Design document is historical/superseded and is not execution authority.
