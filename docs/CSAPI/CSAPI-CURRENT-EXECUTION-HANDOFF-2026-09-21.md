@@ -352,3 +352,28 @@ Current state:
 **EXECUTION APPROVED → PRE-IMPLEMENTATION VERIFICATION → MATCH-POLICY BLOCKER RESOLVED → PRE-IMPLEMENTATION VERIFICATION CONTINUES.**
 
 The next execution action is to continue the pre-implementation repository/database dependency verification.
+
+
+## 18. Gate 03 implementation execution — started 2026-09-22
+
+The resolved match-policy blocker is no longer blocking implementation.
+
+Implementation branch: `csapi/gate03-patient-identity-implementation-2026-09-22`
+
+Implemented on branch so far:
+- Patient identity foundation migration: explicit father/family/mother/age representation, governed identifier registry, separate Portal Identity table, match-decision audit, composite tenant integrity, and removal of the clinic-local unique phone constraint.
+- Atomic canonical registration RPC with validation, multi-attribute matching, EXACT_MATCH / REVIEW_REQUIRED / NO_MATCH outcomes, non-government-ID core-profile path, identity/clinic relationship creation, and automatic unclaimed Portal Identity creation.
+- Existing patient identity seeding migration for current clinic patient records without merging historical duplicates.
+- Patient API/actions now route new registration through the canonical identity registration path.
+- Main Patient form and quick/kiosk registration paths were updated to collect the required identity inputs.
+- Portal application paths were moved toward the separate Portal Identity binding.
+
+Important: the branch has not been applied to live Supabase and has not been deployed to production.
+
+Remaining implementation-critical work before verification:
+1. Complete Portal/RLS policy separation from legacy `patient_identities.auth_user_id` semantics.
+2. Complete demographic-update continuity so edits update the existing System Patient Identity evidence without creating a new identity.
+3. Complete Patient Module authoritative search/matching surface and review decision flow.
+4. Add the Gate 03 automated test contract and execute build/type/test verification.
+5. Run migration validation against a clean database and inspect migration-history parity before any remote application.
+6. Only after all checks pass: apply the migration to the appropriate environment, verify live data/security/runtime, reconcile documentation, merge, and perform post-main production verification.
