@@ -870,25 +870,29 @@ No later implementation may silently reinterpret these decisions.
 
 ---
 
+## Portal ID semantic clarification — 2026-09-22
+
+The approved requirement that a patient receives a **Portal ID in the background at patient entry** is reconciled as follows:
+
+- The Portal ID is a stable, non-authentication identity/binding associated with the canonical System Patient Identity.
+- Creating this Portal ID does **not** create a login account, authenticate the patient, or grant Portal access.
+- Portal authentication credentials/account binding remain a separate security concern and are created/activated only through the Portal access flow.
+- Portal subscription/entitlement controls whether the patient may access permitted Portal capabilities and data; it does not determine whether the underlying patient or non-auth Portal identity exists.
+- The current `patient_identities` implementation must not be assumed to satisfy this requirement because current evidence shows it is coupled to Portal authentication semantics.
+
+This resolves the wording ambiguity without changing the approved principle: **identity exists before Portal activation; access is entitlement-controlled; authentication remains separate.**
+
 # 20. Decision status after Product Owner approval
 
-The five owner-approved directions above are now part of the Gate 03 architectural baseline.
+The seven owner-approved directions above are now part of the Gate 03 architectural baseline.
 
-This approval does **not** mean Gate 03 is implementation-ready.
+This approval does **not** mean that implementation design is complete or that code/migrations may start immediately.
 
-The remaining precheck must still reconcile:
+The full precheck and reconciliation are complete and are recorded in the Gate 03 Reconciliation Report. The remaining work is implementation design, specifically the bounded physical and execution details identified by the reconciliation, including exact matching thresholds/result vocabulary, identifier registry schema, merge transaction/recovery mechanics, and final physical Person/Patient Identity decomposition.
 
-- current repository implementation;
-- live database structure and constraints;
-- current matching/search behavior;
-- patient history source-of-truth;
-- insurance/coverage boundary;
-- Portal identity binding/access;
-- authorization and tenant isolation;
-- merge/recovery mechanics;
-- identifier governance;
-- runtime behavior;
-- tests and migrations.
+Gate 03 is therefore:
 
-The complete Decision Report is now recorded, the approved baseline has been reconciled against repository/database/runtime evidence, and Gate 03 is now **DECISION READY**. Remaining implementation-design details are explicitly bounded and must be finalized before code or migration changes.
+**APPROVED — ARCHITECTURAL BASELINE / IMPLEMENTATION DESIGN PENDING**.
+
+No implementation begins until the Implementation Design is complete and execution is explicitly authorized through the normal CSAPI sequence.
 
