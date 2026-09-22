@@ -12,6 +12,7 @@ const hardening = read("supabase/migrations/20260922131621_csapi_gate03_identity
 const correction = read("supabase/migrations/20260922164458_csapi_gate03_patient_match_v2_weight_reconciliation.sql");
 const executionReconciliation = read("supabase/migrations/20260922190000_csapi_gate03_execution_reconciliation.sql");
 const reviewAuthorization = read("supabase/migrations/20260922191000_csapi_gate03_review_resolution_authorization.sql");
+const identifierRegistry = read("supabase/migrations/20260922192000_csapi_gate03_identifier_registry_reconciliation.sql");
 const actions = read("src/domain/patients/patients.actions.ts");
 const api = read("src/app/api/patients/route.ts");
 const queries = read("src/domain/patients/patients.queries.ts");
@@ -44,6 +45,10 @@ must(executionReconciliation, "attribute_provenance", "identity provenance metad
 must(executionReconciliation, "attribute_verification", "identity verification metadata missing");
 must(executionReconciliation, "has_tenant_permission(p_tenant_id,'patients:read')", "authoritative search permission boundary missing");
 must(reviewAuthorization, "has_tenant_permission(p_tenant_id,'patients:create')", "human review create authorization missing");
+must(identifierRegistry, "verification_status", "identifier verification status missing");
+must(identifierRegistry, "scope_type", "identifier scope boundary missing");
+must(identifierRegistry, "is_current", "identifier current-state governance missing");
+must(identifierRegistry, "source", "identifier provenance source missing");
 must(migration, "v_best_score >= 80", "EXACT_MATCH threshold missing");
 must(reviewMigration, "resolve_patient_identity_match", "human match resolution missing");
 must(api, "resolve_patient_identity_match", "API review resolution missing");
