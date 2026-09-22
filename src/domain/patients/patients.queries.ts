@@ -6,18 +6,16 @@ import type { Patient, PatientHistory } from "./patients.types";
 
 const supabase = createClient();
 
-export function usePatients(tenantId: string | null) {
+export function usePatients(tenantId: string | null, searchQuery = "") {
   return useQuery({
-    queryKey: ["patients", tenantId],
+    queryKey: ["patients", tenantId, searchQuery],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("clinic_patients")
-        .select("*")
-        .eq("tenant_id", tenantId)
-        .is("deleted_at", null)
-        .order("created_at", { ascending: false });
+      const { data, error } = await supabase.rpc("search_patient_records", {
+        p_tenant_id: tenantId,
+        p_query: searchQuery.trim() || null,
+      });
       if (error) throw error;
-      return data as Patient[];
+      return (data ?? []) as Patient[];
     },
     enabled: !!tenantId,
   });

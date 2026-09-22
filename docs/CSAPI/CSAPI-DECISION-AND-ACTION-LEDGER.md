@@ -186,3 +186,128 @@ This file is append-only for material CSAPI events. Historical entries remain ev
 - Implementation consequence: No further Gate 02 implementation is authorized unless a new explicit CSAPI decision reopens/supersedes the closure. Deferred Treatment Plan, Follow-up, Agenda, Communications and Operational Work boundary findings remain with their owning gates.
 - Verification evidence: Gate 02 closure record and final handoff.
 - Status: CLOSED
+
+
+### CSAPI-2026-09-22-027
+- Date: 2026-09-22
+- Gate: Gate 03 — Patient & Identity
+- Type: Reconciliation / Decision
+- Source(s): CSAPI Gates Plan; CSAPI Master State; current execution handoff; Gate 03 Architectural Decision / Requirements Contract; Gate 03 Reconciliation Report; historical baseline; current repository/database/runtime evidence
+- Statement: A final pre-Implementation Design authority check found documentation-state drift but no unresolved product-architecture contradiction affecting the Gate 03 path.
+- Evidence: Gate Plan still labeled Gate 03 as NEXT; Gate 03 contract retained stale UNDER REVIEW/DRAFT wording and referred to five approved directions although seven were recorded; the ledger had not yet recorded the Gate 03 approval/reconciliation event. The underlying architectural baseline and reconciliation evidence were already complete.
+- Product Owner decision: Treat these as documentation-authority drift and reconcile them before Implementation Design. Do not introduce application or database changes as part of this correction.
+- Implementation consequence: Gate 03 remains the active gate and Gate 01/02 remain closed. No implementation starts from the stale wording.
+- Verification evidence: Current branch comparison against main; zero open PRs; current Gate 03 contract/reconciliation report; live evidence already recorded in the reconciliation report.
+- Status: RESOLVED — DOCUMENTATION AUTHORITY RECONCILED
+
+### CSAPI-2026-09-22-028
+- Date: 2026-09-22
+- Gate: Gate 03 — Patient & Identity
+- Type: Approval / State Decision
+- Source(s): Product Owner-approved Gate 03 decisions A1–A7; Gate 03 reconciliation report
+- Statement: The Gate 03 architectural/product baseline is approved. This approval covers the target architecture and requirements, not the yet-to-be-completed physical Implementation Design.
+- Evidence: Approved model Real Person → System Patient Identity → Clinic Relationship → Clinic Patient Record; stable system Patient ID plus independent clinic file identity; multi-attribute duplicate prevention with human review; Administrative merge; demographic continuity; domain-bounded history; separate Portal Identity; bounded Insurance relationship; tenant isolation.
+- Product Owner decision: Gate 03 state is APPROVED — ARCHITECTURAL BASELINE / IMPLEMENTATION DESIGN PENDING.
+- Implementation consequence: Proceed to Implementation Design only. Do not begin migrations, code changes, production database mutation or production deployment until the design is complete and execution is explicitly authorized.
+- Verification evidence: Full Gate 03 reconciliation completed; no production mutation/deployment for Gate 03.
+- Status: APPROVED — DESIGN PENDING
+
+### CSAPI-2026-09-22-029
+- Date: 2026-09-22
+- Gate: Gate 03 — Patient & Identity
+- Type: Scope Decision
+- Source(s): Gate 03 Reconciliation Report; approved architectural baseline
+- Statement: Implementation Design must resolve only the remaining bounded physical/execution details: exact matching confidence/result vocabulary and thresholds; identifier registry physical schema; merge transaction/recovery/audit mechanics; final physical Person/Patient Identity decomposition; migration/data transition strategy; and exact verification contract.
+- Evidence: Reconciliation report explicitly classifies these as implementation-design details and excludes unrelated domain rebuilds.
+- Product Owner decision: Preserve the approved scope boundary. Do not reopen Gate 01/02 or absorb Agenda, Clinical, Financial/Insurance lifecycle, Follow-up, Communications, Portal UI, or permission-engine work into Gate 03.
+- Implementation consequence: Implementation Design is the sole next stage before execution approval.
+- Verification evidence: Gate 03 scope/non-scope and later-gate ownership reconciled.
+- Status: BINDING NEXT STAGE
+
+
+### CSAPI-2026-09-22-030
+- Date: 2026-09-22
+- Gate: Gate 03 — Patient & Identity
+- Type: Decision / Clarification
+- Source(s): Product Owner-approved Portal baseline; Gate 03 reconciliation; current Portal implementation evidence
+- Statement: The approved background Portal ID is a non-authentication identity/binding associated with the canonical System Patient Identity. It exists before Portal subscription/activation but is not a login account, does not authenticate the patient, and does not grant access.
+- Evidence: The approved baseline requires identity before Portal activation and subscription-controlled access, while current patient_identities evidence is coupled to Portal authentication semantics.
+- Product Owner decision: Preserve the approved principle while separating Portal ID/binding from Portal authentication. Subscription/entitlement controls access, not identity creation.
+- Implementation consequence: Implementation Design must model canonical Patient Identity, non-auth Portal identity/binding, and Portal authentication/access as separate concerns. Do not reuse the current patient_identities table unchanged as the canonical identity merely to satisfy the background Portal ID requirement.
+- Verification evidence: Reconciled Gate 03 contract and reconciliation report; no production mutation.
+- Status: APPROVED — DESIGN INPUT
+
+
+### CSAPI-2026-09-22-031
+- Date: 2026-09-22
+- Gate: Gate 03 — Patient & Identity
+- Type: Implementation Design
+- Source(s): Approved Gate 03 Architectural Decision / Requirements Contract; Gate 03 Reconciliation Report; current main source inspection; live Supabase schema/constraint inspection
+- Statement: The Gate 03 Implementation Design is drafted. It defines the physical target without authorizing execution: canonical System Patient Identity, governed identifiers, explicit Clinic Relationship, clinic-owned Patient Record, separate Portal Identity/authentication binding, registration validity followed by multi-attribute matching, authoritative Patient Module search, staged backfill, Administrative merge mechanics, identity auditability, tenant-safe cross-clinic recognition, and canonical history composition.
+- Evidence: Current main contains direct Patient inserts without matching; current patient_identities is coupled to Portal authentication; patient_clinic_relationships already exists; live clinic_patients has UNIQUE (tenant_id, phone_primary); live patient_identities and patient_clinic_relationships contain zero rows; current clinic_patients lacks father/mother/national-ID registration fields; current patient history hook reads the summary table directly.
+- Product Owner decision: Proceed only to Design Review. The design must preserve the approved distinction between registration validity and identity matching. Required fields are validation requirements; they are not uniqueness rules. No single field, including phone, is conclusive identity evidence. Examples/test cases must not be promoted into business rules.
+- Implementation consequence: No migration, application code change, production database mutation, or production deployment is authorized by this design draft.
+- Verification evidence: Design is reconciled against repository and live Supabase evidence; execution remains pending explicit approval.
+- Status: IMPLEMENTATION DESIGN DRAFTED / REVIEW PENDING
+
+
+| 2026-09-22 | Gate 03 Implementation Design Review Resolution | `011b58040240ed72cebdf7665970ce5724fb5d5d` | IMPLEMENTATION DESIGN COMPLETE | DR-01..DR-12 resolved; revised design is execution authority | Explicit Product Owner execution approval |
+
+
+## Gate 03 authority reconciliation correction — 2026-09-22
+
+- Decision: Reconcile Gate 03 CSAPI state across the Gate Plan, Master State, Handoff, architectural contract and Implementation Design records.
+- Result: Architectural baseline APPROVED; Implementation Design COMPLETE; explicit execution approval PENDING.
+- Authority: `docs/CSAPI/GATES/GATE-03-PATIENT-IDENTITY-IMPLEMENTATION-DESIGN-REVISED-2026-09-22.md` is the sole current implementation-design authority.
+- Historical: `GATE-03-PATIENT-IDENTITY-IMPLEMENTATION-DESIGN-2026-09-22.md` is superseded and retained only as historical evidence.
+- Scope: documentation/authority reconciliation only. No application code, migration, production DB mutation, or production deployment.
+- Gate 01: CLOSED. Gate 02: CLOSED / VERIFIED / PRODUCTION VERIFIED. Neither is reopened.
+- Next transition: explicit Product Owner execution approval for Gate 03.
+- Status: RECONCILED / WAITING FOR EXECUTION APPROVAL
+
+
+## Gate 03 — Execution Approval — 2026-09-22
+
+- Product Owner explicitly approved Gate 03 execution.
+- Architectural baseline: approved.
+- Revised Implementation Design: complete and authoritative.
+- Next action: Pre-Implementation Verification.
+- Scope: Gate 03 Patient & Identity only.
+- No direct main changes; no premature production mutation/deployment.
+
+
+### CSAPI-2026-09-22-032
+- Date: 2026-09-22
+- Gate: Gate 03 — Patient & Identity
+- Type: Pre-Implementation Verification / Match Policy Resolution
+- Source(s): Revised Gate 03 Implementation Design; Gate 03 Match Policy Resolution; current handoff
+- Statement: The pre-implementation matching blocker was resolved. The initial 80-point threshold was mathematically unreachable without national ID/card. The revised patient-match-v1 retains the 80-point weighted path and adds a controlled non-government-ID core-profile exact-match path.
+- Product Owner direction: Continue Gate 03 execution without treating national ID/card as a prerequisite for identity matching.
+- Implementation consequence: No code or database mutation was introduced by the resolution. Continue repository/database dependency verification before implementation.
+- Status: RESOLVED — PRECHECK CONTINUES
+
+
+### CSAPI-2026-09-22-033
+- Date: 2026-09-22
+- Gate: Gate 03 — Patient & Identity
+- Type: Implementation execution start
+- State: EXECUTION APPROVED → IMPLEMENTATION IN PROGRESS
+- Match-policy blocker: RESOLVED before implementation continued.
+- Branch: `csapi/gate03-patient-identity-implementation-2026-09-22`
+- Implemented branch scope: identity foundation migration, canonical registration RPC, existing identity seed migration, registration API/action routing, registration UX required fields, initial Portal Identity separation.
+- Live Supabase: unchanged by this branch; no production DB mutation.
+- Production: unchanged; no production deployment.
+- Remaining critical work: Portal/RLS separation, demographic update continuity, authoritative Patient search/review flow, test contract, clean migration/build/type verification, runtime/data/security verification, then normal main integration and closure.
+
+
+### CSAPI-2026-09-22-034
+- Gate: Gate 03 — Patient & Identity
+- State: IMPLEMENTATION COMPLETE / VERIFICATION IN PROGRESS
+- Match policy: `patient-match-v2`; national ID remains optional; complete non-government-ID demographic evidence can reach EXACT_MATCH threshold 80.
+- Live implementation: applied and verified at database-function level; existing 395 patient records seeded to System Patient Identity + Clinic Relationship + unclaimed Portal Identity.
+- Human review path: REVIEW_REQUIRED → LINK_EXISTING / CREATE_NEW implemented.
+- Patient search: Patient Module now uses authoritative search RPC rather than client-side filtering.
+- Portal: authentication separated from canonical Patient Identity through `patient_portal_identities`.
+- Security: direct authenticated access to identity internals denied; portal policies restored/reconciled against Portal Identity.
+- Live migration versions: 20260922130830, 20260922130928, 20260922131239, 20260922131621, 20260922131803.
+- No production application deployment yet. Remaining closure sequence: engineering CI verification → PR/main integration → post-main production verification → final documentation closure.

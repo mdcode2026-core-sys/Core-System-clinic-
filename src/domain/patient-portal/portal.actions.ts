@@ -25,14 +25,53 @@ export async function createPatientPortalInvitation(input: { clinicPatientId: st
   return { success: true, invitationId: invitation.id, expiresAt };
 }
 export async function claimPatientPortalInvitation(token: string) {
-  const supabase = await createClient(); const { data: { user } } = await supabase.auth.getUser(); if (!user) return { success: false, error: "authRequired" }; if (!token || token.length < 20) return { success: false, error: "invalidInvitation" };
-  const { data: invitation, error: invitationError } = await supabase.from("patient_portal_invitations").select("id,tenant_id,clinic_patient_id,channel,destination,status,expires_at").eq("token_hash", hashToken(token)).maybeSingle(); if (invitationError || !invitation) return { success: false, error: "invitationNotFound" }; if (invitation.status !== "pending" && invitation.status !== "sent") return { success: false, error: "invitationInvalid" }; if (new Date(invitation.expires_at).getTime() <= Date.now()) { await supabase.from("patient_portal_invitations").update({ status: "expired" }).eq("id", invitation.id); return { success: false, error: "invitationExpired" };
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { success: false, error: "authRequired" };
+  if (!token || token.length < 20) return { success: false, error: "invalidInvitation" };
+
+  const { data: invitation, error: invitationError } = await supabase
+    .from("patient_portal_invitations")
+    .select("id,tenant_id,clinic_patient_id,channel,destination,status,expires_at")
+    .eq("token_hash", hashToken(token))
+    .maybeSingle();
+  if (invitationError || !invitation) return { success: false, error: "invitationNotFound" };
+  if (invitation.status !== "pending" && invitation.status !== "sent") return { success: false, error: "invitationInvalid" };
+  if (new Date(invitation.expires_at).getTime() <= Date.now()) {
+    await supabase.from("patient_portal_invitations").update({ status: "expired" }).eq("id", invitation.id);
+    return { success: false, error: "invitationExpired" };
   }
-  const identityValue = invitation.channel === "email" ? (user.email ?? "").toLowerCase() : normalizePhone(user.phone); const destination = invitation.channel === "email" ? invitation.destination.toLowerCase() : normalizePhone(invitation.destination); if (!identityValue || identityValue !== destination) return { success: false, error: "identityMismatch" };
-  const { data: existingIdentity } = await supabase.from("patient_identities").select("id,status").eq("auth_user_id", user.id).maybeSingle(); let identityId = existingIdentity?.id;
-  if (!identityId) { const { data: created, error: createError } = await supabase.from("patient_identities").insert({ auth_user_id: user.id, email: user.email ?? null, phone: user.phone ?? null, status: "active", verified_at: new Date().toISOString(), last_authenticated_at: new Date().toISOString() }).select("id").single(); if (createError || !created) return { success: false, error: "identityCreateFailed" }; identityId = created.id; } else { const { error } = await supabase.from("patient_identities").update({ status: "active", verified_at: new Date().toISOString(), last_authenticated_at: new Date().toISOString(), updated_at: new Date().toISOString() }).eq("id", identityId); if (error) return { success: false, error: "identityActivateFailed" }; }
-  const { data: patient } = await supabase.from("clinic_patients").select("id,tenant_id").eq("id", invitation.clinic_patient_id).eq("tenant_id", invitation.tenant_id).maybeSingle(); if (!patient) return { success: false, error: "relationshipNotFound" };
-  const { error: relationError } = await supabase.from("patient_clinic_relationships").upsert({ patient_identity_id: identityId, clinic_patient_id: patient.id, tenant_id: patient.tenant_id, status: "active", updated_at: new Date().toISOString() }, { onConflict: "patient_identity_id,clinic_patient_id" }); if (relationError) return { success: false, error: "linkFailed" };
-  const { error: claimError } = await supabase.from("patient_portal_invitations").update({ status: "claimed", claimed_at: new Date().toISOString() }).eq("id", invitation.id); if (claimError) return { success: false, error: "finalizeFailed" };
-  return { success: true, tenantId: patient.tenant_id, clinicPatientId: patient.id };
+
+  const identityValue = invitation.channel === "email" ? (user.email ?? "").toLowerCase() : normalizePhone(user.phone);
+  const destination = invitation.channel === "email" ? invitation.destination.toLowerCase() : normalizePhone(invitation.destination);
+  if (!identityValue || identityValue !== destination) return { success: false, error: "identityMismatch" };
+
+  const { data: relationship } = await supabase
+    .from("patient_clinic_relationships")
+    .select("patient_identity_id")
+    .eq("tenant_id", invitation.tenant_id)
+    .eq("clinic_patient_id", invitation.clinic_patient_id)
+    .eq("status", "active")
+    .maybeSingle();
+  if (!relationship?.patient_identity_id) return { success: false, error: "relationshipNotFound" };
+
+  const { error: portalIdentityError } = await supabase
+    .from("patient_portal_identities")
+    .upsert({
+      patient_identity_id: relationship.patient_identity_id,
+      auth_user_id: user.id,
+      status: "active",
+      verified_at: new Date().toISOString(),
+      last_authenticated_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    }, { onConflict: "patient_identity_id" });
+  if (portalIdentityError) return { success: false, error: "portalIdentityBindFailed" };
+
+  const { error: claimError } = await supabase
+    .from("patient_portal_invitations")
+    .update({ status: "claimed", claimed_at: new Date().toISOString() })
+    .eq("id", invitation.id);
+  if (claimError) return { success: false, error: "finalizeFailed" };
+
+  return { success: true, tenantId: invitation.tenant_id, clinicPatientId: invitation.clinic_patient_id };
 }

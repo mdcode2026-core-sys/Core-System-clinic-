@@ -3,6 +3,12 @@ export interface Patient {
   tenant_id: string;
   first_name: string;
   last_name: string;
+  father_name?: string;
+  family_name?: string;
+  mother_name?: string;
+  national_id?: string;
+  age_at_registration?: number;
+  age_reference_date?: string;
   first_name_ar?: string;
   last_name_ar?: string;
   date_of_birth?: string;
@@ -24,6 +30,12 @@ export interface PatientInsert {
   tenant_id: string;
   first_name: string;
   last_name: string;
+  father_name?: string;
+  family_name?: string;
+  mother_name?: string;
+  national_id?: string;
+  age_at_registration?: number;
+  age_reference_date?: string;
   first_name_ar?: string;
   last_name_ar?: string;
   date_of_birth?: string;
@@ -40,6 +52,12 @@ export interface PatientInsert {
 
 export interface PatientUpdate {
   first_name?: string;
+  father_name?: string;
+  family_name?: string;
+  mother_name?: string;
+  national_id?: string;
+  age_at_registration?: number;
+  age_reference_date?: string;
   last_name?: string;
   first_name_ar?: string;
   last_name_ar?: string;

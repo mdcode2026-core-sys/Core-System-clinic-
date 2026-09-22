@@ -32,7 +32,8 @@
     "db:types": "supabase gen types typescript --project-id qaslsjyxjwvdoiczmhgq --schema public > src/infrastructure/supabase/database.types.ts",
     "db:migrate": "supabase migration up",
     "db:reset": "supabase db reset",
-    "csapi:gate02-continuity": "node tools/csapi-gate02-continuity-audit.mjs"
+    "csapi:gate02-continuity": "node tools/csapi-gate02-continuity-audit.mjs",
+    "csapi:gate03-identity": "node tools/csapi-gate03-patient-identity-audit.mjs"
   },
   "dependencies": {
     "sonner": "^1.7.4",

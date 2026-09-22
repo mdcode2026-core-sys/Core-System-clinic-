@@ -85,9 +85,9 @@ export async function createCommunicationAttachmentUpload(input: { messageId: st
     if (participant || conversation.kind === "patient") uploader = { clinicUserId: ctx.clinicUser.id, patientIdentityId: null };
   }
   if (!uploader.clinicUserId && conversation.kind === "patient" && message.message_kind === "message") {
-    const { data: identity } = await ctx.supabase.from("patient_identities").select("id").eq("auth_user_id", ctx.user.id).eq("status", "active").maybeSingle();
-    const { data: relationship } = identity && conversation.clinic_patient_id ? await ctx.supabase.from("patient_clinic_relationships").select("clinic_patient_id").eq("patient_identity_id", identity.id).eq("tenant_id", ctx.tenantId).eq("clinic_patient_id", conversation.clinic_patient_id).eq("status", "active").maybeSingle() : { data: null };
-    if (identity && relationship) uploader = { clinicUserId: null, patientIdentityId: identity.id };
+    const { data: identity } = await ctx.supabase.from("patient_portal_identities").select("patient_identity_id").eq("auth_user_id", ctx.user.id).eq("status", "active").maybeSingle();
+    const { data: relationship } = identity && conversation.clinic_patient_id ? await ctx.supabase.from("patient_clinic_relationships").select("clinic_patient_id").eq("patient_identity_id", identity.patient_identity_id).eq("tenant_id", ctx.tenantId).eq("clinic_patient_id", conversation.clinic_patient_id).eq("status", "active").maybeSingle() : { data: null };
+    if (identity && relationship) uploader = { clinicUserId: null, patientIdentityId: identity.patient_identity_id };
   }
   if (!uploader.clinicUserId && !uploader.patientIdentityId) return;
   if (uploader.patientIdentityId && message.message_kind !== "message") return;
@@ -110,7 +110,7 @@ export async function deleteCommunicationAttachment(attachmentId: string) {
   const canManage = await hasEffectivePermission(ctx.user.id, "communications:manage");
   const isClinicUploader = attachment.uploaded_by_clinic_user_id === ctx.clinicUser.id;
   const { data: identity } = await ctx.supabase.from("patient_identities").select("id").eq("auth_user_id", ctx.user.id).eq("status", "active").maybeSingle();
-  const isPatientUploader = !!identity && attachment.uploaded_by_patient_identity_id === identity.id;
+  const isPatientUploader = !!identity && attachment.uploaded_by_patient_identity_id === identity.patient_identity_id;
   if (!canManage && !isClinicUploader && !isPatientUploader) return;
   const { error: storageError } = await ctx.supabase.storage.from(attachment.storage_bucket).remove([attachment.storage_path]);
   if (storageError) return;

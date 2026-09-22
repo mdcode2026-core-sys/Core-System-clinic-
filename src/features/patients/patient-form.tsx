@@ -23,6 +23,9 @@ interface PatientFormProps {
 interface PatientApiResult {
   data?: { id: string };
   error?: string;
+  outcome?: "EXACT_MATCH" | "REVIEW_REQUIRED" | "NO_MATCH";
+  score?: number;
+  candidate?: { patient_identity_id: string; score: number; first_name?: string; family_name?: string; date_of_birth?: string | null; gender?: string | null; phone_last4?: string };
 }
 
 export function PatientForm({ patient, isOpen, onClose, onSuccess }: PatientFormProps) {
@@ -31,11 +34,18 @@ export function PatientForm({ patient, isOpen, onClose, onSuccess }: PatientForm
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [serverError, setServerError] = useState<string | null>(null);
+  const [reviewCandidate, setReviewCandidate] = useState<PatientApiResult["candidate"]>(null);
   const { messages } = useI18n();
   const t = messages.patients;
   const [formData, setFormData] = useState({
     first_name: patient?.first_name || "",
     last_name: patient?.last_name || "",
+    father_name: patient?.father_name || "",
+    family_name: patient?.family_name || patient?.last_name || "",
+    mother_name: patient?.mother_name || "",
+    national_id: "",
+    age_at_registration: patient?.age_at_registration?.toString() || "",
+    age_reference_date: patient?.age_reference_date || "",
     first_name_ar: patient?.first_name_ar || "",
     last_name_ar: patient?.last_name_ar || "",
     phone_primary: patient?.phone_primary || "",
@@ -52,8 +62,11 @@ export function PatientForm({ patient, isOpen, onClose, onSuccess }: PatientForm
   const validate = () => {
     const nextErrors: Record<string, string> = {};
     if (!formData.first_name.trim()) nextErrors.first_name = t.requiredFirst;
-    if (!formData.last_name.trim()) nextErrors.last_name = t.requiredLast;
+    if (!formData.father_name.trim()) nextErrors.father_name = t.requiredFather;
+    if (!formData.family_name.trim()) nextErrors.family_name = t.requiredFamily;
     if (!formData.phone_primary.trim()) nextErrors.phone_primary = t.requiredPhone;
+    if (!formData.gender.trim()) nextErrors.gender = t.chooseGender;
+    if (!formData.date_of_birth.trim() && !formData.age_at_registration.trim()) nextErrors.date_of_birth = t.requiredDobOrAge;
     setErrors(nextErrors);
     return Object.keys(nextErrors).length === 0;
   };
@@ -63,11 +76,13 @@ export function PatientForm({ patient, isOpen, onClose, onSuccess }: PatientForm
       PATIENT_TENANT_MISSING: t.clinicNotFound,
       PATIENT_DATABASE_ERROR: t.unexpected,
       PATIENT_INVALID_REQUEST: t.unexpected,
+      PATIENT_REVIEW_REQUIRED: t.reviewRequired,
     }[code] || t.unexpected);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setServerError(null);
+    setReviewCandidate(null);
     if (!validate()) return;
     if (!tenantId) {
       setServerError(t.clinicNotFound);
@@ -90,11 +105,42 @@ export function PatientForm({ patient, isOpen, onClose, onSuccess }: PatientForm
         result = { error: "PATIENT_DATABASE_ERROR" };
       }
 
+      if (result.outcome === "REVIEW_REQUIRED" && result.candidate) {
+        setReviewCandidate(result.candidate);
+        setServerError(t.reviewRequired);
+        return;
+      }
       if (!response.ok || result.error) {
         setServerError(localizeServerError(result.error || "PATIENT_DATABASE_ERROR"));
         return;
       }
 
+      onSuccess?.();
+      onClose();
+      invalidateAll(tenantId);
+    } catch {
+      setServerError(t.unexpected);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const resolveReview = async (decision: "LINK_EXISTING" | "CREATE_NEW") => {
+    if (!reviewCandidate || !tenantId) return;
+    setIsSubmitting(true);
+    try {
+      const response = await fetch("/api/patients", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        credentials: "same-origin",
+        body: JSON.stringify({ ...formData, match_decision: decision, candidate_identity_id: reviewCandidate.patient_identity_id }),
+      });
+      const result = (await response.json()) as PatientApiResult;
+      if (!response.ok || result.error) {
+        setServerError(localizeServerError(result.error || "PATIENT_DATABASE_ERROR"));
+        return;
+      }
+      setReviewCandidate(null);
       onSuccess?.();
       onClose();
       invalidateAll(tenantId);
@@ -123,11 +169,25 @@ export function PatientForm({ patient, isOpen, onClose, onSuccess }: PatientForm
           <DialogTitle>{patient ? t.editTitle : t.newTitle}</DialogTitle>
           <DialogDescription>{patient ? t.editDescription : t.newDescription}</DialogDescription>
         </DialogHeader>
+        {reviewCandidate && (
+          <div className="rounded-md border border-amber-400/50 bg-amber-50 p-4 space-y-3">
+            <p className="font-medium">{t.reviewRequired}</p>
+            <p className="text-sm text-muted-foreground">{reviewCandidate.first_name} {reviewCandidate.family_name} · {reviewCandidate.date_of_birth ?? ""} · {reviewCandidate.phone_last4 ? "••••" + reviewCandidate.phone_last4 : ""}</p>
+            <div className="flex flex-wrap gap-2">
+              <Button type="button" onClick={() => void resolveReview("LINK_EXISTING")} disabled={isSubmitting}>{t.linkExisting}</Button>
+              <Button type="button" variant="outline" onClick={() => void resolveReview("CREATE_NEW")} disabled={isSubmitting}>{t.createNewAfterReview}</Button>
+            </div>
+          </div>
+        )}
         <form onSubmit={handleSubmit} className="space-y-4">
           {serverError && <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive text-center">{serverError}</div>}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Field id="first_name" label={t.firstName} required value={formData.first_name} error={errors.first_name} onChange={(value) => handleChange("first_name", value)} />
             <Field id="last_name" label={t.lastName} required value={formData.last_name} error={errors.last_name} onChange={(value) => handleChange("last_name", value)} />
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <Field id="father_name" label={t.fatherName} required value={formData.father_name} error={errors.father_name} onChange={(value) => handleChange("father_name", value)} />
+            <Field id="family_name" label={t.familyName} required value={formData.family_name} error={errors.family_name} onChange={(value) => handleChange("family_name", value)} />
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Field id="first_name_ar" label={t.firstNameAr} value={formData.first_name_ar} onChange={(value) => handleChange("first_name_ar", value)} />
@@ -138,11 +198,16 @@ export function PatientForm({ patient, isOpen, onClose, onSuccess }: PatientForm
             <Field id="phone_secondary" label={t.secondaryPhone} value={formData.phone_secondary} onChange={(value) => handleChange("phone_secondary", value)} type="tel" />
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Field id="email" label={t.email} value={formData.email} onChange={(value) => handleChange("email", value)} type="email" />
-            <Field id="date_of_birth" label={t.dob} value={formData.date_of_birth} onChange={(value) => handleChange("date_of_birth", value)} type="date" />
+            <Field id="mother_name" label={t.motherName} value={formData.mother_name} onChange={(value) => handleChange("mother_name", value)} />
+            <Field id="national_id" label={t.nationalId} value={formData.national_id} onChange={(value) => handleChange("national_id", value)} />
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <SelectField label={t.gender} placeholder={t.chooseGender} value={formData.gender} onChange={(value) => handleChange("gender", value)} items={[["male", t.male], ["female", t.female], ["other", t.other]]} />
+            <Field id="email" label={t.email} value={formData.email} onChange={(value) => handleChange("email", value)} type="email" />
+            <Field id="date_of_birth" label={t.dob} value={formData.date_of_birth} error={errors.date_of_birth} onChange={(value) => handleChange("date_of_birth", value)} type="date" />
+            <Field id="age_at_registration" label={t.age} value={formData.age_at_registration} onChange={(value) => handleChange("age_at_registration", value)} type="number" />
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <SelectField label={t.gender} placeholder={t.chooseGender} value={formData.gender} error={errors.gender} onChange={(value) => handleChange("gender", value)} items={[["male", t.male], ["female", t.female], ["other", t.other]]} />
             <SelectField label={t.preferredChannel} placeholder={t.chooseChannel} value={formData.preferred_channel} onChange={(value) => handleChange("preferred_channel", value)} items={[["whatsapp", t.whatsapp], ["sms", t.sms], ["email", t.emailChannel], ["phone", t.phoneChannel]]} />
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -169,6 +234,6 @@ function Field({ id, label, required, value, error, onChange, type = "text", pla
   return <div className="space-y-2"><Label htmlFor={id}>{label}{required ? " *" : ""}</Label><Input id={id} type={type} value={value} onChange={(event) => onChange(event.target.value)} placeholder={placeholder} className={error ? "border-destructive" : ""} />{error && <p className="text-sm text-destructive">{error}</p>}</div>;
 }
 
-function SelectField({ label, placeholder, value, onChange, items }: { label: string; placeholder: string; value: string; onChange: (value: string) => void; items: [string, string][] }) {
+function SelectField({ label, placeholder, value, error, onChange, items }: { label: string; placeholder: string; value: string; error?: string; onChange: (value: string) => void; items: [string, string][] }) {
   return <div className="space-y-2"><Label>{label}</Label><Select value={value} onValueChange={onChange}><SelectTrigger><SelectValue placeholder={placeholder} /></SelectTrigger><SelectContent>{items.map(([itemValue, itemLabel]) => <SelectItem key={itemValue} value={itemValue}>{itemLabel}</SelectItem>)}</SelectContent></Select></div>;
 }

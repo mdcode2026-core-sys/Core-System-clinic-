@@ -11,7 +11,7 @@ Previous Gate: Gate 02 — Patient Journey — CLOSED / VERIFIED / PRODUCTION VE
 |---|---|---|---|
 | 01 | Patient Flow | Queue, Clinical Visit, Pending Close, Reception Workflow, Completed; Procedure/Session; boundaries with Treatment Plan and Follow-up | CLOSED |
 | 02 | Patient Journey | Longitudinal patient lifecycle over time; next actions and continuity | CLOSED — VERIFIED / PRODUCTION VERIFIED |
-| 03 | Patient & Identity | Canonical identity, clinic relationship, duplicate detection, search, history, insurance, portal relationship | NEXT |
+| 03 | Patient & Identity | Canonical identity, clinic relationship, duplicate detection, search, history, insurance, portal relationship | IMPLEMENTATION COMPLETE — VERIFICATION IN PROGRESS |
 | 04 | Agenda & Scheduling | Agenda authority, Calendar representation, provider/resource availability, conflicts, cancel/reschedule/no-show/context | OPEN |
 | 05 | Clinical Care | Clinical Visit, Clinical Decision, Medical Record, Medical Files, Measurements, Photos, Procedure, Session | OPEN |
 | 06 | Treatment Planning | Plan lifecycle, stages, next actions, linkage to visits/appointments/packages/finance; not every visit requires a plan | OPEN |
@@ -48,3 +48,44 @@ The purpose is to prove ownership and continuity, not to create a universal work
 ## Gate 02 closure — 2026-09-22
 
 Gate 02 — Patient Journey is CLOSED after approved implementation, automated structural verification, live Supabase continuity integrity verification, main merge, production deployment verification and synchronized closure documentation. The next gate is Gate 03 — Patient & Identity. The 20-gate map remains unchanged.
+
+
+## Gate 03 current authority — 2026-09-22
+
+Gate 03 architectural/product decisions were explicitly approved and the full READ → INSPECT → VERIFY → RECONCILE decision/reconciliation work was completed.
+
+The Implementation Design is now complete and reconciled in:
+`docs/CSAPI/GATES/GATE-03-PATIENT-IDENTITY-IMPLEMENTATION-DESIGN-REVISED-2026-09-22.md`
+
+**Current State:** EXECUTION APPROVED — PRE-IMPLEMENTATION VERIFICATION CONTINUES; MATCH-POLICY BLOCKER RESOLVED.
+
+This state does not authorize application code, migrations, production database mutation, or deployment. The match-policy pre-implementation blocker has been resolved in the authoritative Revised Implementation Design. Continue pre-implementation dependency verification, then proceed to implementation and the normal verification/closure sequence.
+
+The earlier non-revised Implementation Design document is historical/superseded and is not an execution authority.
+
+The 20-gate map remains unchanged. Gate 01 and Gate 02 remain CLOSED and must not be reopened.
+
+
+### Gate 03 execution approval — 2026-09-22
+
+Execution has been explicitly approved by the Product Owner. Gate 03 is now authorized to proceed through Pre-Implementation Verification → Implement → Test → Runtime Verify → Document → Close, within the approved scope.
+
+
+### Gate 03 match-policy blocker resolution — 2026-09-22
+
+The initial patient-match-v1 parameters were internally inconsistent: without national ID/card, the maximum score with DOB was 70 while EXACT_MATCH required 80. This was resolved without lowering the 80 threshold. The revised policy retains the weighted high-confidence path and adds a controlled non-government-ID core-profile EXACT_MATCH path requiring exact DOB, first/father/family names, sex, normalized phone, two additional corroborating evidence classes, no strong conflict, and a unique candidate. National ID remains optional and no single field is a unique identity key.
+
+Authoritative resolution: `docs/CSAPI/GATES/GATE-03-PATIENT-IDENTITY-MATCH-POLICY-RESOLUTION-2026-09-22.md`.
+
+Current Gate 03 state: EXECUTION APPROVED — PRE-IMPLEMENTATION VERIFICATION CONTINUES. Gate 01 and Gate 02 remain CLOSED.
+
+
+## Gate 03 implementation execution reconciliation — 2026-09-22
+
+The approved implementation has been applied to the live Supabase environment and is now under final verification.
+
+Implemented: canonical System Patient Identity foundation, multi-attribute patient matching policy `patient-match-v2`, human REVIEW_REQUIRED resolution, identity-preserving demographic updates, authoritative Patient Module search, separate Portal Identity/auth binding, tenant relationship integrity, direct identity-internal access denial, existing patient identity seeding, and binding Gate 03 verification contract.
+
+Live Supabase migration history records the applied Gate 03 migrations as versions `20260922130830`, `20260922130928`, `20260922131239`, `20260922131621`, and `20260922131803`.
+
+Production deployment remains pending until engineering verification, main integration, and post-main production verification are complete.

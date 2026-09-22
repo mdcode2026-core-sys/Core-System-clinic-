@@ -56,7 +56,8 @@ export async function createPatientMedicalFileDownloadUrl(tenantId: string, medi
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("Authentication required");
 
-  const { data: identity } = await supabase.from("patient_identities").select("id,status").eq("auth_user_id", user.id).eq("status", "active").maybeSingle();
+  const { data: portalIdentity } = await supabase.from("patient_portal_identities").select("patient_identity_id,status").eq("auth_user_id", user.id).eq("status", "active").maybeSingle();
+  const identity = portalIdentity ? { id: portalIdentity.patient_identity_id, status: portalIdentity.status } : null;
   if (!identity) throw new Error("Patient identity not found");
   if (!(await hasEntitlement(tenantId, "patient_portal"))) throw new Error("Patient Portal is not enabled");
 

@@ -5,7 +5,7 @@ Last reconciled: 2026-09-22
 Canonical implementation base: main; focused branches for changes
 Current Gate: Gate 03 — Patient & Identity
 Previous Gate: Gate 02 — Patient Journey — CLOSED / VERIFIED / PRODUCTION VERIFIED
-Execution mode: Decision-first; Gate 02 is CLOSED; continue sequentially from Gate 03
+Execution mode: Decision-first; Gate 02 is CLOSED; Gate 03 architectural baseline is APPROVED; Implementation complete; verification in progress
 
 ## 1. Purpose
 
@@ -163,3 +163,80 @@ Current execution state is:
 - Next execution sequence: READ → INSPECT → VERIFY → RECONCILE → DECISION REPORT → PRODUCT OWNER APPROVAL → IMPLEMENT → TEST → RUNTIME VERIFY → DOCUMENT → CLOSE.
 - Do not reopen Gate 02 unless a new explicit CSAPI decision supersedes its closure.
 - The 20-gate map remains unchanged.
+
+
+## 12. Gate 03 reconciliation state — 2026-09-22
+
+Gate 03 — Patient & Identity has an **APPROVED architectural baseline** and **COMPLETE Implementation Design**; execution approval is pending.
+
+The full reconciliation is recorded in:
+- docs/CSAPI/GATES/GATE-03-PATIENT-IDENTITY-RECONCILIATION-REPORT-2026-09-22.md
+- docs/CSAPI/GATES/GATE-03-PATIENT-IDENTITY-ARCHITECTURAL-DECISION-REQUIREMENTS-2026-09-22.md
+
+The Product Owner-approved baseline is recorded and reconciled against current repository, live Supabase and runtime/deployment evidence.
+
+No Gate 03 implementation or production mutation has been performed.
+
+Implementation Design has now been completed and reconciled in:
+- docs/CSAPI/GATES/GATE-03-PATIENT-IDENTITY-IMPLEMENTATION-DESIGN-REVISED-2026-09-22.md
+
+Current next state:
+APPROVED ARCHITECTURAL BASELINE → IMPLEMENTATION DESIGN COMPLETE → EXPLICIT EXECUTION APPROVAL → IMPLEMENT → TEST → RUNTIME VERIFY → DOCUMENT → CLOSE
+
+Do not reopen Gate 01 or Gate 02.
+
+
+## 13. Gate 03 pre-Implementation Design reconciliation decision — 2026-09-22
+
+A final authority check was performed before Implementation Design against the governing CSAPI plan, Master State, current handoff, Gate 03 architectural contract, reconciliation report, historical baseline and decision ledger.
+
+The audit found documentation-state drift, not a product-architecture contradiction affecting the Gate 03 path:
+
+- the Gate Plan still labeled Gate 03 as **NEXT**;
+- the Gate 03 contract still contained stale **UNDER REVIEW / ARCHITECTURAL CONTRACT DRAFT** and pre-reconciliation wording;
+- the Gate 03 contract described the approved directions as **five** although seven owner-approved directions are recorded;
+- the decision ledger had no Gate 03 approval/reconciliation entries even though the current Gate 03 baseline had been approved and reconciled.
+
+These are documentation-authority issues and have been reconciled. No application code, migration, production database or production deployment is authorized by these corrections.
+
+### Decision
+
+Gate 03 is now classified as:
+
+**APPROVED — ARCHITECTURAL BASELINE / IMPLEMENTATION DESIGN PENDING**
+
+Here, APPROVED means the architectural/product baseline is approved. It does not authorize migrations or code changes until the Implementation Design is complete and execution is explicitly authorized under the normal CSAPI sequence.
+
+The next step is Implementation Design. Do not begin implementation until that design is complete and approved.
+
+
+## Gate 03 Design Completion — 2026-09-22
+
+The Implementation Design Review Resolution is complete. DR-01 through DR-12 are resolved in the revised design. Gate 03 is execution-design complete but remains unimplemented pending explicit Product Owner execution approval.
+
+No migration, application code, production mutation, or deployment was performed.
+
+
+## Gate 03 authority correction — 2026-09-22
+
+Final CSAPI authority reconciliation corrected documentation-state drift across the Gate Plan, Handoff and Gate 03 records. The 20-gate map and Gate 01/Gate 02 closures are unchanged.
+
+Canonical Gate 03 state: architectural/product baseline APPROVED; Implementation Design COMPLETE; authoritative design `docs/CSAPI/GATES/GATE-03-PATIENT-IDENTITY-IMPLEMENTATION-DESIGN-REVISED-2026-09-22.md`; execution approval PENDING; implementation/migrations NOT STARTED; no production DB mutation.
+
+The pre-review Implementation Design document is historical/superseded and is not execution authority.
+
+
+## Gate 03 execution approval — 2026-09-22
+
+Product Owner execution approval received. Gate 03 may proceed from completed Implementation Design into Pre-Implementation Verification and then approved implementation. No scope expansion is authorized.
+
+
+## Gate 03 implementation execution reconciliation — 2026-09-22
+
+The approved implementation has been applied to the live Supabase environment and is now under final verification.
+
+Implemented: canonical System Patient Identity foundation, multi-attribute patient matching policy `patient-match-v2`, human REVIEW_REQUIRED resolution, identity-preserving demographic updates, authoritative Patient Module search, separate Portal Identity/auth binding, tenant relationship integrity, direct identity-internal access denial, existing patient identity seeding, and binding Gate 03 verification contract.
+
+Live Supabase migration history records the applied Gate 03 migrations as versions `20260922130830`, `20260922130928`, `20260922131239`, `20260922131621`, and `20260922131803`.
+
+Production deployment remains pending until engineering verification, main integration, and post-main production verification are complete.
