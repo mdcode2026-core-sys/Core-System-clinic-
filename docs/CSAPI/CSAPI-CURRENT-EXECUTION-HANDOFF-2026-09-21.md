@@ -1,9 +1,9 @@
 # CORE SYSTEM — CSAPI CURRENT EXECUTION HANDOFF
 
-Updated: 2026-09-21
+Updated: 2026-09-22
 Purpose: Conversation-independent handoff for the next CSAPI execution conversation.
 Current Gate: Gate 02 — Patient Journey
-Current Stage: PRECHECK READY
+Current Stage: IMPLEMENTATION — TEST / RUNTIME VERIFICATION
 Gate 01: CLOSED
 Open CSAPI PRs: 0
 Current main SHA: acaab351cab0f17542bcca0f28d020cad10f0b0d
@@ -11,9 +11,9 @@ Gate 01 production application candidate: 59d18b3b0ad8a097a01cff1bfd5f6ec1d7d9c9
 
 ## 1. Start here
 
-The next conversation starts with:
+The current execution continues with:
 
-CSAPI → Gate 02 → Patient Journey → PRECHECK
+CSAPI → Gate 02 → Patient Journey → TEST → RUNTIME VERIFY → DOCUMENT → CLOSE
 
 Do not reopen Gate 01.
 
@@ -178,11 +178,19 @@ Precheck is complete when the next agent can answer, with evidence:
 
 Only then move the gate to DECISION READY.
 
-## 12. Final handoff state
+## 12. Gate 02 implementation state
+
+The approved Gate 02 implementation is now isolated on clean branch `csapi/gate02-patient-journey-implementation-2026-09-22-clean`, created directly from current main. The implementation is intentionally narrow: Patient Context Visit continuity now reads canonical `clinic_visit_sessions` rather than the empty/summary `patient_history` record. No database migration, production mutation, Vercel deployment, or new Patient Journey engine was introduced.
+
+Canonical continuity-link inspection is complete. Treatment Plan and Follow-up boundary drifts remain assigned to their owning downstream gates and are not silently repaired here.
+
+Next required step: automated verification and runtime evidence. After each verification step, reconcile the gate path before proceeding.
+
+## 13. Final handoff state
 
 Gate 01: CLOSED
-Gate 02: OPEN — PRECHECK READY
-Implementation status: NOT STARTED
-Product Decision: PENDING PRECHECK EVIDENCE
+Gate 02: OPEN — IMPLEMENTATION / VERIFICATION
+Implementation status: IMPLEMENTED — TEST / RUNTIME VERIFICATION PENDING
+Product Decision: P1–P7 APPROVED
 Open PRs: 0
 Current execution authority: this handoff + Gate 02 record + current PJ authority + current repository/database/runtime
