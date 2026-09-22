@@ -221,12 +221,12 @@ begin
     v_score := 0;
     if v_national is not null and exists (select 1 from public.patient_identity_identifiers pii where pii.patient_identity_id=r.id and pii.identifier_type='national_id' and pii.value_hash=digest(v_national,'sha256')) then v_score := v_score + 18; end if;
     if v_dob is not null and r.date_of_birth=v_dob then v_score := v_score + 25; end if;
-    if lower(coalesce(r.father_name_normalized,''))=lower(v_father) then v_score := v_score + 20; end if;
+    if lower(coalesce(r.father_name_normalized,''))=lower(v_father) then v_score := v_score + 18; end if;
     if lower(coalesce(r.family_name_normalized,''))=lower(v_family) then v_score := v_score + 15; end if;
     if lower(coalesce(r.first_name_normalized,''))=lower(v_first) then v_score := v_score + 10; end if;
-    if v_mother is not null and lower(coalesce(r.mother_name_normalized,''))=lower(v_mother) then v_score := v_score + 4; end if;
-    if lower(coalesce(r.gender,''))=v_gender then v_score := v_score + 2; end if;
-    if v_phone is not null and r.phone_normalized=v_phone then v_score := v_score + 5; end if;
+    if v_mother is not null and lower(coalesce(r.mother_name_normalized,''))=lower(v_mother) then v_score := v_score + 5; end if;
+    if lower(coalesce(r.gender,''))=v_gender then v_score := v_score + 4; end if;
+    if v_phone is not null and r.phone_normalized=v_phone then v_score := v_score + 2; end if;
     if v_email is not null and r.email_normalized=v_email then v_score := v_score + 1; end if;
     if v_dob is null and v_age is not null and r.date_of_birth is not null and extract(year from age(v_age_ref,r.date_of_birth)) between v_age-1 and v_age+1 then v_score := v_score + 8; end if;
 
