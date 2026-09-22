@@ -1,8 +1,8 @@
 # CORE SYSTEM — CSAPI DECISION GATES PLAN
 
 Status: ACTIVE / Current sequential plan
-Last reconciled: 2026-09-21
-Current Gate: Gate 02 — Patient Journey
+Last reconciled: 2026-09-22
+Current Gate: Gate 03 — Patient & Identity
 Previous Gate: Gate 01 — Patient Flow — CLOSED
 
 > This is the CSAPI working gate map derived from CSAPI-DOCUMENTATION-PACK-2026-09-17.zip and reconciled with the completed Gate 01 evidence. A gate may be split, merged, reordered or added only through an explicit CSAPI decision recorded in the ledger.
@@ -10,8 +10,8 @@ Previous Gate: Gate 01 — Patient Flow — CLOSED
 | # | Gate | Scope | Status |
 |---|---|---|---|
 | 01 | Patient Flow | Queue, Clinical Visit, Pending Close, Reception Workflow, Completed; Procedure/Session; boundaries with Treatment Plan and Follow-up | CLOSED |
-| 02 | Patient Journey | Longitudinal patient lifecycle over time; next actions and continuity | OPEN — PRECHECK READY |
-| 03 | Patient & Identity | Canonical identity, clinic relationship, duplicate detection, search, history, insurance, portal relationship | OPEN |
+| 02 | Patient Journey | Longitudinal patient lifecycle over time; next actions and continuity | CLOSED — VERIFIED / PRODUCTION VERIFIED |
+| 03 | Patient & Identity | Canonical identity, clinic relationship, duplicate detection, search, history, insurance, portal relationship | NEXT |
 | 04 | Agenda & Scheduling | Agenda authority, Calendar representation, provider/resource availability, conflicts, cancel/reschedule/no-show/context | OPEN |
 | 05 | Clinical Care | Clinical Visit, Clinical Decision, Medical Record, Medical Files, Measurements, Photos, Procedure, Session | OPEN |
 | 06 | Treatment Planning | Plan lifecycle, stages, next actions, linkage to visits/appointments/packages/finance; not every visit requires a plan | OPEN |
@@ -43,3 +43,8 @@ Gate 02 examines the longitudinal continuity contract around the existing Patien
 Patient → Clinical/Operational interaction → Result → Next Action / No Next Action → Future Appointment / Follow-up / Operational Work → Next Interaction → Continuation
 
 The purpose is to prove ownership and continuity, not to create a universal workflow engine.
+
+
+## Gate 02 closure — 2026-09-22
+
+Gate 02 — Patient Journey is CLOSED after approved implementation, automated structural verification, live Supabase continuity integrity verification, main merge, production deployment verification and synchronized closure documentation. The next gate is Gate 03 — Patient & Identity. The 20-gate map remains unchanged.
