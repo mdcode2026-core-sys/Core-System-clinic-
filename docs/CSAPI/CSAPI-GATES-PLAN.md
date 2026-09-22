@@ -11,7 +11,7 @@ Previous Gate: Gate 02 — Patient Journey — CLOSED / VERIFIED / PRODUCTION VE
 |---|---|---|---|
 | 01 | Patient Flow | Queue, Clinical Visit, Pending Close, Reception Workflow, Completed; Procedure/Session; boundaries with Treatment Plan and Follow-up | CLOSED |
 | 02 | Patient Journey | Longitudinal patient lifecycle over time; next actions and continuity | CLOSED — VERIFIED / PRODUCTION VERIFIED |
-| 03 | Patient & Identity | Canonical identity, clinic relationship, duplicate detection, search, history, insurance, portal relationship | IMPLEMENTATION DESIGN COMPLETE — EXECUTION APPROVAL PENDING |
+| 03 | Patient & Identity | Canonical identity, clinic relationship, duplicate detection, search, history, insurance, portal relationship | EXECUTION APPROVED — PRE-IMPLEMENTATION VERIFICATION |
 | 04 | Agenda & Scheduling | Agenda authority, Calendar representation, provider/resource availability, conflicts, cancel/reschedule/no-show/context | OPEN |
 | 05 | Clinical Care | Clinical Visit, Clinical Decision, Medical Record, Medical Files, Measurements, Photos, Procedure, Session | OPEN |
 | 06 | Treatment Planning | Plan lifecycle, stages, next actions, linkage to visits/appointments/packages/finance; not every visit requires a plan | OPEN |
@@ -64,3 +64,8 @@ This state does not authorize application code, migrations, production database 
 The earlier non-revised Implementation Design document is historical/superseded and is not an execution authority.
 
 The 20-gate map remains unchanged. Gate 01 and Gate 02 remain CLOSED and must not be reopened.
+
+
+### Gate 03 execution approval — 2026-09-22
+
+Execution has been explicitly approved by the Product Owner. Gate 03 is now authorized to proceed through Pre-Implementation Verification → Implement → Test → Runtime Verify → Document → Close, within the approved scope.
