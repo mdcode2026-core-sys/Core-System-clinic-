@@ -223,3 +223,16 @@ This file is append-only for material CSAPI events. Historical entries remain ev
 - Implementation consequence: Implementation Design is the sole next stage before execution approval.
 - Verification evidence: Gate 03 scope/non-scope and later-gate ownership reconciled.
 - Status: BINDING NEXT STAGE
+
+
+### CSAPI-2026-09-22-030
+- Date: 2026-09-22
+- Gate: Gate 03 — Patient & Identity
+- Type: Decision / Clarification
+- Source(s): Product Owner-approved Portal baseline; Gate 03 reconciliation; current Portal implementation evidence
+- Statement: The approved background Portal ID is a non-authentication identity/binding associated with the canonical System Patient Identity. It exists before Portal subscription/activation but is not a login account, does not authenticate the patient, and does not grant access.
+- Evidence: The approved baseline requires identity before Portal activation and subscription-controlled access, while current patient_identities evidence is coupled to Portal authentication semantics.
+- Product Owner decision: Preserve the approved principle while separating Portal ID/binding from Portal authentication. Subscription/entitlement controls access, not identity creation.
+- Implementation consequence: Implementation Design must model canonical Patient Identity, non-auth Portal identity/binding, and Portal authentication/access as separate concerns. Do not reuse the current patient_identities table unchanged as the canonical identity merely to satisfy the background Portal ID requirement.
+- Verification evidence: Reconciled Gate 03 contract and reconciliation report; no production mutation.
+- Status: APPROVED — DESIGN INPUT
