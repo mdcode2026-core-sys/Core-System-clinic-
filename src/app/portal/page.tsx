@@ -27,7 +27,7 @@ export default async function PatientPortalPage() {
   const identityId = portalIdentity?.patient_identity_id;
   const identity = portalIdentity ? { id: identityId, status: portalIdentity.status } : null;
   if (!identity || identity.status !== "active") return <main className="mx-auto max-w-lg p-6" dir={direction}><h1 className="text-2xl font-semibold">{messages.title}</h1><p className="mt-2 text-sm text-muted-foreground">{messages.portalIdentityInactive}</p></main>;
-  const { data: relationship } = await supabase.from("patient_clinic_relationships").select("tenant_id,clinic_patient_id,status").eq("patient_identity_id", identity.id).eq("status", "active").limit(1).maybeSingle();
+  const { data: relationship } = await supabase.from("patient_clinic_relationships").select("tenant_id,clinic_patient_id,status").eq("patient_identity_id", identityId).eq("status", "active").limit(1).maybeSingle();
   if (!relationship) return <main className="mx-auto max-w-lg p-6" dir={direction}><h1 className="text-2xl font-semibold">{messages.title}</h1><p className="mt-2 text-sm text-muted-foreground">{messages.noClinicRelationship}</p></main>;
   const portalEnabled = await hasEntitlement(relationship.tenant_id, "patient_portal");
   if (!portalEnabled || !(await hasCapability(relationship.tenant_id, "patient_portal.access"))) return <main className="mx-auto max-w-lg p-6" dir={direction}><h1 className="text-2xl font-semibold">{messages.title}</h1><p className="mt-2 text-sm text-muted-foreground">{messages.clinicPortalDisabled}</p></main>;
