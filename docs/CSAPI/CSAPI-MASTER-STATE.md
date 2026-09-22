@@ -5,7 +5,7 @@ Last reconciled: 2026-09-22
 Canonical implementation base: main; focused branches for changes
 Current Gate: Gate 03 — Patient & Identity
 Previous Gate: Gate 02 — Patient Journey — CLOSED / VERIFIED / PRODUCTION VERIFIED
-Execution mode: Decision-first; Gate 02 is CLOSED; Gate 03 architectural baseline is APPROVED; Implementation Design drafted and pending design review
+Execution mode: Decision-first; Gate 02 is CLOSED; Gate 03 architectural baseline is APPROVED; Implementation Design complete; execution approval pending
 
 ## 1. Purpose
 
@@ -177,11 +177,11 @@ The Product Owner-approved baseline is recorded and reconciled against current r
 
 No Gate 03 implementation or production mutation has been performed.
 
-Implementation Design has now been drafted in:
-- docs/CSAPI/GATES/GATE-03-PATIENT-IDENTITY-IMPLEMENTATION-DESIGN-2026-09-22.md
+Implementation Design has now been completed and reconciled in:
+- docs/CSAPI/GATES/GATE-03-PATIENT-IDENTITY-IMPLEMENTATION-DESIGN-REVISED-2026-09-22.md
 
 Current next state:
-APPROVED ARCHITECTURAL BASELINE → IMPLEMENTATION DESIGN REVIEW → EXECUTION APPROVAL → IMPLEMENT → TEST → RUNTIME VERIFY → DOCUMENT → CLOSE
+APPROVED ARCHITECTURAL BASELINE → IMPLEMENTATION DESIGN COMPLETE → EXECUTION APPROVAL → IMPLEMENT → TEST → RUNTIME VERIFY → DOCUMENT → CLOSE
 
 Do not reopen Gate 01 or Gate 02.
 
@@ -208,3 +208,10 @@ Gate 03 is now classified as:
 Here, APPROVED means the architectural/product baseline is approved. It does not authorize migrations or code changes until the Implementation Design is complete and execution is explicitly authorized under the normal CSAPI sequence.
 
 The next step is Implementation Design. Do not begin implementation until that design is complete and approved.
+
+
+## Gate 03 Design Completion — 2026-09-22
+
+The Implementation Design Review Resolution is complete. DR-01 through DR-12 are resolved in the revised design. Gate 03 is execution-design complete but remains unimplemented pending explicit Product Owner execution approval.
+
+No migration, application code, production mutation, or deployment was performed.
