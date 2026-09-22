@@ -5,7 +5,7 @@ Last reconciled: 2026-09-22
 Canonical implementation base: main; focused branches for changes
 Current Gate: Gate 03 — Patient & Identity
 Previous Gate: Gate 02 — Patient Journey — CLOSED / VERIFIED / PRODUCTION VERIFIED
-Execution mode: Decision-first; Gate 02 is CLOSED; Gate 03 architectural baseline is APPROVED; Implementation Design complete; execution approval pending
+Execution mode: Decision-first; Gate 02 is CLOSED; Gate 03 architectural baseline is APPROVED; Implementation complete; verification in progress
 
 ## 1. Purpose
 
@@ -229,3 +229,14 @@ The pre-review Implementation Design document is historical/superseded and is no
 ## Gate 03 execution approval — 2026-09-22
 
 Product Owner execution approval received. Gate 03 may proceed from completed Implementation Design into Pre-Implementation Verification and then approved implementation. No scope expansion is authorized.
+
+
+## Gate 03 implementation execution reconciliation — 2026-09-22
+
+The approved implementation has been applied to the live Supabase environment and is now under final verification.
+
+Implemented: canonical System Patient Identity foundation, multi-attribute patient matching policy `patient-match-v2`, human REVIEW_REQUIRED resolution, identity-preserving demographic updates, authoritative Patient Module search, separate Portal Identity/auth binding, tenant relationship integrity, direct identity-internal access denial, existing patient identity seeding, and binding Gate 03 verification contract.
+
+Live Supabase migration history records the applied Gate 03 migrations as versions `20260922130830`, `20260922130928`, `20260922131239`, `20260922131621`, and `20260922131803`.
+
+Production deployment remains pending until engineering verification, main integration, and post-main production verification are complete.
