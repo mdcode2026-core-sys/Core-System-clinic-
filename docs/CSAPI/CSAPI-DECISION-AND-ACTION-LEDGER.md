@@ -133,3 +133,16 @@ This file is append-only for material CSAPI events. Historical entries remain ev
 - Implementation consequence: Documentation-only correction; no application/database behavior change.
 - Verification evidence: First execution-equivalent structural verification returned P6 assertion failure.
 - Status: CORRECTIVE DOCUMENTATION WORK / RERUN REQUIRED
+
+
+### CSAPI-2026-09-22-023
+- Date: 2026-09-22
+- Gate: Gate 02 — Patient Journey
+- Type: Verification
+- Source(s): Committed Gate 02 continuity audit contract; current branch source/docs
+- Statement: After reconciling the documentation contract to the already-approved P1/P6, Agenda and Gate 11 boundaries, the full execution-equivalent structural verification passed.
+- Evidence: Canonical Visit source/query, Patient Context consumption, removal of legacy Visit summary usage, no parallel Patient Journey engine markers, P6 terminal-state boundary, Agenda non-repair boundary, Gate 11 separation, package script and audit PASS contract all verified.
+- Product Owner decision: No new decision required; continue to runtime verification.
+- Implementation consequence: Gate 02 structural/static test lane is green. No database or production mutation.
+- Verification evidence: Gate 02 structural verification: PASS.
+- Status: VERIFIED / RUNTIME NEXT
