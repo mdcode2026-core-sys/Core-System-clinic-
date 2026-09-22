@@ -126,17 +126,13 @@ Which financial/resource effects are downstream consequences versus prerequisite
 ### Failure/retry continuity
 What happens when a downstream next action fails, retries, is cancelled or becomes no-longer-required.
 
-## 8. Required sequence
+## 8. Historical Gate 02 sequence
+
+The following records the Gate 02 execution method that has now been completed:
 
 READ → INSPECT → VERIFY → RECONCILE → DECISION REPORT → PRODUCT OWNER APPROVAL → IMPLEMENT → TEST → RUNTIME VERIFY → DOCUMENT → CLOSE
 
-The next conversation is currently before the Decision Report.
-
-No code/database change should be made until:
-- current state is known;
-- Gate 02 gaps are classified;
-- any architectural conflict is surfaced;
-- the Product Owner approves the necessary decision.
+Gate 02 is no longer awaiting a Decision Report or implementation approval. Its closure is authoritative in current main and the CSAPI ledger.
 
 ## 9. Required Gate 02 evidence package before implementation
 
@@ -179,13 +175,13 @@ Precheck is complete when the next agent can answer, with evidence:
 
 Only then move the gate to DECISION READY.
 
-## 12. Gate 02 implementation state
+## 12. Historical Gate 02 implementation state
 
 The approved Gate 02 implementation is now isolated on clean branch `csapi/gate02-patient-journey-implementation-2026-09-22-clean`, created directly from current main. The implementation is intentionally narrow: Patient Context Visit continuity now reads canonical `clinic_visit_sessions` rather than the empty/summary `patient_history` record. No database migration, production mutation, Vercel deployment, or new Patient Journey engine was introduced.
 
 Canonical continuity-link inspection is complete. Treatment Plan and Follow-up boundary drifts remain assigned to their owning downstream gates and are not silently repaired here.
 
-Next required step: automated verification and runtime evidence. After each verification step, reconcile the gate path before proceeding.
+This section is historical execution evidence. Automated, live runtime, production and closure verification has been completed as recorded below.
 
 ## 13. Final handoff state
 
@@ -194,7 +190,7 @@ Gate 02: CLOSED — VERIFIED / PRODUCTION VERIFIED
 Implementation status: CLOSED — VERIFIED
 Product Decision: P1–P7 APPROVED / IMPLEMENTED / VERIFIED
 Open PRs: 0
-Current execution authority: this handoff + Gate 02 record + current PJ authority + current repository/database/runtime
+Current execution authority: this handoff + CSAPI Master State + current Gate 03 authority/record + current repository/database/runtime
 
 
 ## 14. Gate 02 final closure and next-gate handoff — 2026-09-22

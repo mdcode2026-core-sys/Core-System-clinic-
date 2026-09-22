@@ -3,7 +3,7 @@
 Status: ACTIVE / Current sequential plan
 Last reconciled: 2026-09-22
 Current Gate: Gate 03 — Patient & Identity
-Previous Gate: Gate 01 — Patient Flow — CLOSED
+Previous Gate: Gate 02 — Patient Journey — CLOSED / VERIFIED / PRODUCTION VERIFIED
 
 > This is the CSAPI working gate map derived from CSAPI-DOCUMENTATION-PACK-2026-09-17.zip and reconciled with the completed Gate 01 evidence. A gate may be split, merged, reordered or added only through an explicit CSAPI decision recorded in the ledger.
 
