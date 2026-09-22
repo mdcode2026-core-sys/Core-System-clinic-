@@ -274,3 +274,14 @@ This file is append-only for material CSAPI events. Historical entries remain ev
 - Next action: Pre-Implementation Verification.
 - Scope: Gate 03 Patient & Identity only.
 - No direct main changes; no premature production mutation/deployment.
+
+
+### CSAPI-2026-09-22-032
+- Date: 2026-09-22
+- Gate: Gate 03 — Patient & Identity
+- Type: Pre-Implementation Verification / Match Policy Resolution
+- Source(s): Revised Gate 03 Implementation Design; Gate 03 Match Policy Resolution; current handoff
+- Statement: The pre-implementation matching blocker was resolved. The initial 80-point threshold was mathematically unreachable without national ID/card. The revised patient-match-v1 retains the 80-point weighted path and adds a controlled non-government-ID core-profile exact-match path.
+- Product Owner direction: Continue Gate 03 execution without treating national ID/card as a prerequisite for identity matching.
+- Implementation consequence: No code or database mutation was introduced by the resolution. Continue repository/database dependency verification before implementation.
+- Status: RESOLVED — PRECHECK CONTINUES
