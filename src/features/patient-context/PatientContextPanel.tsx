@@ -13,6 +13,7 @@ import { getTreatmentPlans } from "@/domain/treatment-plan/treatment-plan.action
 import { listInvoices } from "@/domain/invoicing/invoicing.queries";
 import { listFollowups } from "@/domain/followup/followup.queries";
 import type { Patient, PatientHistory } from "@/domain/patients/patients.types";
+import { usePatientVisits } from "@/domain/patients/patients.queries";
 import { PatientPortalInviteButton } from "@/features/patient-portal/patient-portal-invite-button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { Button } from "@/shared/components/ui/button";
@@ -33,11 +34,14 @@ export function PatientContextPanel({ patient, history }: PatientContextPanelPro
   const canVisits = !permissionsLoading && hasPermission("visits:read");
   const canPatientRead = !permissionsLoading && hasPermission("patients:read");
   const canCommunications = !permissionsLoading && hasPermission("communications:read");
+  const visitsQuery = usePatientVisits(canVisits ? patient.id : null);
   const appointmentFilter = useMemo(() => ({ patientId: patient.id }), [patient.id]);
   const agendaQuery = useAgendaEventsFiltered(canAgenda ? tenantId : null, appointmentFilter);
   const treatmentQuery = useQuery({ queryKey: ["patient-context", "treatment-plans", patient.id], queryFn: () => getTreatmentPlans(patient.id), enabled: canTreatment });
   const invoiceQuery = useQuery({ queryKey: ["patient-context", "invoices", patient.id], queryFn: () => listInvoices({ patient_id: patient.id }), enabled: canInvoices });
   const followupQuery = useQuery({ queryKey: ["patient-context", "followups", patient.id], queryFn: () => listFollowups({ patient_id: patient.id }), enabled: canFollowup });
+  const visits = (visitsQuery.data ?? []).filter((visit) => !["cancelled", "no_show"].includes(visit.session_status));
+  const lastVisit = visits[0];
   const appointments = agendaQuery.data ?? [];
   const treatment = treatmentQuery.data ?? [];
   const invoiceData = invoiceQuery.data ?? { success: true as const, data: [] };
@@ -46,14 +50,14 @@ export function PatientContextPanel({ patient, history }: PatientContextPanelPro
   const followupRows = followupData.success ? followupData.data : [];
   const openFollowups = followupRows.filter((item) => item.status === "open" || item.status === "in_progress").length;
   const amountDue = invoiceRows.reduce((sum, item) => sum + (item.amount_due_subunits ?? 0), 0);
-  const isRefreshing = agendaQuery.isFetching || treatmentQuery.isFetching || invoiceQuery.isFetching || followupQuery.isFetching;
-  const refresh = () => { void agendaQuery.refetch(); void treatmentQuery.refetch(); void invoiceQuery.refetch(); void followupQuery.refetch(); };
+  const isRefreshing = visitsQuery.isFetching || agendaQuery.isFetching || treatmentQuery.isFetching || invoiceQuery.isFetching || followupQuery.isFetching;
+  const refresh = () => { void visitsQuery.refetch(); void agendaQuery.refetch(); void treatmentQuery.refetch(); void invoiceQuery.refetch(); void followupQuery.refetch(); };
 
   return (
     <section className="space-y-4" dir={direction} aria-label={t.title}>
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between"><div><h3 className="text-base font-semibold">{t.title}</h3><p className="text-xs text-muted-foreground">{t.description}</p></div><Button variant="outline" size="sm" onClick={refresh} disabled={isRefreshing}><RefreshCw className={`me-2 h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`} />{t.refresh}</Button></div>
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        {canVisits && <Card><CardHeader className="pb-2"><CardTitle className="flex items-center gap-2 text-sm"><Stethoscope className="h-4 w-4" />{t.visits}</CardTitle></CardHeader><CardContent><div className="text-2xl font-bold">{history?.total_visits ?? 0}</div><p className="text-xs text-muted-foreground">{history?.last_visit_date ? `${t.lastVisit}: ${new Date(history.last_visit_date).toLocaleDateString(locale)}` : t.noRecentVisit}</p><div className="mt-2 flex gap-2"><Link className="text-xs underline" href="/clinical">{t.openClinical}</Link><Link className="text-xs underline" href="/operation">{t.openOperation}</Link></div></CardContent></Card>}
+        {canVisits && <Card><CardHeader className="pb-2"><CardTitle className="flex items-center gap-2 text-sm"><Stethoscope className="h-4 w-4" />{t.visits}</CardTitle></CardHeader><CardContent><div className="text-2xl font-bold">{visits.length}</div><p className="text-xs text-muted-foreground">{lastVisit ? `${t.lastVisit}: ${new Date(lastVisit.visit_closed_at ?? lastVisit.session_ended_at ?? lastVisit.session_started_at ?? lastVisit.created_at).toLocaleDateString(locale)}` : t.noRecentVisit}</p><div className="mt-2 flex gap-2"><Link className="text-xs underline" href="/clinical">{t.openClinical}</Link><Link className="text-xs underline" href="/operation">{t.openOperation}</Link></div></CardContent></Card>}
         {canAgenda && <Card><CardHeader className="pb-2"><CardTitle className="flex items-center gap-2 text-sm"><CalendarDays className="h-4 w-4" />{t.appointments}</CardTitle></CardHeader><CardContent><div className="text-2xl font-bold">{appointments.length}</div><p className="text-xs text-muted-foreground">{t.patientFiltered}</p><Link className="mt-2 inline-flex items-center text-xs underline" href={`/agenda?patientId=${encodeURIComponent(patient.id)}`}>{t.openAgenda}<ExternalLink className="ms-1 h-3 w-3" /></Link></CardContent></Card>}
         {canTreatment && <Card><CardHeader className="pb-2"><CardTitle className="flex items-center gap-2 text-sm"><ClipboardList className="h-4 w-4" />{t.treatment}</CardTitle></CardHeader><CardContent><div className="text-2xl font-bold">{treatment.length}</div><p className="text-xs text-muted-foreground">{treatmentQuery.isLoading ? t.loading : t.patientFiltered}</p><Link className="mt-2 inline-flex items-center text-xs underline" href={`/treatment-plans?patientId=${encodeURIComponent(patient.id)}`}>{t.openTreatment}<ExternalLink className="ms-1 h-3 w-3" /></Link></CardContent></Card>}
         {canInvoices && <Card><CardHeader className="pb-2"><CardTitle className="flex items-center gap-2 text-sm"><CreditCard className="h-4 w-4" />{t.financial}</CardTitle></CardHeader><CardContent><div className="text-2xl font-bold">{invoiceRows.length}</div><p className="text-xs text-muted-foreground">{t.amountDue}: {amountDue}</p><Link className="mt-2 inline-flex items-center text-xs underline" href={`/invoices?patientId=${encodeURIComponent(patient.id)}`}>{t.openInvoices}<ExternalLink className="ms-1 h-3 w-3" /></Link></CardContent></Card>}
