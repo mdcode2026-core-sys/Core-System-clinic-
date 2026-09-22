@@ -120,3 +120,16 @@ This file is append-only for material CSAPI events. Historical entries remain ev
 - Implementation consequence: Continue with focused automated tests and runtime evidence; no production DB mutation and no Vercel deployment.
 - Verification evidence: Live Supabase schema inspection plus current source inspection of Visit, Agenda, Treatment Plan, Follow-up and Coordination paths.
 - Status: CANONICAL LINKS VERIFIED / DOWNSTREAM DRIFT DEFERRED
+
+
+### CSAPI-2026-09-22-022
+- Date: 2026-09-22
+- Gate: Gate 02 — Patient Journey
+- Type: Test Finding / Documentation Correction
+- Source(s): Gate 02 structural verification against the committed audit contract
+- Statement: The first execution-equivalent structural verification failed on the Gate 02 documentation contract because the current Gate 02 record did not contain the exact approved-boundary phrases required by the audit for P6, Agenda non-repair, and Gate 11 separation.
+- Evidence: Verification failed at the P6 assertion before later assertions were evaluated. The underlying architectural decisions are already approved; this is documentation/test-contract drift, not a new product decision.
+- Product Owner decision: Preserve P1–P7 and the existing gate boundaries. Reconcile the current Gate 02 record to the approved decision language, then rerun the same verification.
+- Implementation consequence: Documentation-only correction; no application/database behavior change.
+- Verification evidence: First execution-equivalent structural verification returned P6 assertion failure.
+- Status: CORRECTIVE DOCUMENTATION WORK / RERUN REQUIRED
