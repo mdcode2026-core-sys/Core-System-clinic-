@@ -3,7 +3,7 @@
 Status: ACTIVE — Decision-Gate Workstream
 Last reconciled: 2026-09-22
 Canonical implementation base: main; focused branches for changes
-Current Gate: Gate 03 — Patient & Identity
+Current Gate: Gate 03 — Patient & Identity — CLOSED / VERIFIED / PRODUCTION VERIFIED
 Previous Gate: Gate 02 — Patient Journey — CLOSED / VERIFIED / PRODUCTION VERIFIED
 Execution mode: Decision-first; Gate 02 is CLOSED; Gate 03 implementation verified through engineering, DB and live Supabase checks; final production deployment/runtime verification pending
 
