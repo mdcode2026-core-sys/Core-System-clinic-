@@ -38,6 +38,7 @@ const commands = {
   "csapi-gate01-d3-database": [["d3-database-lifecycle-authority", "node", ["tools/csapi-gate01-d3-database-verification.mjs"]]],
   "csapi-gate01-d3-runtime": [["d3-integrated-runtime", "node", ["tools/csapi-gate01-d3-runtime-v2.mjs"]]],
   "patient-flow-stage6-regression": [["patient-flow-stage6-regression", "npm", ["run", "ux:patient-flow-stage6"]]],
+  gate03_identity: [["gate03-identity-audit", "npm", ["run", "csapi:gate03-identity"]]],
 };
 
 const runtimeLanes = new Set([
