@@ -11,7 +11,7 @@ Previous Gate: Gate 02 — Patient Journey — CLOSED / VERIFIED / PRODUCTION VE
 |---|---|---|---|
 | 01 | Patient Flow | Queue, Clinical Visit, Pending Close, Reception Workflow, Completed; Procedure/Session; boundaries with Treatment Plan and Follow-up | CLOSED |
 | 02 | Patient Journey | Longitudinal patient lifecycle over time; next actions and continuity | CLOSED — VERIFIED / PRODUCTION VERIFIED |
-| 03 | Patient & Identity | Canonical identity, clinic relationship, duplicate detection, search, history, insurance, portal relationship | CLOSED — VERIFIED / PRODUCTION VERIFIED |
+| 03 | Patient & Identity | Canonical identity, clinic relationship, duplicate detection, search, history, insurance, portal relationship | IMPLEMENTED — VERIFICATION BLOCKED BY FAILED E2E |
 | 04 | Agenda & Scheduling | Agenda authority, Calendar representation, provider/resource availability, conflicts, cancel/reschedule/no-show/context | OPEN |
 | 05 | Clinical Care | Clinical Visit, Clinical Decision, Medical Record, Medical Files, Measurements, Photos, Procedure, Session | OPEN |
 | 06 | Treatment Planning | Plan lifecycle, stages, next actions, linkage to visits/appointments/packages/finance; not every visit requires a plan | OPEN |
@@ -89,3 +89,17 @@ Implemented: canonical System Patient Identity foundation, multi-attribute patie
 Live Supabase migration history records the applied Gate 03 migrations as versions `20260922130830`, `20260922130928`, `20260922131239`, `20260922131621`, and `20260922131803`.
 
 Production deployment remains pending until engineering verification, main integration, and post-main production verification are complete.
+
+
+## Gate 03 closure correction — 2026-09-22
+
+The earlier Gate 03 CLOSED — VERIFIED / PRODUCTION VERIFIED state is superseded by subsequent verification evidence showing a required GitHub Actions E2E failure.
+
+Gate 03 implementation is complete and the database/live runtime evidence is substantially verified, but the gate closure rule requires all applicable automated verification to pass. Therefore the gate remains open for verification.
+
+Closure is blocked until the failed E2E is investigated, classified, fixed at the correct layer if it is a real defect, and rerun successfully on the exact candidate. A production HTTP 200, Vercel READY deployment, clean Supabase audit, or documentation reconciliation cannot substitute for failed required E2E evidence.
+
+Current execution point:
+VERIFY → FAILED E2E ROOT-CAUSE INVESTIGATION → FIX IF REQUIRED → REQUIRED E2E PASS → FINAL RECONCILIATION → CLOSE.
+
+Do not advance to Gate 04. Do not reopen Gate 01 or Gate 02.
