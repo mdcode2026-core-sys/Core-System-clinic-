@@ -59,3 +59,14 @@ Gate 03 architectural decisions have been explicitly approved by the Product Own
 For clarity, APPROVED here means the architectural/product baseline is approved. It does not authorize migrations or code changes until the Implementation Design is completed and execution is explicitly authorized under the normal CSAPI sequence.
 
 The 20-gate map remains unchanged. Gate 01 and Gate 02 remain CLOSED and must not be reopened.
+
+
+## Gate 03 decision baseline reconciliation — 2026-09-22
+
+Gate 03 architectural decisions have been explicitly approved by the Product Owner and reconciled against the external research, historical architecture, current repository, live database and runtime evidence.
+
+**State:** APPROVED — IMPLEMENTATION DESIGN PENDING.
+
+For clarity, APPROVED here means the architectural/product baseline is approved. It does not authorize migrations or code changes until the Implementation Design is completed and execution is explicitly authorized under the normal CSAPI sequence.
+
+The 20-gate map remains unchanged. Gate 01 and Gate 02 remain CLOSED and must not be reopened.
