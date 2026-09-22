@@ -55,6 +55,7 @@ export interface PatientUpdate {
   father_name?: string;
   family_name?: string;
   mother_name?: string;
+  national_id?: string;
   age_at_registration?: number;
   age_reference_date?: string;
   last_name?: string;
