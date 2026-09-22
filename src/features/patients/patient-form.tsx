@@ -34,7 +34,7 @@ export function PatientForm({ patient, isOpen, onClose, onSuccess }: PatientForm
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [serverError, setServerError] = useState<string | null>(null);
-  const [reviewCandidate, setReviewCandidate] = useState<PatientApiResult["candidate"]>(null);
+  const [reviewCandidate, setReviewCandidate] = useState<PatientApiResult["candidate"]>();
   const { messages } = useI18n();
   const t = messages.patients;
   const [formData, setFormData] = useState({
@@ -82,7 +82,7 @@ export function PatientForm({ patient, isOpen, onClose, onSuccess }: PatientForm
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setServerError(null);
-    setReviewCandidate(null);
+    setReviewCandidate(undefined);
     if (!validate()) return;
     if (!tenantId) {
       setServerError(t.clinicNotFound);
