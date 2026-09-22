@@ -739,15 +739,12 @@ This document establishes the target requirements and decision questions.
 
 It does not claim that CORE SYSTEM currently satisfies them.
 
-The next step is a full CORE SYSTEM reconciliation against this contract:
+The reconciliation against this contract is complete and recorded in the Gate 03 Reconciliation Report.
 
-**Historical Architecture → Current Code → Live Database → Runtime → Gap Classification → Product Decision Report**
+The next execution artifact is the Gate 03 Implementation Design:
+`docs/CSAPI/GATES/GATE-03-PATIENT-IDENTITY-IMPLEMENTATION-DESIGN-2026-09-22.md`
 
-Only after that reconciliation may the gate become:
-
-**DECISION READY**
-
-and only after Product Owner approval may implementation begin.
+Implementation remains unauthorized until that design is reviewed and explicitly approved.
 
 ---
 
