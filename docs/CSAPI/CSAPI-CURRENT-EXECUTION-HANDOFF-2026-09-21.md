@@ -214,3 +214,48 @@ Deferred findings remain assigned to their owning gates; they do not reopen Gate
 Gate 03 — Patient & Identity.
 
 Do not reopen Gate 02. Start Gate 03 from current main and current CSAPI authority, using the canonical CSAPI work method.
+
+
+## 15. Gate 03 reconciliation completed — 2026-09-22
+
+Gate 03 — Patient & Identity has completed the full READ → INSPECT → VERIFY → RECONCILE precheck.
+
+Authoritative records:
+- docs/CSAPI/GATES/GATE-03-PATIENT-IDENTITY-ARCHITECTURAL-DECISION-REQUIREMENTS-2026-09-22.md
+- docs/CSAPI/GATES/GATE-03-PATIENT-IDENTITY-RECONCILIATION-REPORT-2026-09-22.md
+
+Product Owner baseline approved:
+- Person → System Patient Identity → Clinic Relationship → Clinic Patient Record.
+- Patient remains an independent Module.
+- System Patient ID is stable and distinct from clinic file number.
+- Phone/name/email are matching evidence, not universal unique Patient keys.
+- Duplicate prevention requires multi-attribute matching and human review where ambiguous.
+- Merge is Administrative only.
+- Demographic changes preserve identity.
+- Portal access is entitlement-controlled and separate from canonical Patient Identity.
+
+Current reconciliation conclusion:
+- Gate 03 = DECISION READY.
+- Implementation has not started.
+- Production Supabase was not mutated.
+- No production Vercel deployment was made for Gate 03.
+- Main remains the production authority.
+- The current Gate 03 branch is the documentation/reconciliation working branch only.
+
+Critical implementation gaps found:
+1. patient_identities is empty and currently coupled to Portal authentication semantics.
+2. patient_clinic_relationships is empty and normal Patient registration does not create it.
+3. Patient creation has no canonical pre-create matching step.
+4. clinic_patients currently has UNIQUE (tenant_id, phone_primary), which conflicts with the approved shared-family-phone rule.
+5. Patient Module search is incomplete as an authoritative identity search.
+6. patient_history is empty/summary-oriented and the Patient history hook still reads it directly.
+7. Portal currently creates patient identity during invitation claim rather than before Portal activation.
+8. Merge and identity audit governance are not implemented.
+9. Clinic file numbers are sparsely populated in current data and must not be silently repaired during precheck.
+
+Implementation boundary:
+- Correct Patient/Identity architecture only.
+- Do not rebuild Patient Flow, Patient Journey, Agenda, Clinical, Financial, Insurance lifecycle, Follow-up, Communications, Portal UI or permissions.
+- Preserve tenant isolation and existing domain ownership.
+
+The next step is implementation design and Product Owner-approved execution of this Gate 03 baseline, not a return to Gate 02.
