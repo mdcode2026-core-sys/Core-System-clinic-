@@ -173,7 +173,6 @@ begin
     if v_phone is not null and r.phone_normalized=v_phone then
       v_score := v_score + 2;
       v_best_classes := v_best_classes + 1;
-      v_corrob := v_corrob + 1;
     end if;
 
     if v_email is not null and r.email_normalized=v_email then
