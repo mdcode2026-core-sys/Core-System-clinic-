@@ -298,3 +298,16 @@ This file is append-only for material CSAPI events. Historical entries remain ev
 - Live Supabase: unchanged by this branch; no production DB mutation.
 - Production: unchanged; no production deployment.
 - Remaining critical work: Portal/RLS separation, demographic update continuity, authoritative Patient search/review flow, test contract, clean migration/build/type verification, runtime/data/security verification, then normal main integration and closure.
+
+
+### CSAPI-2026-09-22-034
+- Gate: Gate 03 — Patient & Identity
+- State: IMPLEMENTATION COMPLETE / VERIFICATION IN PROGRESS
+- Match policy: `patient-match-v2`; national ID remains optional; complete non-government-ID demographic evidence can reach EXACT_MATCH threshold 80.
+- Live implementation: applied and verified at database-function level; existing 395 patient records seeded to System Patient Identity + Clinic Relationship + unclaimed Portal Identity.
+- Human review path: REVIEW_REQUIRED → LINK_EXISTING / CREATE_NEW implemented.
+- Patient search: Patient Module now uses authoritative search RPC rather than client-side filtering.
+- Portal: authentication separated from canonical Patient Identity through `patient_portal_identities`.
+- Security: direct authenticated access to identity internals denied; portal policies restored/reconciled against Portal Identity.
+- Live migration versions: 20260922130830, 20260922130928, 20260922131239, 20260922131621, 20260922131803.
+- No production application deployment yet. Remaining closure sequence: engineering CI verification → PR/main integration → post-main production verification → final documentation closure.
