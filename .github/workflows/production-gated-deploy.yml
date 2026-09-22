@@ -1,63 +1,173 @@
-name: Production Candidate Release Gate
+name: Production Gated Release — CSAPI
 
 on:
+  push:
+    branches: [main]
   workflow_dispatch:
     inputs:
       candidate_sha:
-        description: Exact candidate SHA whose unified test engine run must already be successful
+        description: Exact main SHA to validate and release
         required: true
         type: string
-  workflow_run:
-    workflows: ["CORE SYSTEM Unified Test Execution Engine"]
-    types: [completed]
 
 permissions:
   contents: read
-  actions: read
+
+concurrency:
+  group: production-gated-release
+  cancel-in-progress: false
+
+env:
+  NEXT_PUBLIC_SUPABASE_URL: https://qaslsjyxjwvdoiczmhgq.supabase.co
+  NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+  CORE_SYSTEM_E2E_EMAIL: ${{ secrets.CORE_SYSTEM_E2E_EMAIL }}
+  CORE_SYSTEM_E2E_PASSWORD: ${{ secrets.CORE_SYSTEM_E2E_PASSWORD }}
+  NEXT_PUBLIC_APP_URL: http://127.0.0.1:3000
+  VERCEL_ORG_ID: team_VlSz1DTffYBwmUEcYQtR8JiN
+  VERCEL_PROJECT_ID: prj_DN3UgHVBUHrFG6i6ycxAWj0bXLbG
 
 jobs:
-  candidate:
-    name: Release Candidate Eligibility
-    if: >-
-      github.event_name == 'workflow_dispatch' ||
-      (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
+  predeploy:
+    name: VERIFY — Pre-production release gates
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 120
+    outputs:
+      candidate_sha: ${{ steps.candidate.outputs.sha }}
     steps:
-      - name: Resolve exact validated candidate
+      - name: Resolve exact candidate
         id: candidate
+        shell: bash
         env:
-          MANUAL_SHA: ${{ inputs.candidate_sha }}
-          WORKFLOW_SHA: ${{ github.event.workflow_run.head_sha }}
+          INPUT_SHA: ${{ inputs.candidate_sha }}
+          PUSH_SHA: ${{ github.sha }}
         run: |
           set -euo pipefail
-          SHA="$MANUAL_SHA"
-          if [ -z "$SHA" ]; then SHA="$WORKFLOW_SHA"; fi
-          test -n "$SHA"
+          SHA="${INPUT_SHA:-${PUSH_SHA}}"
+          if ! [[ "$SHA" =~ ^[0-9a-fA-F]{40}$ ]]; then
+            echo "Invalid candidate SHA: $SHA" >&2
+            exit 1
+          fi
           echo "sha=$SHA" >> "$GITHUB_OUTPUT"
-          echo "candidate_sha=$SHA"
 
-      - name: Record release-candidate eligibility
-        env:
-          EXPECTED_SHA: ${{ steps.candidate.outputs.sha }}
-          SOURCE_RUN_ID: ${{ github.event.workflow_run.id || '' }}
+      - name: Checkout exact candidate
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.candidate.outputs.sha }}
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Engineering tests
+        run: |
+          npx tsc --noEmit
+          npm run lint
+          npm run build
+
+      - name: Clean DB migration verification
+        shell: bash
         run: |
           set -euo pipefail
-          cat > release-candidate-evidence.json <<EOF
-          {
-            "status": "ELIGIBLE_AFTER_UNIFIED_TEST_ENGINE_SUCCESS",
-            "candidateSha": "${EXPECTED_SHA}",
-            "workflowRunId": "${{ github.run_id }}",
-            "sourceUnifiedTestRunId": "${SOURCE_RUN_ID}",
-            "vercelUsedForValidation": false,
-            "validationAuthority": "CORE SYSTEM Unified Test Execution Engine"
-          }
-          EOF
-          cat release-candidate-evidence.json
+          npx --yes supabase@latest start
+          trap 'npx --yes supabase@latest stop --no-backup || true' EXIT
+          npx --yes supabase@latest db reset --local --no-seed
+          npx --yes supabase@latest migration list
+          echo "CLEAN_DB_MIGRATION_VERIFICATION=PASS"
 
-      - name: Upload release-candidate evidence
+      - name: Gate 03 structural verification
+        run: npm run csapi:gate03-identity
+
+      - name: Install Playwright Chromium
+        run: |
+          npm install --no-save --no-package-lock @playwright/test@1.55.0 playwright@1.55.0
+          npx playwright install --with-deps chromium
+
+      - name: Start exact candidate local production runtime
+        shell: bash
+        env:
+          CORE_SYSTEM_PRODUCTION_URL: http://127.0.0.1:3000
+        run: |
+          set -euo pipefail
+          npm start > local-production.log 2>&1 &
+          echo $! > local-production.pid
+          for attempt in $(seq 1 60); do
+            if curl -fsS --max-time 5 http://127.0.0.1:3000/api/build-info >/tmp/build-info.json; then
+              cat /tmp/build-info.json
+              break
+            fi
+            sleep 2
+          done
+          test -s /tmp/build-info.json
+          grep -q '"verification":"production-candidate"' /tmp/build-info.json
+
+      - name: Local authenticated real-world E2E
+        env:
+          CORE_SYSTEM_PRODUCTION_URL: http://127.0.0.1:3000
+        run: |
+          set -o pipefail
+          node tools/clinic-admin-real-world-e2e-v2.mjs 2>&1 | tee local-production-e2e.log
+
+      - name: Publish pre-production evidence
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: core-system-release-candidate-evidence-${{ steps.candidate.outputs.sha }}
-          path: release-candidate-evidence.json
-          if-no-files-found: error
+          name: core-system-preproduction-evidence-${{ steps.candidate.outputs.sha }}
+          path: |
+            local-production.log
+            local-production-e2e.log
+          if-no-files-found: warn
+
+  deploy:
+    name: DEPLOY — Exact validated candidate to Production
+    needs: predeploy
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout exact validated candidate
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.predeploy.outputs.candidate_sha }}
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install Vercel CLI
+        run: npm install --global vercel@latest
+
+      - name: Pull production environment
+        run: vercel pull --yes --environment=production --token="${{ secrets.VERCEL_TOKEN }}"
+
+      - name: Build exact production candidate
+        env:
+          VERCEL_GIT_PROVIDER: github
+          VERCEL_GIT_REPO_OWNER: mdcode2026-core-sys
+          VERCEL_GIT_REPO_SLUG: Core-System-clinic-
+          VERCEL_GIT_COMMIT_REF: main
+          VERCEL_GIT_COMMIT_SHA: ${{ needs.predeploy.outputs.candidate_sha }}
+        run: vercel build --prod --token="${{ secrets.VERCEL_TOKEN }}"
+
+      - name: Deploy exact prebuilt candidate
+        env:
+          VERCEL_GIT_PROVIDER: github
+          VERCEL_GIT_REPO_OWNER: mdcode2026-core-sys
+          VERCEL_GIT_REPO_SLUG: Core-System-clinic-
+          VERCEL_GIT_COMMIT_REF: main
+          VERCEL_GIT_COMMIT_SHA: ${{ needs.predeploy.outputs.candidate_sha }}
+        run: vercel deploy --prebuilt --prod --token="${{ secrets.VERCEL_TOKEN }}"
+
+  production-verify:
+    name: VERIFY — Production exact candidate + authenticated E2E
+    needs: [predeploy, deploy]
+    uses: ./.github/workflows/production-runtime-verification.yml
+    with:
+      candidate_sha: ${{ needs.predeploy.outputs.candidate_sha }}
+    secrets: inherit
