@@ -236,3 +236,16 @@ This file is append-only for material CSAPI events. Historical entries remain ev
 - Implementation consequence: Implementation Design must model canonical Patient Identity, non-auth Portal identity/binding, and Portal authentication/access as separate concerns. Do not reuse the current patient_identities table unchanged as the canonical identity merely to satisfy the background Portal ID requirement.
 - Verification evidence: Reconciled Gate 03 contract and reconciliation report; no production mutation.
 - Status: APPROVED — DESIGN INPUT
+
+
+### CSAPI-2026-09-22-031
+- Date: 2026-09-22
+- Gate: Gate 03 — Patient & Identity
+- Type: Implementation Design
+- Source(s): Approved Gate 03 Architectural Decision / Requirements Contract; Gate 03 Reconciliation Report; current main source inspection; live Supabase schema/constraint inspection
+- Statement: The Gate 03 Implementation Design is drafted. It defines the physical target without authorizing execution: canonical System Patient Identity, governed identifiers, explicit Clinic Relationship, clinic-owned Patient Record, separate Portal Identity/authentication binding, registration validity followed by multi-attribute matching, authoritative Patient Module search, staged backfill, Administrative merge mechanics, identity auditability, tenant-safe cross-clinic recognition, and canonical history composition.
+- Evidence: Current main contains direct Patient inserts without matching; current patient_identities is coupled to Portal authentication; patient_clinic_relationships already exists; live clinic_patients has UNIQUE (tenant_id, phone_primary); live patient_identities and patient_clinic_relationships contain zero rows; current clinic_patients lacks father/mother/national-ID registration fields; current patient history hook reads the summary table directly.
+- Product Owner decision: Proceed only to Design Review. The design must preserve the approved distinction between registration validity and identity matching. Required fields are validation requirements; they are not uniqueness rules. No single field, including phone, is conclusive identity evidence. Examples/test cases must not be promoted into business rules.
+- Implementation consequence: No migration, application code change, production database mutation, or production deployment is authorized by this design draft.
+- Verification evidence: Design is reconciled against repository and live Supabase evidence; execution remains pending explicit approval.
+- Status: IMPLEMENTATION DESIGN DRAFTED / REVIEW PENDING
