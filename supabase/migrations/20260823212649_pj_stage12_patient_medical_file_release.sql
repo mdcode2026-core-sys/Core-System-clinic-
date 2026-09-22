@@ -18,7 +18,7 @@ alter table public.patient_portal_medical_file_releases enable row level securit
 drop policy if exists patient_file_release_read on public.patient_portal_medical_file_releases;
 create policy patient_file_release_read on public.patient_portal_medical_file_releases for select to authenticated using (
   exists (select 1 from public.clinic_users cu where cu.tenant_id=patient_portal_medical_file_releases.tenant_id and cu.auth_user_id=(select auth.uid()) and cu.is_active=true and cu.deleted_at is null)
-  or exists (select 1 from public.patient_portal_identities ppi join public.patient_clinic_relationships pcr on pcr.patient_identity_id=ppi.patient_identity_id where pcr.clinic_patient_id=patient_portal_medical_file_releases.clinic_patient_id and pcr.tenant_id=patient_portal_medical_file_releases.tenant_id and pcr.status='active' and ppi.auth_user_id=(select auth.uid()) and ppi.status='active')
+  or exists (select 1 from public.patient_identities pi join public.patient_clinic_relationships pcr on pcr.patient_identity_id=pi.id where pcr.clinic_patient_id=patient_portal_medical_file_releases.clinic_patient_id and pcr.tenant_id=patient_portal_medical_file_releases.tenant_id and pcr.status='active' and pi.auth_user_id=(select auth.uid()) and pi.status='active')
 );
 drop policy if exists patient_file_release_staff_write on public.patient_portal_medical_file_releases;
 create policy patient_file_release_staff_write on public.patient_portal_medical_file_releases for all to authenticated using (exists (select 1 from public.clinic_users cu where cu.tenant_id=patient_portal_medical_file_releases.tenant_id and cu.auth_user_id=(select auth.uid()) and cu.is_active=true and cu.deleted_at is null)) with check (exists (select 1 from public.clinic_users cu where cu.tenant_id=patient_portal_medical_file_releases.tenant_id and cu.auth_user_id=(select auth.uid()) and cu.is_active=true and cu.deleted_at is null));
@@ -28,8 +28,8 @@ drop policy if exists medical_files_patient_portal_read on public.medical_files;
 create policy medical_files_patient_portal_read on public.medical_files for select to authenticated using (
   exists (
     select 1 from public.patient_portal_medical_file_releases r
-    join public.patient_portal_identities ppi on ppi.auth_user_id=(select auth.uid())
-    join public.patient_clinic_relationships pcr on pcr.patient_identity_id=ppi.patient_identity_id and pcr.clinic_patient_id=r.clinic_patient_id and pcr.tenant_id=r.tenant_id and pcr.status='active'
+    join public.patient_identities pi on pi.auth_user_id=(select auth.uid())
+    join public.patient_clinic_relationships pcr on pcr.patient_identity_id=pi.id and pcr.clinic_patient_id=r.clinic_patient_id and pcr.tenant_id=r.tenant_id and pcr.status='active'
     where r.medical_file_id=medical_files.id and r.status='active' and (r.expires_at is null or r.expires_at > now())
   )
 );
@@ -37,8 +37,8 @@ create policy medical_files_patient_portal_storage_select on storage.objects for
   bucket_id='medical-files' and exists (
     select 1 from public.medical_files mf
     join public.patient_portal_medical_file_releases r on r.medical_file_id=mf.id and r.status='active' and (r.expires_at is null or r.expires_at > now())
-    join public.patient_portal_identities ppi on ppi.auth_user_id=(select auth.uid())
-    join public.patient_clinic_relationships pcr on pcr.patient_identity_id=ppi.patient_identity_id and pcr.clinic_patient_id=r.clinic_patient_id and pcr.tenant_id=r.tenant_id and pcr.status='active'
+    join public.patient_identities pi on pi.auth_user_id=(select auth.uid())
+    join public.patient_clinic_relationships pcr on pcr.patient_identity_id=pi.id and pcr.clinic_patient_id=r.clinic_patient_id and pcr.tenant_id=r.tenant_id and pcr.status='active'
     where mf.storage_path=storage.objects.name and mf.tenant_id=r.tenant_id
   )
 );
