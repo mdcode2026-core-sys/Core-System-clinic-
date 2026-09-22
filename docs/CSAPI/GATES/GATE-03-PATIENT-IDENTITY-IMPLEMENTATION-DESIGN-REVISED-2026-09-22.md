@@ -243,36 +243,41 @@ Required fields are not automatically unique identifiers.
 
 ## 11. Deterministic matching policy v1
 
-The first implementation must use a versioned deterministic policy named `patient-match-v1`.
+The first implementation must use a versioned deterministic policy named `patient-match-v2`.
 
 Evidence is normalized before comparison.
 
 ### 11.1 Evidence weights
 
-The previous parameterization made EXACT_MATCH mathematically unreachable whenever national ID/card was absent. The national identifier is optional by the approved product baseline, so that parameterization is rejected.
+The implementation uses versioned policy `patient-match-v2`.
 
-The revised patient-match-v1 keeps the weighted score for ranking and audit, retains the 80-point high-confidence threshold, and adds a narrowly controlled deterministic core-profile path for strong matches without a government identifier.
+The key constraint is that government/national identification is optional in private-clinic registration. Therefore the high-confidence threshold must remain reachable without that identifier when the clinic has a sufficiently complete and consistent demographic profile.
 
-Maximum contribution by evidence class remains:
+Evidence weights:
 
-- verified national ID/card exact: 30
-- exact DOB: 20
-- exact father name: 12
-- exact family name: 12
-- exact first name: 8
+- verified national ID/card exact: 20
+- exact DOB: 25
+- exact father name: 18
+- exact family name: 15
+- exact first name: 10
 - exact mother name: 5
-- exact sex: 5
-- exact normalized phone: 5
-- exact normalized email: 3
+- exact sex: 4
+- exact normalized phone: 2
+- exact normalized email: 1
 
-Maximum full-evidence score: 100.
+Maximum score: 100.
 
-When DOB is unavailable, age-at-registration evidence contributes at most 8 points:
-- exact age agreement at the same reference date: 8;
-- one-year difference attributable to reference-date difference: 4;
-- greater difference: 0.
+Without national ID/card, a complete exact demographic profile can still reach 80 points. National ID therefore strengthens a match; it does not gate registration or make identity recognition impossible.
 
-Age evidence cannot be combined with DOB points for the same candidate.
+When DOB is unavailable, age-at-registration is treated as weaker evidence and cannot be combined with DOB evidence for the same candidate. Age evidence contributes at most 8 points and is not sufficient by itself to produce EXACT_MATCH.
+
+Decision thresholds:
+
+- EXACT_MATCH: score >= 80, at least 3 independent evidence classes, and no strong conflict.
+- REVIEW_REQUIRED: score 55–79, or a strong conflict/incomplete high-value evidence pattern requiring human verification.
+- NO_MATCH: score < 55 with no review trigger.
+
+The policy version, normalization rules, evidence weights, threshold, and human-resolution decision are recorded in the match audit. These are implementation parameters, not a new business rule.
 
 ### 11.2 Normalization
 
@@ -567,7 +572,7 @@ Add structures/columns/indexes without changing active registration behavior.
 For each active clinic patient:
 1. validate/normalize available evidence;
 2. generate candidates;
-3. apply patient-match-v1;
+3. apply patient-match-v2;
 4. create System Identity when no existing identity is sufficiently matched;
 5. create relationship;
 6. ensure Portal binding;
@@ -663,7 +668,7 @@ Additional mandatory verification:
 Gate 03 Implementation is Ready only when:
 - this revised design is explicitly approved;
 - exact schema diff is generated and reviewed;
-- patient-match-v1 is encoded exactly as specified and tests are bound to its version;
+- patient-match-v2 is encoded exactly as specified and tests are bound to its version;
 - all repository/database consumers are inventoried;
 - Portal migration references are mapped;
 - RLS policies are specified;
@@ -702,7 +707,7 @@ DR-02 Resolved: explicit father/family/mother fields are added only after consum
 
 DR-03 Resolved: DOB is canonical; age-only registration uses provisional age evidence with reference date.
 
-DR-04 Resolved: patient-match-v1 has explicit weights, conflict rules, thresholds, versioning and audit.
+DR-04 Resolved: patient-match-v2 has explicit weights, conflict rules, thresholds, versioning and audit.
 
 DR-05 Resolved: reuse `patient_identities` as canonical identity because it is empty in live DB; remove Portal-auth semantics and create `patient_portal_identities`.
 
