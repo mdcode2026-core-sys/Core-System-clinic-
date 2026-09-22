@@ -38,10 +38,10 @@ USING (
       kind = 'patient'
       AND EXISTS (
         SELECT 1
-        FROM patient_identities pi
+        FROM patient_portal_identities ppi
         JOIN patient_clinic_relationships pcr ON pcr.patient_identity_id = pi.id
-        WHERE pi.auth_user_id = auth.uid()
-          AND pi.status = 'active'
+        WHERE ppi.auth_user_id = auth.uid()
+          AND ppi.status = 'active'
           AND pcr.tenant_id = communication_conversations.tenant_id
           AND pcr.clinic_patient_id = communication_conversations.clinic_patient_id
           AND pcr.status = 'active'
@@ -87,14 +87,14 @@ USING (
       message_kind = 'message'
       AND EXISTS (
         SELECT 1
-        FROM patient_identities pi
+        FROM patient_portal_identities ppi
         JOIN patient_clinic_relationships pcr ON pcr.patient_identity_id = pi.id
         JOIN communication_conversations cc
           ON cc.tenant_id = pcr.tenant_id
          AND cc.clinic_patient_id = pcr.clinic_patient_id
          AND cc.id = communication_messages.conversation_id
-        WHERE pi.auth_user_id = auth.uid()
-          AND pi.status = 'active'
+        WHERE ppi.auth_user_id = auth.uid()
+          AND ppi.status = 'active'
           AND pcr.tenant_id = communication_messages.tenant_id
           AND pcr.status = 'active'
           AND pcr.deleted_at IS NULL
