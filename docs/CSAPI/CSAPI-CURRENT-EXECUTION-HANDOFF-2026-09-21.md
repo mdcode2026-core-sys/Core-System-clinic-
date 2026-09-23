@@ -449,3 +449,23 @@ Current Gate 03 state remains:
 **IMPLEMENTATION CORRECTION IN PROGRESS → CLEAN MIGRATION VERIFICATION REQUIRED → LIVE VERIFICATION REQUIRED → E2E VERIFICATION REQUIRED → PRODUCTION SEQUENCE → FINAL RECONCILIATION / CLOSE.**
 
 Gate 01 and Gate 02 remain CLOSED and are not reopened by these Gate 03 findings. Findings outside Gate 03 ownership remain deferred to their owning gate.
+
+
+
+## 21. Clean migration verification blocker — duplicate migration versions — 2026-09-23
+
+Run #1311 on main SHA `8dd8d071c2811792d47d1c6051a11c9843e15c53` failed in **Clean DB migration verification** with PostgreSQL SQLSTATE 23505 on `supabase_migrations.schema_migrations_pkey`. The authoritative log identifies the failure as a duplicate migration version, not a Docker registry/race failure.
+
+Repository inspection found **11 files participating in 5 duplicate numeric migration-version groups**:
+- `20260820` — 3 files;
+- `20260821` — 2 files;
+- `20260827160000` — 2 files;
+- `20260830200000` — 2 files;
+- `20260830201000` — 2 files.
+
+The historical Patient Journey groups were reconciled to the corresponding timestamped versions already represented in Live migration history. The remaining same-second collisions were given unique ordered timestamps without changing SQL content. The corrected repository contains 232 migration files with **zero duplicate numeric versions**.
+
+Correction merged as PR #198, merge commit `462022296f12f5f691de8cf88f6a819c38c33877`. This is a migration-history/reproducibility correction only; it does not close Gate 03.
+
+Authoritative next proof: a new main Production Gated Release must pass the full clean migration chain. Do not treat the rename itself as verification. If Clean DB passes, continue the existing sequence without skipping: structural Gate 03 verification → local authenticated E2E → exact-candidate Production deployment → exact production SHA verification → authenticated Production E2E → final reconciliation/closure.
+
