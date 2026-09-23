@@ -30,7 +30,7 @@ try{
     if(lastStatus===200&&hasAuthCookie){
       await page.goto(baseUrl+"/",{waitUntil:"commit",timeout:60000});
       await page.waitForTimeout(1000);
-      if(!/\\/login(?:[/?#]|$)/i.test(page.url())){loggedIn=true;break}
+      if(!/\/login(?:[/?#]|$)/i.test(page.url()){loggedIn=true;break}
     }
     await page.waitForTimeout(1500);
   }
