@@ -353,3 +353,16 @@ This file is append-only for material CSAPI events. Historical entries remain ev
 - Safety rule: No E2E rerun, main merge, Live migration application, Production deployment or closure claim until the corrected candidate passes its required verification sequence.
 - Gate 01 / Gate 02: remain CLOSED; no reopening or retroactive repair is authorized by this Gate 03 finding.
 - Status: IMPLEMENTATION CORRECTION IN PROGRESS / VERIFICATION PENDING
+
+
+
+### CSAPI-2026-09-23-G03-MIGRATION-CHAIN-BLOCKER
+- Date: 2026-09-23
+- Gate: Gate 03 — Patient & Identity
+- Type: Clean migration verification / root-cause correction
+- Finding: Production Gated Release Run #1311 failed in Clean DB migration verification with SQLSTATE 23505 on `supabase_migrations.schema_migrations_pkey`.
+- Root cause: the repository contained 11 migration files across 5 duplicate numeric version groups (`20260820`, `20260821`, `20260827160000`, `20260830200000`, `20260830201000`). A clean migration replay cannot insert duplicate versions into the migration history primary key.
+- Correction: all duplicate versions were renamed to unique ordered timestamps with SQL content preserved. The historical 20260820/20260821 files were aligned to the corresponding timestamped versions already present in Live migration history.
+- Verification boundary: repository inspection confirms zero duplicate numeric migration versions after PR #198; this is not yet equivalent to a successful clean replay.
+- Main correction commit: `462022296f12f5f691de8cf88f6a819c38c33877`.
+- Status: OPEN — CLEAN MIGRATION VERIFICATION REQUIRED.

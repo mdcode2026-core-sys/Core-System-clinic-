@@ -456,3 +456,18 @@ Therefore:
 
 The next accepted transition is:
 **clean migration verification → engineering/security verification → Live Supabase verification → local authenticated E2E → exact-candidate main integration → controlled Production deployment → exact production identity verification → authenticated Production E2E → final documentation reconciliation → CLOSE.**
+
+
+
+## Migration-chain reconciliation — 2026-09-23
+
+Run #1311 exposed a previously hidden reproducibility defect in the repository migration chain: duplicate numeric migration versions caused the clean Supabase migration history table to reject a second insert with SQLSTATE 23505.
+
+The defect was verified directly from the repository migration filenames and the authoritative Actions log. No runtime normalization or temporary duplicate-version suppression is acceptable because the purpose of this gate is to prove that the repository can reproduce the schema from a clean database.
+
+PR #198 reconciled all five duplicate-version groups and preserved the SQL bodies. The corrected main commit is `462022296f12f5f691de8cf88f6a819c38c33877`.
+
+This correction changes the verification state to:
+**MIGRATION CHAIN STRUCTURALLY RECONCILED → CLEAN REPLAY NOT YET VERIFIED → GATE 03 OPEN.**
+
+The next authoritative evidence must come from a fresh main CI run. If clean replay succeeds, continue the previously approved Gate 03 closure sequence. If it fails at another migration, investigate that exact migration/root cause; do not weaken the clean verification.
