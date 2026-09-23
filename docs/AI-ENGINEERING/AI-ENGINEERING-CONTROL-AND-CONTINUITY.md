@@ -151,3 +151,21 @@ Historical findings cannot become current scope merely because a new conversatio
 Keyword = where to enter.
 Handoff = where we are.
 Repository/runtime = what is actually true.
+
+## 13. GitHub Actions governance enforcement
+
+The repository contains a single governance-enforcement workflow:
+
+`.github/workflows/engineering-governance.yml`
+
+Its purpose is to enforce the existence and integrity of the AI Engineering organization contract without becoming an AI decision-maker.
+
+It verifies:
+
+- governing AI Engineering documents exist;
+- the complete organization role map remains present;
+- implementation/verification/security/documentation/deployment independence boundaries remain explicit;
+- the work-package contract remains present;
+- the governance workflow itself performs no production deployment or live database mutation.
+
+Existing verification, production-gated deployment and production-runtime workflows remain responsible for their respective execution gates. Governance enforcement does not replace those workflows and does not authorize production release.
