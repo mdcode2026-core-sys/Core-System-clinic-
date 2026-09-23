@@ -27,6 +27,7 @@ const commands = {
   ]],
   "patient-journey": [["gate02-longitudinal-runtime-e2e", "node", ["tools/csapi-gate02-longitudinal-e2e.mjs"]]],
   "cross-domain-runtime": [["cross-domain-runtime", "npm", ["run", "test:cross-domain-runtime"]]],
+  "csapi-gate02-clean-db": [["gate02-clean-db", "node", ["tools/csapi-gate02-clean-db.mjs"]]],
   "procurement-inventory-finance": [["procurement-inventory-finance-runtime", "npm", ["run", "test:cross-domain-runtime"]]],
   "global-experience-presentation-static": [["global-experience-presentation", "npm", ["run", "test:global-experience-presentation"]]],
   "global-experience-presentation-runtime": [["global-experience-presentation-runtime", "node", ["tools/global-experience-presentation-runtime.spec.mjs"]]],
