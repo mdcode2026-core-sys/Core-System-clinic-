@@ -16,7 +16,26 @@ The repository is the permanent engineering knowledge base.
 
 The AI Engineering Organization governance layer is implemented on this branch and is under review in PR #204.
 
-This branch is governance-only.
+The governance model now includes the complete full-team responsibility map:
+
+- AI Engineering Leader / CTO
+- Product Manager / Business Analyst
+- Principal / Solution Architect
+- Backend Engineer
+- Database / PostgreSQL / Supabase Engineer
+- Frontend / Product Engineer
+- QA / SDET
+- Security Engineer
+- DevOps / Platform / SRE
+- Data / BI Engineer
+- AI / ML Engineer
+- Product Designer / UX
+- Clinical / Healthcare Domain Advisor
+- Technical Writer / Documentation Engineer
+
+These are responsibility boundaries, not necessarily separate agents or subscriptions. The AI Engineering Leader activates and combines functions as required while preserving independent verification and security boundaries.
+
+This branch remains governance-only.
 
 It does not authorize application, database, production or CSAPI feature changes.
 
@@ -57,7 +76,7 @@ The database has known advisor findings. These are baseline findings, not automa
 
 ## 6. Immediate governance rule
 
-The next engineering action is:
+The current engineering action is:
 
 Complete the AI Engineering governance installation and verify it on the real repository state.
 
@@ -65,7 +84,9 @@ Do not use this governance bootstrap to reopen Gate 01/02 or to advance Gate 03.
 
 ## 7. Governance review state
 
-PR #204 is the single governance integration PR. It contains documentation-only changes and no application or database changes. It must not be merged merely to prove the model; merge remains subject to the repository's current deployment restrictions and the normal review/verification rules.
+PR #204 is the single governance integration PR. It contains documentation-only changes and no application or database changes. The role map correction is part of the same governance scope and does not create a new PR.
+
+PR #204 must not be merged merely to prove the model; merge remains subject to the repository's current review/verification rules and deployment restrictions.
 
 ## 8. Continuation
 
