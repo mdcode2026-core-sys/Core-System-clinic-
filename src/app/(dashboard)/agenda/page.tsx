@@ -32,7 +32,6 @@ export default function AgendaPage() {
   const [selectedEvent, setSelectedEvent] = useState<AgendaEventWithRelations | null>(null);
   const [formDefaultDate, setFormDefaultDate] = useState("");
   const [tenantTimezone, setTenantTimezone] = useState("UTC");
-  useEffect(() => { if (bookingWorkItemId) setIsFormOpen(true); }, [bookingWorkItemId]);
   const tenantId = auth?.tenantId ?? null;
   const userId = auth?.user?.id ?? "";
 
