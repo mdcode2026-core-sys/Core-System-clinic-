@@ -12,7 +12,7 @@
   "required_suites": [
     "engineering",
     "patient-journey",
-    "cross-domain-runtime"
+    "cross-domain"
   ],
   "precheck_required": true,
   "implementation_allowed_before_approval": true,
