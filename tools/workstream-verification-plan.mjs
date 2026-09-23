@@ -14,6 +14,7 @@ const laneRegistry = {
   i18n: { id: "i18n" },
   "authenticated-e2e": { id: "authenticated-e2e" },
   "patient-journey": { id: "patient-journey" },
+  "csapi-gate02-clean-db": { id: "csapi-gate02-clean-db" },
   "cross-domain": { id: "cross-domain-runtime" },
   "authorization": { id: "cross-domain-runtime" },
   "database-integrity": { id: "cross-domain-runtime" },
