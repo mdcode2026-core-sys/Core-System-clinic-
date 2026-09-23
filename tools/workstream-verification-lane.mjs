@@ -316,7 +316,16 @@ try {
       console.log("D3_RUNTIME_AUTH_FIXTURE=claims-injected-local-copy");
     }
 
-    const code = run(command, effectiveArgs);
+    let code;
+    if (lane === "patient-journey") {
+      const captured = runCapture(command, effectiveArgs);
+      code = captured.status;
+      writeFileSync(`verification-lane-${lane}.log`, captured.stdout + "\n" + captured.stderr);
+      process.stdout.write(captured.stdout);
+      process.stderr.write(captured.stderr);
+    } else {
+      code = run(command, effectiveArgs);
+    }
     results.push({ name, command: [command, ...effectiveArgs].join(" "), exitCode: code, status: code === 0 ? "PASS" : "FAIL" });
     console.log(`=== LANE=${lane} TEST=${name} ${code === 0 ? "PASS" : "FAIL"} exit=${code} ===`);
 
