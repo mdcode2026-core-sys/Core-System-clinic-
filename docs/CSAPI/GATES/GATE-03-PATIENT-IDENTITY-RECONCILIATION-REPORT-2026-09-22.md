@@ -431,3 +431,28 @@ Accordingly:
 - Only after the required E2E passes may final production verification, documentation reconciliation and Gate 03 closure be recorded.
 
 Current status: IMPLEMENTATION COMPLETE — VERIFICATION BLOCKED BY FAILED E2E.
+
+
+## Full execution reconciliation correction — 2026-09-22
+
+The prior implementation/verification record is superseded where it implied that the approved Gate 03 design had been fully realized in executable code. A second full reconciliation against the actual repository and Live Supabase implementation found material execution drift.
+
+Corrective scope is now explicitly tracked on `csapi/gate03-deployment-sequencing-fix-2026-09-22` and includes:
+- canonical authorization inside SECURITY DEFINER Patient/Identity RPCs;
+- exact patient-match-v2 Path A and Path B behavior, including uniqueness, evidence-class and conflict constraints;
+- identity attribute provenance/verification metadata;
+- Patient search permission enforcement;
+- non-destructive demographic update continuity;
+- human review resolution authorization;
+- legacy identity backfill provenance and identifier reconciliation;
+- migration-history parity and controlled deployment sequencing.
+
+The corrective migration files have been committed to the branch but are not yet applied to Live Supabase. Live currently still exposes the pre-correction registration function, so the correction is not yet verified remotely.
+
+A Live migration-history entry `20260922165018` has no repository counterpart. Its exact effect remains a required migration-parity investigation; no inferred/no-op replacement is permitted.
+
+Therefore:
+**Gate 03 remains OPEN — IMPLEMENTATION CORRECTION IN PROGRESS.**
+
+The next accepted transition is:
+**clean migration verification → engineering/security verification → Live Supabase verification → local authenticated E2E → exact-candidate main integration → controlled Production deployment → exact production identity verification → authenticated Production E2E → final documentation reconciliation → CLOSE.**

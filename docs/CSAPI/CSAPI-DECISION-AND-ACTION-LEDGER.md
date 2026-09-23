@@ -340,3 +340,16 @@ This file is append-only for material CSAPI events. Historical entries remain ev
 - Required action: inspect the authoritative failed Actions run, classify the failure, fix the root cause at the correct layer if required, rerun the exact required E2E, and only then perform final reconciliation and closure.
 - Prohibited action: do not weaken, skip, delete, or relabel the failing E2E merely to obtain green CI.
 - Status: OPEN — VERIFICATION BLOCKED.
+
+
+### CSAPI-2026-09-22-034A
+- Gate: Gate 03 — Patient & Identity
+- Type: Full execution reconciliation / corrective implementation
+- Source(s): Revised Gate 03 Implementation Design; Match Policy Resolution; binding execution contract; repository implementation; Live Supabase state; failed required E2E evidence
+- Finding: The prior implementation did not fully realize several already-approved decisions. Specifically: SECURITY DEFINER Patient/Identity RPCs lacked the canonical permission boundary; patient-match-v2 lacked the approved Path B/uniqueness/conflict execution; identity attribute provenance/verification metadata was absent; Patient search did not enforce `patients:read`; update continuity could erase optional demographic fields; human review resolution lacked the create permission boundary; legacy backfill provenance was not explicit; and Live migration history contains `20260922165018` without a repository counterpart.
+- Corrective branch: `csapi/gate03-deployment-sequencing-fix-2026-09-22`
+- Corrective migrations: `20260922190000_csapi_gate03_execution_reconciliation.sql`; `20260922191000_csapi_gate03_review_resolution_authorization.sql`
+- Contract: Gate 03 execution contract reconciled to v1.2 with full-path scenarios and deployment sequencing.
+- Safety rule: No E2E rerun, main merge, Live migration application, Production deployment or closure claim until the corrected candidate passes its required verification sequence.
+- Gate 01 / Gate 02: remain CLOSED; no reopening or retroactive repair is authorized by this Gate 03 finding.
+- Status: IMPLEMENTATION CORRECTION IN PROGRESS / VERIFICATION PENDING

@@ -103,3 +103,19 @@ Current execution point:
 VERIFY → FAILED E2E ROOT-CAUSE INVESTIGATION → FIX IF REQUIRED → REQUIRED E2E PASS → FINAL RECONCILIATION → CLOSE.
 
 Do not advance to Gate 04. Do not reopen Gate 01 or Gate 02.
+
+
+## Gate 03 full execution reconciliation correction — 2026-09-22
+
+The Gate 03 implementation was re-audited end-to-end against the approved Revised Implementation Design, binding execution contract, repository implementation, Live Supabase state and verification requirements. Several implementation drifts were found and are being corrected before the gate resumes its final verification sequence.
+
+Corrective branch: `csapi/gate03-deployment-sequencing-fix-2026-09-22`.
+
+The correction covers the complete Gate 03 execution path rather than only Registration/Permissions: authorization boundaries, deterministic patient matching, review resolution, identity provenance, update continuity, authoritative search, legacy backfill reconciliation, migration parity and controlled release sequencing.
+
+No further E2E rerun is accepted until the corrective candidate has passed clean migration/build/type/security structural verification. No Production deployment is accepted before the required local authenticated E2E on that exact candidate.
+
+Current execution point:
+**IMPLEMENTATION CORRECTION → CLEAN DB MIGRATION VERIFICATION → LIVE SUPABASE VERIFICATION → RUNTIME/E2E VERIFICATION → CONTROLLED PRODUCTION RELEASE → FINAL RECONCILIATION / CLOSE.**
+
+Gate 01 and Gate 02 remain CLOSED and are not reopened.

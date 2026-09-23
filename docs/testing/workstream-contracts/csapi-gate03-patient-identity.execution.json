@@ -1,5 +1,5 @@
 {
-  "contract_version": "1.0",
+  "contract_version": "1.2",
   "contract_type": "workstream",
   "workstream_id": "csapi-gate03-patient-identity",
   "status": "binding",
@@ -11,7 +11,8 @@
   ],
   "required_suites": [
     "engineering",
-    "gate03_identity"
+    "gate03_identity",
+    "patient-journey"
   ],
   "precheck_required": true,
   "implementation_allowed_before_approval": true,
@@ -51,16 +52,21 @@
     "identity internals deny direct authenticated access",
     "patient_history remains a projection",
     "insurance remains domain-owned",
-    "no parallel identity engine"
+    "no parallel identity engine",
+    "patients:create enforced in canonical RPC",
+    "patients:update enforced in canonical RPC",
+    "legacy identity backfill provenance reconciled",
+    "national ID identifier registry reconciled",
+    "production deployment cannot precede local authenticated E2E"
   ],
-  "closure_rule": "Gate 03 closes only after implementation, engineering tests, database/security verification, runtime evidence, documentation reconciliation, main integration, and post-main production verification.",
+  "closure_rule": "Gate 03 closes only after implementation, engineering tests, database/security verification, local authenticated E2E, runtime evidence, documentation reconciliation, main integration, production deployment, and post-main production E2E verification.",
   "applicability": {
     "match_any": [
       "^src/domain/patients/",
       "^src/features/patients/",
       "^src/domain/patient-portal/",
       "^src/app/api/patients/",
-      "^supabase/migrations/2026092213",
+      "^supabase/migrations/20260922",
       "^tools/csapi-gate03-patient-identity-audit\\.mjs$",
       "^docs/CSAPI/GATES/GATE-03-",
       "^docs/testing/workstream-contracts/csapi-gate03-patient-identity\\.execution\\.json$"

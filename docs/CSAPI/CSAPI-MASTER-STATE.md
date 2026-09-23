@@ -258,3 +258,21 @@ Required continuation:
 READ current verification evidence → inspect failed Actions E2E → determine root cause → fix at owning layer if required → rerun exact required E2E → verify engineering/build/DB/runtime again as affected → final documentation reconciliation → CLOSE only after all required evidence passes.
 
 The failed E2E must not be weakened, skipped, deleted, or relabeled to obtain closure. Gate 04 must not start until Gate 03 is actually closed.
+
+
+## Gate 03 full execution reconciliation correction — 2026-09-22
+
+A full implementation reconciliation was performed after the required E2E failure exposed execution drift. The reconciliation found that the repository/live implementation did not fully realize several already-approved Gate 03 decisions. This is now being corrected on a controlled Gate 03 branch.
+
+Corrective branch: `csapi/gate03-deployment-sequencing-fix-2026-09-22`.
+
+Corrective changes now committed include canonical Patient/Identity authorization enforcement, patient-match-v2 Path A/Path B execution, conflict/uniqueness handling, identity provenance/verification metadata, Patient search permission enforcement, update continuity, human-review authorization, and legacy backfill provenance reconciliation.
+
+The corrective changes are not yet verified by clean DB, Live Supabase, runtime or E2E evidence. The Live database still contains the pre-correction `register_patient_identity` definition. Therefore Gate 03 remains OPEN.
+
+A live-only migration-history entry `20260922165018` remains a migration-parity reconciliation item; no guessed replacement is allowed.
+
+Canonical state:
+**Gate 03 — IMPLEMENTATION CORRECTION IN PROGRESS / VERIFICATION BLOCKED UNTIL CORRECTIVE CANDIDATE PASSES.**
+
+Gate 01 and Gate 02 remain CLOSED and must not be reopened.
