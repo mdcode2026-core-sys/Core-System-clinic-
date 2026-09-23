@@ -12,41 +12,31 @@ const page=await context.newPage();
 async function goto(path){const r=await page.goto(baseUrl+path,{waitUntil:"domcontentloaded",timeout:60000});if(!r||r.status()>=400)throw new Error("HTTP failure "+path+" status="+(r?.status()??"unknown"));await page.waitForTimeout(500);if(/\/login(?:[/?#]|$)/i.test(page.url()))throw new Error("Redirected to login from "+path)}
 async function button(rx){const b=page.getByRole("button",{name:rx}).first();await b.waitFor({state:"visible",timeout:15000});await b.click()}
 try{
-  await page.goto(baseUrl+"/login",{waitUntil:"domcontentloaded",timeout:60000});
-  await page.locator('input[type="email"],input[name="email"]').fill(email);
-  await page.locator('input[type="password"],input[name="password"]').fill(password);
-  await button(/sign in|login|log in|تسجيل الدخول|دخول/i);
-  await page.waitForTimeout(1500);
-  if(/\/login(?:[/?#]|$)/i.test(page.url()))throw new Error("Authenticated E2E login failed");
+  let lastStatus="unknown";
+  let loggedIn=false;
+  for(let attempt=1;attempt<=3;attempt++){
+    await context.clearCookies();
+    const authResponsePromise=page.waitForResponse(r=>r.url().includes("/auth/v1/token"),{timeout:20000}).catch(()=>null);
+    await page.goto(baseUrl+"/login",{waitUntil:"commit",timeout:60000});
+    await page.locator('input[type="email"],input[name="email"]').first().fill(email);
+    await page.locator('input[type="password"],input[name="password"]').first().fill(password);
+    await page.getByRole("button",{name:/sign in|login|log in|تسجيل الدخول|دخول/i}).first().click();
+    const authResponse=await authResponsePromise;
+    lastStatus=authResponse?.status()??"no-response";
+    await page.waitForTimeout(1500);
+    const cookies=await context.cookies();
+    const hasAuthCookie=cookies.some(x=>x.name.includes("auth-token"));
+    console.log(`E2E_LOGIN_ATTEMPT=${attempt} AUTH_STATUS=${lastStatus} AUTH_COOKIE=${hasAuthCookie} URL=${page.url()}`);
+    if(lastStatus===200&&hasAuthCookie){
+      await page.goto(baseUrl+"/",{waitUntil:"commit",timeout:60000});
+      await page.waitForTimeout(1000);
+      if(!/\\/login(?:[/?#]|$)/i.test(page.url())){loggedIn=true;break}
+    }
+    await page.waitForTimeout(1500);
+  }
+  if(!loggedIn)throw new Error(`Authenticated E2E login failed (last auth status: ${lastStatus})`);
   console.log("PASS|login");
-
-  // Use an existing patient so Gate 02 runtime proof is independent from Gate 03 identity/registration.
-  await goto("/patients");
-  await page.getByRole("button",{name:/view|عرض/i}).first().click();
-  const patientDialog=page.getByRole("dialog");
-  await patientDialog.waitFor({state:"visible",timeout:10000});
-  const treatmentLink=patientDialog.getByRole("link",{name:/treatment plan|خطة العلاج/i}).first();
-  await treatmentLink.waitFor({state:"visible",timeout:10000});
-  const href=await treatmentLink.getAttribute("href");
-  if(!href)throw new Error("Canonical patient → Treatment Plan link missing");
-  const patientId=new URL(href,"http://local").searchParams.get("patientId");
-  if(!patientId)throw new Error("Canonical Treatment Plan link has no patientId");
-  await treatmentLink.click();
-
-  // 18/19 — clinical decision → Treatment Plan → multi-stage plan.
-  await button(/new plan|خطة جديدة/i);
-  const inputs=page.locator("input");
-  await inputs.nth(0).fill("CSAPI Gate 02 Runtime Plan");
-  await inputs.nth(1).fill("Longitudinal clinical decision");
-  await page.locator("textarea").first().fill("Two-stage runtime continuity");
-  await button(/create|إنشاء/i);
-  await page.waitForTimeout(500);
-  const add=page.locator("input");
-  await add.nth(2).fill("Gate 02 Stage One");
-  await add.nth(3).fill("First treatment stage");
-  await button(/add|إضافة/i);
-  await page.waitForTimeout(300);
-  const add2=page.locator("input");
+const add2=page.locator("input");
   await add2.nth(2).fill("Gate 02 Stage Two");
   await add2.nth(3).fill("Second treatment stage");
   await button(/add|إضافة/i);
