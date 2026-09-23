@@ -2,7 +2,7 @@
 
 Date: 2026-09-21
 Gate: CSAPI Gate 02 — Patient Journey
-Status: CLOSED — VERIFIED / PRODUCTION VERIFIED
+Status: OPEN — DEEP EVIDENCE RECONCILIATION REQUIRED
 Previous Gate: Gate 01 — Patient Flow — CLOSED
 Execution mode: Decision-first; Product Owner approval P1–P7 recorded; implementation limited to approved longitudinal continuity boundary
 
@@ -255,9 +255,9 @@ The approved narrow implementation replaces the Patient Context Visit summary so
 Canonical continuity links have been inspected against current repository source and live Supabase schema/data evidence. Treatment Plan → Operational Work and Follow-up → Notification/Operational Work boundary drifts remain deferred to their owning downstream gates. Automated structural verification and runtime verification remain required before closure.
 
 
-## 15. Gate 02 closure record — 2026-09-22
+## 15. Historical Gate 02 closure record — SUPERSEDED 2026-09-23
 
-Gate 02 is CLOSED.
+Gate 02 closure is superseded by the 2026-09-23 Deep Evidence Audit. The historical closure record remains preserved below as evidence but is no longer current authority.
 
 ### Approved scope implemented
 
@@ -292,3 +292,28 @@ Gate 02 closure does not imply Patient Journey or patient relationship terminati
 ### Next path
 
 The 20-gate map remains unchanged. The next CSAPI gate is Gate 03 — Patient & Identity.
+
+
+## 16. Deep Evidence Reconciliation — 2026-09-23
+
+The Gate 02 binding contract required a full longitudinal precheck and gate-specific runtime evidence. The evidence used for the historical closure did not prove the complete contract.
+
+The dedicated continuity audit only verified the Patient Context source substitution from `patient_history` to `clinic_visit_sessions` and several boundary assertions. The CI `cross-domain-runtime` lane verified broad tenant-safe referential integrity, but it did not execute the required longitudinal continuity chain or the inherited 42-scenario reference.
+
+Therefore Gate 02 is reopened for **evidence reconciliation only**.
+
+This does not reopen Gate 01 and does not authorize unrelated application repair.
+
+Required next evidence:
+- 42-scenario current-state reconciliation;
+- canonical ownership matrix;
+- reality/gap matrix;
+- repeated-visit continuity runtime;
+- completed Visit → result → next action runtime;
+- Treatment Plan → Next Action mapping;
+- Next Action → Appointment / Follow-up / Operational Work mapping;
+- Agenda dependency classification;
+- Portal optionality / Medical Photos non-blocking evidence where applicable;
+- authorization and tenant-isolation evidence.
+
+No Gate 03 advancement is permitted until Gate 02 evidence reconciliation is complete and its state is re-established.
