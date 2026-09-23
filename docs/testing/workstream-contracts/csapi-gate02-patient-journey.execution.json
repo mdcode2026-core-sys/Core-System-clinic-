@@ -61,5 +61,24 @@
     "Domain event → operational work → authorized completion",
     "Completed Visit → Follow-up → next journey action",
     "Repeated-visit longitudinal traceability"
-  ]
+  ],
+  "applicability": {
+    "match_any": [
+      "^src/domain/treatment-plan/",
+      "^src/features/treatment-plans/",
+      "^src/domain/followup/",
+      "^src/features/followup/",
+      "^src/domain/journey-coordination/",
+      "^src/app/\\(dashboard\\)/work-center/",
+      "^src/domain/agenda/",
+      "^src/features/agenda/",
+      "^src/app/\\(dashboard\\)/agenda/",
+      "^supabase/migrations/20260829",
+      "^supabase/migrations/20260830",
+      "^supabase/migrations/20260923",
+      "^tools/clinic-admin-real-world-e2e-v2\\.mjs$",
+      "^docs/CSAPI/GATES/GATE-0[12]-",
+      "^docs/testing/workstream-contracts/csapi-gate02-patient-journey\\.execution\\.json$"
+    ]
+  }
 }
