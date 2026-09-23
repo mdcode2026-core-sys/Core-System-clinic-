@@ -74,14 +74,20 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          # This gate verifies only the repository's PostgreSQL migration chain.
-          # The application/E2E path does not require the auxiliary Supabase services.
-          # Excluding them avoids unrelated registry pulls/rate limits and keeps the
-          # verification scoped to the database that db reset actually exercises.
-          npx --yes supabase@latest db start
+          # A fresh GitHub-hosted runner has no local Supabase state.
+          # Initialize only the disposable CI config, then let db start create the
+          # fresh local database and apply the repository migration chain once.
+          # Do NOT follow db start with db reset: current Supabase CLI versions have a
+          # documented intermittent schema-initialization race during reset, where the
+          # service migration jobs can race the long-running storage/realtime services.
+          # Re-running reset would therefore add a second migration lifecycle instead
+          # of verifying the clean first-build path.
+          npx --yes supabase@latest init
+          sed -i 's/^project_id = .*/project_id = "core-system-gate03-ci"/' supabase/config.toml
           trap 'npx --yes supabase@latest stop --no-backup || true' EXIT
-          npx --yes supabase@latest db reset --local --no-seed
-          npx --yes supabase@latest migration list
+          npx --yes supabase@latest db start
+          npx --yes supabase@latest migration list --local
+          npx --yes supabase@latest db lint --local
           echo "CLEAN_DB_MIGRATION_VERIFICATION=PASS"
 
       - name: Gate 03 structural verification
