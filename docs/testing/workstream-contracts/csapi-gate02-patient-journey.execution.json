@@ -1,5 +1,5 @@
 {
-  "contract_version": "1.0",
+  "contract_version": "1.1",
   "contract_type": "workstream",
   "workstream_id": "csapi-gate02-patient-journey",
   "status": "binding",
@@ -10,7 +10,8 @@
     "build"
   ],
   "required_suites": [
-    "engineering"
+    "engineering",
+    "csapi-gate02-continuity"
   ],
   "precheck_required": true,
   "implementation_allowed_before_approval": false,
@@ -27,7 +28,10 @@
     "duplicate-engine audit",
     "Gate 01 lifecycle authority remains unchanged",
     "Agenda-only Gate 01 production observation classified for dependency impact",
-    "42-scenario chain reconciled against current implementation"
+    "42-scenario chain reconciled against current implementation",
+    "gate-specific longitudinal runtime scenario matrix",
+    "current 42-scenario evidence artifact",
+    "cross-gate dependency/ownership reconciliation"
   ],
   "required_decision_artifacts": [
     "current-state longitudinal map",
@@ -44,5 +48,13 @@
     "vercel": false,
     "production_mutation": false
   },
-  "closure_rule": "Gate 02 cannot close from documentation alone. After explicit Product Owner approval, approved implementation must pass applicable engineering, database/security, integration and runtime evidence plus synchronized documentation."
+  "closure_rule": "Gate 02 cannot close from structural verification, referential-integrity checks, production HTTP 200, Vercel READY, or documentation alone. After explicit Product Owner approval, approved implementation and continuity boundaries must pass applicable engineering, database/security, dedicated longitudinal runtime, cross-domain ownership and synchronized documentation evidence.",
+  "required_runtime_evidence": [
+    "completed Visit → result → next action runtime",
+    "repeated-visit longitudinal traceability",
+    "Treatment Plan → Next Action mapping",
+    "Next Action → Appointment / Follow-up / Operational Work mapping",
+    "Agenda dependency classification",
+    "Portal optionality and Medical Photos non-blocking boundary evidence"
+  ]
 }
