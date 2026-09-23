@@ -283,3 +283,26 @@ The baseline phase is complete only when there is one reconciled matrix showing,
 **Architecture requirement → owning domain → canonical source → repository path → DB object/function → authorization boundary → runtime scenario → production evidence → documentation status.**
 
 Only then can implementation repairs be sequenced safely.
+
+## 11. Direct PJ architectural constraints confirmed from the approved source package
+
+The approved PJ source package adds non-negotiable constraints that must govern this repair:
+
+- one canonical domain per business responsibility;
+- one canonical source of truth per major business entity;
+- inspect and reuse existing domains before creating new ones;
+- duplicate systems are prohibited;
+- integration must be explicit;
+- optional modules must not become unnecessary hard dependencies;
+- Visit must not require Treatment Plan;
+- Follow-up must not become Notification;
+- Patient must not become the owner of the entire journey;
+- tenant isolation applies to every tenant-scoped domain;
+- permissions must be enforced at the appropriate security boundary;
+- historical findings must be revalidated before correction;
+- runtime workflow must be validated before declaring completion;
+- architectural conflicts must be escalated rather than guessed.
+
+The PJ Stage 14/15 closure contract is especially important: complete closure requires end-to-end validation, UI/data/tenant/permission/workflow/integration/independence/failure/persistence/regression validation, database = repository migration model = application expectations = documentation, and recorded final Git/deployment state.
+
+The current repository does not contain a file named PJ_STAGE15_CLOSURE.md despite several current documents naming it as an authority. The approved source package contains the Stage 15 closure requirements in PJ-08 and the broader implementation plan. This is therefore a documentation-authority reconciliation item, not a reason to invent or restore a missing file blindly.
