@@ -25,7 +25,7 @@ const commands = {
     "npx",
     ["playwright", "test", "tools/ajm-production-auth-e2e.spec.mjs", "--reporter=line"],
   ]],
-  "patient-journey": [["real-world-clinic-journey-e2e", "node", ["tools/clinic-admin-real-world-e2e-v2.mjs"]]],
+  "patient-journey": [["gate02-longitudinal-runtime-e2e", "node", ["tools/csapi-gate02-longitudinal-e2e.mjs"]]],
   "cross-domain-runtime": [["cross-domain-runtime", "npm", ["run", "test:cross-domain-runtime"]]],
   "procurement-inventory-finance": [["procurement-inventory-finance-runtime", "npm", ["run", "test:cross-domain-runtime"]]],
   "global-experience-presentation-static": [["global-experience-presentation", "npm", ["run", "test:global-experience-presentation"]]],
