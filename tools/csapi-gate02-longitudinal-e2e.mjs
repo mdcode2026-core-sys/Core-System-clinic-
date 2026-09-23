@@ -55,7 +55,6 @@ const add2=page.locator("input");
   await booking.click();
   const dialog=page.getByRole("dialog");
   await dialog.waitFor({state:"visible",timeout:10000});
-  if(!(await dialog.getByText(/Gate 02 Runtime Plan|CSAPI Gate 02 Runtime Plan/i).count()||await dialog.getByText(/patient/i).count())){}
   const boxes=dialog.getByRole("combobox");
   if(await boxes.count()<1)throw new Error("Agenda booking doctor selector missing");
   await boxes.first().click();
@@ -97,7 +96,6 @@ const add2=page.locator("input");
   await button(/save|حفظ/i);
   await page.waitForTimeout(700);
   await goto("/follow-up");
-  const firstPatient=page.getByText(/.+/).filter({hasText:"Follow"}).first();
   const resultButton=page.getByRole("button",{name:/record result|تسجيل النتيجة/i}).first();
   await resultButton.waitFor({state:"visible",timeout:15000});
   await resultButton.click();
