@@ -74,7 +74,11 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          npx --yes supabase@latest start
+          # This gate verifies only the repository's PostgreSQL migration chain.
+          # The application/E2E path does not require the auxiliary Supabase services.
+          # Excluding them avoids unrelated registry pulls/rate limits and keeps the
+          # verification scoped to the database that db reset actually exercises.
+          npx --yes supabase@latest start             --exclude gotrue,realtime,storage-api,imgproxy,kong,mailpit,postgrest,postgres-meta,studio,edge-runtime,logflare,vector,supavisor
           trap 'npx --yes supabase@latest stop --no-backup || true' EXIT
           npx --yes supabase@latest db reset --local --no-seed
           npx --yes supabase@latest migration list
