@@ -1,11 +1,11 @@
 # CORE_SYSTEM_INDEX.md
 
-> Version: 1.4.1
+> Version: 1.5.0
 > Status: Authoritative Reference
 > Project: CORE SYSTEM
 > Architecture: SaaS
 > Owner: Yazeed Waleed
-> Last Updated: 2026-09-11
+> Last Updated: 2026-09-23
 
 ---
 
@@ -56,6 +56,23 @@ Never invent routes.
 Never invent database structures.
 
 The repository is always the primary source of truth.
+
+# AI ENGINEERING ORGANIZATION — 2026-09-23
+
+The project now has a governing AI Engineering operating layer. These documents define the permanent AI technical-lead role, activated engineering functions, change control, conversation continuity and the entry prompt:
+
+1. docs/AI-ENGINEERING/AI-ENGINEERING-LEADERSHIP-CHARTER.md
+2. docs/AI-ENGINEERING/AI-ENGINEERING-ROLES-AND-BOUNDARIES.md
+3. docs/AI-ENGINEERING/AI-ENGINEERING-CONTROL-AND-CONTINUITY.md
+4. docs/AI-ENGINEERING/AI-ENGINEERING-CURRENT-STATE.md
+5. docs/AI-ENGINEERING/AI-ENGINEERING-MASTER-PROMPT.md
+
+The AI Engineering Leader is permanent across all Gates, phases and conversations. Specific engineering functions are activated under that leadership and do not become separate project owners.
+
+For continuity, a workstream keyword such as CSAPI is an entry command only. The applicable handoff and current-state records must be read and then checked against current GitHub, database and runtime evidence before work resumes.
+
+This governance layer does not reopen or alter any existing product or CSAPI scope by itself.
+
 
 ---
 
