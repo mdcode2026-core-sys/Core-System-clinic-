@@ -25,6 +25,7 @@ export default function AgendaPage() {
   const router = useRouter();
   const patientId = searchParams.get("patientId");
   const doctorId = searchParams.get("doctorId");
+  const bookingWorkItemId = searchParams.get("bookingWorkItemId");
   const [currentDate, setCurrentDate] = useState(new Date());
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
@@ -90,13 +91,13 @@ export default function AgendaPage() {
         <Button onClick={() => { setSelectedEvent(null); setFormDefaultDate(""); setIsFormOpen(true); }} className="bg-[var(--cs-azure-600)] text-white hover:bg-[var(--cs-azure-700)]"><Plus className="me-2 h-4 w-4" />{t.newAppointment}</Button>
       </div>
 
-      {(contextPatient || contextDoctor) && <div className="flex flex-wrap items-center gap-2 rounded-lg border border-[var(--cs-slate-200)] bg-[var(--cs-slate-100)] p-3"><Badge variant="secondary">{contextPatient ? t.patientFilter : locale === "ar" ? "سياق الطبيب" : "Doctor context"}</Badge><span className="text-sm font-medium text-[var(--cs-ink-950)]">{contextPatient ? `${contextPatient.first_name} ${contextPatient.last_name}` : locale === "ar" ? contextDoctor?.full_name_ar || contextDoctor?.full_name : contextDoctor?.full_name}</span><Button variant="ghost" size="sm" className="ms-auto" onClick={clearContext}><X className="me-1 h-4 w-4" />{t.clearPatientFilter}</Button></div>}
+      {(contextPatient || contextDoctor || bookingWorkItemId) && <div className="flex flex-wrap items-center gap-2 rounded-lg border border-[var(--cs-slate-200)] bg-[var(--cs-slate-100)] p-3"><Badge variant="secondary">{bookingWorkItemId ? (locale === "ar" ? "حجز من الإجراء التالي" : "Next-action booking") : contextPatient ? t.patientFilter : locale === "ar" ? "سياق الطبيب" : "Doctor context"}</Badge><span className="text-sm font-medium text-[var(--cs-ink-950)]">{contextPatient ? `${contextPatient.first_name} ${contextPatient.last_name}` : locale === "ar" ? contextDoctor?.full_name_ar || contextDoctor?.full_name : contextDoctor?.full_name}</span><Button variant="ghost" size="sm" className="ms-auto" onClick={clearContext}><X className="me-1 h-4 w-4" />{t.clearPatientFilter}</Button></div>}
 
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4"><Stat value={visibleEvents.filter((event) => event.status === "scheduled").length} label={t.scheduled} /><Stat value={visibleEvents.filter((event) => event.status === "confirmed").length} label={t.confirmed} /><Stat value={visibleEvents.filter((event) => event.status === "in_session").length} label={t.inSession} /><Stat value={visibleEvents.filter((event) => event.status === "completed").length} label={t.completed} /></div>
 
       <Card className="rounded-2xl border-[var(--cs-slate-200)] shadow-[var(--cs-shadow-xs)]"><CardHeader><CardTitle className="text-[var(--cs-ink-950)]">{t.weeklyCalendar}</CardTitle></CardHeader><CardContent>{isLoading ? <div className="flex items-center justify-center py-12"><Loader2 className="h-8 w-8 animate-spin text-[var(--cs-azure-600)]" /><span className="ms-2 text-[var(--cs-slate-500)]">{t.loading}</span></div> : <AgendaCalendar events={visibleEvents} currentDate={currentDate} timeZone={tenantTimezone} onDateChange={setCurrentDate} onEventClick={handleEventClick} onTimeSlotClick={handleTimeSlotClick} />}</CardContent></Card>
 
-      <AgendaEventForm isOpen={isFormOpen} onClose={closeForm} tenantId={tenantId || ""} userId={userId} tenantTimezone={tenantTimezone} event={selectedEvent} patients={patientOptions} doctors={doctorOptions} rooms={roomOptions} resources={resourceOptions} procedures={procedureOptions} defaultDate={formDefaultDate || undefined} />
+      <AgendaEventForm isOpen={isFormOpen} onClose={closeForm} tenantId={tenantId || ""} userId={userId} tenantTimezone={tenantTimezone} event={selectedEvent} patients={patientOptions} doctors={doctorOptions} rooms={roomOptions} resources={resourceOptions} procedures={procedureOptions} defaultDate={formDefaultDate || undefined} defaultPatientId={patientId || undefined} bookingWorkItemId={bookingWorkItemId || undefined} />
       <AgendaEventDetail isOpen={isDetailOpen} onClose={closeDetail} event={selectedEvent} tenantId={tenantId || ""} userId={userId} tenantTimezone={tenantTimezone} patients={patientOptions} doctors={doctorOptions} rooms={roomOptions} resources={resourceOptions} procedures={procedureOptions} />
     </div>
   );
