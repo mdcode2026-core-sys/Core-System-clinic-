@@ -3,8 +3,8 @@
 Status: ACTIVE — Decision-Gate Workstream
 Last reconciled: 2026-09-22
 Canonical implementation base: main; focused branches for changes
-Current Gate: Gate 03 — Patient & Identity — CLOSED / VERIFIED / PRODUCTION VERIFIED
-Previous Gate: Gate 02 — Patient Journey — CLOSED / VERIFIED / PRODUCTION VERIFIED
+Current Gate: Gate 02 — Patient Journey — OPEN — DEEP EVIDENCE RECONCILIATION REQUIRED
+Next Gate after Gate 02 closure: Gate 03 — Patient & Identity
 Execution mode: Decision-first; Gate 02 is CLOSED; Gate 03 implementation verified through engineering, DB and live Supabase checks; final production deployment/runtime verification pending
 
 ## 1. Purpose
@@ -276,3 +276,12 @@ Canonical state:
 **Gate 03 — IMPLEMENTATION CORRECTION IN PROGRESS / VERIFICATION BLOCKED UNTIL CORRECTIVE CANDIDATE PASSES.**
 
 Gate 01 and Gate 02 remain CLOSED and must not be reopened.
+
+
+## Gate 01 + Gate 02 Deep Evidence Audit — 2026-09-23
+
+Gate 01 dedicated lifecycle evidence remains sufficient: Run #657 plus Stage 6 regression directly exercise and verify the Patient Flow authority.
+
+Gate 02 requires a deeper reconciliation because its closure contract listed a 42-scenario longitudinal chain and dedicated continuity/runtime requirements that were not represented by the actual closure lanes.
+
+No Gate 01 reopening or unrelated domain repair is authorized.
