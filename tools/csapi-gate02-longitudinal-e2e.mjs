@@ -12,10 +12,12 @@ const page=await context.newPage();
 async function goto(path){const r=await page.goto(baseUrl+path,{waitUntil:"domcontentloaded",timeout:60000});if(!r||r.status()>=400)throw new Error("HTTP failure "+path+" status="+(r?.status()??"unknown"));await page.waitForTimeout(500);if(/\/login(?:[/?#]|$)/i.test(page.url()))throw new Error("Redirected to login from "+path)}
 async function button(rx){const b=page.getByRole("button",{name:rx}).first();await b.waitFor({state:"visible",timeout:15000});await b.click()}
 try{
-  await goto("/login");
+  await page.goto(baseUrl+"/login",{waitUntil:"domcontentloaded",timeout:60000});
   await page.locator('input[type="email"],input[name="email"]').fill(email);
   await page.locator('input[type="password"],input[name="password"]').fill(password);
   await button(/sign in|login|log in|تسجيل الدخول|دخول/i);
+  await page.waitForTimeout(1500);
+  if(/\/login(?:[/?#]|$)/i.test(page.url()))throw new Error("Authenticated E2E login failed");
   console.log("PASS|login");
 
   // Use an existing patient so Gate 02 runtime proof is independent from Gate 03 identity/registration.
