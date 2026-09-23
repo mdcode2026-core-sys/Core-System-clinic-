@@ -1,6 +1,6 @@
 # CORE SYSTEM — AI Engineering Current State
 
-Status: CURRENT BASELINE
+Status: CURRENT BASELINE — GOVERNANCE PR OPEN
 Snapshot: 2026-09-23
 Purpose: Conversation-independent entry baseline for the AI Engineering Organization
 
@@ -14,7 +14,7 @@ The repository is the permanent engineering knowledge base.
 
 ## 2. Current organizational bootstrap state
 
-The AI Engineering Organization is being installed as a governing operating layer over the existing project.
+The AI Engineering Organization governance layer is implemented on this branch and is under review in PR #204.
 
 This branch is governance-only.
 
@@ -63,6 +63,10 @@ Complete the AI Engineering governance installation and verify it on the real re
 
 Do not use this governance bootstrap to reopen Gate 01/02 or to advance Gate 03.
 
-## 7. Continuation
+## 7. Governance review state
+
+PR #204 is the single governance integration PR. It contains documentation-only changes and no application or database changes. It must not be merged merely to prove the model; merge remains subject to the repository's current deployment restrictions and the normal review/verification rules.
+
+## 8. Continuation
 
 After governance installation is accepted, the AI Engineering Leader will reconcile the active CSAPI work against main, open PRs, CI, live database and current CSAPI authority and will establish exactly one canonical CSAPI continuation point.
