@@ -1,0 +1,115 @@
+name: CORE SYSTEM Engineering Governance
+
+# Governance enforcement only.
+# This workflow does not deploy, mutate production, or replace engineering judgment.
+# It verifies that the repository still carries the minimum organization/control contract.
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: core-system-engineering-governance-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  governance-contract:
+    name: GOVERN — Organization and control contract
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout exact candidate
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 1
+
+      - name: Verify governing documents
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          required_files=(
+            "docs/AI-ENGINEERING/AI-ENGINEERING-LEADERSHIP-CHARTER.md"
+            "docs/AI-ENGINEERING/AI-ENGINEERING-ROLES-AND-BOUNDARIES.md"
+            "docs/AI-ENGINEERING/AI-ENGINEERING-CONTROL-AND-CONTINUITY.md"
+            "docs/AI-ENGINEERING/AI-ENGINEERING-CURRENT-STATE.md"
+            "docs/AI-ENGINEERING/AI-ENGINEERING-MASTER-PROMPT.md"
+          )
+
+          for file in "${required_files[@]}"; do
+            test -s "$file" || { echo "Missing or empty governing file: $file" >&2; exit 1; }
+          done
+
+      - name: Verify complete organization role map
+        shell: bash
+        run: |
+          set -euo pipefail
+          file="docs/AI-ENGINEERING/AI-ENGINEERING-ROLES-AND-BOUNDARIES.md"
+
+          required_roles=(
+            "AI Engineering Leader / CTO"
+            "Product Manager / Business Analyst"
+            "Principal / Solution Architect"
+            "Backend Engineer"
+            "Database / PostgreSQL / Supabase Engineer"
+            "Frontend / Product Engineer"
+            "QA / SDET"
+            "Security Engineer"
+            "DevOps / Platform / SRE"
+            "Data / BI Engineer"
+            "AI / ML Engineer"
+            "Product Designer / UX"
+            "Clinical / Healthcare Domain Advisor"
+            "Technical Writer / Documentation Engineer"
+          )
+
+          for role in "${required_roles[@]}"; do
+            grep -Fq "$role" "$file" || {
+              echo "Required role missing from organization map: $role" >&2
+              exit 1
+            }
+          done
+
+      - name: Verify independence boundaries
+        shell: bash
+        run: |
+          set -euo pipefail
+          file="docs/AI-ENGINEERING/AI-ENGINEERING-ROLES-AND-BOUNDARIES.md"
+
+          required_rules=(
+            "Implementation ≠ independent verification."
+            "Implementation ≠ security approval."
+            "Documentation ≠ evidence of completion."
+            "Deployment success ≠ product acceptance."
+          )
+
+          for rule in "${required_rules[@]}"; do
+            grep -Fq "$rule" "$file" || {
+              echo "Required independence rule missing: $rule" >&2
+              exit 1
+            }
+          done
+
+      - name: Verify work-package control contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          file="docs/AI-ENGINEERING/AI-ENGINEERING-CONTROL-AND-CONTINUITY.md"
+
+          for term in "objective;" "owner function;" "allowed scope;" "forbidden scope;" "acceptance conditions;" "required evidence;" "current status;" "next action;"; do
+            grep -Fq "$term" "$file" || {
+              echo "Required work-package field missing: $term" >&2
+              exit 1
+            }
+          done
+
+      - name: Verify no production deployment
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "This governance workflow performs repository-only checks."
+          echo "No Vercel, Supabase mutation, migration, or production deployment is permitted here."
