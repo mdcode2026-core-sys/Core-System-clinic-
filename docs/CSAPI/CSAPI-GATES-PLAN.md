@@ -2,15 +2,16 @@
 
 Status: ACTIVE / Current sequential plan
 Last reconciled: 2026-09-22
-Current Gate: Gate 03 — Patient & Identity
-Previous Gate: Gate 02 — Patient Journey — CLOSED / VERIFIED / PRODUCTION VERIFIED
+Current Gate: Gate 02 — Patient Journey — DEEP EVIDENCE RECONCILIATION
+Next Gate after closure: Gate 03 — Patient & Identity
+Previous Gate: Gate 02 — Patient Journey — OPEN — DEEP EVIDENCE RECONCILIATION REQUIRED
 
 > This is the CSAPI working gate map derived from CSAPI-DOCUMENTATION-PACK-2026-09-17.zip and reconciled with the completed Gate 01 evidence. A gate may be split, merged, reordered or added only through an explicit CSAPI decision recorded in the ledger.
 
 | # | Gate | Scope | Status |
 |---|---|---|---|
 | 01 | Patient Flow | Queue, Clinical Visit, Pending Close, Reception Workflow, Completed; Procedure/Session; boundaries with Treatment Plan and Follow-up | CLOSED |
-| 02 | Patient Journey | Longitudinal patient lifecycle over time; next actions and continuity | CLOSED — VERIFIED / PRODUCTION VERIFIED |
+| 02 | Patient Journey | Longitudinal patient lifecycle over time; next actions and continuity | OPEN — DEEP EVIDENCE RECONCILIATION REQUIRED |
 | 03 | Patient & Identity | Canonical identity, clinic relationship, duplicate detection, search, history, insurance, portal relationship | IMPLEMENTED — VERIFICATION BLOCKED BY FAILED E2E |
 | 04 | Agenda & Scheduling | Agenda authority, Calendar representation, provider/resource availability, conflicts, cancel/reschedule/no-show/context | OPEN |
 | 05 | Clinical Care | Clinical Visit, Clinical Decision, Medical Record, Medical Files, Measurements, Photos, Procedure, Session | OPEN |
@@ -119,3 +120,17 @@ Current execution point:
 **IMPLEMENTATION CORRECTION → CLEAN DB MIGRATION VERIFICATION → LIVE SUPABASE VERIFICATION → RUNTIME/E2E VERIFICATION → CONTROLLED PRODUCTION RELEASE → FINAL RECONCILIATION / CLOSE.**
 
 Gate 01 and Gate 02 remain CLOSED and are not reopened.
+
+
+## Gate 02 closure supersession — 2026-09-23
+
+The historical Gate 02 closure was superseded after a deep evidence audit established that the binding Gate 02 contract required longitudinal precheck/runtime evidence that was not actually proven by the closure lanes.
+
+Gate 01 remains CLOSED and is not reopened.
+
+Gate 02 current state:
+**OPEN — DEEP EVIDENCE RECONCILIATION REQUIRED**
+
+Gate 03 remains blocked until Gate 02 is re-established as VERIFIED/CLOSED and the current Gate 03 E2E blocker is separately resolved.
+
+Authority: `docs/CSAPI/GATES/GATE-01-02-DEEP-EVIDENCE-AUDIT-2026-09-23.md`.
