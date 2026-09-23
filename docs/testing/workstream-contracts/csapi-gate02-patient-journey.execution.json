@@ -11,6 +11,7 @@
   ],
   "required_suites": [
     "engineering",
+    "csapi-gate02-clean-db",
     "patient-journey",
     "cross-domain"
   ],
@@ -78,7 +79,8 @@
       "^supabase/migrations/20260923",
       "^tools/clinic-admin-real-world-e2e-v2\\.mjs$",
       "^docs/CSAPI/GATES/GATE-0[12]-",
-      "^docs/testing/workstream-contracts/csapi-gate02-patient-journey\\.execution\\.json$"
+      "^docs/testing/workstream-contracts/csapi-gate02-patient-journey\\.execution\\.json$",
+      "^tools/csapi-gate02-clean-db\\.mjs$"
     ]
   }
 }
