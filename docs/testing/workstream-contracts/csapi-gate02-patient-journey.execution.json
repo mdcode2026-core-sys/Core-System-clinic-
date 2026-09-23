@@ -40,7 +40,8 @@
     "Product Decision Report",
     "explicit in-scope/out-of-scope decision",
     "post-approval implementation boundary",
-    "verification/closure contract"
+    "verification/closure contract",
+    "docs/CSAPI/GATES/GATE-02-42-SCENARIO-CURRENT-EVIDENCE-RECONCILIATION-2026-09-23.md"
   ],
   "environment": {
     "precheck_runtime": "current repository + isolated/local validation where available",
@@ -55,6 +56,7 @@
     "Treatment Plan → Next Action mapping",
     "Next Action → Appointment / Follow-up / Operational Work mapping",
     "Agenda dependency classification",
-    "Portal optionality and Medical Photos non-blocking boundary evidence"
+    "Portal optionality and Medical Photos non-blocking boundary evidence",
+    "event → operational work → authorized actor → completion/result continuity"
   ]
 }
