@@ -67,15 +67,12 @@ await goalsInput.fill("Longitudinal continuity verification");
 await page.getByRole("button",{name:/create|إنشاء/i}).first().click();
 await page.waitForTimeout(700);
 
-const activityInputs=page.locator('input');
-const textInputs=await activityInputs.evaluateAll(els=>els.map((e,i)=>({i,placeholder:e.getAttribute("placeholder")||""})));
-const activityIndex=textInputs.find(x=>/activity|اسم النشاط|النشاط/i.test(x.placeholder))?.i ?? -1;
-if(activityIndex<0)throw new Error("Treatment stage title control missing");
-await activityInputs.nth(activityIndex).fill("Gate 02 Stage Two");
-const descIndex=textInputs.find(x=>/description|وصف/i.test(x.placeholder))?.i ?? -1;
-if(descIndex>=0)await activityInputs.nth(descIndex).fill("Second treatment stage");
+const activityInput=page.getByPlaceholder(/activity(?: \/ session)? name|اسم النشاط|النشاط/i).first();
+await activityInput.waitFor({state:"visible",timeout:15000});
+await activityInput.fill("Gate 02 Stage Two");
+const descriptionInput=page.getByPlaceholder(/short description|description|الوصف/i).first();
+if(await descriptionInput.count())await descriptionInput.fill("Second treatment stage");
 await button(/add|إضافة/i);
-await page.waitForTimeout(500);
 if(await page.getByRole("button",{name:/activate|تفعيل/i}).count())await button(/activate|تفعيل/i);
 console.log("PASS|18-clinical-decision-treatment-plan|19-multi-stage-plan");
 
