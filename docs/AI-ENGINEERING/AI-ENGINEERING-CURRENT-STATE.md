@@ -67,7 +67,7 @@ Required closure chain:
 
 Architecture → Ownership → Canonical Source → Execution Path → Repository → DB/Migrations → Authorization → Runtime → Verification → Documentation.
 
-The initial baseline has identified the major domains and canonical sources, but closure is not yet claimed because repository-path, migration-lineage, authorization and runtime evidence still need to be completed across the material domains.
+The baseline has now progressed through Gate 01 implementation-path audit, Gate 02 longitudinal integrity audit, expanded duplicate-engine/ownership tracing, and full migration inventory comparison. Closure is still not claimed because migration semantic lineage, authorization and representative runtime evidence remain incomplete across material domains.
 
 CSAPI remains the active project workstream. It is the next execution destination after the system-wide engineering foundation is closed; it is not the scope or owner of this foundation.
 
@@ -100,6 +100,8 @@ The database has known advisor findings. These are baseline findings, not automa
 The current engineering action is:
 
 Complete the system-wide engineering organization and ownership reconciliation for the entire CORE SYSTEM before resuming the next implementation step.
+
+Completed evidence within this foundation includes Gate 01 implementation-path audit, Gate 02 longitudinal audit, duplicate-engine/ownership expansion, and repository↔Live migration inventory reconciliation. The remaining foundation work is semantic migration mapping, authorization verification, representative runtime verification, final ownership register and closure.
 
 This foundation does not reopen or advance CSAPI gates by itself. Once the system-wide foundation is closed, execution resumes in CSAPI from its reconciled canonical continuation point.
 
