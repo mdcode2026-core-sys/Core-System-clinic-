@@ -493,3 +493,69 @@ Repository migration lineage cannot yet be declared reproducible against Live by
 6. unresolved semantic difference.
 
 No migration mutation is authorized from this audit result alone.
+
+
+## 30. Semantic migration-lineage reconciliation — representative mapping
+
+The complete migration comparison is not being resolved by timestamp arithmetic. Representative historical pairs were inspected to establish the required reconciliation method.
+
+Confirmed example:
+- Repository migration `20260909175027_restore_effective_permission_rpc_acl`
+- Live migration version `20260909175027`, name `20260909204800_restore_effective_permission_rpc_acl`
+
+This is a same-version semantic identity with a different recorded Live name. Therefore the Live history cannot be treated as a strict repository filename mirror.
+
+Additional later examples show the same pattern in Communications and other domains, where repository timestamps and Live recorded names differ while the semantic migration lineage appears related.
+
+### Required migration classification
+
+Every material divergence must be classified as one of:
+- exact identity;
+- same semantic migration with renamed/re-numbered history;
+- repository-only unapplied;
+- Live-only migration with no repository source;
+- superseded/merged;
+- unresolved semantic difference.
+
+The known Gate 03 corrective migrations currently remain in the repository-only/unapplied category until their SQL is independently reconciled against the Live schema and the approved Gate 03 architecture.
+
+### No destructive reconciliation
+
+No Live migration history was modified. No repository migration was rewritten. No replacement migration was generated. This remains an evidence/reconciliation phase.
+
+## 31. Authorization verification — material-domain boundary check
+
+The existing authorization architecture remains canonical around `get_effective_permissions` / `has_effective_permission`. No parallel authorization engine is permitted.
+
+The foundation audit continues to distinguish:
+- function existence;
+- EXECUTE grant exposure;
+- function-body authorization;
+- caller-path authorization;
+- tenant isolation;
+- runtime evidence.
+
+A previously identified concrete exception remains open: Live `update_patient_identity` validates active clinic-user/tenant context but does not enforce the canonical patient-update permission boundary before mutation. This remains a real authorization defect candidate requiring a controlled implementation work package and regression verification; it is not being patched during the system-wide foundation.
+
+The broad SECURITY DEFINER advisor findings are not being treated as proof of universal exploitability. Each function requires body/grant/caller-path classification.
+
+## 32. Foundation state
+
+The foundation is still OPEN.
+
+Completed evidence tracks now include:
+- system-wide architecture/source reconciliation baseline;
+- Gate 01 implementation-path audit;
+- Gate 02 longitudinal audit;
+- duplicate-engine/ownership expansion;
+- repository↔Live migration inventory reconciliation;
+- representative semantic migration-lineage mapping.
+
+Remaining closure tracks:
+1. complete material migration-lineage classification;
+2. complete authorization-boundary classification and work-package register;
+3. representative runtime verification for canonical execution paths;
+4. final system-wide ownership/canonical-source register;
+5. independent verification and closure documentation.
+
+CSAPI remains the active project workstream. Its next implementation step resumes only after this system-wide engineering foundation reaches closure.
