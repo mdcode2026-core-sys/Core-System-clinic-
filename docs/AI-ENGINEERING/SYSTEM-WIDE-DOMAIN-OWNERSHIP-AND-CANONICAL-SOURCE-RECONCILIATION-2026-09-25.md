@@ -264,3 +264,12 @@ The work has now progressed from architectural ownership mapping into executable
 2. Canonical execution lineage: several domains contain historical corrective layers and multiple execution surfaces; canonicality must be proven through repository → migration → live DB → runtime tracing rather than inferred from names.
 
 These findings do not reopen CSAPI. They strengthen the system-wide prerequisite and must be resolved before the foundation can be closed.
+
+
+## 15. Proven authorization defect requiring controlled remediation
+
+The live definition of `update_patient_identity` was inspected directly. It verifies that the caller is an active clinic user in the supplied tenant, but it does not call `has_tenant_permission` / `has_effective_permission` or an equivalent patient-update authorization check before mutating patient and identity records.
+
+This is a concrete authorization-boundary defect, not an advisor-only warning. It must be handled as an implementation remediation under the canonical Patient / Identity ownership path, with regression tests for tenant isolation and the approved `patients:update` permission boundary. No code change is made in the governance reconciliation work package itself; the defect is now explicitly registered as downstream implementation work.
+
+The same inspection confirms that other sensitive SECURITY DEFINER functions such as `adjust_inventory_stock`, `consume_procedure_inventory`, `execute_commercial_sale`, `receive_purchase_order`, and `refund_invoice_payment` do perform tenant and permission checks. Therefore the problem is not accurately described as a universal SECURITY DEFINER failure; it is a function-by-function authorization reconciliation requirement.
