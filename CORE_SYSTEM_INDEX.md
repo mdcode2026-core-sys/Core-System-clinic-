@@ -5,7 +5,7 @@
 > Project: CORE SYSTEM
 > Architecture: SaaS
 > Owner: Yazeed Waleed
-> Last Updated: 2026-09-23
+> Last Updated: 2026-09-25
 
 ---
 
@@ -111,6 +111,24 @@ These documents implement **only** the architectural decisions explicitly covere
 - Clinical Workspace evolves the previous provider/doctor board into a clinical-team work surface.
 - Clinical completion hands off to the operational/reception workflow; it does not automatically close the entire visit.
 - Clinic Admin remains outside the ordinary-user Workspace presentation model.
+
+---
+
+# SYSTEM-WIDE ENGINEERING OWNERSHIP — 2026-09-25
+
+The system-wide ownership and canonical-source reconciliation baseline is defined in:
+
+`docs/AI-ENGINEERING/SYSTEM-WIDE-DOMAIN-OWNERSHIP-AND-CANONICAL-SOURCE-RECONCILIATION-2026-09-25.md`
+
+This is a governance/reconciliation layer over the existing approved architecture. It does not create a second architecture.
+
+It establishes the required control chain:
+
+**Architecture → Domain Owner → Canonical Source → Canonical Execution Path → Repository → Database → Authorization → Runtime Evidence → Documentation**
+
+The system-wide foundation remains **OPEN** until the material domains are mapped to actual repository paths, database objects/migrations, authorization boundaries and representative runtime evidence.
+
+CSAPI is downstream of this foundation and is not the current system-wide entry point.
 
 ---
 
