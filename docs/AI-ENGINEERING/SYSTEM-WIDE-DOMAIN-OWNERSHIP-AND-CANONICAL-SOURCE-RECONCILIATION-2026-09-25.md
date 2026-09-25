@@ -292,3 +292,47 @@ Historical Stage 17 evidence confirms that the project intentionally uses the ex
 The current Patient/Identity finding is therefore classified as a missing enforcement call inside a canonical SECURITY DEFINER mutation path, not as evidence for creating another permission engine.
 
 The required remediation direction is consequently: extend the existing canonical authorization boundary and prove it through tenant-isolation + capability tests; do not introduce a parallel authorization mechanism.
+
+
+## 18. Canonical execution-path proof — Patient Flow, Follow-up, Coordination
+
+A deeper repository + Live DB trace now proves the current Patient Flow execution boundary:
+
+- `src/domain/queue/workspace.actions.ts` is an application adapter and delegates lifecycle transitions to `d3*` actions.
+- Live Supabase contains the corresponding `csapi_d3_*` SECURITY DEFINER lifecycle functions.
+- Direct inspection of `csapi_d3_start_clinical_work`, `csapi_d3_enter_waiting`, `csapi_d3_finish_clinical_work`, and `csapi_d3_complete_reception` shows tenant resolution from the authenticated clinic user, effective-permission checks, row locks/advisory locks, atomic updates across Visit / Work Session / Queue Entry / Event, and correlation-id idempotency.
+- The live functions are therefore the current lifecycle execution authority; the application layer is an adapter rather than a competing lifecycle engine.
+
+Follow-up evidence also confirms the intended boundary:
+- `run_followup_automation` is SECURITY DEFINER but not directly executable by authenticated users.
+- `enqueue_followup_notification` is also not directly executable by authenticated users.
+- Repository history routes automated Follow-up communication through the Communications boundary rather than making Notification Queue a second Follow-up owner.
+
+Journey Coordination remains canonical on `operational_work_items` / `operational_work_history`; the application actions enforce the existing effective-permission engine and do not introduce another workflow store.
+
+## 19. Proven duplicate execution path — Agenda
+
+A separate concrete overlap has now been confirmed in the repository.
+
+`src/domain/agenda/agenda.mutation-service.ts` is the intended canonical mutation service and performs effective-permission, resource, availability, buffer, conflict, tenant and persistence checks. However, `src/domain/agenda/agenda.queries.ts` still exposes client-side mutation hooks that directly insert/update `master_agenda_events` (`useCreateAgendaEvent`, `useUpdateAgendaEvent`, `useUpdateAgendaEventStatus`, `useCancelAgendaEvent`).
+
+This is a genuine duplicate execution path, not merely duplicated terminology. It allows Agenda mutations to bypass the canonical mutation service's application-level validation chain. It is therefore registered as a concrete Agenda canonical-path remediation: all mutating callers must converge on the canonical mutation service while query hooks remain read/query adapters.
+
+No mutation has been performed yet. The correct implementation requires caller inventory, replacement through the canonical service, regression coverage for permissions/availability/conflicts/tenant isolation, and only then removal of the direct mutation hooks.
+
+## 20. Updated foundation status
+
+The system-wide reconciliation has now produced both positive canonical proofs and concrete remediation findings.
+
+**Proven canonical paths:**
+- Patient Flow lifecycle → D3 DB command functions, adapted by `workspace.actions.ts`.
+- Follow-up retention → `retention_followups` + Follow-up domain; automated communication delegated through Communications; internal automation RPCs not directly exposed to authenticated users.
+- Journey Coordination → `operational_work_items` + `operational_work_history`.
+- Authorization → existing effective-permission DB engine, consumed by application/domain paths.
+
+**Concrete remediation findings:**
+1. Patient Identity `update_patient_identity` live definition lacks the required `patients:update` effective-permission enforcement; repository corrective migration exists but is not present in Live migration history.
+2. Agenda has direct client mutation hooks that bypass the canonical `agenda.mutation-service.ts` validation chain.
+3. Repository ↔ Live migration lineage remains divergent, including the known live-only `20260922165018` and unapplied repository Gate 03 corrective migrations.
+
+The foundation remains OPEN. These findings are now sufficiently concrete to form controlled downstream implementation work, but they do not justify broad refactoring or parallel engines.
