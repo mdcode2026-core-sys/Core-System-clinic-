@@ -222,3 +222,45 @@ It is not yet sufficient for final closure because the following must still be p
 6. independent verification evidence;
 7. final documentation reconciliation.
 
+
+
+## 12. Authorization execution evidence — current live boundary
+
+A live read-only inspection of public SECURITY DEFINER functions confirms that authorization is not yet safe to mark globally VERIFIED. The database currently exposes authenticated EXECUTE on multiple SECURITY DEFINER business functions, including inventory mutation, patient identity registration/update, financial mutation, workforce mutation, commercial sale, and CSAPI Patient Flow functions.
+
+Important examples observed live:
+- `adjust_inventory_stock` — authenticated EXECUTE
+- `consume_procedure_inventory` — authenticated EXECUTE
+- `register_patient_identity` — authenticated EXECUTE
+- `update_patient_identity` — authenticated EXECUTE
+- `execute_commercial_sale` — authenticated EXECUTE
+- `receive_purchase_order` — authenticated EXECUTE
+- `refund_invoice_payment` — authenticated EXECUTE
+- `get_effective_permissions` / `has_effective_permission` — authenticated EXECUTE
+
+This is evidence for a required security/authorization reconciliation, not proof that each function is exploitable. Function-body authorization, tenant checks, grants, RLS interaction and caller paths must be inspected before any remediation is designed.
+
+The finding also confirms that domain ownership and authorization ownership cannot be treated as the same question: a function may belong to the correct domain while still requiring a separate authorization-boundary review.
+
+## 13. Duplicate-engine / ownership audit — first-pass results
+
+The repository search confirms several historical and current implementation layers coexist:
+
+- Follow-up has a canonical domain surface under src/domain/followup/, while automation is implemented through dedicated database functions/migrations such as run_followup_automation, enqueue_followup_notification, and followup_automation_enabled. This is consistent with the rule that Follow-up owns retention state while Notification owns delivery, but the exact application-to-RPC execution chain still requires proof.
+- Inventory has a canonical mutation family around the repaired adjust_inventory_stock / consume_procedure_inventory paths and the inventory_ledger. Historical remediation documents explicitly prohibit parallel client-side stock + ledger mutation. The live authenticated EXECUTE boundary remains an authorization reconciliation item.
+- Patient Identity has both the canonical identity tables and multiple Gate 03 corrective migration layers. Historical Gate 03 documentation explicitly states that the live register_patient_identity definition had not yet been reconciled with the approved corrective implementation. Therefore identity is not treated as closed merely because repository migrations exist.
+- Patient Flow has both domain-level queue/workspace implementation and csapi_d3_* database functions. Their presence does not establish a second Patient Flow owner; they are classified as execution-layer functions subordinate to the Patient Flow/Visit Operations boundary.
+- Communications and Notification remain separate by architecture: Communications owns conversation/message state; Notification Queue owns delivery execution. No evidence found in this pass justifies collapsing them into one engine.
+
+No duplicate engine is being removed on this first pass. Each candidate overlap is classified first; removal/refactor requires a proven canonical replacement plus runtime and regression evidence.
+
+## 14. Current reconciliation conclusion
+
+The system-wide foundation remains OPEN.
+
+The work has now progressed from architectural ownership mapping into executable repository/database evidence. Two concrete classes of unresolved proof are confirmed:
+
+1. Authorization boundary: authenticated access to SECURITY DEFINER functions requires function-body, grant and caller-path reconciliation.
+2. Canonical execution lineage: several domains contain historical corrective layers and multiple execution surfaces; canonicality must be proven through repository → migration → live DB → runtime tracing rather than inferred from names.
+
+These findings do not reopen CSAPI. They strengthen the system-wide prerequisite and must be resolved before the foundation can be closed.
