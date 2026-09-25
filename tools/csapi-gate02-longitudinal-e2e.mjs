@@ -65,7 +65,11 @@ await planTitleInput.fill("Gate 02 Longitudinal Runtime");
 await diagnosisInput.fill("Gate 02 E2E");
 await goalsInput.fill("Longitudinal continuity verification");
 await page.getByRole("button",{name:/create|إنشاء/i}).first().click();
-await page.getByPlaceholder(/activity(?: \/ session)? name|اسم النشاط|النشاط/i).first().waitFor({state:"visible",timeout:15000});
+// Creation is a server action followed by an async canonical refresh. Synchronize on the
+// newly-created plan being rendered/selected before targeting its activity editor.
+const createdPlanTitle=page.getByText("Gate 02 Longitudinal Runtime",{exact:true}).first();
+await createdPlanTitle.waitFor({state:"visible",timeout:30000});
+await page.getByPlaceholder(/activity(?: \/ session)? name|اسم النشاط|النشاط/i).first().waitFor({state:"visible",timeout:30000});
 
 const activityInput=page.getByPlaceholder(/activity(?: \/ session)? name|اسم النشاط|النشاط/i).first();
 await activityInput.waitFor({state:"visible",timeout:15000});
