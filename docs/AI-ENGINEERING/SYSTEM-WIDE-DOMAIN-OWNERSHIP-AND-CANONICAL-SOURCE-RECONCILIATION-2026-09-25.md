@@ -424,3 +424,30 @@ The next evidence work remains system-wide and will continue through:
 5. consolidation of the final domain ownership/canonical-source register.
 
 Only after the system-wide engineering foundation is closed will the next CSAPI implementation package resume. CSAPI remains the active project workstream throughout this foundation phase.
+
+
+## 28. Duplicate-engine / ownership audit — expanded repository inventory
+
+The repository-wide write-path search was expanded across the material domains.
+
+### Confirmed intentional or bounded write paths
+
+- Follow-up writes to retention_followups are concentrated in the Follow-up domain. This remains consistent with Follow-up owning retention state.
+- Journey Coordination writes operational_work_items / operational_work_history through its canonical work actions.
+- Treatment Plan may create an operational_work_items record as a derived coordination consequence when a plan item reaches a state that requires next action. This does not transfer ownership of operational work to Treatment Plan.
+- Treatment Plan writes to clinic_treatment_plans through its canonical domain actions.
+- Inventory stock mutation is routed through the established inventory mutation/RPC family; no direct application insert into inventory_ledger was found in the current repository search.
+- Commercial sale and financial mutation paths are represented through the existing financial/RPC execution family rather than a second application-side invoice/payment engine.
+
+### Confirmed duplicate capability requiring later controlled remediation
+
+Agenda remains the concrete duplicate-path finding:
+- agenda.mutation-service.ts is the canonical validated mutation service;
+- agenda.queries.ts still contains direct create/update/status/cancel mutations against master_agenda_events;
+- caller inventory previously confirmed the legacy mutation hooks are not the current UI write path, but their continued exported write capability means the duplicate path remains present.
+
+No deletion or refactor is performed in the system-wide foundation. The future Agenda work package must first prove caller replacement, regression coverage, authorization, availability/conflict behavior and runtime equivalence before removing the legacy mutation capability.
+
+### Ownership conclusion
+
+The expanded search did not reveal a second Inventory ledger engine, a second Financial invoice/payment engine, or a second Journey Coordination state store. The audit therefore narrows the current duplicate-engine remediation scope rather than expanding it speculatively.
