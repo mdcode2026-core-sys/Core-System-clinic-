@@ -1,7 +1,7 @@
 # Documentation Status & Authority
 
 Status: ACTIVE — current architecture/runtime closure, CSAPI transition state and AI Engineering governance are governed by their applicable authority/evidence chains
-Last reviewed: 2026-09-23
+Last reviewed: 2026-09-25
 
 This file remains the repository-wide documentation status/freshness authority. CORE_SYSTEM_INDEX.md is the canonical navigation index for the current remediation and decision-gate bundle.
 
@@ -17,6 +17,18 @@ Governing documents:
 - docs/AI-ENGINEERING/AI-ENGINEERING-MASTER-PROMPT.md
 
 The governance layer defines the permanent AI Engineering Leader, bounded engineering functions, work-package ownership, decision boundaries and conversation continuity. It does not authorize a product or CSAPI scope change.
+
+## System-Wide Engineering Organization & Ownership — 2026-09-25
+
+The AI Engineering role model is established, but the system-wide application of that model is **OPEN**.
+
+Canonical reconciliation:
+- `docs/AI-ENGINEERING/SYSTEM-WIDE-DOMAIN-OWNERSHIP-AND-CANONICAL-SOURCE-RECONCILIATION-2026-09-25.md`
+
+The required completion chain is:
+Architecture → Domain Ownership → Canonical Source → Execution Path → Repository → DB/Migrations → Authorization → Runtime Evidence → Documentation.
+
+This work must be closed before a new CSAPI workstream is treated as the active system-wide engineering priority.
 
 ## 2026-09-21 CSAPI transition
 
