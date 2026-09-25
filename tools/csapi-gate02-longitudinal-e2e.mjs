@@ -73,8 +73,11 @@ await page.getByPlaceholder(/activity(?: \/ session)? name|اسم النشاط|�
 
 const activityInput=page.getByPlaceholder(/activity(?: \/ session)? name|اسم النشاط|النشاط/i).first();
 await activityInput.waitFor({state:"visible",timeout:15000});
-await activityInput.fill("Gate 02 Stage Two");
+await activityInput.fill("Gate 02 Stage One");
 const descriptionInput=page.getByPlaceholder(/short description|description|الوصف/i).first();
+if(await descriptionInput.count())await descriptionInput.fill("First treatment stage");
+await button(/add|إضافة/i);
+await activityInput.fill("Gate 02 Stage Two");
 if(await descriptionInput.count())await descriptionInput.fill("Second treatment stage");
 await button(/add|إضافة/i);
 if(await page.getByRole("button",{name:/activate|تفعيل/i}).count())await button(/activate|تفعيل/i);
