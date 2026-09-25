@@ -43,8 +43,13 @@ await goto("/patients");
 const viewPatientButton=page.getByRole("button",{name:/^view$|^عرض$/i}).first();
 await viewPatientButton.waitFor({state:"visible",timeout:30000});
 await viewPatientButton.click();
+const patientDetailUrl=page.url();
 const treatmentLink=page.locator('a[href*="/treatment-plans?patientId="]').first();
-await treatmentLink.waitFor({state:"visible",timeout:15000});
+let treatmentLinkReady=false;
+for(let attempt=1;attempt<=2&&!treatmentLinkReady;attempt++){
+  try{await treatmentLink.waitFor({state:"visible",timeout:15000});treatmentLinkReady=true}catch(error){if(attempt===2)throw error;await page.reload({waitUntil:"domcontentloaded",timeout:60000});await page.waitForTimeout(1000);if(page.url()!==patientDetailUrl)await page.goto(patientDetailUrl,{waitUntil:"domcontentloaded",timeout:60000});}
+}
+if(!treatmentLinkReady)throw new Error("Treatment Plan patient link did not become available");
 const treatmentHref=await treatmentLink.getAttribute("href");
 if(!treatmentHref)throw new Error("Treatment Plan patient link missing");
 const patientMatch=treatmentHref.match(/[?&]patientId=([^&]+)/);
