@@ -273,3 +273,22 @@ The live definition of `update_patient_identity` was inspected directly. It veri
 This is a concrete authorization-boundary defect, not an advisor-only warning. It must be handled as an implementation remediation under the canonical Patient / Identity ownership path, with regression tests for tenant isolation and the approved `patients:update` permission boundary. No code change is made in the governance reconciliation work package itself; the defect is now explicitly registered as downstream implementation work.
 
 The same inspection confirms that other sensitive SECURITY DEFINER functions such as `adjust_inventory_stock`, `consume_procedure_inventory`, `execute_commercial_sale`, `receive_purchase_order`, and `refund_invoice_payment` do perform tenant and permission checks. Therefore the problem is not accurately described as a universal SECURITY DEFINER failure; it is a function-by-function authorization reconciliation requirement.
+
+
+## 16. Migration-lineage reconciliation — verified current state
+
+Live `supabase_migrations.schema_migrations` was queried directly for the known reconciliation window. The live history contains `20260922165018` but does **not** contain repository corrective migrations `20260922190000`, `20260922191000`, or `20260922192000`.
+
+Repository evidence identifies those three migrations as the Gate 03 corrective implementation for Patient/Identity, review-resolution authorization, and identifier-registry reconciliation, while the historical handoff explicitly states they had not been applied to Live Supabase pending clean-migration and live verification.
+
+Therefore the migration divergence is confirmed and must remain classified as an execution-state difference, not silently repaired by inserting migration-history rows or guessing a replacement migration. This also confirms that the live `update_patient_identity` authorization defect cannot be considered fixed merely because the corrective SQL exists in the repository.
+
+The system-wide foundation therefore retains an explicit Repository ≠ Live DB migration-state conflict that must be reconciled through the approved clean-migration and live-verification path before closure.
+
+## 17. Authorization canonical-path reconciliation — clarified
+
+Historical Stage 17 evidence confirms that the project intentionally uses the existing DB permission engine (`get_effective_permissions` / `has_effective_permission`) rather than a parallel application authorization model. The repository security audit also verifies that the application permission engine delegates to these DB functions.
+
+The current Patient/Identity finding is therefore classified as a missing enforcement call inside a canonical SECURITY DEFINER mutation path, not as evidence for creating another permission engine.
+
+The required remediation direction is consequently: extend the existing canonical authorization boundary and prove it through tenant-isolation + capability tests; do not introduce a parallel authorization mechanism.
