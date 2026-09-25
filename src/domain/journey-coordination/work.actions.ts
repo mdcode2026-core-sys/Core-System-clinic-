@@ -30,7 +30,8 @@ export async function linkWorkItemToAgendaEvent(input:{workItemId:string;agendaE
   const {data:current}=await ctx.supabase.from("operational_work_items").select("status,kind,source_type,source_id,assignee_clinic_user_id,patient_id").eq("tenant_id",ctx.tenantId).eq("id",input.workItemId).maybeSingle();
   if(!current||current.kind!=="next_action"||current.source_type!=="treatment_plan_item")return;
   const isManager=await canManage(ctx);
-  if(!isManager&&current.assignee_clinic_user_id!==ctx.clinicUser.id)return;
+  const canBook=await hasEffectivePermission("agenda:create",ctx.user.id);
+  if(!isManager&&!canBook&&current.assignee_clinic_user_id!==ctx.clinicUser.id)return;
   const {data:event}=await ctx.supabase.from("master_agenda_events").select("id,tenant_id,patient_id").eq("tenant_id",ctx.tenantId).eq("id",input.agendaEventId).maybeSingle();
   if(!event||event.tenant_id!==ctx.tenantId||event.patient_id!==current.patient_id)return;
   const {error}=await ctx.supabase.from("operational_work_items").update({status:"completed",completed_at:new Date().toISOString(),outcome:"Booked Agenda appointment "+event.id,updated_at:new Date().toISOString()}).eq("tenant_id",ctx.tenantId).eq("id",input.workItemId);
