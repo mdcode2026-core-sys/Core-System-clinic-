@@ -160,3 +160,65 @@ System Architecture = Ownership Map = Canonical Sources = Repository = DB/Migrat
 
 and no unresolved ownership conflict remains.
 
+
+
+## 9. Repository implementation-path evidence collected
+
+The following mapping is now grounded in current repository search results rather than inferred from documentation alone:
+
+| Domain | Repository evidence |
+|---|---|
+| Patient / Identity | `src/domain/patients/patients.queries.ts`, `src/domain/visit/visit.actions.ts`, identity functions/migrations |
+| Agenda | `src/domain/agenda/agenda.actions.ts`, `agenda.queries.ts`, `availability.engine.ts`, `conflict.engine.ts` |
+| Patient Flow / Queue | `src/domain/queue/queue.queries.ts`, `src/domain/queue/workspace.actions.ts`, CSAPI Gate 01 migrations/tools |
+| Treatment Plan | `src/domain/treatment-plan/treatment-plan.actions.ts`, treatment-plan migrations |
+| Follow-up | `src/domain/followup/followup.queries.ts`, follow-up automation migrations |
+| Journey Coordination | `src/domain/journey-coordination/work.actions.ts`, Work Center, coordination migrations |
+| Financial / Invoicing | `src/domain/invoicing/invoicing.actions.ts`, `invoicing.client.ts`, financial resources surfaces |
+| Inventory | `src/domain/inventory/inventory.queries.ts`, inventory migrations |
+| Workforce | `src/domain/workforce/workforce.actions.ts`, workforce dashboard/payroll surfaces |
+| Communications | `src/domain/communications/communications.actions.ts`, communications dashboard |
+| Patient Portal | `src/domain/patient-portal/patient-message.actions.ts`, portal surface, portal migrations |
+| Medical Files | `src/features/medical-files/domain/actions.ts`, `agent.ts`, medical-files API route |
+| Team & Access | `src/domain/users/users.actions.ts`, Team & Access migrations, permission architecture |
+| Analytics / BI | KPI definitions under `src/domain/analytics/kpi/`, analytics snapshot migrations |
+| Cross-domain reconciliation | `tools/cross-domain-runtime-reconciliation.mjs` and related verification tooling |
+
+This proves that the repository has recognizable domain ownership boundaries. It does **not** by itself prove that every execution path is canonical; that remains part of the active reconciliation.
+
+## 10. Live database ownership evidence collected
+
+The live Supabase schema confirms corresponding canonical state families:
+
+- Patient: `clinic_patients`, `patient_identities`, `patient_clinic_relationships`
+- Visit / Clinical: `clinic_visit_sessions`, `clinic_visit_procedures`, `clinical_work_sessions`
+- Patient Flow: `patient_flow_queue_entries`, `patient_flow_events`
+- Treatment: `clinic_treatment_plans`, `clinic_treatment_plan_items`, `clinic_treatment_plan_visits`
+- Agenda: `master_agenda_events`, `clinic_provider_availability`
+- Follow-up: `retention_followups`, `followup_automation_rules`
+- Coordination: `operational_work_items`, `operational_work_history`
+- Financial: `clinic_invoices`, `invoice_items`, `invoice_payments`, `invoice_refunds`, `financial_plans`, `financial_installments`
+- Procurement: `purchase_orders`, `purchase_receipts`, supplier obligation/payment tables
+- Inventory: `inventory_items`, `inventory_lots`, `inventory_ledger`
+- Workforce: `workforce_*` employee, schedule, attendance, qualification, leave and payroll families
+- Communications: `communication_* ` tables
+- Medical Files: `medical_files` and supporting medical-file tables
+- Portal: `patient_portal_* ` tables
+- Authorization: `roles`, `permissions`, `role_permissions`, role templates, user permissions/overrides
+- Subscription/Entitlement: `subscriptions`, `subscription_plans`, `entitlements`, `entitlement_capabilities`, `tenant_entitlements`
+- Analytics: `analytics_daily_snapshots`
+
+## 11. Important evidence boundary
+
+The current evidence is sufficient to establish the **initial system-wide ownership baseline** and to continue reconciliation without returning to CSAPI.
+
+It is not yet sufficient for final closure because the following must still be proven domain by domain:
+
+1. exact canonical write paths;
+2. migration lineage for canonical objects;
+3. authorization enforcement path;
+4. duplicate/legacy execution paths;
+5. representative runtime proof;
+6. independent verification evidence;
+7. final documentation reconciliation.
+
