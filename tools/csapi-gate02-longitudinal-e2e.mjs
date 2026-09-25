@@ -65,7 +65,7 @@ await planTitleInput.fill("Gate 02 Longitudinal Runtime");
 await diagnosisInput.fill("Gate 02 E2E");
 await goalsInput.fill("Longitudinal continuity verification");
 await page.getByRole("button",{name:/create|إنشاء/i}).first().click();
-await page.waitForTimeout(700);
+await page.getByPlaceholder(/activity(?: \/ session)? name|اسم النشاط|النشاط/i).first().waitFor({state:"visible",timeout:15000});
 
 const activityInput=page.getByPlaceholder(/activity(?: \/ session)? name|اسم النشاط|النشاط/i).first();
 await activityInput.waitFor({state:"visible",timeout:15000});
