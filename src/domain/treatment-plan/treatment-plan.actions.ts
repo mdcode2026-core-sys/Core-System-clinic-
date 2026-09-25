@@ -34,6 +34,7 @@ async function ensureNextAction(supabase: any, tenantId: string, clinicUserId: s
   const { data: workItem, error } = await supabase.from("operational_work_items").insert({ tenant_id: tenantId, kind: "next_action", title, details, requester_clinic_user_id: clinicUserId, assignee_clinic_user_id: null, patient_id: patientId, source_type: "treatment_plan_item", source_id: sourceId, priority: "normal", due_at: nextItem.planned_date ? `${nextItem.planned_date}T09:00:00` : null }).select("id").single();
   if (error) throw new Error(`Treatment next-action creation failed: ${error.message}`);
   await supabase.from("operational_work_history").insert({ tenant_id: tenantId, work_item_id: workItem.id, actor_clinic_user_id: clinicUserId, from_status: null, to_status: "open", note: "created_from_treatment_plan_stage" });
+  revalidatePath("/work-center");
   return workItem.id as string;
 }
 
