@@ -336,3 +336,91 @@ The system-wide reconciliation has now produced both positive canonical proofs a
 3. Repository ↔ Live migration lineage remains divergent, including the known live-only `20260922165018` and unapplied repository Gate 03 corrective migrations.
 
 The foundation remains OPEN. These findings are now sufficiently concrete to form controlled downstream implementation work, but they do not justify broad refactoring or parallel engines.\n\n## 21. CSAPI Gate 01 / Gate 02 closure reconciliation\n\nThe system-wide audit reconciled the apparent Gate 01 / Gate 02 documentation conflict against the dedicated closure records.\n\n- Gate 01 — Patient Flow has a dedicated final release / production verification record and is CLOSED. Its closure explicitly records a broader Clinic Admin smoke workflow Agenda-only failure as outside Gate 01 scope; this does not reopen Gate 01.\n- Gate 02 — Patient Journey has a dedicated closure record stating CLOSED / VERIFIED / PRODUCTION VERIFIED. The CSAPI master state and gate plan also identify Gate 02 as closed and Gate 03 as the next CSAPI workstream.\n- Older/global documents still contain stale statements such as “Gate 02 OPEN — PRECHECK READY.” These are documentation drift and must not override the later dedicated closure records and synchronized CSAPI handoff/master-state records.\n- The correct system-wide interpretation is therefore: Gate 01 CLOSED; Gate 02 CLOSED / VERIFIED / PRODUCTION VERIFIED; CSAPI remains the active project workstream and Gate 03 remains its current Gate context. The system-wide engineering foundation is a temporary execution-control prerequisite within the same CSAPI/project trajectory; it does not change CSAPI's status, close it, replace it, or move the project to a different workstream.\n\nThis is a documentation-authority reconciliation finding, not a request to reopen either Gate 01 or Gate 02.\n\n## 22. Gate 03 repository-to-live identity-state proof\n\nThe repository contains the approved Gate 03 corrective migrations:\n- `20260922190000_csapi_gate03_execution_reconciliation.sql`\n- `20260922191000_csapi_gate03_review_resolution_authorization.sql`\n- `20260922192000_csapi_gate03_identifier_registry_reconciliation.sql`\n\nThe first migration explicitly adds `attribute_provenance` and `attribute_verification` to `patient_identities`, adds identity indexes, and adds the `patients:create` / `patients:update` authorization boundaries. The second adds the `patients:create` boundary to human review resolution. The third adds governed identifier-registry fields including scope, tenant, verification status, current-state and validity windows.\n\nLive schema inspection on 2026-09-25 shows those Gate 03 columns are not present on `patient_identities` or `patient_identity_identifiers`, while Live migration history also lacks all three corrective migration versions. This independently confirms that the repository corrective implementation is not the current Live schema state.\n\nThe implication is strict: Gate 03 repository implementation evidence cannot be promoted to Live verification merely because the SQL exists in Git. No migration-history row may be inserted manually and no replacement SQL may be invented during reconciliation.\n\n## 23. Identity corrective migration review — implementation quality gate\n\nThe repository corrective migration itself was inspected as source before any execution is authorized. It contains the intended `patients:create` / `patients:update` boundaries and identifier-registry reconciliation, but it also contains a backfill statement that selects `clinic_patients.cp.id` as `patient_identity_id` when populating `patient_identity_identifiers`.\n\nBecause `clinic_patients.id` and `patient_identities.id` are independently generated UUID keys, this assumption must be proven against the approved identity relationship model before the migration can be treated as execution-ready. It must not be applied blindly to Live.\n\nThis is registered as an implementation-quality verification item for the future Gate 03 remediation package, not as a Live defect: the migration has not been applied by this reconciliation work.\n\n## 24. Foundation execution posture after reconciliation\n\nThe engineering foundation remains OPEN and implementation has still not started from this work package. CSAPI itself remains the active project workstream. The current foundation is system-wide: it establishes how the AI Engineering organization will execute and verify work across the entire CORE SYSTEM. Execution of the next CSAPI implementation step is held only until these system-wide engineering controls are established.\n\nThe currently proven downstream remediation candidates are intentionally bounded:\n1. Patient / Identity authorization and Gate 03 migration reconciliation, including validation of the corrective migration's backfill semantics before Live application.\n2. Agenda canonical mutation convergence after caller inventory and regression design.\n3. Repository ↔ Live migration-lineage reconciliation, including the live-only `20260922165018` object/state change.\n4. Documentation authority cleanup so stale historical/global status statements cannot override dedicated current closure records.\n\nThese are work-package candidates only. They are not authorization to start scattered fixes. Each must later receive an explicit owner, scope, tests, independent verification, runtime evidence and closure criteria under the AI Engineering operating model.\n
+
+## 25. Gate 01 implementation audit — current repository/live reconciliation
+
+The Gate 01 closure remains authoritative and was not reopened. The system-wide audit traced the current Patient Flow implementation one layer below the closure record.
+
+### Repository execution result
+
+The current application layer contains two distinct responsibilities:
+
+- src/domain/queue/queue.actions.ts and src/domain/queue/workspace.actions.ts create or initialize the Visit entity when a patient arrives/checks in.
+- Once a Visit exists, Patient Flow lifecycle transitions are delegated to src/domain/queue/d3.actions.ts, which calls the canonical live csapi_d3_* command functions.
+
+The current D3 adapter covers Waiting, Reorder Waiting, Clinical Start, Clinical Finish, Reception Completion, Cancel and No-Show. The application layer does not directly reproduce the lifecycle transition writes.
+
+This is consistent with the Gate 01 authority model: Visit creation is entity creation; D3 owns lifecycle transition authority.
+
+### Live evidence
+
+The current Live database contains 139 Visit sessions:
+- 138 completed;
+- 1 waiting;
+- 0 current queue entries;
+- 0 current Patient Flow events;
+- 0 current clinical work sessions.
+
+The absence of current queue/event/work-session rows is classified as current dataset state, not as evidence that the closed Patient Flow engine is missing.
+
+All current Visit records have a resolvable tenant-scoped Patient reference in the checked orphan query.
+
+### Gate 01 audit conclusion
+
+No second Patient Flow lifecycle engine was identified in the current repository path. The canonical D3 lifecycle authority remains intact.
+
+The audit does identify a permanent control requirement: future Visit-creation changes must not move lifecycle transitions back into application-side direct writes. Entity creation and lifecycle transition must remain separate responsibilities.
+
+## 26. Gate 02 full longitudinal audit — current repository/live reconciliation
+
+Gate 02 remains CLOSED / VERIFIED / PRODUCTION VERIFIED. This audit does not reopen it.
+
+The current longitudinal ownership chain remains:
+
+Patient → Visit/Session → Treatment Plan (when applicable) → Next Action / Appointment / Follow-up / Operational Work → subsequent interaction.
+
+### Current Live integrity evidence
+
+The current Live database contains:
+- 139 Visit sessions;
+- 8 Treatment Plans;
+- 4 Treatment Plan items;
+- 3 Treatment Plan↔Visit links;
+- 825 Follow-ups;
+- 17 Operational Work items;
+- 342 Agenda events;
+- 0 patient_history rows.
+
+Current integrity checks returned:
+- 0 orphan Visits→Patients;
+- 0 orphan Treatment Plan source Visits;
+- 0 orphan Treatment Plan↔Visit links;
+- 0 orphan Follow-up→Patients;
+- 0 orphan Follow-up→Visits.
+
+The current dataset contains no Treatment Plan items with an associated source_type='treatment_plan_item' Operational Work record. This is classified as observed data state only; it does not prove that the completion→coordination path is absent. The implementation path remains owned by Treatment Plan/Coordination and requires representative runtime verification when that gate is executed.
+
+### Longitudinal ownership conclusion
+
+The audit confirms the architectural separation already established by Gate 02:
+- Visit remains Patient Flow/Visit state;
+- Treatment Plan remains clinical/PJ progression;
+- Agenda remains appointment authority;
+- Follow-up remains retention authority;
+- Operational Work remains coordination state;
+- Patient History is not being treated as a universal longitudinal source.
+
+The audit found no basis to create a universal Patient Journey state engine.
+
+## 27. Foundation continuation — controlled next evidence
+
+The system-wide foundation remains OPEN.
+
+The next evidence work remains system-wide and will continue through:
+1. remaining duplicate-engine / ownership tracing;
+2. repository ↔ migration ↔ Live DB lineage reconciliation;
+3. authorization-boundary verification across material domains;
+4. representative runtime-path verification;
+5. consolidation of the final domain ownership/canonical-source register.
+
+Only after the system-wide engineering foundation is closed will the next CSAPI implementation package resume. CSAPI remains the active project workstream throughout this foundation phase.
