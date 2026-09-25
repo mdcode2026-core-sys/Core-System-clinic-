@@ -94,6 +94,10 @@ console.log("PASS|18-clinical-decision-treatment-plan|19-multi-stage-plan");
   await goto("/work-center");
   const booking=page.getByRole("link",{name:/book in agenda|حجز الموعد/i}).first();
   await booking.waitFor({state:"visible",timeout:15000});
+  const bookingHref=await booking.getAttribute("href");
+  const bookingWorkItemMatch=bookingHref?.match(/[?&]bookingWorkItemId=([^&]+)/);
+  if(!bookingWorkItemMatch)throw new Error("Booking work-item context missing from Agenda handoff link");
+  const currentBookingWorkItemId=decodeURIComponent(bookingWorkItemMatch[1]);
   await booking.click();
   const dialog=page.getByRole("dialog");
   await dialog.waitFor({state:"visible",timeout:10000});
@@ -110,7 +114,8 @@ console.log("PASS|18-clinical-decision-treatment-plan|19-multi-stage-plan");
   await dialog.getByRole("button",{name:/create|إنشاء/i}).click();
   await dialog.waitFor({state:"hidden",timeout:15000});
   await goto("/work-center");
-  if(await page.getByRole("link",{name:/book in agenda|حجز الموعد/i}).count())throw new Error("Completed Next Action still requires booking after Agenda handoff");
+  const currentBookingLink=page.locator(`a[href*="bookingWorkItemId=${encodeURIComponent(currentBookingWorkItemId)}"]`);
+  if(await currentBookingLink.count())throw new Error("Completed Next Action still requires booking after Agenda handoff");
   console.log("PASS|20-treatment-stage-next-action|21-next-action-agenda-booking-handoff");
 
   // 22/23 — second stage completion and planned Treatment Plan completion.
