@@ -40,11 +40,9 @@ try{
 // Establish a real tenant patient through the canonical Patients → Patient Detail → Treatment Plan path.
 // Do not rely on global input indexes: the treatment-plan page contains unrelated controls and its DOM can evolve.
 await goto("/patients");
-const firstPatientRow=page.locator('div.space-y-3 > div').filter({has:page.locator('button[aria-label]')}).first();
-await firstPatientRow.waitFor({state:"visible",timeout:15000});
-const rowActionButtons=firstPatientRow.locator('button[aria-label]');
-if(await rowActionButtons.count()<2)throw new Error("Patient detail action controls not found");
-await rowActionButtons.nth(1).click();
+const viewPatientButton=page.getByRole("button",{name:/^view$|^عرض$/i}).first();
+await viewPatientButton.waitFor({state:"visible",timeout:30000});
+await viewPatientButton.click();
 const treatmentLink=page.locator('a[href*="/treatment-plans?patientId="]').first();
 await treatmentLink.waitFor({state:"visible",timeout:15000});
 const treatmentHref=await treatmentLink.getAttribute("href");
