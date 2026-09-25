@@ -9,7 +9,7 @@ import { createWorkItem, updateWorkItem, assignWorkItem, handoffWorkItem, escala
 export default async function WorkCenterPage() {
   const supabase=await createClient(); const {data:{user}}=await supabase.auth.getUser(); if(!user)redirect("/login"); const tenantId=await resolveTenantId(user.id); if(!tenantId)redirect("/login"); const permissions=await getEffectivePermissions(user.id,tenantId); if(!permissions.includes("work:read" as never))redirect("/"); const ar=(await cookies()).get("core-system-locale")?.value==="ar"; const canManage=permissions.includes("work:manage" as never); const canBook=permissions.includes("agenda:create" as never);
   const [{data:work},{data:users},{data:patients}] = await Promise.all([
-    supabase.from("operational_work_items").select("id,kind,title,details,status,priority,due_at,assignee_clinic_user_id,patient_id,source_type,source_id,agenda_event_id,created_at,outcome").eq("tenant_id",tenantId).order("created_at",{ascending:false}).limit(80),
+    supabase.from("operational_work_items").select("id,kind,title,details,status,priority,due_at,assignee_clinic_user_id,patient_id,source_type,source_id,created_at,outcome").eq("tenant_id",tenantId).order("created_at",{ascending:false}).limit(80),
     supabase.from("clinic_users").select("id,full_name,email").eq("tenant_id",tenantId).eq("is_active",true).is("deleted_at",null).order("full_name"),
     supabase.from("clinic_patients").select("id,first_name,last_name").eq("tenant_id",tenantId).is("deleted_at",null).order("first_name").limit(200),
   ]);
