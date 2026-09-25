@@ -4,8 +4,10 @@ These rules are permanent project instructions for all coding agents working on 
 
 ## Repository / Branching
 - Never work directly on `main`.
-- Create or continue a purpose-specific branch for every task.
-- Separate unrelated work into logical branches (UI/API/DB/domain) rather than one oversized branch or needless micro-branches.
+- Create or continue one purpose-specific branch for each coherent work package when a branch is needed.
+- Do not create micro-branches for trivial fixes.
+- Do not create parallel branches for overlapping ownership; one coherent package should have one implementation path unless the AI Engineering Leader explicitly separates independent work.
+- Separate unrelated work into logical work packages (UI/API/DB/domain) rather than forcing unrelated work into one branch.
 - Before changing anything, inspect the current branch, HEAD, working state, and open branches/PRs.
 
 ## Database
@@ -60,3 +62,20 @@ At the end of every task report:
 4. branch deletion status.
 
 These rules apply to all future work unless a newer explicit project decision supersedes a specific rule.
+
+## AI Engineering Organization
+
+The AI Engineering Organization is governed by:
+- docs/AI-ENGINEERING/AI-ENGINEERING-LEADERSHIP-CHARTER.md
+- docs/AI-ENGINEERING/AI-ENGINEERING-ROLES-AND-BOUNDARIES.md
+- docs/AI-ENGINEERING/AI-ENGINEERING-CONTROL-AND-CONTINUITY.md
+- docs/AI-ENGINEERING/AI-ENGINEERING-CURRENT-STATE.md
+- docs/AI-ENGINEERING/AI-ENGINEERING-MASTER-PROMPT.md
+
+The AI Engineering Leader is the permanent technical leader. Functions such as Architecture, Backend, Database, Frontend, QA, Security, Platform and Documentation are activated under that leadership and do not become competing project authorities.
+
+Every active change must belong to a coherent work package with one primary owner function, explicit scope, acceptance conditions and required evidence.
+
+When a conversation changes, the next session must use the applicable handoff/current-state records and verify repository/runtime reality before continuing. Chat memory alone is never the continuity source.
+
+A work package is not closed until its required implementation, tests, verification, reconciliation and documentation are complete.
