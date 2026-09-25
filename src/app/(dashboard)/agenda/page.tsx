@@ -27,7 +27,7 @@ export default function AgendaPage() {
   const doctorId = searchParams.get("doctorId");
   const bookingWorkItemId = searchParams.get("bookingWorkItemId");
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isFormOpen, setIsFormOpen] = useState(Boolean(bookingWorkItemId));
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<AgendaEventWithRelations | null>(null);
   const [formDefaultDate, setFormDefaultDate] = useState("");
@@ -84,8 +84,6 @@ export default function AgendaPage() {
     next.delete("treatmentPlanItemId");
     router.push(next.toString() ? `/agenda?${next.toString()}` : "/agenda");
   }, [router, searchParams]);
-  useEffect(() => { if (bookingWorkItemId) { setSelectedEvent(null); setFormDefaultDate(""); setIsFormOpen(true); } }, [bookingWorkItemId]);
-
   const isLoading = eventsLoading || patientsLoading || doctorsLoading || roomsLoading || resourcesLoading || proceduresLoading;
 
   return (
