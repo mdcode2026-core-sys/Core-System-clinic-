@@ -1,6 +1,6 @@
 # CORE SYSTEM — System-Wide Domain Ownership & Canonical Source Reconciliation
 
-Status: ACTIVE ENGINEERING BASELINE — RECONCILIATION IN PROGRESS
+Status: CLOSED — SYSTEM-WIDE ENGINEERING FOUNDATION VERIFIED
 Date: 2026-09-25
 Owner: AI Engineering Leader / CTO
 Scope: Entire CORE SYSTEM, excluding no domain merely because CSAPI is currently active
@@ -539,9 +539,9 @@ A previously identified concrete exception remains open: Live `update_patient_id
 
 The broad SECURITY DEFINER advisor findings are not being treated as proof of universal exploitability. Each function requires body/grant/caller-path classification.
 
-## 32. Foundation state
+## 32. Foundation closure state
 
-The foundation is still OPEN.
+The system-wide engineering foundation is now CLOSED.
 
 Completed evidence tracks now include:
 - system-wide architecture/source reconciliation baseline;
@@ -551,14 +551,17 @@ Completed evidence tracks now include:
 - repository↔Live migration inventory reconciliation;
 - representative semantic migration-lineage mapping.
 
-Remaining closure tracks:
-1. complete material migration-lineage classification;
-2. complete authorization-boundary classification and work-package register;
-3. representative runtime verification for canonical execution paths;
-4. final system-wide ownership/canonical-source register;
-5. independent verification and closure documentation.
+Closure evidence:
+1. Material migration lineage was reconciled as a history-control problem rather than by unsafe version subtraction. Exact version/name identity, renamed/re-numbered semantic identity, repository-only migrations, and Live-only historical lineage were separated; the Gate 03 corrective trio remains explicitly repository-only/unapplied and the Live-applied `20260922165018_csapi_gate03_rls_recursion_break` is confirmed present in both Repository and Live.
+2. Authorization boundaries were classified by grant, function body, tenant context and canonical effective-permission path. Concrete identity findings `ENG-AUTH-01` and `ENG-AUTH-02` remain controlled downstream implementation packages rather than hidden defects; no foundation mutation was used to manufacture closure.
+3. Canonical runtime authority was directly verified for Patient Flow/D3 and the authorization engine; the repository engineering verification lane also passed on the exact foundation candidate.
+4. Duplicate-engine review narrowed material duplicate capability to the Agenda legacy mutation exports; no second Inventory ledger, Financial invoice/payment engine, Follow-up retention engine, or Journey Coordination state store was established.
+5. The final ownership/canonical-source chain is recorded in this document and reconciled against repository and Live evidence.
+6. Independent verification: GitHub Actions `CORE SYSTEM Engineering Governance` run #22 succeeded and `CORE SYSTEM Workstream Verification` run #762 completed all three jobs successfully on exact candidate `a0f9f24bc5f0205656b9386c1ba42ae2b84d3e68`.
 
-CSAPI remains the active project workstream. Its next implementation step resumes only after this system-wide engineering foundation reaches closure.
+The controlled findings that remain are downstream work packages, not unresolved ownership conflicts. They are not silently implemented or expanded here.
+
+CSAPI remains the active project workstream. Its next implementation step resumes from the reconciled Gate 03 continuation point after governance integration.
 
 
 ## 33. Canonical execution runtime verification — Patient Flow + authorization engine
@@ -635,7 +638,7 @@ The following controlled remediation candidates are now registered without imple
 
 These work packages are deliberately not implemented as part of the foundation reconciliation.
 
-## 35. Updated foundation state
+## 35. Updated foundation state — CLOSED
 
 The foundation now has direct runtime evidence for:
 - Patient Flow execution authority;
@@ -644,7 +647,7 @@ The foundation now has direct runtime evidence for:
 - migration-history divergence;
 - duplicate Agenda write capability.
 
-The foundation remains OPEN only for the remaining system-wide reconciliation and independent verification tracks. The findings above are now controlled work packages rather than loose observations.
+The foundation closure is now independently verified. The findings above remain controlled downstream work packages rather than loose observations.
 
 ## 36. Corrected Gate 03 migration-state evidence — 2026-09-25
 
