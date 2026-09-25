@@ -125,6 +125,9 @@ console.log("PASS|18-clinical-decision-treatment-plan|19-multi-stage-plan");
 
   // 22/23 — second stage completion and planned Treatment Plan completion.
   await goto("/treatment-plans?patientId="+encodeURIComponent(patientId));
+  const currentPlanButton=page.getByRole("button",{name:/Gate 02 Longitudinal Runtime/i}).first();
+  await currentPlanButton.waitFor({state:"visible",timeout:30000});
+  await currentPlanButton.click();
   const stageSelects=page.locator("select");
   if(await stageSelects.count()<3)throw new Error("Second treatment stage control missing");
   await stageSelects.last().selectOption("completed");
