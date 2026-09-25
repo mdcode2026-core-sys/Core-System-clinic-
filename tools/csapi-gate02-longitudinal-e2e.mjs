@@ -41,7 +41,11 @@ try{
 // Do not rely on global input indexes: the treatment-plan page contains unrelated controls and its DOM can evolve.
 await goto("/patients");
 const viewPatientButton=page.getByRole("button",{name:/^view$|^عرض$/i}).first();
-await viewPatientButton.waitFor({state:"visible",timeout:30000});
+let viewReady=false;
+for(let attempt=1;attempt<=2&&!viewReady;attempt++){
+  try{await viewPatientButton.waitFor({state:"visible",timeout:15000});viewReady=true}catch(error){if(attempt===2)throw error;await page.reload({waitUntil:"domcontentloaded",timeout:60000});await page.waitForTimeout(1000);}
+}
+if(!viewReady)throw new Error("Patient View control did not become available");
 await viewPatientButton.click();
 const patientDetailUrl=page.url();
 const treatmentLink=page.locator('a[href*="/treatment-plans?patientId="]').first();
