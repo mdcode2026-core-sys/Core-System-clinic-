@@ -1,7 +1,7 @@
 # CORE SYSTEM — AI Engineering Current State
 
-Status: CURRENT BASELINE — GOVERNANCE PR OPEN
-Snapshot: 2026-09-23
+Status: CURRENT BASELINE — SYSTEM-WIDE ENGINEERING FOUNDATION OPEN
+Snapshot: 2026-09-25
 Purpose: Conversation-independent entry baseline for the AI Engineering Organization
 
 ## 1. Project
@@ -54,6 +54,24 @@ They must not be silently treated as completed, merged or closed.
 
 Historical branch references exist in large numbers. Their names alone are not evidence that work is active or valid.
 
+## 3.1 System-wide engineering foundation
+
+The governance bootstrap is not the end of the organizational work.
+
+The current active work package is the **System-Wide Domain Ownership & Canonical Source Reconciliation** defined in:
+
+`docs/AI-ENGINEERING/SYSTEM-WIDE-DOMAIN-OWNERSHIP-AND-CANONICAL-SOURCE-RECONCILIATION-2026-09-25.md`
+
+Its purpose is to complete the engineering organization against the real CORE SYSTEM rather than only define role descriptions.
+
+Required closure chain:
+
+Architecture → Ownership → Canonical Source → Execution Path → Repository → DB/Migrations → Authorization → Runtime → Verification → Documentation.
+
+The initial baseline has identified the major domains and canonical sources, but closure is not yet claimed because repository-path, migration-lineage, authorization and runtime evidence still need to be completed across the material domains.
+
+CSAPI is downstream of this work and is not the active system-wide entry point.
+
 ## 4. Current CSAPI authority problem
 
 The repository contains documentation-state drift around Gate 02 and Gate 03.
@@ -78,9 +96,9 @@ The database has known advisor findings. These are baseline findings, not automa
 
 The current engineering action is:
 
-Complete the AI Engineering governance installation and verify it on the real repository state.
+Complete the system-wide engineering organization and ownership reconciliation before starting a new domain workstream.
 
-Do not use this governance bootstrap to reopen Gate 01/02 or to advance Gate 03.
+Do not use this foundation work to reopen CSAPI or to advance a CSAPI gate prematurely.
 
 ## 7. Governance review state
 
