@@ -131,7 +131,11 @@ console.log("PASS|18-clinical-decision-treatment-plan|19-multi-stage-plan");
   // 22/23 — second stage completion and planned Treatment Plan completion.
   await goto("/treatment-plans?patientId="+encodeURIComponent(patientId));
   const currentPlanButton=page.getByRole("button",{name:longitudinalTitle,exact:true}).first();
-  await currentPlanButton.waitFor({state:"visible",timeout:30000});
+  let currentPlanReady=false;
+  for(let attempt=1;attempt<=2&&!currentPlanReady;attempt++){
+    try{await currentPlanButton.waitFor({state:"visible",timeout:15000});currentPlanReady=true}catch(error){if(attempt===2)throw error;await page.reload({waitUntil:"domcontentloaded",timeout:60000});await page.waitForTimeout(1000);}
+  }
+  if(!currentPlanReady)throw new Error("Current longitudinal Treatment Plan did not become available");
   await currentPlanButton.click();
   const stageSelects=page.locator("select");
   if(await stageSelects.count()<3)throw new Error("Second treatment stage control missing");
