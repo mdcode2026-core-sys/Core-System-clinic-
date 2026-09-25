@@ -66,13 +66,14 @@ const goalsInput=page.getByPlaceholder(/treatment goals|الأهداف العل�
 await planTitleInput.waitFor({state:"visible",timeout:15000});
 await diagnosisInput.waitFor({state:"visible",timeout:15000});
 await goalsInput.waitFor({state:"visible",timeout:15000});
-await planTitleInput.fill("Gate 02 Longitudinal Runtime");
+const longitudinalTitle=`Gate 02 Longitudinal Runtime ${process.pid}`;
+  await planTitleInput.fill(longitudinalTitle);
 await diagnosisInput.fill("Gate 02 E2E");
 await goalsInput.fill("Longitudinal continuity verification");
 await page.getByRole("button",{name:/create|إنشاء/i}).first().click();
 // Creation is a server action followed by an async canonical refresh. Synchronize on the
 // newly-created plan being rendered/selected before targeting its activity editor.
-const createdPlanTitle=page.getByText("Gate 02 Longitudinal Runtime",{exact:true}).first();
+const createdPlanTitle=page.getByText(longitudinalTitle,{exact:true}).first();
 await createdPlanTitle.waitFor({state:"visible",timeout:30000});
 await page.getByPlaceholder(/activity(?: \/ session)? name|اسم النشاط|النشاط/i).first().waitFor({state:"visible",timeout:30000});
 
@@ -125,7 +126,7 @@ console.log("PASS|18-clinical-decision-treatment-plan|19-multi-stage-plan");
 
   // 22/23 — second stage completion and planned Treatment Plan completion.
   await goto("/treatment-plans?patientId="+encodeURIComponent(patientId));
-  const currentPlanButton=page.getByRole("button",{name:/Gate 02 Longitudinal Runtime/i}).first();
+  const currentPlanButton=page.getByRole("button",{name:longitudinalTitle,exact:true}).first();
   await currentPlanButton.waitFor({state:"visible",timeout:30000});
   await currentPlanButton.click();
   const stageSelects=page.locator("select");
