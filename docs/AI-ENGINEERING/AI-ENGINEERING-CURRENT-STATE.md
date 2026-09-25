@@ -101,7 +101,7 @@ The current engineering action is:
 
 Complete the system-wide engineering organization and ownership reconciliation for the entire CORE SYSTEM before resuming the next implementation step.
 
-Completed evidence within this foundation includes Gate 01 implementation-path audit, Gate 02 longitudinal audit, duplicate-engine/ownership expansion, and repository↔Live migration inventory reconciliation. The remaining foundation work is semantic migration mapping, authorization verification, representative runtime verification, final ownership register and closure.
+Completed evidence within this foundation includes Gate 01 implementation-path audit, Gate 02 longitudinal audit, duplicate-engine/ownership expansion, and repository↔Live migration inventory reconciliation. The remaining foundation work is completion of material semantic migration mapping, independent authorization verification, representative runtime-path coverage beyond the already verified Patient Flow/authorization paths, final ownership/canonical-source register, and closure verification.
 
 This foundation does not reopen or advance CSAPI gates by itself. Once the system-wide foundation is closed, execution resumes in CSAPI from its reconciled canonical continuation point.
 
@@ -114,3 +114,15 @@ PR #204 must not be merged merely to prove the model; merge remains subject to t
 ## 8. Continuation
 
 After the system-wide foundation is closed, the AI Engineering Leader will resume the active CSAPI work against main, open PRs, CI, live database and current CSAPI authority and will establish exactly one canonical CSAPI continuation point. No CSAPI implementation is started from this foundation package.
+
+
+### Latest system-wide evidence
+
+The foundation has now produced controlled work-package findings rather than only architectural observations:
+- Patient/Identity authorization gaps in register/update functions;
+- Agenda legacy mutation capability;
+- repository↔Live migration semantic divergence;
+- authenticated SECURITY DEFINER function classification;
+- public-schema extension review.
+
+These are registered in the system-wide reconciliation document and are not being patched opportunistically.
