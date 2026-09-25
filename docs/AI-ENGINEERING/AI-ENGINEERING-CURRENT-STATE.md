@@ -45,7 +45,7 @@ Main currently contains the merged Gate 03 implementation sequence through PR #2
 
 Current CSAPI GitHub state:
 - PR #201 — Gate 01/02 deep evidence reconciliation: CLOSED as superseded.
-- PR #203 — Gate 01/02 comprehensive repair and longitudinal continuity: OPEN, unmerged, historical/downstream CSAPI work package; it is not the active system-wide execution path.
+- PR #203 — Gate 01/02 comprehensive repair and longitudinal continuity: OPEN, unmerged, current CSAPI work package under reconciliation; it remains part of the active CSAPI workstream.
 - PR #204 — AI Engineering Organization + system-wide engineering foundation: OPEN, unmerged, current system-wide engineering work package.
 
 PR #203 remains downstream of the system-wide foundation and must not be treated as completed or merged.
@@ -73,15 +73,15 @@ CSAPI is downstream of this work and is not the active system-wide entry point.
 
 ## 4. Current CSAPI authority state
 
-The system-wide reconciliation has now separated historical CSAPI status from the current engineering foundation.
+CSAPI remains the active project workstream. The system-wide engineering foundation is a control/setup phase for how CSAPI and subsequent work are executed; it does not change CSAPI's project status.
 
 - Gate 01 — Patient Flow: CLOSED.
 - Gate 02 — Patient Journey: CLOSED / VERIFIED / PRODUCTION VERIFIED.
-- Gate 03 — Patient & Identity: historical downstream workstream with repository implementation evidence but unresolved required verification/live migration reconciliation; it is not currently authorized to advance from this foundation package.
-- PR #203 remains open and downstream; it is not evidence of a completed or mergeable CSAPI state.
+- Gate 03 — Patient & Identity: current CSAPI Gate context. Its repository/live/verification state remains subject to the CSAPI reconciliation evidence and is not to be silently reclassified by the engineering foundation.
+- PR #203 remains open and is part of the active CSAPI workstream; its open state is not evidence of completion or mergeability.
 - Older global documents that still say Gate 02 is OPEN are stale documentation and must be reconciled; they do not override the dedicated Gate 02 closure record, CSAPI master state, gate plan, and current handoff.
 
-The AI Engineering Leader must therefore keep CSAPI frozen downstream while the system-wide foundation establishes the canonical execution baseline.
+The AI Engineering Leader must therefore keep implementation controlled while the system-wide foundation establishes the canonical execution baseline. This is an execution hold/control, not a change of CSAPI status.
 
 ## 5. Current database/runtime baseline
 
@@ -111,4 +111,4 @@ PR #204 must not be merged merely to prove the model; merge remains subject to t
 
 ## 8. Continuation
 
-After the system-wide foundation is closed, the AI Engineering Leader will reconcile the downstream CSAPI work against main, open PRs, CI, live database and current CSAPI authority and will establish exactly one canonical CSAPI continuation point. No CSAPI implementation is started from this foundation package.
+After the system-wide foundation is closed, the AI Engineering Leader will continue the active CSAPI work against main, open PRs, CI, live database and current CSAPI authority and will establish exactly one canonical CSAPI continuation point. No CSAPI implementation is started from this foundation package.
