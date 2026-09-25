@@ -61,7 +61,7 @@ The current active work package is the **System-Wide Domain Ownership & Canonica
 
 `docs/AI-ENGINEERING/SYSTEM-WIDE-DOMAIN-OWNERSHIP-AND-CANONICAL-SOURCE-RECONCILIATION-2026-09-25.md`
 
-Its purpose is to complete the engineering organization against the real CORE SYSTEM rather than only define role descriptions.
+Its purpose is to complete and validate the AI Engineering operating model against the real CORE SYSTEM as a whole — not to establish a CSAPI-specific operating model and not to treat CSAPI as the scope of the foundation.
 
 Required closure chain:
 
@@ -69,7 +69,7 @@ Architecture → Ownership → Canonical Source → Execution Path → Repositor
 
 The initial baseline has identified the major domains and canonical sources, but closure is not yet claimed because repository-path, migration-lineage, authorization and runtime evidence still need to be completed across the material domains.
 
-CSAPI is downstream of this work and is not the active system-wide entry point.
+CSAPI remains the active project workstream. It is the next execution destination after the system-wide engineering foundation is closed; it is not the scope or owner of this foundation.
 
 ## 4. Current CSAPI authority state
 
@@ -99,9 +99,9 @@ The database has known advisor findings. These are baseline findings, not automa
 
 The current engineering action is:
 
-Complete the system-wide engineering organization and ownership reconciliation before starting a new domain workstream.
+Complete the system-wide engineering organization and ownership reconciliation for the entire CORE SYSTEM before resuming the next implementation step.
 
-Do not use this foundation work to reopen CSAPI or to advance a CSAPI gate prematurely.
+This foundation does not reopen or advance CSAPI gates by itself. Once the system-wide foundation is closed, execution resumes in CSAPI from its reconciled canonical continuation point.
 
 ## 7. Governance review state
 
@@ -111,4 +111,4 @@ PR #204 must not be merged merely to prove the model; merge remains subject to t
 
 ## 8. Continuation
 
-After the system-wide foundation is closed, the AI Engineering Leader will continue the active CSAPI work against main, open PRs, CI, live database and current CSAPI authority and will establish exactly one canonical CSAPI continuation point. No CSAPI implementation is started from this foundation package.
+After the system-wide foundation is closed, the AI Engineering Leader will resume the active CSAPI work against main, open PRs, CI, live database and current CSAPI authority and will establish exactly one canonical CSAPI continuation point. No CSAPI implementation is started from this foundation package.
