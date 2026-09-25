@@ -52,7 +52,7 @@ if(!patientMatch)throw new Error("Treatment Plan patientId missing");
 const patientId=decodeURIComponent(patientMatch[1]);
 await goto(treatmentHref);
 
-const newPlan=page.getByRole("button",{name:/new plan|خطة جديدة/i}).first();
+const newPlan=page.getByRole("button",{name:/new plan|new treatment plan|خطة جديدة|خطة علاج جديدة/i}).first();
 await newPlan.waitFor({state:"visible",timeout:15000});
 await newPlan.click();
 const planInputs=page.locator('input,textarea');
