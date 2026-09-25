@@ -451,3 +451,45 @@ No deletion or refactor is performed in the system-wide foundation. The future A
 ### Ownership conclusion
 
 The expanded search did not reveal a second Inventory ledger engine, a second Financial invoice/payment engine, or a second Journey Coordination state store. The audit therefore narrows the current duplicate-engine remediation scope rather than expanding it speculatively.
+
+
+## 29. Repository ↔ migration ↔ Live DB reconciliation — expanded parity result
+
+The migration comparison was expanded from the previously known Gate 03 window to the complete current migration inventory.
+
+Current exact inventory:
+- repository main: 227 timestamped SQL migration files;
+- Live Supabase: 288 migration-history entries;
+- exact migration-name matches: 177.
+
+The remaining differences cannot be interpreted as simple missing/applied counts because a substantial portion of the history uses different timestamps and/or migration names for apparently related changes. Therefore exact version-set subtraction is not a safe migration-repair method.
+
+### Verified current head divergence
+
+The repository contains later Gate 03 corrective migrations:
+- 20260922190000_csapi_gate03_execution_reconciliation
+- 20260922191000_csapi_gate03_review_resolution_authorization
+- 20260922192000_csapi_gate03_identifier_registry_reconciliation
+
+Live migration history currently ends at:
+20260922165018_csapi_gate03_rls_recursion_break
+
+Therefore those three repository corrective migrations are definitely not recorded as applied in Live.
+
+The comparison also confirmed a broader historical rename/reconciliation problem, including examples where Live and repository contain different version/name pairs for related migration work. The correct next step is semantic migration-lineage mapping, not inserting history rows, deleting history, or generating replacement SQL.
+
+This finding is now treated as a system-wide migration-control problem. Gate 03 corrective migrations remain a downstream execution candidate and are not applied by this foundation package.
+
+### Control conclusion
+
+Repository migration count ≠ Live migration-history count is confirmed.
+
+Repository migration lineage cannot yet be declared reproducible against Live by version number alone. Closure requires a reconciled mapping that distinguishes:
+1. exact same migration;
+2. same semantic migration with renamed/re-numbered history;
+3. repository-only unapplied migration;
+4. Live-only migration with no repository counterpart;
+5. superseded/merged migration;
+6. unresolved semantic difference.
+
+No migration mutation is authorized from this audit result alone.
