@@ -1,6 +1,6 @@
 # CORE SYSTEM — AI Engineering Current State
 
-Status: CURRENT BASELINE — SYSTEM-WIDE ENGINEERING FOUNDATION OPEN
+Status: CURRENT BASELINE — SYSTEM-WIDE ENGINEERING FOUNDATION CLOSED
 Snapshot: 2026-09-25
 Purpose: Conversation-independent entry baseline for the AI Engineering Organization
 
@@ -67,7 +67,7 @@ Required closure chain:
 
 Architecture → Ownership → Canonical Source → Execution Path → Repository → DB/Migrations → Authorization → Runtime → Verification → Documentation.
 
-The baseline has now progressed through Gate 01 implementation-path audit, Gate 02 longitudinal integrity audit, expanded duplicate-engine/ownership tracing, and full migration inventory comparison. Closure is still not claimed because migration semantic lineage, authorization and representative runtime evidence remain incomplete across material domains.
+The system-wide foundation is now CLOSED. Evidence covered Gate 01 implementation-path audit, Gate 02 longitudinal integrity audit, expanded duplicate-engine/ownership tracing, repository↔Live migration lineage reconciliation, authorization-boundary classification, representative runtime authority verification, final ownership/canonical-source reconciliation, and independent GitHub Actions verification.
 
 CSAPI remains the active project workstream. It is the next execution destination after the system-wide engineering foundation is closed; it is not the scope or owner of this foundation.
 
@@ -99,9 +99,9 @@ The database has known advisor findings. These are baseline findings, not automa
 
 The current engineering action is:
 
-Complete the system-wide engineering organization and ownership reconciliation for the entire CORE SYSTEM before resuming the next implementation step.
+The system-wide engineering organization and ownership reconciliation is CLOSED. The next implementation step resumes in CSAPI from its reconciled canonical continuation point.
 
-Completed evidence within this foundation includes Gate 01 implementation-path audit, Gate 02 longitudinal audit, duplicate-engine/ownership expansion, and repository↔Live migration inventory reconciliation. The remaining foundation work is completion of material semantic migration mapping, independent authorization verification, representative runtime-path coverage beyond the already verified Patient Flow/authorization paths, final ownership/canonical-source register, and closure verification.
+Completed closure evidence includes material migration-lineage classification, authorization-boundary classification, representative runtime authority verification, duplicate-engine reconciliation, final ownership/canonical-source register, and independent GitHub Actions verification. Controlled downstream findings remain registered as future implementation work packages and were not silently patched in the foundation.
 
 This foundation does not reopen or advance CSAPI gates by itself. Once the system-wide foundation is closed, execution resumes in CSAPI from its reconciled canonical continuation point.
 
@@ -109,11 +109,11 @@ This foundation does not reopen or advance CSAPI gates by itself. Once the syste
 
 PR #204 is the single governance integration PR. It contains documentation-only changes and no application or database changes. The role map correction is part of the same governance scope and does not create a new PR.
 
-PR #204 must not be merged merely to prove the model; merge remains subject to the repository's current review/verification rules and deployment restrictions.
+PR #204 is the single governance integration package. Its exact candidate passed the governance and workstream verification workflows; it may now be integrated into `main` as the closed foundation record. No application, Supabase schema/data, or Vercel production mutation is part of this integration.
 
 ## 8. Continuation
 
-After the system-wide foundation is closed, the AI Engineering Leader will resume the active CSAPI work against main, open PRs, CI, live database and current CSAPI authority and will establish exactly one canonical CSAPI continuation point. No CSAPI implementation is started from this foundation package.
+After governance integration, the AI Engineering Leader resumes the active CSAPI work against `main`, open PRs, CI, Live database and current CSAPI authority and establishes exactly one canonical CSAPI continuation point. Gate 01 and Gate 02 remain closed; Gate 03 remains the current CSAPI context.
 
 
 ### Latest system-wide evidence
