@@ -36,15 +36,50 @@ try{
   }
   if(!loggedIn)throw new Error(`Authenticated E2E login failed (last auth status: ${lastStatus})`);
   console.log("PASS|login");
-const add2=page.locator("input");
-  await add2.nth(2).fill("Gate 02 Stage Two");
-  await add2.nth(3).fill("Second treatment stage");
-  await button(/add|إضافة/i);
-  await page.waitForTimeout(500);
-  if(await page.getByRole("button",{name:/activate|تفعيل/i}).count())await button(/activate|تفعيل/i);
-  console.log("PASS|18-clinical-decision-treatment-plan|19-multi-stage-plan");
 
-  // 20/21 — first stage → canonical Next Action → Agenda-owned booking.
+// Establish a real tenant patient through the canonical Patients → Patient Detail → Treatment Plan path.
+// Do not rely on global input indexes: the treatment-plan page contains unrelated controls and its DOM can evolve.
+await goto("/patients");
+const viewButtons=page.locator('button[aria-label],button[title]');
+const viewIndex=await viewButtons.evaluateAll((els)=>{
+  const labels=els.map((e,i)=>({i,label:(e.getAttribute("aria-label")||e.getAttribute("title")||"").toLowerCase()}));
+  return labels.find(x=>/view|عرض|تفاصيل|مشاهدة/.test(x.label))?.i ?? -1;
+});
+if(viewIndex<0)throw new Error("Patient detail view control not found");
+await viewButtons.nth(viewIndex).click();
+const treatmentLink=page.locator('a[href*="/treatment-plans?patientId="]').first();
+await treatmentLink.waitFor({state:"visible",timeout:15000});
+const treatmentHref=await treatmentLink.getAttribute("href");
+if(!treatmentHref)throw new Error("Treatment Plan patient link missing");
+const patientMatch=treatmentHref.match(/[?&]patientId=([^&]+)/);
+if(!patientMatch)throw new Error("Treatment Plan patientId missing");
+const patientId=decodeURIComponent(patientMatch[1]);
+await goto(treatmentHref);
+
+const newPlan=page.getByRole("button",{name:/new plan|خطة جديدة/i}).first();
+await newPlan.waitFor({state:"visible",timeout:15000});
+await newPlan.click();
+const planInputs=page.locator('input,textarea');
+if(await planInputs.count()<3)throw new Error("Treatment Plan creation controls missing");
+await planInputs.nth(0).fill("Gate 02 Longitudinal Runtime");
+await planInputs.nth(1).fill("Gate 02 E2E");
+await planInputs.nth(2).fill("Longitudinal continuity verification");
+await page.getByRole("button",{name:/create|إنشاء/i}).first().click();
+await page.waitForTimeout(700);
+
+const activityInputs=page.locator('input');
+const textInputs=await activityInputs.evaluateAll(els=>els.map((e,i)=>({i,placeholder:e.getAttribute("placeholder")||""})));
+const activityIndex=textInputs.find(x=>/activity|اسم النشاط|النشاط/i.test(x.placeholder))?.i ?? -1;
+if(activityIndex<0)throw new Error("Treatment stage title control missing");
+await activityInputs.nth(activityIndex).fill("Gate 02 Stage Two");
+const descIndex=textInputs.find(x=>/description|وصف/i.test(x.placeholder))?.i ?? -1;
+if(descIndex>=0)await activityInputs.nth(descIndex).fill("Second treatment stage");
+await button(/add|إضافة/i);
+await page.waitForTimeout(500);
+if(await page.getByRole("button",{name:/activate|تفعيل/i}).count())await button(/activate|تفعيل/i);
+console.log("PASS|18-clinical-decision-treatment-plan|19-multi-stage-plan");
+
+// 20/21 — first stage → canonical Next Action → Agenda-owned booking.
   const statuses=page.locator("select");
   if(await statuses.count()<3)throw new Error("Treatment stage status controls missing");
   await statuses.nth(1).selectOption("completed");
