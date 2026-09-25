@@ -61,7 +61,7 @@ export async function getTreatmentPlan(planId: string): Promise<TreatmentPlanRec
   return loadPlan(supabase, tenantId, planId);
 }
 
-export async function createTreatmentPlan(input: CreateTreatmentPlanInput): Promise<string> {
+export async function createTreatmentPlan(input: CreateTreatmentPlanInput): Promise<TreatmentPlanRecord> {
   const { supabase, user, clinicUser, tenantId, permissions } = await getContext();
   requirePermission(permissions, "treatment_plans:create");
   const title = input.title.trim();
@@ -75,7 +75,9 @@ export async function createTreatmentPlan(input: CreateTreatmentPlanInput): Prom
   const { data, error } = await supabase.from("clinic_treatment_plans").insert({ tenant_id: tenantId, patient_id: input.patientId, source_visit_id: input.sourceVisitId ?? null, title, diagnosis_summary: input.diagnosisSummary?.trim() || null, goals: input.goals?.trim() || null, start_date: input.startDate || null, target_end_date: input.targetEndDate || null, created_by: clinicUser.id }).select("id").single();
   if (error) throw new Error(`Treatment plan creation failed: ${error.message}`);
   revalidatePath("/(dashboard)/treatment-plans");
-  return data.id;
+  const createdPlan = await loadPlan(supabase, tenantId, data.id);
+  if (!createdPlan) throw new Error("Treatment plan was created but could not be reloaded");
+  return createdPlan;
 }
 
 async function validateTreatmentPlanActivation(supabase: any, tenantId: string, planId: string) {
