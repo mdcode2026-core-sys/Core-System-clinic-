@@ -43,14 +43,13 @@ It does not authorize application, database, production or CSAPI feature changes
 
 Main currently contains the merged Gate 03 implementation sequence through PR #200.
 
-Open unmerged CSAPI work observed on 2026-09-23:
+Current CSAPI GitHub state:
+- PR #201 — Gate 01/02 deep evidence reconciliation: CLOSED as superseded.
+- PR #203 — Gate 01/02 comprehensive repair and longitudinal continuity: OPEN, unmerged, canonical CSAPI work package.
+- PR #204 — AI Engineering Organization + system-wide engineering foundation: OPEN, unmerged, current system-wide engineering work package.
 
-- PR #201 — Gate 01/02 deep evidence reconciliation.
-- PR #203 — Gate 01/02 comprehensive repair and longitudinal continuity.
-
-Those PRs are active work evidence, not merged main truth.
-
-They must not be silently treated as completed, merged or closed.
+PR #203 remains downstream of the system-wide foundation and must not be treated as completed or merged.
+PR #204 is the current system-wide engineering package and is not a CSAPI feature package.
 
 Historical branch references exist in large numbers. Their names alone are not evidence that work is active or valid.
 
@@ -89,6 +88,8 @@ Project ref: qaslsjyxjwvdoiczmhgq
 Region: eu-central-1
 PostgreSQL: 17.6
 Project status observed: ACTIVE_HEALTHY
+
+Live evidence refreshed: 2026-09-25. Observed public schema: 126 tables; 277 public functions; 131 triggers; 278 RLS policies; 5 tenants; 396 patients; 139 visit sessions; 342 agenda events; 825 follow-ups; 17 operational work items.
 
 The database has known advisor findings. These are baseline findings, not automatically authorized repair scope.
 
