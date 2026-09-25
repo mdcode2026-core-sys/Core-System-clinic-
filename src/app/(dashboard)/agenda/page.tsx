@@ -80,8 +80,12 @@ export default function AgendaPage() {
     const next = new URLSearchParams(searchParams.toString());
     next.delete("patientId");
     next.delete("doctorId");
+    next.delete("bookingWorkItemId");
+    next.delete("treatmentPlanItemId");
     router.push(next.toString() ? `/agenda?${next.toString()}` : "/agenda");
   }, [router, searchParams]);
+  useEffect(() => { if (bookingWorkItemId) { setSelectedEvent(null); setFormDefaultDate(""); setIsFormOpen(true); } }, [bookingWorkItemId]);
+
   const isLoading = eventsLoading || patientsLoading || doctorsLoading || roomsLoading || resourcesLoading || proceduresLoading;
 
   return (
