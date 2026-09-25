@@ -78,7 +78,7 @@ const descriptionInput=page.getByPlaceholder(/short description|description|ال
 if(await descriptionInput.count())await descriptionInput.fill("First treatment stage");
 const plannedDateInput=page.getByLabel(/planned date|تاريخ التنفيذ المخطط/i).first();
 await plannedDateInput.waitFor({state:"visible",timeout:15000});
-await plannedDateInput.fill(new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Amman",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date(Date.now()+8*86400000)));
+await plannedDateInput.fill(new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Amman",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date(Date.now()+((1-new Date().getDay()+7)%7||7)*86400000)));
 await button(/add|إضافة/i);
 await activityInput.fill("Gate 02 Stage Two");
 if(await descriptionInput.count())await descriptionInput.fill("Second treatment stage");
@@ -104,7 +104,7 @@ console.log("PASS|18-clinical-decision-treatment-plan|19-multi-stage-plan");
   const date=dialog.locator('input[type="date"]').first();
   const times=dialog.locator('input[type="time"]');
   if(await times.count()<2)throw new Error("Agenda booking time controls missing");
-  await date.fill(new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Amman",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date(Date.now()+8*86400000)));
+  await date.fill(new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Amman",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date(Date.now()+((1-new Date().getDay()+7)%7||7)*86400000)));
   await times.nth(0).fill("11:00");
   await times.nth(1).fill("11:30");
   await dialog.getByRole("button",{name:/create|إنشاء/i}).click();
