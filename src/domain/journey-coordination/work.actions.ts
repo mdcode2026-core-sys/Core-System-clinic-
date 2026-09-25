@@ -33,7 +33,7 @@ export async function linkWorkItemToAgendaEvent(input:{workItemId:string;agendaE
   if(!isManager&&current.assignee_clinic_user_id!==ctx.clinicUser.id)return;
   const {data:event}=await ctx.supabase.from("master_agenda_events").select("id,tenant_id,patient_id").eq("tenant_id",ctx.tenantId).eq("id",input.agendaEventId).maybeSingle();
   if(!event||event.tenant_id!==ctx.tenantId||event.patient_id!==current.patient_id)return;
-  const {error}=await ctx.supabase.from("operational_work_items").update({agenda_event_id:event.id,status:"completed",completed_at:new Date().toISOString(),outcome:"Booked Agenda appointment "+event.id,updated_at:new Date().toISOString()}).eq("tenant_id",ctx.tenantId).eq("id",input.workItemId);
+  const {error}=await ctx.supabase.from("operational_work_items").update({status:"completed",completed_at:new Date().toISOString(),outcome:"Booked Agenda appointment "+event.id,updated_at:new Date().toISOString()}).eq("tenant_id",ctx.tenantId).eq("id",input.workItemId);
   if(error)throw new Error(error.message);
   await ctx.supabase.from("operational_work_history").insert({tenant_id:ctx.tenantId,work_item_id:input.workItemId,actor_clinic_user_id:ctx.clinicUser.id,from_status:current.status,to_status:"completed",note:"booking_handoff_completed:agenda_event:"+event.id});
   revalidatePath("/work-center");
