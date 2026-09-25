@@ -559,3 +559,89 @@ Remaining closure tracks:
 5. independent verification and closure documentation.
 
 CSAPI remains the active project workstream. Its next implementation step resumes only after this system-wide engineering foundation reaches closure.
+
+
+## 33. Canonical execution runtime verification — Patient Flow + authorization engine
+
+Live function-body inspection was completed for the canonical Patient Flow command family and the canonical authorization engine.
+
+### Patient Flow command family
+
+The inspected Live functions are SECURITY DEFINER and executable by authenticated users, but they do not rely on that property as their authorization boundary.
+
+The D3 functions:
+- resolve the actor from auth.uid() to an active tenant-scoped clinic user;
+- call the canonical has_effective_permission() engine;
+- use tenant-scoped row/advisory locking;
+- validate current Visit state;
+- perform the lifecycle writes atomically across Visit / queue / work-session / event state;
+- use correlation IDs for idempotent replay handling.
+
+This provides runtime evidence that the D3 command family is an actual execution authority rather than an application-side naming convention.
+
+### Authorization engine
+
+Live get_effective_permissions() remains the canonical permission resolver. It:
+- binds the caller to an active clinic user and tenant;
+- applies role permissions;
+- applies user permissions and overrides;
+- applies subscription capability limits;
+- preserves the Full Clinic Admin + full-subscription ceiling behavior;
+- is consumed by has_effective_permission().
+
+No second authorization engine was identified in this runtime inspection.
+
+### Concrete patient-identity authorization findings
+
+Two Live identity mutation/registration functions require controlled remediation review:
+
+1. update_patient_identity()
+   - verifies authenticated active clinic-user membership in the supplied tenant;
+   - resolves the Patient→Identity relationship;
+   - performs identity and clinic-patient mutation;
+   - does not call the canonical patients:update / effective-permission boundary.
+
+2. register_patient_identity()
+   - verifies authenticated active clinic-user membership in the supplied tenant;
+   - performs patient identity matching/creation and clinic-patient creation;
+   - does not call the canonical patients:create / effective-permission boundary.
+
+These are concrete authorization-boundary findings, not merely advisor warnings.
+
+They are recorded for a dedicated Patient/Identity authorization work package. No Live mutation is performed by the foundation audit.
+
+### Security-advisor reconciliation
+
+The current Supabase Security Advisor still reports:
+- 2 extensions in public schema;
+- 43 SECURITY DEFINER functions executable by authenticated users.
+
+These findings are control signals, not blanket proof of vulnerabilities. The function-body inspection above demonstrates why classification must be function-specific. D3 functions, for example, contain explicit actor/tenant/effective-permission checks despite the advisor warning.
+
+The remaining security work therefore requires classification into intentional privileged RPC, restricted internal RPC, or authorization defect before any bulk change.
+
+## 34. Foundation work-package register
+
+The following controlled remediation candidates are now registered without implementation:
+
+| ID | Domain | Finding | Required next action |
+|---|---|---|---|
+| ENG-AUTH-01 | Patient / Identity | register_patient_identity lacks patients:create boundary | Design canonical permission enforcement + regression tests |
+| ENG-AUTH-02 | Patient / Identity | update_patient_identity lacks patients:update boundary | Design canonical permission enforcement + regression tests |
+| ENG-AGENDA-01 | Agenda | legacy mutation hooks remain exported in agenda.queries.ts | Remove duplicate write capability only after caller/regression/runtime proof |
+| ENG-MIG-01 | Migration control | repository 227 vs Live 288; historical rename/re-number divergence | Complete semantic lineage mapping before any migration mutation |
+| ENG-SEC-01 | Database security | 43 authenticated SECURITY DEFINER findings | Function-by-function classification; no blanket revocation |
+| ENG-SEC-02 | Database security | 2 public-schema extensions | Architecture review before schema relocation |
+
+These work packages are deliberately not implemented as part of the foundation reconciliation.
+
+## 35. Updated foundation state
+
+The foundation now has direct runtime evidence for:
+- Patient Flow execution authority;
+- authorization-engine authority;
+- concrete Patient/Identity authorization gaps;
+- migration-history divergence;
+- duplicate Agenda write capability.
+
+The foundation remains OPEN only for the remaining system-wide reconciliation and independent verification tracks. The findings above are now controlled work packages rather than loose observations.
