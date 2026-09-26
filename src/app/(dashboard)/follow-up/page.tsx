@@ -9,11 +9,13 @@ import { listFollowupPatients, listFollowups } from "@/domain/followup/followup.
 import { FollowupShell } from "@/features/followup/followup-shell";
 import { FollowupPageHeader } from "@/features/followup/FollowupPageHeader";
 
-export default async function FollowUpPage() {
+export default async function FollowUpPage(props: { searchParams?: Promise<{ patientId?: string }> }) {
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) redirect("/login");
   const tenantId = await resolveTenantId(user.id);
+  const searchParams = await props.searchParams;
+  const patientId = searchParams?.patientId?.trim() || undefined;
   if (!tenantId) redirect("/login");
   const permissions = await getEffectivePermissions(user.id, tenantId);
   if (!permissions.includes("followup:read")) redirect("/");
@@ -21,7 +23,7 @@ export default async function FollowUpPage() {
   // One canonical follow-up read feeds all three views. Work and Scheduled are filtered client-side,
   // so the page must not fetch and serialize the same tenant-wide follow-up rows twice.
   const [listResult, patientsResult] = await Promise.all([
-    listFollowups(), permissions.includes("followup:create") ? listFollowupPatients() : Promise.resolve({ success: true as const, data: [] }),
+    listFollowups(patientId ? { patient_id: patientId } : {}), permissions.includes("followup:create") ? listFollowupPatients() : Promise.resolve({ success: true as const, data: [] }),
   ]);
   const listData = listResult.success ? listResult.data : [];
   const scheduledData = listData;
