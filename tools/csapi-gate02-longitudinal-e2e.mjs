@@ -145,7 +145,10 @@ console.log("PASS|18-clinical-decision-treatment-plan|19-multi-stage-plan");
   for(let attempt=1;attempt<=2&&!currentPlanReady;attempt++){
     try{await currentPlanButton.waitFor({state:"visible",timeout:15000});currentPlanReady=true}catch(error){if(attempt===2)throw error;await page.reload({waitUntil:"domcontentloaded",timeout:60000});await page.waitForTimeout(1000);}
   }
-  if(!currentPlanReady)throw new Error("Current longitudinal Treatment Plan did not become available");
+  if(!currentPlanReady){
+    const bodyText=(await page.locator("body").innerText()).replace(/\s+/g," ").trim();
+    throw new Error(`Current longitudinal Treatment Plan did not become available: ${bodyText.slice(0,4000)}`);
+  }
   await currentPlanButton.click();
   const stageSelects=page.locator("select");
   if(await stageSelects.count()<3)throw new Error("Second treatment stage control missing");
