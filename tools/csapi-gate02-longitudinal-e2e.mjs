@@ -90,11 +90,11 @@ const plannedDateInput=page.getByLabel(/planned date|تاريخ التنفيذ �
 await plannedDateInput.waitFor({state:"visible",timeout:15000});
 await plannedDateInput.fill(new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Amman",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date(Date.now()+((1-new Date().getDay()+7)%7||7)*86400000)));
 await button(/add|إضافة/i);
-await page.getByText("Gate 02 Stage One",{exact:true}).waitFor({state:"visible",timeout:30000});
+await page.getByText(/Gate 02 Stage One/).last().waitFor({state:"visible",timeout:30000});
 await activityInput.fill("Gate 02 Stage Two");
 if(await descriptionInput.count())await descriptionInput.fill("Second treatment stage");
 await button(/add|إضافة/i);
-await page.getByText("Gate 02 Stage Two",{exact:true}).waitFor({state:"visible",timeout:30000});
+await page.getByText(/Gate 02 Stage Two/).last().waitFor({state:"visible",timeout:30000});
 if(await page.getByRole("button",{name:/activate|تفعيل/i}).count())await button(/activate|تفعيل/i);
 console.log("PASS|18-clinical-decision-treatment-plan|19-multi-stage-plan");
 
