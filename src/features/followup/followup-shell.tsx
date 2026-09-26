@@ -5,6 +5,7 @@ import { useI18n } from "@/core/i18n/I18nProvider";
 import { FollowupListView } from "./followup-list-view";
 import { FollowupScheduledView } from "./followup-scheduled-view";
 import { FollowupCreateForm } from "./followup-create-form";
+import { listFollowups } from "@/domain/followup/followup.queries";
 import type { FollowupPatientOption, FollowupRecord } from "@/domain/followup/followup.types";
 
 interface FollowupShellProps {
@@ -23,6 +24,8 @@ export function FollowupShell({ initialList, initialScheduled, patients, initial
   const [scheduledData, setScheduledData] = useState(initialScheduled);
   const [showCreate, setShowCreate] = useState(false);
   const [now] = useState(() => Date.now());
+  const [listLoaded, setListLoaded] = useState(false);
+  const [listLoading, setListLoading] = useState(false);
 
   const active = listData.filter((f) => f.status === "open" || f.status === "in_progress");
   const overdue = active.filter((f) => new Date(f.scheduled_for).getTime() < now);
@@ -45,6 +48,26 @@ export function FollowupShell({ initialList, initialScheduled, patients, initial
     all: a.followup.all,
     scheduled: a.followup.scheduled,
   };
+
+  async function ensureListLoaded() {
+    if (listLoaded || listLoading) return;
+    setListLoading(true);
+    try {
+      const result = await listFollowups();
+      if (result.success) {
+        setListData(result.data);
+        setScheduledData(result.data);
+        setListLoaded(true);
+      }
+    } finally {
+      setListLoading(false);
+    }
+  }
+
+  const handleTabChange = (tab: "work" | "list" | "scheduled") => {
+    setActiveTab(tab);
+    if (tab === "list") void ensureListLoaded();
+  }
 
   const handleStatusUpdate = (updatedId: string, newStatus: string) => {
     const updater = (prev: FollowupRecord[]) => prev.map((f) => f.id === updatedId ? { ...f, status: newStatus as FollowupRecord["status"] } : f);
@@ -98,13 +121,13 @@ export function FollowupShell({ initialList, initialScheduled, patients, initial
       </section>
 
       <div className="flex flex-wrap gap-2 border-b border-border pb-2">
-        <button type="button" onClick={() => setActiveTab("work")} className={`rounded-md px-3 py-2 text-sm ${activeTab === "work" ? "bg-primary text-primary-foreground" : "bg-muted"}`}>{copy.work}</button>
-        <button type="button" onClick={() => setActiveTab("list")} className={`rounded-md px-3 py-2 text-sm ${activeTab === "list" ? "bg-primary text-primary-foreground" : "bg-muted"}`}>{copy.all}</button>
-        <button type="button" onClick={() => setActiveTab("scheduled")} className={`rounded-md px-3 py-2 text-sm ${activeTab === "scheduled" ? "bg-primary text-primary-foreground" : "bg-muted"}`}>{copy.scheduled}</button>
+        <button type="button" onClick={() => handleTabChange("work")} className={`rounded-md px-3 py-2 text-sm ${activeTab === "work" ? "bg-primary text-primary-foreground" : "bg-muted"}`}>{copy.work}</button>
+        <button type="button" onClick={() => handleTabChange("list")} className={`rounded-md px-3 py-2 text-sm ${activeTab === "list" ? "bg-primary text-primary-foreground" : "bg-muted"}`}>{copy.all}</button>
+        <button type="button" onClick={() => handleTabChange("scheduled")} className={`rounded-md px-3 py-2 text-sm ${activeTab === "scheduled" ? "bg-primary text-primary-foreground" : "bg-muted"}`}>{copy.scheduled}</button>
       </div>
 
       {activeTab === "work" && <FollowupListView records={active} canUpdate={canUpdate} onStatusUpdate={handleStatusUpdate} isPending={false} />}
-      {activeTab === "list" && <FollowupListView records={listData} canUpdate={canUpdate} onStatusUpdate={handleStatusUpdate} isPending={false} />}
+      {activeTab === "list" && (listLoading ? <div className="rounded-lg border border-dashed p-8 text-center text-muted-foreground">Loading…</div> : <FollowupListView records={listData} canUpdate={canUpdate} onStatusUpdate={handleStatusUpdate} isPending={false} />)}
       {activeTab === "scheduled" && <FollowupScheduledView records={scheduledData} canUpdate={canUpdate} onStatusUpdate={handleStatusUpdate} isPending={false} />}
     </div>
   );
