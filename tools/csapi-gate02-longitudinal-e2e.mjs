@@ -127,7 +127,12 @@ console.log("PASS|18-clinical-decision-treatment-plan|19-multi-stage-plan");
   await times.nth(0).fill(`${String(bookingHour).padStart(2,"0")}:00`);
   await times.nth(1).fill(`${String(bookingHour).padStart(2,"0")}:30`);
   await dialog.getByRole("button",{name:/create|إنشاء/i}).click();
-  await dialog.waitFor({state:"hidden",timeout:15000});
+  try {
+    await dialog.waitFor({state:"hidden",timeout:15000});
+  } catch (error) {
+    const dialogText=(await dialog.innerText()).replace(/\s+/g," ").trim();
+    throw new Error(`Agenda booking dialog did not close: ${dialogText || "no error text rendered"}`);
+  }
   await goto("/work-center");
   const currentBookingLink=page.locator(`a[href*="bookingWorkItemId=${encodeURIComponent(currentBookingWorkItemId)}"]`);
   if(await currentBookingLink.count())throw new Error("Completed Next Action still requires booking after Agenda handoff");
