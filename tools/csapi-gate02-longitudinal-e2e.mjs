@@ -181,7 +181,8 @@ console.log("PASS|18-clinical-decision-treatment-plan|19-multi-stage-plan");
   await actionTypeSelect.selectOption("review");
   await button(/save|حفظ/i);
   await page.waitForTimeout(700);
-  await goto("/follow-up");
+  // Keep the longitudinal follow-up verification scoped to the same patient context.
+  await goto("/follow-up?patientId="+encodeURIComponent(patientId));
   const resultButton=page.getByRole("button",{name:/record result|تسجيل النتيجة/i}).first();
   await resultButton.waitFor({state:"visible",timeout:15000});
   await resultButton.click();
