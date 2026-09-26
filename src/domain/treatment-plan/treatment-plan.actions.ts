@@ -38,6 +38,7 @@ async function ensureNextAction(supabase: any, tenantId: string, clinicUserId: s
   return workItem.id as string;
 }
 
+const TREATMENT_PLAN_LIST_SELECT = `id,patient_id,source_visit_id,title,diagnosis_summary,goals,status,start_date,target_end_date,completed_at,created_at,updated_at,clinic_patients!clinic_treatment_plans_patient_id_fkey(first_name,last_name)`;
 const TREATMENT_PLAN_SELECT = `id,patient_id,source_visit_id,title,diagnosis_summary,goals,status,start_date,target_end_date,completed_at,created_at,updated_at,clinic_patients!clinic_treatment_plans_patient_id_fkey(first_name,last_name),clinic_treatment_plan_items!clinic_treatment_plan_items_treatment_plan_id_fkey(id,treatment_plan_id,procedure_id,title,description,sequence_no,planned_date,quantity,status,completed_at,notes,clinic_procedures(procedure_name)),clinic_treatment_plan_visits!clinic_treatment_plan_visits_treatment_plan_id_fkey(id,treatment_plan_item_id,visit_id,linked_at)`;
 
 function mapTreatmentPlan(row: any): TreatmentPlanRecord {
@@ -50,13 +51,14 @@ async function loadPlan(supabase: any, tenantId: string, planId: string): Promis
   return data ? mapTreatmentPlan(data) : null;
 }
 
-// Keep list reads as one canonical nested query so a patient's historical plans do not fan out into concurrent PostgREST requests.
+// List reads intentionally return only plan-level fields. Detail children are loaded once for the selected plan,
+ // preventing historical plans from inflating the Patient/Treatment Plan workspace payload.
 async function loadPlans(supabase: any, tenantId: string, patientId?: string): Promise<TreatmentPlanRecord[]> {
-  let query = supabase.from("clinic_treatment_plans").select(TREATMENT_PLAN_SELECT).eq("tenant_id", tenantId).order("created_at", { ascending: false });
+  let query = supabase.from("clinic_treatment_plans").select(TREATMENT_PLAN_LIST_SELECT).eq("tenant_id", tenantId).order("created_at", { ascending: false });
   if (patientId) query = query.eq("patient_id", patientId);
   const { data, error } = await query;
   if (error) throw new Error(`Treatment plans fetch failed: ${error.message}`);
-  return (data ?? []).map(mapTreatmentPlan);
+  return (data ?? []).map((row: any) => mapTreatmentPlan({ ...row, clinic_treatment_plan_items: [], clinic_treatment_plan_visits: [] }));
 }
 
 export async function getTreatmentPlans(patientId?: string): Promise<TreatmentPlanRecord[]> {
