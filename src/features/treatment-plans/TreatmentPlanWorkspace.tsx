@@ -33,14 +33,23 @@ export function TreatmentPlanWorkspace() {
   };
   useEffect(() => {
     let active = true;
-    void getTreatmentPlans(patientId).then(async next => {
+    void getTreatmentPlans(patientId).then(next => {
       if (!active) return;
       setPlans(next);
       const first = next[0];
       if (!first) { setSelected(null); return; }
-      const detail = await getTreatmentPlan(first.id);
-      if (active) setSelected(detail);
-    }).catch(e => { if (active) setError(e instanceof Error ? e.message : p.loadFailed); }).finally(() => { if (active) setLoading(false); });
+      // Keep list rendering independent from detail loading so historical-plan reads
+      // cannot block the current plan selector from becoming interactive.
+      void getTreatmentPlan(first.id).then(detail => {
+        if (active) setSelected(detail);
+      }).catch(e => {
+        if (active) setError(e instanceof Error ? e.message : p.loadFailed);
+      });
+    }).catch(e => {
+      if (active) setError(e instanceof Error ? e.message : p.loadFailed);
+    }).finally(() => {
+      if (active) setLoading(false);
+    });
     return () => { active = false; };
   }, [patientId, p.loadFailed]);
   useEffect(() => { if (!patientId) return; let active = true; void getTreatmentPlanProcedureOptions().then(next => { if (!active) return; setProcedures(next); setItemProcedureId(next[0]?.id ?? ""); }).catch(e => { if (active) setError(e instanceof Error ? e.message : p.loadFailed); }); return () => { active = false; }; }, [patientId, p.loadFailed]);
