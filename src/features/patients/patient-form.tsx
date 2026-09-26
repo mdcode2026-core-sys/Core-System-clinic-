@@ -125,15 +125,15 @@ export function PatientForm({ patient, isOpen, onClose, onSuccess }: PatientForm
     }
   };
 
-  const resolveReview = async (decision: "LINK_EXISTING" | "CREATE_NEW") => {
-    if (!reviewCandidate || !tenantId) return;
+  const resolveReview = async (decision: "LINK_EXISTING" | "CREATE_NEW", candidateIdentityId: string) => {
+    if (!tenantId) return;
     setIsSubmitting(true);
     try {
       const response = await fetch("/api/patients", {
         method: "POST",
         headers: { "content-type": "application/json" },
         credentials: "same-origin",
-        body: JSON.stringify({ ...formData, match_decision: decision, candidate_identity_id: reviewCandidate.patient_identity_id }),
+        body: JSON.stringify({ ...formData, match_decision: decision, candidate_identity_id: candidateIdentityId }),
       });
       const result = (await response.json()) as PatientApiResult;
       if (!response.ok || result.error) {
@@ -174,8 +174,8 @@ export function PatientForm({ patient, isOpen, onClose, onSuccess }: PatientForm
             <p className="font-medium">{t.reviewRequired}</p>
             <p className="text-sm text-muted-foreground">{reviewCandidate.first_name} {reviewCandidate.family_name} · {reviewCandidate.date_of_birth ?? ""} · {reviewCandidate.phone_last4 ? "••••" + reviewCandidate.phone_last4 : ""}</p>
             <div className="flex flex-wrap gap-2">
-              <Button type="button" onClick={() => void resolveReview("LINK_EXISTING")} disabled={isSubmitting}>{t.linkExisting}</Button>
-              <Button type="button" variant="outline" onClick={() => void resolveReview("CREATE_NEW")} disabled={isSubmitting}>{t.createNewAfterReview}</Button>
+              <Button type="button" onClick={() => void resolveReview("LINK_EXISTING", reviewCandidate.patient_identity_id)} disabled={isSubmitting}>{t.linkExisting}</Button>
+              <Button type="button" variant="outline" onClick={() => void resolveReview("CREATE_NEW", reviewCandidate.patient_identity_id)} disabled={isSubmitting}>{t.createNewAfterReview}</Button>
             </div>
           </div>
         )}
