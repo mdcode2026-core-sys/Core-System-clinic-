@@ -194,7 +194,7 @@ console.log("PASS|18-clinical-decision-treatment-plan|19-multi-stage-plan");
   if(await resultBoxes.count())await resultBoxes.last().selectOption("followup");
   const nextDate=page.locator('input[type="datetime-local"]').last();
   if(await nextDate.count())await nextDate.fill(new Date(Date.now()+4*86400000).toISOString().slice(0,16));
-  await button(/save complete|حفظ وإكمال/i);
+  await button(/save(?: and)? complete|حفظ وإكمال/i);
   await page.waitForTimeout(900);
   await goto("/work-center");
   if(!(await page.getByText(/next action|الإجراء التالي/i).count()))throw new Error("Completed Follow-up did not expose canonical next-action work");
