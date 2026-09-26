@@ -50,6 +50,7 @@ async function loadPlan(supabase: any, tenantId: string, planId: string): Promis
   return data ? mapTreatmentPlan(data) : null;
 }
 
+// Keep list reads as one canonical nested query so a patient's historical plans do not fan out into concurrent PostgREST requests.
 async function loadPlans(supabase: any, tenantId: string, patientId?: string): Promise<TreatmentPlanRecord[]> {
   let query = supabase.from("clinic_treatment_plans").select(TREATMENT_PLAN_SELECT).eq("tenant_id", tenantId).order("created_at", { ascending: false });
   if (patientId) query = query.eq("patient_id", patientId);
