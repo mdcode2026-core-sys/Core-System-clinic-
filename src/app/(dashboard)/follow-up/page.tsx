@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/infrastructure/supabase/server";
 import { getEffectivePermissions } from "@/core/permissions/permissionEngine";
 import { resolveTenantId } from "@/core/auth/resolveTenantId";
-import { listFollowupPatients, listFollowups } from "@/domain/followup/followup.queries";
+import { getFollowupWorkQueue, listFollowupPatients } from "@/domain/followup/followup.queries";
 import { FollowupShell } from "@/features/followup/followup-shell";
 import { FollowupPageHeader } from "@/features/followup/FollowupPageHeader";
 
@@ -22,13 +22,12 @@ export default async function FollowUpPage(props: { searchParams?: Promise<{ pat
 
   // One canonical follow-up read feeds all three views. Work and Scheduled are filtered client-side,
   // so the page must not fetch and serialize the same tenant-wide follow-up rows twice.
-  const [listResult, patientsResult] = await Promise.all([
-    listFollowups(patientId ? { patient_id: patientId } : {}), permissions.includes("followup:create") ? listFollowupPatients() : Promise.resolve({ success: true as const, data: [] }),
+  const [workResult, patientsResult] = await Promise.all([
+    getFollowupWorkQueue(patientId), permissions.includes("followup:create") ? listFollowupPatients() : Promise.resolve({ success: true as const, data: [] }),
   ]);
-  const listData = listResult.success ? listResult.data : [];
-  const scheduledData = listData;
+  const workData = workResult.success ? workResult.data : [];
   const patients = patientsResult.success ? patientsResult.data : [];
-  const errorMessage = !listResult.success ? listResult.error : !patientsResult.success ? patientsResult.error : null;
+  const errorMessage = !workResult.success ? workResult.error : !patientsResult.success ? patientsResult.error : null;
 
-  return <div className="space-y-6"><FollowupPageHeader /><FollowupShell initialList={listData} initialScheduled={scheduledData} patients={patients} initialError={errorMessage} canCreate={permissions.includes("followup:create")} canUpdate={permissions.includes("followup:update")} /></div>;
+  return <div className="space-y-6"><FollowupPageHeader /><FollowupShell initialList={workData} initialScheduled={workData} patients={patients} initialError={errorMessage} canCreate={permissions.includes("followup:create")} canUpdate={permissions.includes("followup:update")} /></div>;
 }
