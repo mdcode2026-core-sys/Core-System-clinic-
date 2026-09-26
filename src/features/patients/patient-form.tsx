@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useAuth } from "@/core/auth/AuthContext";
+import { useTenantId } from "@/core/auth/useTenantId";
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
@@ -29,7 +29,7 @@ interface PatientApiResult {
 }
 
 export function PatientForm({ patient, isOpen, onClose, onSuccess }: PatientFormProps) {
-  const { tenantId } = useAuth();
+  const { tenantId } = useTenantId();
   const { invalidateAll } = useInvalidatePatients();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
