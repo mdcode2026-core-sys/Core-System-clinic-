@@ -34,25 +34,37 @@ async function ensureNextAction(supabase: any, tenantId: string, clinicUserId: s
   const { data: workItem, error } = await supabase.from("operational_work_items").insert({ tenant_id: tenantId, kind: "next_action", title, details, requester_clinic_user_id: clinicUserId, assignee_clinic_user_id: null, patient_id: patientId, source_type: "treatment_plan_item", source_id: sourceId, priority: "normal", due_at: nextItem.planned_date ? `${nextItem.planned_date}T09:00:00` : null }).select("id").single();
   if (error) throw new Error(`Treatment next-action creation failed: ${error.message}`);
   await supabase.from("operational_work_history").insert({ tenant_id: tenantId, work_item_id: workItem.id, actor_clinic_user_id: clinicUserId, from_status: null, to_status: "open", note: "created_from_treatment_plan_stage" });
+  revalidatePath("/work-center");
   return workItem.id as string;
 }
 
-async function loadPlan(supabase: any, tenantId: string, planId: string): Promise<TreatmentPlanRecord | null> {
-  const { data, error } = await supabase.from("clinic_treatment_plans").select(`id,patient_id,source_visit_id,title,diagnosis_summary,goals,status,start_date,target_end_date,completed_at,created_at,updated_at,clinic_patients(first_name,last_name),clinic_treatment_plan_items(id,treatment_plan_id,procedure_id,title,description,sequence_no,planned_date,quantity,status,completed_at,notes,clinic_procedures(procedure_name)),clinic_treatment_plan_visits(id,treatment_plan_item_id,visit_id,linked_at)`).eq("id", planId).eq("tenant_id", tenantId).single();
-  if (error || !data) return null;
-  const row = data as any;
+const TREATMENT_PLAN_LIST_SELECT = `id,patient_id,source_visit_id,title,diagnosis_summary,goals,status,start_date,target_end_date,completed_at,created_at,updated_at,clinic_patients!clinic_treatment_plans_patient_id_fkey(first_name,last_name)`;
+const TREATMENT_PLAN_SELECT = `id,patient_id,source_visit_id,title,diagnosis_summary,goals,status,start_date,target_end_date,completed_at,created_at,updated_at,clinic_patients!clinic_treatment_plans_patient_id_fkey(first_name,last_name),clinic_treatment_plan_items!clinic_treatment_plan_items_treatment_plan_id_fkey(id,treatment_plan_id,procedure_id,title,description,sequence_no,planned_date,quantity,status,completed_at,notes,clinic_procedures(procedure_name)),clinic_treatment_plan_visits!clinic_treatment_plan_visits_treatment_plan_id_fkey(id,treatment_plan_item_id,visit_id,linked_at)`;
+
+function mapTreatmentPlan(row: any): TreatmentPlanRecord {
   return { id: row.id, patient_id: row.patient_id, patient_name: row.clinic_patients ? `${row.clinic_patients.first_name} ${row.clinic_patients.last_name}` : null, source_visit_id: row.source_visit_id, title: row.title, diagnosis_summary: row.diagnosis_summary, goals: row.goals, status: row.status, start_date: row.start_date, target_end_date: row.target_end_date, completed_at: row.completed_at, created_at: row.created_at, updated_at: row.updated_at, items: (row.clinic_treatment_plan_items ?? []).sort((a: any, b: any) => a.sequence_no - b.sequence_no).map((item: any) => ({ id: item.id, treatment_plan_id: item.treatment_plan_id, procedure_id: item.procedure_id, procedure_name: item.clinic_procedures?.procedure_name ?? null, title: item.title, description: item.description, sequence_no: item.sequence_no, planned_date: item.planned_date, quantity: item.quantity, status: item.status, completed_at: item.completed_at, notes: item.notes })), visits: row.clinic_treatment_plan_visits ?? [] };
+}
+
+async function loadPlan(supabase: any, tenantId: string, planId: string): Promise<TreatmentPlanRecord | null> {
+  const { data, error } = await supabase.from("clinic_treatment_plans").select(TREATMENT_PLAN_SELECT).eq("id", planId).eq("tenant_id", tenantId).maybeSingle();
+  if (error) throw new Error(`Treatment plan load failed: ${error.message}`);
+  return data ? mapTreatmentPlan(data) : null;
+}
+
+// List reads intentionally return only plan-level fields. Detail children are loaded once for the selected plan,
+ // preventing historical plans from inflating the Patient/Treatment Plan workspace payload.
+async function loadPlans(supabase: any, tenantId: string, patientId?: string): Promise<TreatmentPlanRecord[]> {
+  let query = supabase.from("clinic_treatment_plans").select(TREATMENT_PLAN_LIST_SELECT).eq("tenant_id", tenantId).order("created_at", { ascending: false });
+  if (patientId) query = query.eq("patient_id", patientId);
+  const { data, error } = await query;
+  if (error) throw new Error(`Treatment plans fetch failed: ${error.message}`);
+  return (data ?? []).map((row: any) => mapTreatmentPlan({ ...row, clinic_treatment_plan_items: [], clinic_treatment_plan_visits: [] }));
 }
 
 export async function getTreatmentPlans(patientId?: string): Promise<TreatmentPlanRecord[]> {
   const { supabase, tenantId, permissions } = await getContext();
   requirePermission(permissions, "treatment_plans:read");
-  let query = supabase.from("clinic_treatment_plans").select("id").eq("tenant_id", tenantId).order("created_at", { ascending: false });
-  if (patientId) query = query.eq("patient_id", patientId);
-  const { data, error } = await query;
-  if (error) throw new Error(`Treatment plans fetch failed: ${error.message}`);
-  const plans = await Promise.all((data ?? []).map((row: any) => loadPlan(supabase, tenantId, row.id)));
-  return plans.filter(Boolean) as TreatmentPlanRecord[];
+  return loadPlans(supabase, tenantId, patientId);
 }
 
 export async function getTreatmentPlan(planId: string): Promise<TreatmentPlanRecord | null> {
@@ -61,7 +73,7 @@ export async function getTreatmentPlan(planId: string): Promise<TreatmentPlanRec
   return loadPlan(supabase, tenantId, planId);
 }
 
-export async function createTreatmentPlan(input: CreateTreatmentPlanInput): Promise<string> {
+export async function createTreatmentPlan(input: CreateTreatmentPlanInput): Promise<TreatmentPlanRecord> {
   const { supabase, user, clinicUser, tenantId, permissions } = await getContext();
   requirePermission(permissions, "treatment_plans:create");
   const title = input.title.trim();
@@ -75,7 +87,9 @@ export async function createTreatmentPlan(input: CreateTreatmentPlanInput): Prom
   const { data, error } = await supabase.from("clinic_treatment_plans").insert({ tenant_id: tenantId, patient_id: input.patientId, source_visit_id: input.sourceVisitId ?? null, title, diagnosis_summary: input.diagnosisSummary?.trim() || null, goals: input.goals?.trim() || null, start_date: input.startDate || null, target_end_date: input.targetEndDate || null, created_by: clinicUser.id }).select("id").single();
   if (error) throw new Error(`Treatment plan creation failed: ${error.message}`);
   revalidatePath("/(dashboard)/treatment-plans");
-  return data.id;
+  const createdPlan = await loadPlan(supabase, tenantId, data.id);
+  if (!createdPlan) throw new Error("Treatment plan was created but could not be reloaded");
+  return createdPlan;
 }
 
 async function validateTreatmentPlanActivation(supabase: any, tenantId: string, planId: string) {

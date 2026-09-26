@@ -25,8 +25,9 @@ const commands = {
     "npx",
     ["playwright", "test", "tools/ajm-production-auth-e2e.spec.mjs", "--reporter=line"],
   ]],
-  "patient-journey": [["real-world-clinic-journey-e2e", "node", ["tools/clinic-admin-real-world-e2e-v2.mjs"]]],
+  "patient-journey": [["gate02-longitudinal-runtime-e2e", "node", ["tools/csapi-gate02-longitudinal-e2e.mjs"]]],
   "cross-domain-runtime": [["cross-domain-runtime", "npm", ["run", "test:cross-domain-runtime"]]],
+  "csapi-gate02-clean-db": [["gate02-clean-db", "node", ["tools/csapi-gate02-clean-db.mjs"]]],
   "procurement-inventory-finance": [["procurement-inventory-finance-runtime", "npm", ["run", "test:cross-domain-runtime"]]],
   "global-experience-presentation-static": [["global-experience-presentation", "npm", ["run", "test:global-experience-presentation"]]],
   "global-experience-presentation-runtime": [["global-experience-presentation-runtime", "node", ["tools/global-experience-presentation-runtime.spec.mjs"]]],
@@ -316,7 +317,16 @@ try {
       console.log("D3_RUNTIME_AUTH_FIXTURE=claims-injected-local-copy");
     }
 
-    const code = run(command, effectiveArgs);
+    let code;
+    if (lane === "patient-journey") {
+      const captured = runCapture(command, effectiveArgs);
+      code = captured.status;
+      writeFileSync(`verification-lane-${lane}.log`, captured.stdout + "\n" + captured.stderr);
+      process.stdout.write(captured.stdout);
+      process.stderr.write(captured.stderr);
+    } else {
+      code = run(command, effectiveArgs);
+    }
     results.push({ name, command: [command, ...effectiveArgs].join(" "), exitCode: code, status: code === 0 ? "PASS" : "FAIL" });
     console.log(`=== LANE=${lane} TEST=${name} ${code === 0 ? "PASS" : "FAIL"} exit=${code} ===`);
 

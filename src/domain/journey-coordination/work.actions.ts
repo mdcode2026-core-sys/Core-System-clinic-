@@ -25,6 +25,21 @@ export async function createWorkItem(input:{kind?:"task"|"request"|"handoff"|"ne
   revalidatePath("/work-center");
 }
 
+export async function linkWorkItemToAgendaEvent(input:{workItemId:string;agendaEventId:string}){
+  const ctx=await context();if(!ctx)return;
+  const {data:current}=await ctx.supabase.from("operational_work_items").select("status,kind,source_type,source_id,assignee_clinic_user_id,patient_id").eq("tenant_id",ctx.tenantId).eq("id",input.workItemId).maybeSingle();
+  if(!current||current.kind!=="next_action"||current.source_type!=="treatment_plan_item")return;
+  const isManager=await canManage(ctx);
+  const canBook=await hasEffectivePermission("agenda:create",ctx.user.id);
+  if(!isManager&&!canBook&&current.assignee_clinic_user_id!==ctx.clinicUser.id)return;
+  const {data:event}=await ctx.supabase.from("master_agenda_events").select("id,tenant_id,patient_id").eq("tenant_id",ctx.tenantId).eq("id",input.agendaEventId).maybeSingle();
+  if(!event||event.tenant_id!==ctx.tenantId||event.patient_id!==current.patient_id)return;
+  const {error}=await ctx.supabase.from("operational_work_items").update({status:"completed",completed_at:new Date().toISOString(),outcome:"Booked Agenda appointment "+event.id,updated_at:new Date().toISOString()}).eq("tenant_id",ctx.tenantId).eq("id",input.workItemId);
+  if(error)throw new Error(error.message);
+  await ctx.supabase.from("operational_work_history").insert({tenant_id:ctx.tenantId,work_item_id:input.workItemId,actor_clinic_user_id:ctx.clinicUser.id,from_status:current.status,to_status:"completed",note:"booking_handoff_completed:agenda_event:"+event.id});
+  revalidatePath("/work-center");
+}
+
 export async function updateWorkItem(input:{id:string;status:"accepted"|"in_progress"|"blocked"|"completed"|"rejected"|"cancelled";outcome?:string|null}){
   const ctx=await context();if(!ctx)return;
   const {data:current}=await ctx.supabase.from("operational_work_items").select("status,assignee_clinic_user_id").eq("tenant_id",ctx.tenantId).eq("id",input.id).maybeSingle();if(!current)return;

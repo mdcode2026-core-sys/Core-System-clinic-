@@ -33,10 +33,12 @@ export async function listFollowups(filters: FollowupListFilters = {}): Promise<
   } catch (err) { return { success: false, error: err instanceof Error ? err.message : String(err) }; }
 }
 
-export async function getFollowupWorkQueue(): Promise<{ success: true; data: FollowupRecord[] } | { success: false; error: string }> {
+export async function getFollowupWorkQueue(patientId?: string): Promise<{ success: true; data: FollowupRecord[] } | { success: false; error: string }> {
   try {
     const { supabase, tenantId } = await getContext("followup:read");
-    const { data, error } = await (supabase as any).from("retention_followups").select(`*, patient:patient_id(first_name, last_name, phone_primary), assignee:assigned_to(full_name), creator:created_by(full_name)`).eq("tenant_id", tenantId).in("status", ["open", "in_progress"]).order("scheduled_for", { ascending: true });
+    let query = (supabase as any).from("retention_followups").select(`*, patient:patient_id(first_name, last_name, phone_primary), assignee:assigned_to(full_name), creator:created_by(full_name)`).eq("tenant_id", tenantId).in("status", ["open", "in_progress"]).order("scheduled_for", { ascending: true });
+    if (patientId) query = query.eq("patient_id", patientId);
+    const { data, error } = await query;
     if (error) throw new Error(error.message); return { success: true, data: enrich(data ?? []) };
   } catch (err) { return { success: false, error: err instanceof Error ? err.message : String(err) }; }
 }
