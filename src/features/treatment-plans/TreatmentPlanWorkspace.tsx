@@ -36,15 +36,10 @@ export function TreatmentPlanWorkspace() {
     void getTreatmentPlans(patientId).then(next => {
       if (!active) return;
       setPlans(next);
-      const first = next[0];
-      if (!first) { setSelected(null); return; }
-      // Keep list rendering independent from detail loading so historical-plan reads
-      // cannot block the current plan selector from becoming interactive.
-      void getTreatmentPlan(first.id).then(detail => {
-        if (active) setSelected(detail);
-      }).catch(e => {
-        if (active) setError(e instanceof Error ? e.message : p.loadFailed);
-      });
+      // The list is the independent workspace index. Detail loading starts only
+      // after an explicit plan selection, avoiding concurrent Server Actions during
+      // create/navigation flows.
+      setSelected(null);
     }).catch(e => {
       if (active) setError(e instanceof Error ? e.message : p.loadFailed);
     }).finally(() => {
