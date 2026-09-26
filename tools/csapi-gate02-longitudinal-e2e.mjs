@@ -156,6 +156,7 @@ console.log("PASS|18-clinical-decision-treatment-plan|19-multi-stage-plan");
   }
   await currentPlanButton.click();
   const stageSelects=page.locator("select");
+  await stageSelects.nth(2).waitFor({state:"visible",timeout:30000});
   if(await stageSelects.count()<3)throw new Error("Second treatment stage control missing");
   await stageSelects.last().selectOption("completed");
   await page.waitForTimeout(700);
