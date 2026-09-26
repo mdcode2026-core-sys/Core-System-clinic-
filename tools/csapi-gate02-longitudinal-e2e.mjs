@@ -140,7 +140,7 @@ console.log("PASS|18-clinical-decision-treatment-plan|19-multi-stage-plan");
 
   // 22/23 — second stage completion and planned Treatment Plan completion.
   await goto("/treatment-plans?patientId="+encodeURIComponent(patientId));
-  const currentPlanButton=page.getByRole("button",{name:longitudinalTitle,exact:true}).first();
+  const currentPlanButton=page.getByRole("button").filter({hasText:longitudinalTitle}).first();
   let currentPlanReady=false;
   let currentPlanWaitError="";
   for(let attempt=1;attempt<=2&&!currentPlanReady;attempt++){
