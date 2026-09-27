@@ -13,13 +13,7 @@ import { useInvalidatePatients } from "@/domain/patients/patients.queries";
 import type { Patient } from "@/domain/patients/patients.types";
 import { useI18n } from "@/core/i18n/I18nProvider";
 
-interface PatientFormProps {
-  patient?: Patient | null;
-  isOpen: boolean;
-  onClose: () => void;
-  onSuccess?: () => void;
-}
-
+interface PatientFormProps { patient?: Patient | null; isOpen: boolean; onClose: () => void; onSuccess?: () => void; }
 interface PatientApiResult {
   data?: { id: string };
   error?: string;
@@ -38,25 +32,13 @@ export function PatientForm({ patient, isOpen, onClose, onSuccess }: PatientForm
   const { messages } = useI18n();
   const t = messages.patients;
   const [formData, setFormData] = useState({
-    first_name: patient?.first_name || "",
-    last_name: patient?.last_name || "",
-    father_name: patient?.father_name || "",
-    family_name: patient?.family_name || patient?.last_name || "",
-    mother_name: patient?.mother_name || "",
-    national_id: "",
-    age_at_registration: patient?.age_at_registration?.toString() || "",
-    age_reference_date: patient?.age_reference_date || "",
-    first_name_ar: patient?.first_name_ar || "",
-    last_name_ar: patient?.last_name_ar || "",
-    phone_primary: patient?.phone_primary || "",
-    phone_secondary: patient?.phone_secondary || "",
-    email: patient?.email || "",
-    date_of_birth: patient?.date_of_birth || "",
-    gender: patient?.gender || "",
-    preferred_channel: patient?.preferred_channel || "whatsapp",
-    referral_source: patient?.referral_source || "",
-    patient_status: patient?.patient_status || "active",
-    notes: patient?.notes || "",
+    first_name: patient?.first_name || "", last_name: patient?.last_name || "", father_name: patient?.father_name || "",
+    family_name: patient?.family_name || patient?.last_name || "", mother_name: patient?.mother_name || "", national_id: "",
+    age_at_registration: patient?.age_at_registration?.toString() || "", age_reference_date: patient?.age_reference_date || "",
+    first_name_ar: patient?.first_name_ar || "", last_name_ar: patient?.last_name_ar || "", phone_primary: patient?.phone_primary || "",
+    phone_secondary: patient?.phone_secondary || "", email: patient?.email || "", date_of_birth: patient?.date_of_birth || "",
+    gender: patient?.gender || "", preferred_channel: patient?.preferred_channel || "whatsapp", referral_source: patient?.referral_source || "",
+    patient_status: patient?.patient_status || "active", notes: patient?.notes || "",
   });
 
   const validate = () => {
@@ -71,63 +53,14 @@ export function PatientForm({ patient, isOpen, onClose, onSuccess }: PatientForm
     return Object.keys(nextErrors).length === 0;
   };
 
-  const localizeServerError = (code: string) =>
-    ({
-      PATIENT_TENANT_MISSING: t.clinicNotFound,
-      PATIENT_DATABASE_ERROR: t.unexpected,
-      PATIENT_INVALID_REQUEST: t.unexpected,
-      PATIENT_REVIEW_REQUIRED: t.reviewRequired,
-    }[code] || t.unexpected);
-
-  const handleSubmit = async (event: React.FormEvent) => {
-    event.preventDefault();
-
-    setServerError(null);
-    setReviewCandidate(undefined);
-    if (!validate()) return;
-    if (!tenantId) {
-      setServerError(t.clinicNotFound);
-      return;
-    }
-
-    setIsSubmitting(true);
-    try {
-      const response = await fetch("/api/patients", {
-        method: patient ? "PATCH" : "POST",
-        headers: { "content-type": "application/json" },
-        credentials: "same-origin",
-        body: JSON.stringify({ ...formData, ...(patient ? { id: patient.id } : {}) }),
-      });
-
-      let result: PatientApiResult = {};
-      try {
-        result = (await response.json()) as PatientApiResult;
-      } catch {
-        result = { error: "PATIENT_DATABASE_ERROR" };
-      }
-
-      if (result.outcome === "REVIEW_REQUIRED" && result.candidate) {
-        setReviewCandidate(result.candidate);
-        setServerError(t.reviewRequired);
-        return;
-      }
-      if (!response.ok || result.error) {
-        setServerError(localizeServerError(result.error || "PATIENT_DATABASE_ERROR"));
-        return;
-      }
-
-      onSuccess?.();
-      onClose();
-      invalidateAll(tenantId);
-    } catch {
-      setServerError(t.unexpected);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+  const localizeServerError = (code: string) => ({
+    PATIENT_TENANT_MISSING: t.clinicNotFound, PATIENT_DATABASE_ERROR: t.unexpected,
+    PATIENT_INVALID_REQUEST: t.unexpected, PATIENT_REVIEW_REQUIRED: t.reviewRequired,
+  }[code] || t.unexpected);
 
   const resolveReview = async (decision: "LINK_EXISTING" | "CREATE_NEW", candidateIdentityId: string) => {
     setIsSubmitting(true);
+    setServerError(null);
     try {
       const response = await fetch("/api/patients", {
         method: "POST",
@@ -151,32 +84,64 @@ export function PatientForm({ patient, isOpen, onClose, onSuccess }: PatientForm
     }
   };
 
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setServerError(null);
+    const reviewDecision = new FormData(event.currentTarget).get("review_decision");
+    if (reviewCandidate && (reviewDecision === "LINK_EXISTING" || reviewDecision === "CREATE_NEW")) {
+      await resolveReview(reviewDecision, reviewCandidate.patient_identity_id);
+      return;
+    }
+    setReviewCandidate(undefined);
+    if (!validate()) return;
+    if (!tenantId) { setServerError(t.clinicNotFound); return; }
+
+    setIsSubmitting(true);
+    try {
+      const response = await fetch("/api/patients", {
+        method: patient ? "PATCH" : "POST",
+        headers: { "content-type": "application/json" },
+        credentials: "same-origin",
+        body: JSON.stringify({ ...formData, ...(patient ? { id: patient.id } : {}) }),
+      });
+      let result: PatientApiResult = {};
+      try { result = (await response.json()) as PatientApiResult; } catch { result = { error: "PATIENT_DATABASE_ERROR" }; }
+      if (result.outcome === "REVIEW_REQUIRED" && result.candidate) {
+        setReviewCandidate(result.candidate);
+        setServerError(t.reviewRequired);
+        return;
+      }
+      if (!response.ok || result.error) {
+        setServerError(localizeServerError(result.error || "PATIENT_DATABASE_ERROR"));
+        return;
+      }
+      onSuccess?.();
+      onClose();
+      invalidateAll(tenantId);
+    } catch {
+      setServerError(t.unexpected);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const handleChange = (field: string, value: string) => {
     setFormData((previous) => ({ ...previous, [field]: value }));
-    if (errors[field]) {
-      setErrors((previous) => {
-        const next = { ...previous };
-        delete next[field];
-        return next;
-      });
-    }
+    if (errors[field]) setErrors((previous) => { const next = { ...previous }; delete next[field]; return next; });
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="w-[calc(100vw-1rem)] max-w-2xl max-h-[90dvh] overflow-y-auto p-3 sm:w-[calc(100vw-2rem)] sm:p-6">
-        <DialogHeader>
-          <DialogTitle>{patient ? t.editTitle : t.newTitle}</DialogTitle>
-          <DialogDescription>{patient ? t.editDescription : t.newDescription}</DialogDescription>
-        </DialogHeader>
+        <DialogHeader><DialogTitle>{patient ? t.editTitle : t.newTitle}</DialogTitle><DialogDescription>{patient ? t.editDescription : t.newDescription}</DialogDescription></DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           {reviewCandidate && (
             <div className="rounded-md border border-amber-400/50 bg-amber-50 p-4 space-y-3">
               <p className="font-medium">{t.reviewRequired}</p>
               <p className="text-sm text-muted-foreground">{reviewCandidate.first_name} {reviewCandidate.family_name} · {reviewCandidate.date_of_birth ?? ""} · {reviewCandidate.phone_last4 ? "••••" + reviewCandidate.phone_last4 : ""}</p>
               <div className="flex flex-wrap gap-2">
-                <Button type="button" disabled={isSubmitting} onClick={() => void resolveReview("LINK_EXISTING", reviewCandidate.patient_identity_id)}>{t.linkExisting}</Button>
-                <Button type="button" variant="outline" disabled={isSubmitting} onClick={() => void resolveReview("CREATE_NEW", reviewCandidate.patient_identity_id)}>{t.createNewAfterReview}</Button>
+                <Button type="submit" name="review_decision" value="LINK_EXISTING" disabled={isSubmitting}>{t.linkExisting}</Button>
+                <Button type="submit" name="review_decision" value="CREATE_NEW" variant="outline" disabled={isSubmitting}>{t.createNewAfterReview}</Button>
               </div>
             </div>
           )}
@@ -185,55 +150,20 @@ export function PatientForm({ patient, isOpen, onClose, onSuccess }: PatientForm
             <Field id="first_name" label={t.firstName} required value={formData.first_name} error={errors.first_name} onChange={(value) => handleChange("first_name", value)} />
             <Field id="last_name" label={t.lastName} required value={formData.last_name} error={errors.last_name} onChange={(value) => handleChange("last_name", value)} />
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Field id="father_name" label={t.fatherName} required value={formData.father_name} error={errors.father_name} onChange={(value) => handleChange("father_name", value)} />
-            <Field id="family_name" label={t.familyName} required value={formData.family_name} error={errors.family_name} onChange={(value) => handleChange("family_name", value)} />
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Field id="first_name_ar" label={t.firstNameAr} value={formData.first_name_ar} onChange={(value) => handleChange("first_name_ar", value)} />
-            <Field id="last_name_ar" label={t.lastNameAr} value={formData.last_name_ar} onChange={(value) => handleChange("last_name_ar", value)} />
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Field id="phone_primary" label={t.primaryPhone} required value={formData.phone_primary} error={errors.phone_primary} onChange={(value) => handleChange("phone_primary", value)} type="tel" />
-            <Field id="phone_secondary" label={t.secondaryPhone} value={formData.phone_secondary} onChange={(value) => handleChange("phone_secondary", value)} type="tel" />
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Field id="mother_name" label={t.motherName} value={formData.mother_name} onChange={(value) => handleChange("mother_name", value)} />
-            <Field id="national_id" label={t.nationalId} value={formData.national_id} onChange={(value) => handleChange("national_id", value)} />
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Field id="email" label={t.email} value={formData.email} onChange={(value) => handleChange("email", value)} type="email" />
-            <Field id="date_of_birth" label={t.dob} value={formData.date_of_birth} error={errors.date_of_birth} onChange={(value) => handleChange("date_of_birth", value)} type="date" />
-            <Field id="age_at_registration" label={t.age} value={formData.age_at_registration} onChange={(value) => handleChange("age_at_registration", value)} type="number" />
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <SelectField label={t.gender} placeholder={t.chooseGender} value={formData.gender} error={errors.gender} onChange={(value) => handleChange("gender", value)} items={[["male", t.male], ["female", t.female], ["other", t.other]]} />
-            <SelectField label={t.preferredChannel} placeholder={t.chooseChannel} value={formData.preferred_channel} onChange={(value) => handleChange("preferred_channel", value)} items={[["whatsapp", t.whatsapp], ["sms", t.sms], ["email", t.emailChannel], ["phone", t.phoneChannel]]} />
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Field id="referral_source" label={t.referralSource} value={formData.referral_source} onChange={(value) => handleChange("referral_source", value)} placeholder={t.referralPlaceholder} />
-            <SelectField label={t.status} placeholder={t.chooseStatus} value={formData.patient_status} onChange={(value) => handleChange("patient_status", value)} items={[["active", t.active], ["inactive", t.inactive], ["archived", t.archived], ["blocked", t.blocked]]} />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="notes">{t.notes}</Label>
-            <Textarea id="notes" value={formData.notes} onChange={(event) => handleChange("notes", event.target.value)} placeholder={t.notesPlaceholder} rows={3} />
-          </div>
-          <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 pt-4">
-            <Button variant="outline" onClick={onClose} type="button" disabled={isSubmitting}>{t.cancel}</Button>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? <><Loader2 className="w-4 h-4 ml-2 animate-spin" />{t.saving}</> : <><Save className="w-4 h-4 ml-2" />{t.save}</>}
-            </Button>
-          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4"><Field id="father_name" label={t.fatherName} required value={formData.father_name} error={errors.father_name} onChange={(value) => handleChange("father_name", value)} /><Field id="family_name" label={t.familyName} required value={formData.familyName} /></div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4"><Field id="first_name_ar" label={t.firstNameAr} value={formData.first_name_ar} onChange={(value) => handleChange("first_name_ar", value)} /><Field id="last_name_ar" label={t.lastNameAr} value={formData.last_name_ar} onChange={(value) => handleChange("last_name_ar", value)} /></div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4"><Field id="phone_primary" label={t.primaryPhone} required value={formData.phone_primary} error={errors.phone_primary} onChange={(value) => handleChange("phone_primary", value)} type="tel" /><Field id="phone_secondary" label={t.secondaryPhone} value={formData.phone_secondary} onChange={(value) => handleChange("phone_secondary", value)} type="tel" /></div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4"><Field id="mother_name" label={t.motherName} value={formData.mother_name} onChange={(value) => handleChange("mother_name", value)} /><Field id="national_id" label={t.nationalId} value={formData.national_id} onChange={(value) => handleChange("national_id", value)} /></div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4"><Field id="email" label={t.email} value={formData.email} onChange={(value) => handleChange("email", value)} type="email" /><Field id="date_of_birth" label={t.dob} value={formData.date_of_birth} error={errors.date_of_birth} onChange={(value) => handleChange("date_of_birth", value)} type="date" /><Field id="age_at_registration" label={t.age} value={formData.age_at_registration} onChange={(value) => handleChange("age_at_registration", value)} type="number" /></div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4"><SelectField label={t.gender} placeholder={t.chooseGender} value={formData.gender} error={errors.gender} onChange={(value) => handleChange("gender", value)} items={[["male", t.male], ["female", t.female], ["other", t.other]]} /><SelectField label={t.preferredChannel} placeholder={t.chooseChannel} value={formData.preferred_channel} onChange={(value) => handleChange("preferred_channel", value)} items={[["whatsapp", t.whatsapp], ["sms", t.sms], ["email", t.emailChannel], ["phone", t.phoneChannel]]} /></div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4"><Field id="referral_source" label={t.referralSource} value={formData.referral_source} onChange={(value) => handleChange("referral_source", value)} placeholder={t.referralPlaceholder} /><SelectField label={t.status} placeholder={t.chooseStatus} value={formData.patient_status} onChange={(value) => handleChange("patient_status", value)} items={[["active", t.active], ["inactive", t.inactive], ["archived", t.archived], ["blocked", t.blocked]]} /></div>
+          <div className="space-y-2"><Label htmlFor="notes">{t.notes}</Label><Textarea id="notes" value={formData.notes} onChange={(event) => handleChange("notes", event.target.value)} placeholder={t.notesPlaceholder} rows={3} /></div>
+          <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 pt-4"><Button variant="outline" onClick={onClose} type="button" disabled={isSubmitting}>{t.cancel}</Button><Button type="submit" disabled={isSubmitting}>{isSubmitting ? <><Loader2 className="w-4 h-4 ml-2 animate-spin" />{t.saving}</> : <><Save className="w-4 h-4 ml-2" />{t.save}</>}</Button></div>
         </form>
       </DialogContent>
     </Dialog>
   );
 }
 
-function Field({ id, label, required, value, error, onChange, type = "text", placeholder }: { id: string; label: string; required?: boolean; value: string; error?: string; onChange: (value: string) => void; type?: string; placeholder?: string }) {
-  return <div className="space-y-2"><Label htmlFor={id}>{label}{required ? " *" : ""}</Label><Input id={id} type={type} value={value} onChange={(event) => onChange(event.target.value)} placeholder={placeholder} className={error ? "border-destructive" : ""} />{error && <p className="text-sm text-destructive">{error}</p>}</div>;
-}
-
-function SelectField({ label, placeholder, value, error, onChange, items }: { label: string; placeholder: string; value: string; error?: string; onChange: (value: string) => void; items: [string, string][] }) {
-  return <div className="space-y-2"><Label>{label}</Label><Select value={value} onValueChange={onChange}><SelectTrigger><SelectValue placeholder={placeholder} /></SelectTrigger><SelectContent>{items.map(([itemValue, itemLabel]) => <SelectItem key={itemValue} value={itemValue}>{itemLabel}</SelectItem>)}</SelectContent></Select></div>;
-}
+function Field({ id, label, required, value, error, onChange, type = "text", placeholder }: { id: string; label: string; required?: boolean; value: string; error?: string; onChange: (value: string) => void; type?: string; placeholder?: string }) { return <div className="space-y-2"><Label htmlFor={id}>{label}{required ? " *" : ""}</Label><Input id={id} type={type} value={value} onChange={(event) => onChange(event.target.value)} placeholder={placeholder} className={error ? "border-destructive" : ""} />{error && <p className="text-sm text-destructive">{error}</p>}</div>; }
+function SelectField({ label, placeholder, value, error, onChange, items }: { label: string; placeholder: string; value: string; error?: string; onChange: (value: string) => void; items: [string, string][] }) { return <div className="space-y-2"><Label>{label}</Label><Select value={value} onValueChange={onChange}><SelectTrigger><SelectValue placeholder={placeholder} /></SelectTrigger><SelectContent>{items.map(([itemValue, itemLabel]) => <SelectItem key={itemValue} value={itemValue}>{itemLabel}</SelectItem>)}</SelectContent></Select></div>; }
