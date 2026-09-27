@@ -37,7 +37,7 @@ export default function PatientsPage() {
       {!permsLoading && hasPermission("patients:create") && <Button onClick={() => setIsFormOpen(true)} className="w-full sm:w-auto"><UserPlus className="w-4 h-4 ml-2" />{t.add}</Button>}
     </div>
     <PatientList onBookAppointment={handleBookAppointment} />
-    <PatientForm isOpen={isFormOpen} onClose={() => setIsFormOpen(false)} onSuccess={() => setIsFormOpen(false)} />
+    {isFormOpen && <PatientForm isOpen={true} onClose={() => setIsFormOpen(false)} onSuccess={() => setIsFormOpen(false)} />}
     <AgendaEventForm isOpen={isAgendaOpen} onClose={() => { setIsAgendaOpen(false); setAgendaPatientId(null); }} tenantId={tenantId || ""} userId={userId || ""} patients={patientOptions} doctors={doctorOptions} rooms={roomOptions} procedures={procedureOptions} defaultPatientId={agendaPatientId || undefined} />
   </div>;
 }
