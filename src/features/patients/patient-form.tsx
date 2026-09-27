@@ -81,6 +81,14 @@ export function PatientForm({ patient, isOpen, onClose, onSuccess }: PatientForm
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
+
+    const submitter = event.nativeEvent as SubmitEvent;
+    const decision = submitter.submitter?.getAttribute("value");
+    if (reviewCandidate && (decision === "LINK_EXISTING" || decision === "CREATE_NEW")) {
+      await resolveReview(decision, reviewCandidate.patient_identity_id);
+      return;
+    }
+
     setServerError(null);
     setReviewCandidate(undefined);
     if (!validate()) return;
@@ -169,17 +177,17 @@ export function PatientForm({ patient, isOpen, onClose, onSuccess }: PatientForm
           <DialogTitle>{patient ? t.editTitle : t.newTitle}</DialogTitle>
           <DialogDescription>{patient ? t.editDescription : t.newDescription}</DialogDescription>
         </DialogHeader>
-        {reviewCandidate && (
-          <div className="rounded-md border border-amber-400/50 bg-amber-50 p-4 space-y-3">
-            <p className="font-medium">{t.reviewRequired}</p>
-            <p className="text-sm text-muted-foreground">{reviewCandidate.first_name} {reviewCandidate.family_name} · {reviewCandidate.date_of_birth ?? ""} · {reviewCandidate.phone_last4 ? "••••" + reviewCandidate.phone_last4 : ""}</p>
-            <div className="flex flex-wrap gap-2">
-              <Button type="button" onClick={() => void resolveReview("LINK_EXISTING", reviewCandidate.patient_identity_id)} disabled={isSubmitting}>{t.linkExisting}</Button>
-              <Button type="button" variant="outline" onClick={() => void resolveReview("CREATE_NEW", reviewCandidate.patient_identity_id)} disabled={isSubmitting}>{t.createNewAfterReview}</Button>
-            </div>
-          </div>
-        )}
         <form onSubmit={handleSubmit} className="space-y-4">
+          {reviewCandidate && (
+            <div className="rounded-md border border-amber-400/50 bg-amber-50 p-4 space-y-3">
+              <p className="font-medium">{t.reviewRequired}</p>
+              <p className="text-sm text-muted-foreground">{reviewCandidate.first_name} {reviewCandidate.family_name} · {reviewCandidate.date_of_birth ?? ""} · {reviewCandidate.phone_last4 ? "••••" + reviewCandidate.phone_last4 : ""}</p>
+              <div className="flex flex-wrap gap-2">
+                <Button type="submit" name="match_decision" value="LINK_EXISTING" disabled={isSubmitting}>{t.linkExisting}</Button>
+                <Button type="submit" name="match_decision" value="CREATE_NEW" variant="outline" disabled={isSubmitting}>{t.createNewAfterReview}</Button>
+              </div>
+            </div>
+          )}
           {serverError && <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive text-center">{serverError}</div>}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Field id="first_name" label={t.firstName} required value={formData.first_name} error={errors.first_name} onChange={(value) => handleChange("first_name", value)} />
