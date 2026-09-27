@@ -150,7 +150,7 @@ export function PatientForm({ patient, isOpen, onClose, onSuccess }: PatientForm
       setReviewCandidate(undefined);
       onSuccess?.();
       onClose();
-      invalidateAll(tenantId);
+      invalidateAll();
     } catch {
       setServerError(t.unexpected);
     } finally {
