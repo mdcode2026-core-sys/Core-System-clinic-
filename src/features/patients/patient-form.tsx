@@ -87,7 +87,8 @@ export function PatientForm({ patient, isOpen, onClose, onSuccess }: PatientForm
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setServerError(null);
-    const reviewDecision = new FormData(event.currentTarget).get("review_decision");
+    const submitter = (event.nativeEvent as SubmitEvent).submitter;
+    const reviewDecision = submitter?.getAttribute("name") === "review_decision" ? (submitter as HTMLButtonElement).value : null;
     if (reviewCandidate && (reviewDecision === "LINK_EXISTING" || reviewDecision === "CREATE_NEW")) {
       await resolveReview(reviewDecision, reviewCandidate.patient_identity_id);
       return;
