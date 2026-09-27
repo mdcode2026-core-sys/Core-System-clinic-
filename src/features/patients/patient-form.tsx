@@ -134,7 +134,6 @@ export function PatientForm({ patient, isOpen, onClose, onSuccess }: PatientForm
   };
 
   const resolveReview = async (decision: "LINK_EXISTING" | "CREATE_NEW", candidateIdentityId: string) => {
-    if (!tenantId) return;
     setIsSubmitting(true);
     try {
       const response = await fetch("/api/patients", {
