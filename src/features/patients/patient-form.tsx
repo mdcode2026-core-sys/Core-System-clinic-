@@ -82,13 +82,6 @@ export function PatientForm({ patient, isOpen, onClose, onSuccess }: PatientForm
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
 
-    const submitter = event.nativeEvent as SubmitEvent;
-    const decision = submitter.submitter?.getAttribute("value");
-    if (reviewCandidate && (decision === "LINK_EXISTING" || decision === "CREATE_NEW")) {
-      await resolveReview(decision, reviewCandidate.patient_identity_id);
-      return;
-    }
-
     setServerError(null);
     setReviewCandidate(undefined);
     if (!validate()) return;
@@ -182,8 +175,8 @@ export function PatientForm({ patient, isOpen, onClose, onSuccess }: PatientForm
               <p className="font-medium">{t.reviewRequired}</p>
               <p className="text-sm text-muted-foreground">{reviewCandidate.first_name} {reviewCandidate.family_name} · {reviewCandidate.date_of_birth ?? ""} · {reviewCandidate.phone_last4 ? "••••" + reviewCandidate.phone_last4 : ""}</p>
               <div className="flex flex-wrap gap-2">
-                <Button type="submit" name="match_decision" value="LINK_EXISTING" disabled={isSubmitting}>{t.linkExisting}</Button>
-                <Button type="submit" name="match_decision" value="CREATE_NEW" variant="outline" disabled={isSubmitting}>{t.createNewAfterReview}</Button>
+                <Button type="button" disabled={isSubmitting} onClick={() => void resolveReview("LINK_EXISTING", reviewCandidate.patient_identity_id)}>{t.linkExisting}</Button>
+                <Button type="button" variant="outline" disabled={isSubmitting} onClick={() => void resolveReview("CREATE_NEW", reviewCandidate.patient_identity_id)}>{t.createNewAfterReview}</Button>
               </div>
             </div>
           )}
