@@ -72,6 +72,10 @@ export async function POST(request: Request) {
   const tenantId = await getAuthorizedTenantId(supabase);
   if (!tenantId) return NextResponse.json({ error: TENANT_MISSING }, { status: 401 });
 
+  if (body.match_decision && !body.candidate_identity_id) {
+    return NextResponse.json({ error: INVALID_REQUEST }, { status: 400 });
+  }
+
   if (body.match_decision && body.candidate_identity_id) {
     const { data, error } = await supabase.rpc("resolve_patient_identity_match", {
       p_tenant_id: tenantId,

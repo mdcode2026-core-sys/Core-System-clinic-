@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useAuth } from "@/core/auth/AuthContext";
+import { useTenantId } from "@/core/auth/useTenantId";
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
@@ -29,7 +29,7 @@ interface PatientApiResult {
 }
 
 export function PatientForm({ patient, isOpen, onClose, onSuccess }: PatientFormProps) {
-  const { tenantId } = useAuth();
+  const { tenantId } = useTenantId();
   const { invalidateAll } = useInvalidatePatients();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -81,6 +81,14 @@ export function PatientForm({ patient, isOpen, onClose, onSuccess }: PatientForm
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
+
+    const submitter = event.nativeEvent as SubmitEvent;
+    const decision = submitter.submitter?.getAttribute("value");
+    if (reviewCandidate && (decision === "LINK_EXISTING" || decision === "CREATE_NEW")) {
+      await resolveReview(decision, reviewCandidate.patient_identity_id);
+      return;
+    }
+
     setServerError(null);
     setReviewCandidate(undefined);
     if (!validate()) return;
@@ -125,15 +133,14 @@ export function PatientForm({ patient, isOpen, onClose, onSuccess }: PatientForm
     }
   };
 
-  const resolveReview = async (decision: "LINK_EXISTING" | "CREATE_NEW") => {
-    if (!reviewCandidate || !tenantId) return;
+  const resolveReview = async (decision: "LINK_EXISTING" | "CREATE_NEW", candidateIdentityId: string) => {
     setIsSubmitting(true);
     try {
       const response = await fetch("/api/patients", {
         method: "POST",
         headers: { "content-type": "application/json" },
         credentials: "same-origin",
-        body: JSON.stringify({ ...formData, match_decision: decision, candidate_identity_id: reviewCandidate.patient_identity_id }),
+        body: JSON.stringify({ ...formData, match_decision: decision, candidate_identity_id: candidateIdentityId }),
       });
       const result = (await response.json()) as PatientApiResult;
       if (!response.ok || result.error) {
@@ -143,7 +150,7 @@ export function PatientForm({ patient, isOpen, onClose, onSuccess }: PatientForm
       setReviewCandidate(undefined);
       onSuccess?.();
       onClose();
-      invalidateAll(tenantId);
+      invalidateAll();
     } catch {
       setServerError(t.unexpected);
     } finally {
@@ -169,17 +176,17 @@ export function PatientForm({ patient, isOpen, onClose, onSuccess }: PatientForm
           <DialogTitle>{patient ? t.editTitle : t.newTitle}</DialogTitle>
           <DialogDescription>{patient ? t.editDescription : t.newDescription}</DialogDescription>
         </DialogHeader>
-        {reviewCandidate && (
-          <div className="rounded-md border border-amber-400/50 bg-amber-50 p-4 space-y-3">
-            <p className="font-medium">{t.reviewRequired}</p>
-            <p className="text-sm text-muted-foreground">{reviewCandidate.first_name} {reviewCandidate.family_name} · {reviewCandidate.date_of_birth ?? ""} · {reviewCandidate.phone_last4 ? "••••" + reviewCandidate.phone_last4 : ""}</p>
-            <div className="flex flex-wrap gap-2">
-              <Button type="button" onClick={() => void resolveReview("LINK_EXISTING")} disabled={isSubmitting}>{t.linkExisting}</Button>
-              <Button type="button" variant="outline" onClick={() => void resolveReview("CREATE_NEW")} disabled={isSubmitting}>{t.createNewAfterReview}</Button>
-            </div>
-          </div>
-        )}
         <form onSubmit={handleSubmit} className="space-y-4">
+          {reviewCandidate && (
+            <div className="rounded-md border border-amber-400/50 bg-amber-50 p-4 space-y-3">
+              <p className="font-medium">{t.reviewRequired}</p>
+              <p className="text-sm text-muted-foreground">{reviewCandidate.first_name} {reviewCandidate.family_name} · {reviewCandidate.date_of_birth ?? ""} · {reviewCandidate.phone_last4 ? "••••" + reviewCandidate.phone_last4 : ""}</p>
+              <div className="flex flex-wrap gap-2">
+                <Button type="submit" name="match_decision" value="LINK_EXISTING" disabled={isSubmitting}>{t.linkExisting}</Button>
+                <Button type="submit" name="match_decision" value="CREATE_NEW" variant="outline" disabled={isSubmitting}>{t.createNewAfterReview}</Button>
+              </div>
+            </div>
+          )}
           {serverError && <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive text-center">{serverError}</div>}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Field id="first_name" label={t.firstName} required value={formData.first_name} error={errors.first_name} onChange={(value) => handleChange("first_name", value)} />
