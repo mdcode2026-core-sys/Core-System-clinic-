@@ -141,8 +141,8 @@ export function PatientForm({ patient, isOpen, onClose, onSuccess }: PatientForm
               <p className="font-medium">{t.reviewRequired}</p>
               <p className="text-sm text-muted-foreground">{reviewCandidate.first_name} {reviewCandidate.family_name} · {reviewCandidate.date_of_birth ?? ""} · {reviewCandidate.phone_last4 ? "••••" + reviewCandidate.phone_last4 : ""}</p>
               <div className="flex flex-wrap gap-2">
-                <Button type="submit" name="review_decision" value="LINK_EXISTING" disabled={isSubmitting}>{t.linkExisting}</Button>
-                <Button type="submit" name="review_decision" value="CREATE_NEW" variant="outline" disabled={isSubmitting}>{t.createNewAfterReview}</Button>
+                <Button type="button" onClick={() => resolveReview("LINK_EXISTING", reviewCandidate.patient_identity_id)} disabled={isSubmitting}>{t.linkExisting}</Button>
+                <Button type="button" onClick={() => resolveReview("CREATE_NEW", reviewCandidate.patient_identity_id)} variant="outline" disabled={isSubmitting}>{t.createNewAfterReview}</Button>
               </div>
             </div>
           )}
