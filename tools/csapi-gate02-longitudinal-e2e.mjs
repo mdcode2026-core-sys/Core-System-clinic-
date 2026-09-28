@@ -9,7 +9,7 @@ const browser=await chromium.launch({headless:true});
 const context=await browser.newContext({locale:"en-US",viewport:{width:390,height:844}});
 const page=await context.newPage();
 
-async function goto(path){const r=await page.goto(baseUrl+path,{waitUntil:"domcontentloaded",timeout:60000});if(!r||r.status()>=400)throw new Error("HTTP failure "+path+" status="+(r?.status()??"unknown"));await page.waitForTimeout(500);if(/\/login(?:[/?#]|$)/i.test(page.url()))throw new Error("Redirected to login from "+path)}
+async function goto(path){const r=await page.goto(baseUrl+path,{waitUntil:"commit",timeout:60000});if(!r||r.status()>=400)throw new Error("HTTP failure "+path+" status="+(r?.status()??"unknown"));await page.waitForTimeout(750);if(/\/login(?:[/?#]|$)/i.test(page.url()))throw new Error("Redirected to login from "+path)}
 async function button(rx){const b=page.getByRole("button",{name:rx}).first();await b.waitFor({state:"visible",timeout:15000});await b.click()}
 try{
   let lastStatus="unknown";
