@@ -15,22 +15,48 @@ const phone = `0799${Date.now().toString().slice(-6)}`;
 const dob = "1980-05-15";
 
 async function login() {
-  const authResponsePromise = page.waitForResponse(
-    (r) => r.url().includes("/auth/v1/token"),
-    { timeout: 20000 },
-  ).catch(() => null);
+  let lastFailure = "";
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    await context.clearCookies();
+    const authResponsePromise = page.waitForResponse(
+      (r) => r.url().includes("/auth/v1/token"),
+      { timeout: 20000 },
+    ).catch(() => null);
 
-  await page.goto(`${baseUrl}/login`, { waitUntil: "domcontentloaded", timeout: 60000 });
-  await page.locator('input[type="email"],input[name="email"]').first().fill(email);
-  await page.locator('input[type="password"],input[name="password"]').first().fill(password);
-  await page.getByRole("button", { name: /sign in|login|log in/i }).first().click();
+    await page.goto(`${baseUrl}/login`, { waitUntil: "domcontentloaded", timeout: 60000 });
+    const emailInput = page.locator('input[type="email"],input[name="email"]').first();
+    const passwordInput = page.locator('input[type="password"],input[name="password"]').first();
+    const submit = page.getByRole("button", { name: /sign in|login|log in|تسجيل الدخول|دخول/i }).first();
+    await emailInput.waitFor({ state: "visible", timeout: 15000 });
+    await passwordInput.waitFor({ state: "visible", timeout: 15000 });
+    await submit.waitFor({ state: "visible", timeout: 15000 });
+    await emailInput.fill(email);
+    await passwordInput.fill(password);
+    await submit.click();
 
-  const authResponse = await authResponsePromise;
-  if (authResponse?.status() !== 200) {
-    throw new Error(`Authenticated login failed: HTTP ${authResponse?.status() ?? "no-response"}`);
+    const authResponse = await authResponsePromise;
+    const status = authResponse?.status() ?? null;
+    if (status !== 200) {
+      lastFailure = `attempt=${attempt} HTTP=${status ?? "no-response"} url=${page.url()}`;
+      if (attempt < 3) { await page.waitForTimeout(1000); continue; }
+      throw new Error(`Authenticated login failed. ${lastFailure}`);
+    }
+
+    await page.waitForTimeout(1500);
+    const cookies = await context.cookies(baseUrl);
+    const hasAuthCookie = cookies.some((cookie) => cookie.name.includes("auth-token"));
+    if (!hasAuthCookie) {
+      lastFailure = `attempt=${attempt} HTTP=200 but no auth cookie`;
+      if (attempt < 3) { await page.waitForTimeout(1000); continue; }
+      throw new Error(`Authenticated login did not establish a session. ${lastFailure}`);
+    }
+
+    await page.goto(`${baseUrl}/patients`, { waitUntil: "commit", timeout: 60000 });
+    if (!/\/login(?:[/?#]|$)/i.test(page.url())) return;
+    lastFailure = `attempt=${attempt} redirected to login`;
+    if (attempt < 3) await page.waitForTimeout(1000);
   }
-  await page.goto(`${baseUrl}/patients`, { waitUntil: "commit", timeout: 60000 });
-  if (/\/login(?:[/?#]|$)/i.test(page.url())) throw new Error("Patients page redirected to login");
+  throw new Error(`Authenticated login did not establish a patient session. ${lastFailure}`);
 }
 
 async function openPatientForm() {
