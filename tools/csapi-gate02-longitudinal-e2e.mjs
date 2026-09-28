@@ -110,16 +110,16 @@ if(await descriptionInput.count())await descriptionInput.fill("Second treatment 
 await button(/add|إضافة/i);
 await page.getByText(/Gate 02 Stage Two/).last().waitFor({state:"visible",timeout:30000});
 if(await page.getByRole("button",{name:/activate|تفعيل/i}).count())await button(/activate|تفعيل/i);
-console.log("PASS|18-clinical-decision-treatment-plan|19-multi-stage-plan");
+console.log("PASS|18-clinical-decision-treatment-plan|19-multi-stage-plan"); // deterministic handoff contract
 
 // 20/21 — first stage → canonical Next Action → Agenda-owned booking.
-  const statuses=page.locator("select");
-  if(await statuses.count()<3)throw new Error("Treatment stage status controls missing");
-  await statuses.nth(1).selectOption("completed");
-  await page.waitForTimeout(800);
+  const stageOneRow=page.getByText(/Gate 02 Stage One/).last().locator("xpath=ancestor::div[contains(@class,\"rounded-lg\")][1]");
+  const stageOneStatus=stageOneRow.locator("select").first();
+  await stageOneStatus.waitFor({state:"visible",timeout:15000});
+  await stageOneStatus.selectOption("completed");
   await goto("/work-center");
-  const booking=page.getByRole("link",{name:/book in agenda|حجز الموعد/i}).first();
-  await booking.waitFor({state:"visible",timeout:15000});
+  const booking=page.locator('a[href*="bookingWorkItemId="][href*="patientId='+encodeURIComponent(patientId)+'"]').first();
+  await booking.waitFor({state:"visible",timeout:30000});
   const bookingHref=await booking.getAttribute("href");
   const bookingWorkItemMatch=bookingHref?.match(/[?&]bookingWorkItemId=([^&]+)/);
   if(!bookingWorkItemMatch)throw new Error("Booking work-item context missing from Agenda handoff link");
