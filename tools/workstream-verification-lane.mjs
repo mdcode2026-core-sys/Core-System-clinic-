@@ -50,6 +50,7 @@ const runtimeLanes = new Set([
   "procurement-inventory-finance",
   "global-experience-presentation-runtime",
   "csapi-gate01-d3-runtime",
+  "gate03_identity_e2e",
 ]);
 
 function run(command, args) {
@@ -237,7 +238,8 @@ try {
   const needsPlaywright = lane === "authenticated-e2e" ||
     lane === "patient-journey" ||
     lane === "global-experience-presentation-runtime" ||
-    lane === "csapi-gate01-d3-runtime";
+    lane === "csapi-gate01-d3-runtime" ||
+    lane === "gate03_identity_e2e";
 
   if (needsPlaywright) {
     if (run("npm", ["install", "--no-save", "--no-package-lock", "@playwright/test@1.55.0", "playwright@1.55.0"]) !== 0) {
