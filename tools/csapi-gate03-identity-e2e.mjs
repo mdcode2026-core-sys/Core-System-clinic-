@@ -90,7 +90,7 @@ async function findPatient(text) {
 }
 
 async function searchPatient(text) {
-  const search = page.locator('input[placeholder*="Search"],input[placeholder*="search"]').first();
+  const search = page.locator("input.h-12:visible").first();
   await search.waitFor({ state: "visible", timeout: 10000 });
   await search.fill(text);
   await page.waitForTimeout(500);
@@ -159,7 +159,7 @@ try {
   await save(dialog);
   await dialog.waitFor({ state: "hidden", timeout: 20000 });
 
-  await page.locator('input[placeholder*="Search"],input[placeholder*="search"]').first().fill(updatedFamily);
+  await page.locator("input.h-12:visible").first().fill(updatedFamily);
   await page.waitForTimeout(500);
   const updatedPatient = await page.getByText(reviewPatientName, { exact: false }).first();
   await updatedPatient.waitFor({ state: "visible", timeout: 20000 });
