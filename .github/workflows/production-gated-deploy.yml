@@ -116,12 +116,19 @@ jobs:
           test -s /tmp/build-info.json
           grep -q '"verification":"production-candidate"' /tmp/build-info.json
 
-      - name: Local authenticated real-world E2E
+      - name: Local authenticated route E2E
         env:
           CORE_SYSTEM_PRODUCTION_URL: http://127.0.0.1:3000
         run: |
           set -o pipefail
-          node tools/clinic-admin-real-world-e2e-v2.mjs 2>&1 | tee local-production-e2e.log
+          npx playwright test tools/ajm-production-auth-e2e.spec.mjs --reporter=line 2>&1 | tee local-authenticated-route-e2e.log
+
+      - name: Gate 03 focused authenticated identity E2E
+        env:
+          CORE_SYSTEM_PRODUCTION_URL: http://127.0.0.1:3000
+        run: |
+          set -o pipefail
+          npm run csapi:gate03-identity-e2e 2>&1 | tee gate03-identity-e2e.log
 
       - name: Publish pre-production evidence
         if: always()
@@ -130,7 +137,8 @@ jobs:
           name: core-system-preproduction-evidence-${{ steps.candidate.outputs.sha }}
           path: |
             local-production.log
-            local-production-e2e.log
+            local-authenticated-route-e2e.log
+            gate03-identity-e2e.log
           if-no-files-found: warn
 
   deploy:

@@ -12,7 +12,7 @@
   "required_suites": [
     "engineering",
     "gate03_identity",
-    "patient-journey"
+    "gate03_identity_e2e"
   ],
   "precheck_required": true,
   "implementation_allowed_before_approval": true,

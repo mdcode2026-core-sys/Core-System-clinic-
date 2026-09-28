@@ -33,7 +33,8 @@
     "db:migrate": "supabase migration up",
     "db:reset": "supabase db reset",
     "csapi:gate02-continuity": "node tools/csapi-gate02-continuity-audit.mjs",
-    "csapi:gate03-identity": "node tools/csapi-gate03-patient-identity-audit.mjs"
+    "csapi:gate03-identity": "node tools/csapi-gate03-patient-identity-audit.mjs",
+    "csapi:gate03-identity-e2e": "node tools/csapi-gate03-identity-e2e.mjs"
   },
   "dependencies": {
     "sonner": "^1.7.4",
