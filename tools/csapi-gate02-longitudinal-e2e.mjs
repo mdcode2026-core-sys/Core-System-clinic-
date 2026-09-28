@@ -113,12 +113,17 @@ if(await page.getByRole("button",{name:/activate|تفعيل/i}).count())await bu
 console.log("PASS|18-clinical-decision-treatment-plan|19-multi-stage-plan");
 
 // 20/21 — first stage → canonical Next Action → Agenda-owned booking.
-  const statuses=page.locator("select");
-  if(await statuses.count()<3)throw new Error("Treatment stage status controls missing");
-  await statuses.nth(1).selectOption("completed");
-  await page.waitForTimeout(800);
+  const stageOneRow=page.getByText(/Gate 02 Stage One/).last().locator("xpath=ancestor::div[contains(@class,\"rounded-lg\")][1]");
+  const stageOneStatus=stageOneRow.locator("select").first();
+  await stageOneStatus.waitFor({state:"visible",timeout:15000});
+  await stageOneStatus.selectOption("completed");
+  const stageOneDeadline=Date.now()+30000; let stageOneCompleted=false;
+  while(Date.now()<stageOneDeadline){if(await stageOneStatus.inputValue().catch(()=>\"\")==="completed"){stageOneCompleted=true;break}await page.waitForTimeout(250)}
+  if(!stageOneCompleted)throw new Error("Stage One completion did not settle before Agenda handoff");
   await goto("/work-center");
-  const booking=page.getByRole("link",{name:/book in agenda|حجز الموعد/i}).first();
+  const patientWorkItem=page.locator("article").filter({hasText:new RegExp(\"Gate 02 Longitudinal Runtime|\"+longitudinalTitle+\"\")}).first();
+  await patientWorkItem.waitFor({state:"visible",timeout:30000});
+  const booking=patientWorkItem.getByRole("link",{name:/book in agenda|حجز الموعد/i}).first();
   await booking.waitFor({state:"visible",timeout:15000});
   const bookingHref=await booking.getAttribute("href");
   const bookingWorkItemMatch=bookingHref?.match(/[?&]bookingWorkItemId=([^&]+)/);
