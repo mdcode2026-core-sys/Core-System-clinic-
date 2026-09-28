@@ -40,7 +40,6 @@ export function PatientForm({ patient, isOpen, onClose, onSuccess }: PatientForm
     gender: patient?.gender || "", preferred_channel: patient?.preferred_channel || "whatsapp", referral_source: patient?.referral_source || "",
     patient_status: patient?.patient_status || "active", notes: patient?.notes || "",
   });
-
   const validate = () => {
     const nextErrors: Record<string, string> = {};
     if (!formData.first_name.trim()) nextErrors.first_name = t.requiredFirst;
