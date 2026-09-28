@@ -110,7 +110,7 @@ if(await descriptionInput.count())await descriptionInput.fill("Second treatment 
 await button(/add|إضافة/i);
 await page.getByText(/Gate 02 Stage Two/).last().waitFor({state:"visible",timeout:30000});
 if(await page.getByRole("button",{name:/activate|تفعيل/i}).count())await button(/activate|تفعيل/i);
-console.log("PASS|18-clinical-decision-treatment-plan|19-multi-stage-plan");
+console.log("PASS|18-clinical-decision-treatment-plan|19-multi-stage-plan"); // deterministic handoff contract
 
 // 20/21 — first stage → canonical Next Action → Agenda-owned booking.
   const stageOneRow=page.getByText(/Gate 02 Stage One/).last().locator("xpath=ancestor::div[contains(@class,"rounded-lg")][1]");
