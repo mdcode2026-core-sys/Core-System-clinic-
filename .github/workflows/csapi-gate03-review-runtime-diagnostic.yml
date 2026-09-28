@@ -43,7 +43,7 @@ jobs:
             sleep 2
           done
           test -s /tmp/build-info.json
-      - run: node tools/csapi-gate03-review-runtime-diagnostic.mjs
+      - run: node tools/csapi-gate03-identity-e2e.mjs
       - if: always()
         uses: actions/upload-artifact@v4
         with:
