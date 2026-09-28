@@ -119,10 +119,21 @@ try {
   const reviewPatientName = `${stamp} Review`;
   dialog = await openPatientForm();
   await fillRegistration(dialog, reviewPatientName, firstFamily, phone);
+  const reviewResponsePromise = page.waitForResponse(
+    (response) => response.url().includes("/api/patients") && response.request().method() === "POST",
+    { timeout: 20000 },
+  );
   await save(dialog);
+  const reviewResponse = await reviewResponsePromise;
+  const reviewPayload = await reviewResponse.json();
+  if (reviewResponse.status() !== 409 || reviewPayload?.outcome !== "REVIEW_REQUIRED" || !reviewPayload?.candidate?.patient_identity_id) {
+    throw new Error(`Gate 03 review contract mismatch: HTTP=${reviewResponse.status()} payload=${JSON.stringify(reviewPayload)}`);
+  }
 
-  await dialog.getByText(/review required/i).waitFor({ state: "visible", timeout: 20000 });
-  await dialog.getByRole("button", { name: /create new after review/i }).click();
+  // The review state is localized; assert the candidate rendered by the UI rather than
+  // coupling the E2E to one translation string.
+  await dialog.getByText(firstPatientName, { exact: false }).waitFor({ state: "visible", timeout: 20000 });
+  await dialog.getByRole("button", { name: /create new after review|إنشاء ملف جديد بعد المراجعة/i }).click();
   await dialog.waitFor({ state: "hidden", timeout: 20000 });
   await findPatient(reviewPatientName);
   console.log("PASS|gate03 REVIEW_REQUIRED and CREATE_NEW resolution");
