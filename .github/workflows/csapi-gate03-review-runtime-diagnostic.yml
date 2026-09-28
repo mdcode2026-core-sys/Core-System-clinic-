@@ -1,0 +1,52 @@
+name: CSAPI Gate 03 Review Runtime Diagnostic
+
+on:
+  push:
+    branches:
+      - csapi/gate03-review-e2e-contract-root-fix-20260928
+
+permissions:
+  contents: read
+
+jobs:
+  diagnostic:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: https://qaslsjyxjwvdoiczmhgq.supabase.co
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+      CORE_SYSTEM_E2E_EMAIL: ${{ secrets.CORE_SYSTEM_E2E_EMAIL }}
+      CORE_SYSTEM_E2E_PASSWORD: ${{ secrets.CORE_SYSTEM_E2E_PASSWORD }}
+      NEXT_PUBLIC_APP_URL: http://127.0.0.1:3000
+      CORE_SYSTEM_PRODUCTION_URL: http://127.0.0.1:3000
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm install --no-save --no-package-lock @playwright/test@1.55.0 playwright@1.55.0
+      - run: npx playwright install --with-deps chromium
+      - run: npm run build
+      - run: |
+          npm start > diagnostic-runtime.log 2>&1 &
+          echo $! > diagnostic-runtime.pid
+          for attempt in $(seq 1 60); do
+            if curl -fsS --max-time 5 http://127.0.0.1:3000/api/build-info >/tmp/build-info.json; then
+              cat /tmp/build-info.json
+              break
+            fi
+            sleep 2
+          done
+          test -s /tmp/build-info.json
+      - run: node tools/csapi-gate03-review-runtime-diagnostic.mjs
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: csapi-gate03-review-runtime-diagnostic-${{ github.sha }}
+          path: diagnostic-runtime.log
+          if-no-files-found: warn
