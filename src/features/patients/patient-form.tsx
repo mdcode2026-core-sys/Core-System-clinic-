@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useTenantId } from "@/core/auth/useTenantId";
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
@@ -40,34 +40,6 @@ export function PatientForm({ patient, isOpen, onClose, onSuccess }: PatientForm
     gender: patient?.gender || "", preferred_channel: patient?.preferred_channel || "whatsapp", referral_source: patient?.referral_source || "",
     patient_status: patient?.patient_status || "active", notes: patient?.notes || "",
   });
-
-  useEffect(() => {
-    setFormData({
-      first_name: patient?.first_name || "",
-      last_name: patient?.last_name || "",
-      father_name: patient?.father_name || "",
-      family_name: patient?.family_name || patient?.last_name || "",
-      mother_name: patient?.mother_name || "",
-      national_id: "",
-      age_at_registration: patient?.age_at_registration?.toString() || "",
-      age_reference_date: patient?.age_reference_date || "",
-      first_name_ar: patient?.first_name_ar || "",
-      last_name_ar: patient?.last_name_ar || "",
-      phone_primary: patient?.phone_primary || "",
-      phone_secondary: patient?.phone_secondary || "",
-      email: patient?.email || "",
-      date_of_birth: patient?.date_of_birth || "",
-      gender: patient?.gender || "",
-      preferred_channel: patient?.preferred_channel || "whatsapp",
-      referral_source: patient?.referral_source || "",
-      patient_status: patient?.patient_status || "active",
-      notes: patient?.notes || "",
-    });
-    setErrors({});
-    setServerError(null);
-    setReviewCandidate(undefined);
-  }, [patient?.id]);
-
   const validate = () => {
     const nextErrors: Record<string, string> = {};
     if (!formData.first_name.trim()) nextErrors.first_name = t.requiredFirst;
