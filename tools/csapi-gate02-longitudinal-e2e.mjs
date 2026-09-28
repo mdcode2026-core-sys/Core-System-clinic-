@@ -9,7 +9,21 @@ const browser=await chromium.launch({headless:true});
 const context=await browser.newContext({locale:"en-US",viewport:{width:390,height:844}});
 const page=await context.newPage();
 
-async function goto(path){const r=await page.goto(baseUrl+path,{waitUntil:"domcontentloaded",timeout:60000});if(!r||r.status()>=400)throw new Error("HTTP failure "+path+" status="+(r?.status()??"unknown"));await page.waitForTimeout(500);if(/\/login(?:[/?#]|$)/i.test(page.url()))throw new Error("Redirected to login from "+path)}
+async function goto(path){
+  let navigationError=null;
+  try{
+    const r=await page.goto(baseUrl+path,{waitUntil:"commit",timeout:60000});
+    if(!r||r.status()>=400)throw new Error("HTTP failure "+path+" status="+(r?.status()??"unknown"));
+  }catch(error){
+    navigationError=error instanceof Error?error.message:String(error);
+    if(!navigationError.includes("ABORTED"))throw error;
+    await page.waitForTimeout(1500);
+    console.log(`E2E_NAVIGATION_STREAM_ABORTED=${path} url=${page.url()}`);
+  }
+  await page.waitForTimeout(750);
+  if(/\/login(?:[/?#]|$)/i.test(page.url()))throw new Error("Redirected to login from "+path);
+  if(navigationError&&!page.url().includes(path.split("?")[0]))throw new Error(`Navigation aborted before reaching ${path}: ${navigationError}`);
+}
 async function button(rx){const b=page.getByRole("button",{name:rx}).first();await b.waitFor({state:"visible",timeout:15000});await b.click()}
 try{
   let lastStatus="unknown";
@@ -128,12 +142,17 @@ console.log("PASS|18-clinical-decision-treatment-plan|19-multi-stage-plan");
   await date.fill(bookingDateValue);
   await times.nth(0).fill(`${String(bookingHour).padStart(2,"0")}:00`);
   await times.nth(1).fill(`${String(bookingHour).padStart(2,"0")}:30`);
+  const agendaResponsePromise=page.waitForResponse(r=>r.url().includes("/api/agenda/events")&&r.request().method()==="POST",{timeout:20000}).catch(()=>null);
   await dialog.getByRole("button",{name:/create|إنشاء/i}).click();
+  const agendaResponse=await agendaResponsePromise;
+  const agendaStatus=agendaResponse?.status()??"no-response";
+  const agendaBody=agendaResponse?await agendaResponse.text().catch(()=>""): "";
+  console.log(`E2E_NEXT_ACTION_AGENDA_HTTP status=${agendaStatus} body=${agendaBody.slice(0,2000)}`);
   try {
     await dialog.waitFor({state:"hidden",timeout:15000});
   } catch (error) {
     const dialogText=(await dialog.innerText()).replace(/\s+/g," ").trim();
-    throw new Error(`Agenda booking dialog did not close: ${dialogText || "no error text rendered"}`);
+    throw new Error(`Agenda booking dialog did not close: HTTP ${agendaStatus} ${agendaBody.slice(0,1000)}; dialog: ${dialogText || "no error text rendered"}`);
   }
   await goto("/work-center");
   const currentBookingLink=page.locator(`a[href*="bookingWorkItemId=${encodeURIComponent(currentBookingWorkItemId)}"]`);
