@@ -134,7 +134,11 @@ try {
   // The review state is localized; assert the candidate rendered by the UI rather than
   // coupling the E2E to one translation string.
   await dialog.getByText(firstPatientName, { exact: false }).waitFor({ state: "visible", timeout: 20000 });
-  await dialog.getByRole("button", { name: /create new after review|إنشاء ملف جديد بعد المراجعة/i }).click();
+  const reviewActions = dialog.locator("div.rounded-md.border").filter({ hasText: firstPatientName }).getByRole("button");
+  if (await reviewActions.count() !== 2) {
+    throw new Error(`Gate 03 review actions contract mismatch: expected 2 buttons, found=${await reviewActions.count()}`);
+  }
+  await reviewActions.nth(1).click();
   await dialog.waitFor({ state: "hidden", timeout: 20000 });
   await findPatient(reviewPatientName);
   console.log("PASS|gate03 REVIEW_REQUIRED and CREATE_NEW resolution");
