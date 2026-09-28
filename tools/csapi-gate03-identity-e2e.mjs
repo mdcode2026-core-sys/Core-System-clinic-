@@ -29,7 +29,7 @@ async function login() {
   if (authResponse?.status() !== 200) {
     throw new Error(`Authenticated login failed: HTTP ${authResponse?.status() ?? "no-response"}`);
   }
-  await page.goto(`${baseUrl}/patients`, { waitUntil: "domcontentloaded", timeout: 60000 });
+  await page.goto(`${baseUrl}/patients`, { waitUntil: "commit", timeout: 60000 });
   if (/\/login(?:[/?#]|$)/i.test(page.url())) throw new Error("Patients page redirected to login");
 }
 
