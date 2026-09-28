@@ -26,6 +26,7 @@ const commands = {
     ["playwright", "test", "tools/ajm-production-auth-e2e.spec.mjs", "--reporter=line"],
   ]],
   "patient-journey": [["gate02-longitudinal-runtime-e2e", "node", ["tools/csapi-gate02-longitudinal-e2e.mjs"]]],
+  "gate03_identity_e2e": [["gate03-identity-authenticated-e2e", "npm", ["run", "csapi:gate03-identity-e2e"]]],
   "cross-domain-runtime": [["cross-domain-runtime", "npm", ["run", "test:cross-domain-runtime"]]],
   "csapi-gate02-clean-db": [["gate02-clean-db", "node", ["tools/csapi-gate02-clean-db.mjs"]]],
   "procurement-inventory-finance": [["procurement-inventory-finance-runtime", "npm", ["run", "test:cross-domain-runtime"]]],
