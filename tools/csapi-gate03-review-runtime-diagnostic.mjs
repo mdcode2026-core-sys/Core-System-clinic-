@@ -27,6 +27,7 @@ page.on("response", (response) => {
 const stamp = "G03-DIAG-" + Date.now();
 const phone = "0788" + Date.now().toString().slice(-6);
 const dob = "1980-05-15";
+const fatherName = `${stamp} Father`;
 
 async function login() {
   await context.clearCookies();
@@ -51,7 +52,7 @@ async function openForm() {
 async function fill(dialog, first, family, phoneValue) {
   await dialog.locator("#first_name").fill(first);
   await dialog.locator("#last_name").fill(family);
-  await dialog.locator("#father_name").fill("G03 Father");
+  await dialog.locator("#father_name").fill(fatherName);
   await dialog.locator("#family_name").fill(family);
   await dialog.locator("#phone_primary").fill(phoneValue);
   await dialog.locator("#date_of_birth").fill(dob);
