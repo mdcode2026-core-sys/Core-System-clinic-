@@ -128,12 +128,17 @@ console.log("PASS|18-clinical-decision-treatment-plan|19-multi-stage-plan");
   await date.fill(bookingDateValue);
   await times.nth(0).fill(`${String(bookingHour).padStart(2,"0")}:00`);
   await times.nth(1).fill(`${String(bookingHour).padStart(2,"0")}:30`);
+  const agendaResponsePromise=page.waitForResponse(r=>r.url().includes("/api/agenda/events")&&r.request().method()==="POST",{timeout:20000}).catch(()=>null);
   await dialog.getByRole("button",{name:/create|إنشاء/i}).click();
+  const agendaResponse=await agendaResponsePromise;
+  const agendaStatus=agendaResponse?.status()??"no-response";
+  const agendaBody=agendaResponse?await agendaResponse.text().catch(()=>""): "";
+  console.log(`E2E_NEXT_ACTION_AGENDA_HTTP status=${agendaStatus} body=${agendaBody.slice(0,2000)}`);
   try {
     await dialog.waitFor({state:"hidden",timeout:15000});
   } catch (error) {
     const dialogText=(await dialog.innerText()).replace(/\s+/g," ").trim();
-    throw new Error(`Agenda booking dialog did not close: ${dialogText || "no error text rendered"}`);
+    throw new Error(`Agenda booking dialog did not close: HTTP ${agendaStatus} ${agendaBody.slice(0,1000)}; dialog: ${dialogText || "no error text rendered"}`);
   }
   await goto("/work-center");
   const currentBookingLink=page.locator(`a[href*="bookingWorkItemId=${encodeURIComponent(currentBookingWorkItemId)}"]`);
