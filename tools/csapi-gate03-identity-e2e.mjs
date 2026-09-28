@@ -13,6 +13,7 @@ page.setDefaultTimeout(30000);
 const stamp = `G03-${Date.now()}`;
 const phone = `0799${Date.now().toString().slice(-6)}`;
 const dob = "1980-05-15";
+const fatherName = `${stamp} Father`;
 
 async function login() {
   let lastFailure = "";
@@ -67,10 +68,10 @@ async function openPatientForm() {
   return dialog;
 }
 
-async function fillRegistration(dialog, firstName, familyName, phoneValue) {
+async function fillRegistration(dialog, firstName, familyName, phoneValue, father = fatherName) {
   await dialog.locator("#first_name").fill(firstName);
   await dialog.locator("#last_name").fill(familyName);
-  await dialog.locator("#father_name").fill("G03 Father");
+  await dialog.locator("#father_name").fill(father);
   await dialog.locator("#family_name").fill(familyName);
   await dialog.locator("#phone_primary").fill(phoneValue);
   await dialog.locator("#date_of_birth").fill(dob);
