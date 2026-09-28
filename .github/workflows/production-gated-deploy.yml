@@ -142,45 +142,29 @@ jobs:
           if-no-files-found: warn
 
   deploy:
-    name: DEPLOY — Exact validated candidate to Production
+    name: DEPLOY — Await exact validated candidate via Vercel Git Integration
     needs: predeploy
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
-      - name: Checkout exact validated candidate
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ needs.predeploy.outputs.candidate_sha }}
-          fetch-depth: 0
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-
-      - name: Install Vercel CLI
-        run: npm install --global vercel@latest
-
-      - name: Pull production environment
-        run: vercel pull --yes --environment=production --token="${{ secrets.VERCEL_TOKEN }}"
-
-      - name: Build exact production candidate
+      - name: Wait for Vercel Git deployment to expose exact candidate
+        shell: bash
         env:
-          VERCEL_GIT_PROVIDER: github
-          VERCEL_GIT_REPO_OWNER: mdcode2026-core-sys
-          VERCEL_GIT_REPO_SLUG: Core-System-clinic-
-          VERCEL_GIT_COMMIT_REF: main
-          VERCEL_GIT_COMMIT_SHA: ${{ needs.predeploy.outputs.candidate_sha }}
-        run: vercel build --prod --token="${{ secrets.VERCEL_TOKEN }}"
-
-      - name: Deploy exact prebuilt candidate
-        env:
-          VERCEL_GIT_PROVIDER: github
-          VERCEL_GIT_REPO_OWNER: mdcode2026-core-sys
-          VERCEL_GIT_REPO_SLUG: Core-System-clinic-
-          VERCEL_GIT_COMMIT_REF: main
-          VERCEL_GIT_COMMIT_SHA: ${{ needs.predeploy.outputs.candidate_sha }}
-        run: vercel deploy --prebuilt --prod --token="${{ secrets.VERCEL_TOKEN }}"
+          EXPECTED_SHA: ${{ needs.predeploy.outputs.candidate_sha }}
+          PRODUCTION_URL: https://core-system-clinic.vercel.app
+        run: |
+          set -euo pipefail
+          for attempt in $(seq 1 60); do
+            BODY="$(curl -fsS --max-time 10 "$PRODUCTION_URL/api/build-info" || true)"
+            echo "VERCEL_GIT_DEPLOY_ATTEMPT=$attempt BODY=$BODY"
+            if printf '%s' "$BODY" | grep -Fqi "$EXPECTED_SHA"; then
+              echo "VERCEL_GIT_DEPLOYMENT=PASS"
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "VERCEL_GIT_DEPLOYMENT=FAIL expected=$EXPECTED_SHA" >&2
+          exit 1
 
   production-verify:
     name: VERIFY — Production exact candidate + authenticated E2E
