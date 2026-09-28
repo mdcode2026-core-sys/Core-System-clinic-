@@ -134,26 +134,36 @@ console.log("PASS|18-clinical-decision-treatment-plan|19-multi-stage-plan");
   const date=dialog.locator('input[type="date"]').first();
   const times=dialog.locator('input[type="time"]');
   if(await times.count()<2)throw new Error("Agenda booking time controls missing");
-  const bookingSeed=Math.abs(Number(process.env.GITHUB_RUN_ID)||Number(process.pid)||0);
-  const nextMondayOffset=(1-new Date().getDay()+7)%7||7;
-  const bookingDate=new Date(Date.now()+(nextMondayOffset+(bookingSeed%52)*7)*86400000);
-  const bookingHour=10+(bookingSeed%5);
-  const bookingDateValue=new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Amman",year:"numeric",month:"2-digit",day:"2-digit"}).format(bookingDate);
-  await date.fill(bookingDateValue);
-  await times.nth(0).fill(`${String(bookingHour).padStart(2,"0")}:00`);
-  await times.nth(1).fill(`${String(bookingHour).padStart(2,"0")}:30`);
-  const agendaResponsePromise=page.waitForResponse(r=>r.url().includes("/api/agenda/events")&&r.request().method()==="POST",{timeout:20000}).catch(()=>null);
-  await dialog.getByRole("button",{name:/create|إنشاء/i}).click();
-  const agendaResponse=await agendaResponsePromise;
-  const agendaStatus=agendaResponse?.status()??"no-response";
-  const agendaBody=agendaResponse?await agendaResponse.text().catch(()=>""): "";
-  console.log(`E2E_NEXT_ACTION_AGENDA_HTTP status=${agendaStatus} body=${agendaBody.slice(0,2000)}`);
-  try {
-    await dialog.waitFor({state:"hidden",timeout:15000});
-  } catch (error) {
-    const dialogText=(await dialog.innerText()).replace(/\s+/g," ").trim();
-    throw new Error(`Agenda booking dialog did not close: HTTP ${agendaStatus} ${agendaBody.slice(0,1000)}; dialog: ${dialogText || "no error text rendered"}`);
+  const candidateSlots=[["09:00","09:30"],["09:30","10:00"],["10:00","10:30"],["10:30","11:00"],["11:00","11:30"],["11:30","12:00"],["12:00","12:30"],["12:30","13:00"],["13:00","13:30"],["13:30","14:00"],["14:00","14:30"],["14:30","15:00"],["15:00","15:30"],["15:30","16:00"],["16:00","16:30"]];
+  let booked=false;
+  let lastAgendaError="none";
+  for(let dayOffset=1;dayOffset<=14&&!booked;dayOffset++){
+    const candidate=new Date(Date.now()+dayOffset*86400000);
+    const weekday=new Intl.DateTimeFormat("en-US",{timeZone:"Asia/Amman",weekday:"short"}).format(candidate);
+    if(weekday==="Sat"||weekday==="Sun")continue;
+    const bookingDateValue=new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Amman",year:"numeric",month:"2-digit",day:"2-digit"}).format(candidate);
+    await date.fill(bookingDateValue);
+    for(const[startTime,endTime]of candidateSlots){
+      await times.nth(0).fill(startTime);
+      await times.nth(1).fill(endTime);
+      const agendaResponsePromise=page.waitForResponse(r=>r.url().includes("/api/agenda/events")&&r.request().method()==="POST",{timeout:20000}).catch(()=>null);
+      await dialog.getByRole("button",{name:/create|إنشاء/i}).click();
+      const agendaResponse=await agendaResponsePromise;
+      const agendaStatus=agendaResponse?.status()??"no-response";
+      const agendaBody=agendaResponse?await agendaResponse.text().catch(()=>""):"";
+      if(agendaStatus>=200&&agendaStatus<300){
+        booked=true;
+        console.log("E2E_NEXT_ACTION_AGENDA_HTTP status="+agendaStatus+" body="+agendaBody.slice(0,2000));
+        break;
+      }
+      const errorCode=agendaBody.match(/"error":"([^"]+)/)?.[1]??agendaBody;
+      lastAgendaError=String(errorCode);
+      if(!/AGENDA_(?:UNAVAILABLE|CONFLICT_)/.test(lastAgendaError))throw new Error("Agenda booking failed: HTTP "+agendaStatus+" "+agendaBody.slice(0,1200));
+      console.log("E2E_NEXT_ACTION_AGENDA_CONFLICT date="+bookingDateValue+" slot="+startTime+"-"+endTime+" error="+lastAgendaError);
+    }
   }
+  if(!booked)throw new Error("No collision-free Agenda slot accepted across 14 future dates; last result: "+lastAgendaError);
+  await dialog.waitFor({state:"hidden",timeout:15000});
   await goto("/work-center");
   const currentBookingLink=page.locator(`a[href*="bookingWorkItemId=${encodeURIComponent(currentBookingWorkItemId)}"]`);
   if(await currentBookingLink.count())throw new Error("Completed Next Action still requires booking after Agenda handoff");
