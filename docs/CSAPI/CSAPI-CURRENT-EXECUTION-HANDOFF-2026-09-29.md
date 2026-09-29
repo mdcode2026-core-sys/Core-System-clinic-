@@ -1,6 +1,6 @@
 # CORE SYSTEM — CSAPI CURRENT EXECUTION HANDOFF
 
-**Updated:** 2026-09-29  
+**Updated:** 2026-09-29 — Gate 04 Implementation-Ready Closure  
 **Purpose:** Conversation-independent handoff for the next CSAPI execution conversation.  
 **Resume token:** `CSAPI`
 
@@ -11,18 +11,20 @@ Current CSAPI gate state:
 - **Gate 01 — Patient Flow:** CLOSED.
 - **Gate 02 — Patient Journey:** CLOSED / VERIFIED / PRODUCTION VERIFIED.
 - **Gate 03 — Patient & Identity:** CLOSED / VERIFIED / PRODUCTION VERIFIED.
-- **Gate 04 — Agenda / Scheduling:** **OPEN — current gate**.
+- **Gate 04 — Agenda / Scheduling:** **OPEN — IMPLEMENTATION-READY; implementation not started**.
 - **Gate 11 — Follow-up / Retention:** OPEN as a later owning gate; do not pull Gate 11 work into Gate 04 unless a direct dependency is proven.
 
-The next conversation must resume at:
+The next conversation for this gate is the **implementation handoff**, not a new architecture/precheck cycle.
 
-**CSAPI → Gate 04 → PRECHECK / OWNERSHIP & INTEGRATION RECONCILIATION → VERIFY → DECISION → IMPLEMENT only where approved → TEST → RUNTIME VERIFY → DOCUMENT → CLOSE**
+**Gate 04 → IMPLEMENT → BUILD → VERIFY → REVIEW → DOCUMENT → CLOSE**
+
+The next CSAPI conversation should instead begin Gate 05 decision/design/planning work. Gate 04 implementation must use the frozen artifacts below as binding execution authority.
 
 Do **not** reopen Gates 01, 02, or 03.
 
-## 2. Mandatory first actions in the new conversation
+## 2. Mandatory actions for a Gate 04 implementation handoff
 
-Before implementation:
+Before Gate 04 implementation begins, the implementation owner must:
 
 1. Read `docs/CSAPI/CSAPI-MASTER-STATE.md`.
 2. Read `docs/CSAPI/CSAPI-GATES-PLAN.md`.
@@ -33,7 +35,9 @@ Before implementation:
 6. Read the Gate 04 / Agenda source and implementation records already present in the repository.
 7. Inspect current GitHub `main`, open PRs/branches, current tests and relevant source.
 8. Reconcile repository ↔ migrations ↔ Live Supabase ↔ runtime before coding.
-9. Only after the above, begin the Gate 04 ownership/integration reconciliation.
+9. Confirm the current main SHA and reconcile any changed repository/DB/runtime evidence before coding.
+
+The ownership/design reconciliation is already complete and frozen. Do not restart it unless new evidence directly contradicts a frozen decision.
 
 **Do not trust this handoff, older documents, PR numbers, or branch names as current reality without checking them against the repository and live evidence.**
 
@@ -225,7 +229,7 @@ The final Gate 03 production evidence passed its identity path. A later Follow-u
 
 Treatment Plan → explicit Update → Next Action → patient-specific Agenda handoff → Stage Advance → Plan Completion also passed in Production. No Treatment Plan or Gate 02 reopening is required solely because of that chain.
 
-## 12. New-conversation instruction
+## 12. New-conversation instruction — Gate 04 implementation owner
 
 When the next conversation begins with:
 
@@ -242,14 +246,17 @@ the AI Engineering Leader must:
 7. not start coding before the reconciliation identifies the owning layer and required change;
 8. continue without restarting previously closed gates or re-litigating already approved architectural decisions unless current evidence demonstrates a contradiction.
 
-## 13. Handoff status
+## 13. Handoff status — IMPLEMENTATION-READY
 
-**Gate 04:** OPEN  
-**Current phase:** IMPLEMENTATION DESIGN COMPLETE / WORK PACKAGE PLANNING  
+**Gate 04:** OPEN — IMPLEMENTATION-READY  
+**Current phase:** IMPLEMENTATION-READY / PLAN FROZEN  
 **Implementation:** NOT STARTED  
-**Immediate next action:** create one controlled Gate 04 implementation branch from verified main and execute the frozen work package sequence  
-**Gate 11 Follow-up:** separate downstream gate  
-**Gates 01–03:** CLOSED
+**Implementation authority:** frozen Gate 04 Execution Contract + Implementation Plan + Verification Plan  
+**Immediate implementation action:** create one controlled Gate 04 implementation branch from the then-verified main and execute WP-1 → WP-8 as evidence permits  
+**Gate 11 Follow-up:** separate downstream gate; known continuity issue remains deferred to Gate 11  
+**Gates 01–03:** CLOSED / VERIFIED / PRODUCTION VERIFIED
+
+**Important:** Implementation-Ready is not Gate 04 closure. Gate 04 remains OPEN until implementation, verification, runtime/production evidence and final reconciliation are complete.
 
 This document is a continuation control point, not a substitute for current-state verification.
 
@@ -325,3 +332,26 @@ Implementation constraint:
 - direct authenticated/anonymous table writes are denied after caller migration;
 - no duplicate Availability/Conflict engine is introduced;
 - the existing Auth administration client is not repurposed for Agenda persistence.
+
+## 17. Gate 04 Implementation-Ready Closure — 2026-09-29
+
+This handoff closes the planning/decision session at the exact transfer state requested.
+
+### Frozen execution authority
+- Gate 04 architecture and ownership reconciliation is complete.
+- Four Product Owner-approved decisions are frozen.
+- Gate 04 Execution Contract is frozen.
+- Gate 04 Implementation Plan is frozen.
+- Gate 04 Verification Plan is frozen.
+- Security/DB mutation-authority design is frozen.
+- No unresolved Product Owner decision remains for the approved Gate 04 scope.
+- No application/database implementation was performed as part of this closure.
+
+### Binding integration rule
+All Gate 04 implementation must integrate with the already-closed Gates 01–03 exactly as verified. Gate 04 must not alter their ownership or silently introduce duplicate engines.
+
+### Sequential-gate rule
+Gate 05 planning may begin now because Gate 04 has reached Implementation-Ready. Gate 05 implementation must not begin before Gate 04 is completed and closed, unless an explicit CSAPI dependency decision proves that earlier implementation is required.
+
+### Handoff principle
+The implementation owner inherits the decisions in this handoff as binding engineering instructions, not suggestions. Any deviation requires evidence, classification and explicit decision/change control before implementation proceeds.

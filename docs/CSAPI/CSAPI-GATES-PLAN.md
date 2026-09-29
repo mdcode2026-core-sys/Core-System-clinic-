@@ -2,7 +2,7 @@
 
 Status: ACTIVE / Current sequential plan
 Last reconciled: 2026-09-29
-Current Gate: Gate 04 — Agenda & Scheduling — OPEN / IMPLEMENTATION DESIGN COMPLETE
+Current Gate: Gate 04 — Agenda & Scheduling — OPEN / IMPLEMENTATION-READY
 Previous Gate: Gate 03 — Patient & Identity — CLOSED / VERIFIED / PRODUCTION VERIFIED
 
 > This is the CSAPI working gate map derived from CSAPI-DOCUMENTATION-PACK-2026-09-17.zip and reconciled with the completed Gate 01 evidence. A gate may be split, merged, reordered or added only through an explicit CSAPI decision recorded in the ledger.
@@ -161,3 +161,23 @@ Gate 04 must preserve the following boundaries:
 - Treatment Plan owns clinical progression.
 - Follow-up remains Gate 11.
 - no second scheduler, resource engine, queue engine or workflow engine.
+
+## Gate 04 Implementation-Ready transition — 2026-09-29
+
+Gate 04 has completed the decision, ownership reconciliation, architecture, implementation design, execution contract, implementation plan and verification plan stages.
+
+**State: OPEN — IMPLEMENTATION-READY / IMPLEMENTATION NOT STARTED**
+
+This is a transfer point for implementation ownership, not a gate closure.
+
+Binding artifacts:
+- docs/CSAPI/GATES/GATE-04-OWNERSHIP-INTEGRATION-RECONCILIATION-2026-09-29.md
+- docs/CSAPI/GATES/GATE-04-AGENDA-IMPLEMENTATION-DESIGN-2026-09-29.md
+- docs/CSAPI/GATES/GATE-04-AGENDA-EXECUTION-CONTRACT-2026-09-29.md
+- docs/CSAPI/GATES/GATE-04-IMPLEMENTATION-PLAN-2026-09-29.md
+- docs/CSAPI/GATES/GATE-04-VERIFICATION-PLAN-2026-09-29.md
+- docs/CSAPI/CSAPI-CURRENT-EXECUTION-HANDOFF-2026-09-29.md
+
+The next gate, Gate 05, may begin its decision/design/planning work while Gate 04 implementation is transferred. Gate 05 implementation must not modify Gate 04 or a later gate before Gate 04 is closed unless an explicit CSAPI dependency requires it.
+
+No gate after Gate 04 is considered implementation-authorized merely because its planning has started. Each gate must reach Implementation-Ready first, then be implemented and closed in sequence.
