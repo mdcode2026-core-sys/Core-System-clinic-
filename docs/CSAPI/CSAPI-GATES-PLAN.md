@@ -2,7 +2,7 @@
 
 Status: ACTIVE / Current sequential plan
 Last reconciled: 2026-09-22
-Current Gate: Gate 03 — Patient & Identity
+Current Gate: Gate 03 — Patient & Identity — CLOSED / VERIFIED / PRODUCTION VERIFIED
 Previous Gate: Gate 02 — Patient Journey — CLOSED / VERIFIED / PRODUCTION VERIFIED
 
 > This is the CSAPI working gate map derived from CSAPI-DOCUMENTATION-PACK-2026-09-17.zip and reconciled with the completed Gate 01 evidence. A gate may be split, merged, reordered or added only through an explicit CSAPI decision recorded in the ledger.
@@ -11,7 +11,7 @@ Previous Gate: Gate 02 — Patient Journey — CLOSED / VERIFIED / PRODUCTION VE
 |---|---|---|---|
 | 01 | Patient Flow | Queue, Clinical Visit, Pending Close, Reception Workflow, Completed; Procedure/Session; boundaries with Treatment Plan and Follow-up | CLOSED |
 | 02 | Patient Journey | Longitudinal patient lifecycle over time; next actions and continuity | CLOSED — VERIFIED / PRODUCTION VERIFIED |
-| 03 | Patient & Identity | Canonical identity, clinic relationship, duplicate detection, search, history, insurance, portal relationship | IMPLEMENTED — VERIFICATION BLOCKED BY FAILED E2E |
+| 03 | Patient & Identity | Canonical identity, clinic relationship, duplicate detection, search, history, insurance, portal relationship | CLOSED — VERIFIED / PRODUCTION VERIFIED |
 | 04 | Agenda & Scheduling | Agenda authority, Calendar representation, provider/resource availability, conflicts, cancel/reschedule/no-show/context | OPEN |
 | 05 | Clinical Care | Clinical Visit, Clinical Decision, Medical Record, Medical Files, Measurements, Photos, Procedure, Session | OPEN |
 | 06 | Treatment Planning | Plan lifecycle, stages, next actions, linkage to visits/appointments/packages/finance; not every visit requires a plan | OPEN |
@@ -119,3 +119,20 @@ Current execution point:
 **IMPLEMENTATION CORRECTION → CLEAN DB MIGRATION VERIFICATION → LIVE SUPABASE VERIFICATION → RUNTIME/E2E VERIFICATION → CONTROLLED PRODUCTION RELEASE → FINAL RECONCILIATION / CLOSE.**
 
 Gate 01 and Gate 02 remain CLOSED and are not reopened.
+
+## Gate 03 final closure — 2026-09-29
+
+Run #1351 (36535650440) against main merge commit `e2b701b5f2346592d042e0af302b1d84fd317282` completed the Gate 03-specific verification path successfully.
+
+Pre-production evidence passed Engineering, Clean DB migration, Gate 03 structural verification, Local authenticated route E2E and Gate 03 focused authenticated identity E2E. The exact candidate was deployed successfully through Vercel Git Integration.
+
+The Production authenticated E2E passed the Gate 03-relevant identity path. The same broad Production run later failed at Follow-up next-action continuity. Follow-up is Gate 11-owned and does not invalidate Gate 03 evidence.
+
+Gate 03 is therefore:
+**CLOSED — VERIFIED / PRODUCTION VERIFIED.**
+
+Gate 01 and Gate 02 remain CLOSED. Gate 04 remains OPEN. Gate 11 remains OPEN and owns the deferred Follow-up continuity issue.
+
+Authoritative closure record: `docs/CSAPI/GATES/GATE-03-FINAL-CLOSURE-RECONCILIATION-2026-09-29.md`.
+
+No Gate 01 or Gate 02 reopening is authorized by the Gate 11 Follow-up failure.
