@@ -16,7 +16,7 @@ Team functions are responsibility boundaries; they may be combined by the Engine
 | WP | Work package | Primary function | Supporting functions | Depends on | Exit condition |
 |---|---|---|---|---|---|
 | WP-0 | Design / contract freeze | AI Engineering Leader + Solution Architect | BA, QA, Documentation | Decision freeze | Contract + design + plan + verification plan frozen |
-| WP-1 | Canonical mutation convergence | Backend / Domain | DB, Security, Frontend, QA | WP-0 | All active Appointment writes converge on server authority |
+| WP-1 | Canonical mutation convergence + DB command boundary | Backend / Domain | DB, Security, Frontend, QA | WP-0 | All active Appointment writes converge on server authority and protected DB persistence commands; direct table writes denied |
 | WP-2 | Feasibility / booking requirements | Solution Architect + Backend | Clinical Advisor, Workforce, DB, QA | WP-0 | Provider/room/resource requirements have one explicit contract |
 | WP-3 | Resource concurrency policy | Solution Architect | DB, Resource owner, Backend, QA | WP-2 | Default exclusivity + explicit policy boundary proven |
 | WP-4 | Appointment audit completion | DB / PostgreSQL | Backend, Security, QA | WP-1 | CREATE + UPDATE + lifecycle mutations reconstructible |
@@ -48,11 +48,15 @@ Team functions are responsibility boundaries; they may be combined by the Engine
 
 ### Backend / Domain Engineer
 - Refactor Appointment mutation authority.
+- Integrate protected DB command boundary for create/update/transition/cancel.
+- Ensure DB command functions do not duplicate availability/conflict engines.
 - Implement provider optionality and feasibility pipeline.
 - Build the Service/Procedure requirement adapter.
 - Preserve stable error contracts and existing engines.
 
 ### Database / PostgreSQL / Supabase Engineer
+- Design and implement the protected Agenda DB mutation command boundary.
+- Revoke alternate authenticated/anonymous write access to appointment table after caller migration.
 - Design and implement the canonical audit extension.
 - Design any minimal booking-requirement or concurrency policy persistence only after source ownership is proven.
 - Preserve tenant-safe foreign keys, RLS and exclusion constraints.
@@ -71,6 +75,8 @@ Team functions are responsibility boundaries; they may be combined by the Engine
 
 ### Security Engineer
 - Verify permission checks, RLS, tenant isolation and cross-tenant reference rejection.
+- Verify a browser/authenticated client cannot write Appointment rows directly.
+- Verify only the trusted server command boundary can mutate appointment persistence.
 - Verify audit disclosure boundaries.
 - Verify lifecycle mutations cannot bypass authorization.
 
@@ -126,6 +132,7 @@ Gate 04 explicitly excludes:
 
 ## 7. Current known implementation gaps entering WP-1..WP-5
 - Direct client mutation hooks exist in `agenda.queries.ts`.
+- Live authenticated/anonymous table grants permit direct Appointment writes today; this is a Gate 04 security/authority gap that must be closed after caller migration.
 - Provider is hard-required in current Agenda TypeScript/server types.
 - Current procedure-resource validator is inactive and historical.
 - Current Agenda audit trigger/function only covers UPDATE.
