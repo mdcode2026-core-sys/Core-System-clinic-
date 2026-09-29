@@ -13,7 +13,7 @@ Previous Gate: Gate 03 — Patient & Identity — CLOSED / VERIFIED / PRODUCTION
 | 02 | Patient Journey | Longitudinal patient lifecycle over time; next actions and continuity | CLOSED — VERIFIED / PRODUCTION VERIFIED |
 | 03 | Patient & Identity | Canonical identity, clinic relationship, duplicate detection, search, history, insurance, portal relationship | CLOSED — VERIFIED / PRODUCTION VERIFIED |
 | 04 | Agenda & Scheduling | Agenda authority, Calendar representation, provider/resource availability, conflicts, cancel/reschedule/no-show/context | OPEN |
-| 05 | Clinical Care | Clinical Visit, Clinical Decision, Medical Record, Medical Files, Measurements, Photos, Procedure, Session | OPEN |
+| 05 | Clinical Care | Clinical Visit, Clinical Decision, Medical Record, Medical Files, Measurements, Photos, Procedure, Session | OPEN — IMPLEMENTATION-READY (PLANNING COMPLETE) |
 | 06 | Treatment Planning | Plan lifecycle, stages, next actions, linkage to visits/appointments/packages/finance; not every visit requires a plan | OPEN |
 | 07 | Procedures / Services / Packages / Offers | Medical procedure vs clinic service vs commercial package/offer; master/customization relationships | OPEN |
 | 08 | Financial & Commercial Flow | Commercial commitment, financial plan, invoice, payment, refund, insurance, expense, revenue | OPEN |
@@ -181,3 +181,27 @@ Binding artifacts:
 The next gate, Gate 05, may begin its decision/design/planning work while Gate 04 implementation is transferred. Gate 05 implementation must not modify Gate 04 or a later gate before Gate 04 is closed unless an explicit CSAPI dependency requires it.
 
 No gate after Gate 04 is considered implementation-authorized merely because its planning has started. Each gate must reach Implementation-Ready first, then be implemented and closed in sequence.
+
+
+## Gate 05 planning closure / Gate 06 planning transition — 2026-09-30
+
+Gate 05 has completed its planning chain:
+Current-State Reconciliation → Canonical Entity/Lifecycle Design → Entity Review → Template/Documentation Architecture → Clinical Workspace Design → Implementation Design → Execution Contract → Implementation Plan → Verification Plan.
+
+**Gate 05: OPEN — IMPLEMENTATION-READY / IMPLEMENTATION NOT STARTED.**
+
+Gate 04 remains the current sequential implementation gate and has not been implemented or closed.
+
+### Binding implementation sequence
+
+1. Gate 04 implementation and closure.
+2. Gate 05 implementation and closure.
+3. Gate 06 implementation and closure.
+
+Gate 06 planning may start before Gates 04/05 close so that architecture can be prepared without blocking the overall program.
+
+**Gate 06 implementation is prohibited until BOTH Gate 04 and Gate 05 are CLOSED / VERIFIED / PRODUCTION VERIFIED.**
+
+The prohibition covers application code, schema migration, Live DB mutation, runtime release and production verification.
+
+No later gate may silently modify a previous gate's ownership or create duplicate engines to bypass this sequence.

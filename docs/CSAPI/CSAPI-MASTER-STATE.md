@@ -338,3 +338,78 @@ Gate 05 may now begin its own decision/design/planning work. Gate 05 implementat
 
 ### Transfer rule
 The implementation owner may execute Gate 04 from the frozen artifacts. Any discovered contradiction must be classified as: Gate 04 implementation defect; later-gate issue; regression of a closed gate; or genuine architecture/product decision requiring escalation. No silent reinterpretation of frozen decisions is permitted.
+
+
+## Gate 05 planning status — 2026-09-30
+
+Gate 05 — Clinical Care planning has reached IMPLEMENTATION-READY.
+
+Completed planning stages:
+- Current-state reconciliation.
+- Clinical Capability Map V1.
+- Clinical Ownership & Boundary Matrix V1.
+- Clinical Entity & Lifecycle Matrix V1.
+- Canonical Clinical Entity Relationship & Lifecycle Design V1.
+- Entity Design Review V1.
+- Clinical Template & Documentation Architecture V1.
+- Clinical Workspace Target Interaction Design V1.
+- Gate 05 Implementation Design V1.
+
+Gate 05 remains OPEN because no application implementation, schema migration, automated verification, runtime verification or production verification has been performed.
+
+Gate 04 remains the current sequential implementation gate. Gate 05 implementation must not begin before Gate 04 closure unless a documented CSAPI dependency requires earlier implementation.
+
+Gate 05 key boundaries:
+- Patient Flow owns Visit lifecycle.
+- Clinical owns clinical facts, documentation, decisions, recommendations and actual Procedure Execution.
+- Gate 07 owns Procedure/Service definitions.
+- Gate 06 owns Treatment Plan lifecycle.
+- Gate 11 owns Follow-up lifecycle.
+- Agenda owns Appointment lifecycle.
+- Workforce owns professional identity/capability.
+- Medical Files owns medical media.
+- Coordination owns Operational Work.
+- Governance owns cross-domain audit.
+
+The Medical Record is a projection/read model. No medical_records mega-table, generic clinical_results table, generic clinical_consequences table, duplicate scheduler, duplicate Treatment Plan engine, duplicate Follow-up engine or generic global Rules Engine is authorized.
+
+Authoritative Gate 05 planning artifacts:
+- docs/CSAPI/GATES/GATE-05-CLINICAL-CURRENT-STATE-RECONCILIATION-2026-09-30.md
+- docs/CSAPI/GATES/GATE-05-CLINICAL-CANONICAL-ENTITY-RELATIONSHIP-LIFECYCLE-DESIGN-2026-09-30.md
+- docs/CSAPI/GATES/GATE-05-CLINICAL-ENTITY-DESIGN-REVIEW-2026-09-30.md
+- docs/CSAPI/GATES/GATE-05-CLINICAL-TEMPLATE-DOCUMENTATION-ARCHITECTURE-2026-09-30.md
+- docs/CSAPI/GATES/GATE-05-CLINICAL-WORKSPACE-TARGET-INTERACTION-DESIGN-2026-09-30.md
+- docs/CSAPI/GATES/GATE-05-CLINICAL-IMPLEMENTATION-DESIGN-2026-09-30.md
+
+
+## Gate 05 final planning authority — 2026-09-30
+
+Gate 05 planning is now frozen at **OPEN — IMPLEMENTATION-READY / IMPLEMENTATION NOT STARTED**.
+
+The final readiness package is governed by:
+- `GATE-05-CLINICAL-CURRENT-STATE-RECONCILIATION-2026-09-30.md`
+- `GATE-05-CLINICAL-CANONICAL-ENTITY-RELATIONSHIP-LIFECYCLE-DESIGN-2026-09-30.md`
+- `GATE-05-CLINICAL-ENTITY-DESIGN-REVIEW-2026-09-30.md`
+- `GATE-05-CLINICAL-TEMPLATE-DOCUMENTATION-ARCHITECTURE-2026-09-30.md`
+- `GATE-05-CLINICAL-WORKSPACE-TARGET-INTERACTION-DESIGN-2026-09-30.md`
+- `GATE-05-CLINICAL-IMPLEMENTATION-DESIGN-2026-09-30.md`
+- `GATE-05-CLINICAL-EXECUTION-CONTRACT-2026-09-30.md`
+- `GATE-05-CLINICAL-IMPLEMENTATION-PLAN-2026-09-30.md`
+- `GATE-05-VERIFICATION-PLAN-2026-09-30.md`
+- `GATE-05-IMPLEMENTATION-READY-CLOSURE-2026-09-30.md`
+
+The exact `clinical:*` permission contract is frozen and uses the existing effective-permission engine. No application code, migration, Live DB mutation, or production deployment was performed by this planning package.
+
+### Binding two-gate implementation barrier
+
+Gate 04 remains the active sequential implementation workstream.
+
+Gate 05 implementation remains blocked until Gate 04 is CLOSED / VERIFIED / PRODUCTION VERIFIED unless an explicit CSAPI dependency is recorded.
+
+Gate 06 may begin Decision → Reconciliation → Design → Implementation-Ready planning in a new conversation, but:
+
+**NO Gate 06 IMPLEMENTATION is permitted before BOTH Gate 04 AND Gate 05 are CLOSED / VERIFIED / PRODUCTION VERIFIED.**
+
+This prohibition includes application code, database migrations, Live Supabase mutation, runtime release and production verification.
+
+Planning never authorizes implementation.

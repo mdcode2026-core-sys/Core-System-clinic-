@@ -413,3 +413,22 @@ This file is append-only for material CSAPI events. Historical entries remain ev
 - Implementation consequence: Gate 05 planning may begin in a new conversation; Gate 05 implementation remains blocked by Gate 04 until Gate 04 closure or an explicit dependency decision.
 - Verification evidence: Recorded in the current handoff and Gate Plan.
 - Status: FROZEN / BINDING
+
+
+### CSAPI-2026-09-30-039
+- Date: 2026-09-30
+- Gate: Gate 05 — Clinical Care
+- Type: Planning / Implementation-Ready Transition
+- Source(s): Gate 05 current-state reconciliation; canonical entity/lifecycle design; entity design review; template/documentation architecture; Clinical Workspace design; Implementation Design; Execution Contract; Implementation Plan; Verification Plan; Live Supabase read-only reconciliation
+- Statement: Gate 05 planning is complete and frozen. The previously unresolved authorization/naming boundary is resolved by freezing the exact nine `clinical:*` permission keys and their command mapping on top of the existing effective-permission engine.
+- Evidence: Repository main inspection; Live Supabase schema/permission registry inspection; 139 Visit rows; 138 Visit Procedure rows; 12 Medical Files; 96 Treatment Plans; 956 Follow-ups; 413 Agenda events; existing `visits:*`, `medical_files:*`, and `agenda:*` permission families; no current `clinical:*` rows.
+- Implementation consequence: No application code, migration, Live DB mutation or production deployment is part of this transition. The future Gate 05 migration will seed the frozen `clinical:*` permissions into the existing permission registry; no parallel permission engine or synonyms are permitted.
+- Status: IMPLEMENTATION-READY / OPEN
+
+### CSAPI-2026-09-30-040
+- Date: 2026-09-30
+- Gate: CSAPI sequencing / Gate 04 + Gate 05 + Gate 06
+- Type: Binding Sequencing Control
+- Statement: Gate 05 may reach Implementation-Ready while Gate 04 remains open, but Gate 05 implementation remains blocked until Gate 04 is CLOSED / VERIFIED / PRODUCTION VERIFIED unless an explicit CSAPI dependency is recorded. Gate 06 planning may begin after Gate 05 readiness, but Gate 06 implementation is prohibited until BOTH Gate 04 and Gate 05 are CLOSED / VERIFIED / PRODUCTION VERIFIED.
+- Implementation consequence: No Gate 06 application code, schema migration, Live DB mutation, runtime release or production verification before the two-gate barrier is satisfied.
+- Status: FROZEN / BINDING
