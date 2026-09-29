@@ -245,9 +245,9 @@ the AI Engineering Leader must:
 ## 13. Handoff status
 
 **Gate 04:** OPEN  
-**Current phase:** PRECHECK / OWNERSHIP & INTEGRATION RECONCILIATION  
-**Implementation:** NOT AUTHORIZED YET from this handoff alone  
-**Immediate next action:** repository/database/runtime ownership reconciliation  
+**Current phase:** IMPLEMENTATION DESIGN COMPLETE / WORK PACKAGE PLANNING  
+**Implementation:** NOT STARTED  
+**Immediate next action:** create one controlled Gate 04 implementation branch from verified main and execute the frozen work package sequence  
 **Gate 11 Follow-up:** separate downstream gate  
 **Gates 01–03:** CLOSED
 
@@ -293,3 +293,25 @@ The following are execution findings, not new product decisions:
 No finding currently requires reopening Gate 01, Gate 02 or Gate 03. Follow-up continuity remains Gate 11. Treatment Plan remains the owner of clinical progression and next-action generation; Agenda owns the appointment when that next action becomes a booking.
 
 Gate 04 implementation authorization remains bounded to the approved Gate 04 scope and the four decisions above.
+
+## 15. Gate 04 Implementation Planning / Design — 2026-09-29
+
+Gate 04 precheck and Product Owner decision freeze are complete.
+
+Design authority:
+- `GATE-04-OWNERSHIP-INTEGRATION-RECONCILIATION-2026-09-29.md`
+- `GATE-04-AGENDA-IMPLEMENTATION-DESIGN-2026-09-29.md`
+- `GATE-04-AGENDA-EXECUTION-CONTRACT-2026-09-29.md`
+- `GATE-04-IMPLEMENTATION-PLAN-2026-09-29.md`
+- `GATE-04-VERIFICATION-PLAN-2026-09-29.md`
+
+Implementation sequence is frozen as WP-1 canonical mutation convergence → WP-2 booking requirement/provider feasibility → WP-3 resource concurrency policy → WP-4 audit completion → WP-5 UI convergence → WP-6 verification infrastructure → WP-7 integrated verification → WP-8 release/closure.
+
+Team-function ownership is documented in the Gate 04 Implementation Plan. The AI Engineering Leader retains technical orchestration and final closure authority; independent QA/Security verification remains independent.
+
+Machine-readable Gate 04 workstream contract and executable verification lanes are deliberately deferred to WP-6, where the runner mappings can be added coherently with the implementation package. No unsupported workstream contract is introduced prematurely.
+
+Known ownership/documentation correction:
+`clinic_resources` is treated as operational resource configuration owned by Clinic Administration / the owning operational-resource boundary for Gate 04; `inventory_items` remains Inventory stock truth. Older umbrella wording must not be used as evidence of a second resource owner.
+
+Next conversation-independent continuation: begin from the frozen Gate 04 implementation contract, not from a new architecture debate.
