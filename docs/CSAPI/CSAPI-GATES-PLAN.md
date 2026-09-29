@@ -181,3 +181,27 @@ Binding artifacts:
 The next gate, Gate 05, may begin its decision/design/planning work while Gate 04 implementation is transferred. Gate 05 implementation must not modify Gate 04 or a later gate before Gate 04 is closed unless an explicit CSAPI dependency requires it.
 
 No gate after Gate 04 is considered implementation-authorized merely because its planning has started. Each gate must reach Implementation-Ready first, then be implemented and closed in sequence.
+
+
+## Gate 05 planning closure / Gate 06 planning transition — 2026-09-30
+
+Gate 05 has completed its planning chain:
+Current-State Reconciliation → Canonical Entity/Lifecycle Design → Entity Review → Template/Documentation Architecture → Clinical Workspace Design → Implementation Design → Execution Contract → Implementation Plan → Verification Plan.
+
+**Gate 05: OPEN — IMPLEMENTATION-READY / IMPLEMENTATION NOT STARTED.**
+
+Gate 04 remains the current sequential implementation gate and has not been implemented or closed.
+
+### Binding implementation sequence
+
+1. Gate 04 implementation and closure.
+2. Gate 05 implementation and closure.
+3. Gate 06 implementation and closure.
+
+Gate 06 planning may start before Gates 04/05 close so that architecture can be prepared without blocking the overall program.
+
+**Gate 06 implementation is prohibited until BOTH Gate 04 and Gate 05 are CLOSED / VERIFIED / PRODUCTION VERIFIED.**
+
+The prohibition covers application code, schema migration, Live DB mutation, runtime release and production verification.
+
+No later gate may silently modify a previous gate's ownership or create duplicate engines to bypass this sequence.
