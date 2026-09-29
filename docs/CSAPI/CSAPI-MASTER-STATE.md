@@ -276,3 +276,21 @@ Canonical state:
 **Gate 03 — IMPLEMENTATION CORRECTION IN PROGRESS / VERIFICATION BLOCKED UNTIL CORRECTIVE CANDIDATE PASSES.**
 
 Gate 01 and Gate 02 remain CLOSED and must not be reopened.
+
+## Gate 03 final authority reconciliation — 2026-09-29
+
+Current authoritative state after Run #1351 production verification:
+
+- Gate 01 — CLOSED.
+- Gate 02 — CLOSED / VERIFIED / PRODUCTION VERIFIED.
+- Gate 03 — CLOSED / VERIFIED / PRODUCTION VERIFIED.
+- Gate 04 — OPEN.
+- Gate 11 — OPEN; Follow-up/Retention owns the deferred Follow-up next-action continuity issue.
+
+Run #1351 passed the Gate 03-specific pre-production and Production identity verification path. Its later Follow-up failure is outside Gate 03 ownership and does not reopen Gate 03, Gate 02, or Gate 01.
+
+Treatment Plan → explicit Update → Next Action → patient-specific Agenda handoff → Stage Advance → Plan Completion also passed in Production; no Treatment Plan or Gate 02 reopening is required.
+
+Authoritative Gate 03 closure record: `docs/CSAPI/GATES/GATE-03-FINAL-CLOSURE-RECONCILIATION-2026-09-29.md`.
+
+Next CSAPI execution may proceed to Gate 04 only according to the approved 20-gate sequence. Gate 11 Follow-up work remains deferred until its owning gate.
