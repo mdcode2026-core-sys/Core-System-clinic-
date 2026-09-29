@@ -331,7 +331,7 @@ A new CSAPI conversation must resume from:
 
 Gate 05 → Architecture / Current-State Reconciliation V1 → Canonical Clinical Entity Relationship & Lifecycle Design
 
-It must not reopen Gates 01, 02, or 03, reinterpret Gate 04 ownership, or start implementation before Gate 05 design is frozen.
+It must not reopen Gates 01, 02, or 03 or reinterpret Gate 04 ownership. Gate 05 design is now frozen; implementation remains blocked by the Gate 04 sequencing barrier.
 
 Next work package:
 Canonical Clinical Entity Relationship & Lifecycle Design
@@ -343,7 +343,7 @@ Then:
 Clinical Workspace Target Interaction Design
 
 Then:
-Gate 05 Implementation Design → IMPLEMENTATION-READY
+Gate 05 Implementation Design → Execution Contract → Implementation Plan → Verification Plan → IMPLEMENTATION-READY
 
 No migration or application change is authorized by this reconciliation alone.
 
@@ -358,7 +358,7 @@ Entity & Lifecycle Matrix: COMPLETE — V1
 Implementation: NOT STARTED
 Schema migration: NOT STARTED
 Production mutation: NONE
-Next step: Canonical Clinical Entity Relationship & Lifecycle Design
+Next step: controlled Gate 05 implementation after Gate 04 closure, using the frozen package
 
 End of checkpoint.
 
