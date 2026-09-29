@@ -378,3 +378,14 @@ This file is append-only for material CSAPI events. Historical entries remain ev
 - Implementation consequence: Gate 04 may implement the smallest additive changes required to realize these decisions. No generic Resource Engine, no second scheduler, no Workforce-engine rebuild, no resurrection of historical clinic_procedure_resources solely because it existed in old migrations.
 - Verification evidence: 2026-09-29 read-only repository and Live Supabase reconciliation; no application or database mutation was performed by this decision freeze.
 - Status: FROZEN / APPROVED
+
+### CSAPI-2026-09-29-036
+- Date: 2026-09-29
+- Gate: Gate 04 — Agenda & Scheduling
+- Type: Engineering Decision / Finding
+- Source(s): Live Supabase role grants/RLS inspection; Gate 04 implementation design; Gate 04 execution contract; existing Gate 01 D3 command-boundary pattern
+- Statement: The current `master_agenda_events` table grants INSERT/UPDATE/DELETE to authenticated (and table privileges are also present for anon), while RLS permits authenticated users with Agenda permissions to write the table directly. Therefore server-action convergence alone does not provide a complete mutation-authority boundary. Gate 04 will use a protected database command boundary invoked by the trusted server-side Agenda mutation service, and active direct table-write access will be denied after caller migration.
+- Engineering decision: Reuse the proven D3 command-boundary pattern without duplicating the Availability/Conflict engines. Narrow DB commands will provide final persistence plus tenant/actor/current-state guards. No product decision was required.
+- Implementation consequence: WP-1 is expanded to include DB command authority; Security/QA must prove direct authenticated/anonymous table writes are denied and supported server mutations still succeed.
+- Verification evidence: Live inspection on 2026-09-29 showed authenticated INSERT/UPDATE/DELETE table privileges and authenticated Agenda RLS write policies on `master_agenda_events`.
+- Status: FROZEN — ENGINEERING DECISION
