@@ -60,9 +60,9 @@ with approved cancellation/no-show/reschedule transitions already represented in
 Lifecycle mutations must use the persisted current state as the authority; client-submitted state is only an expected-state guard.
 
 ## 10. Operational execution path
-`Authenticate → Resolve tenant → Authorize → Normalize tenant-local time → Resolve booking requirements → Resolve Workforce/resource facts → Apply concurrency policy → Validate feasibility → Check conflicts → Persist in master_agenda_events → Audit`.
+`Authenticate → Resolve tenant → Authorize → Normalize tenant-local time → Resolve booking requirements → Resolve Workforce/resource facts → Apply concurrency policy → Validate feasibility → Check conflicts → DB command boundary → Persist in master_agenda_events → Audit`.
 
-Create/update/reschedule share the canonical mutation service. Status/cancel/no-show paths must converge into the same mutation authority rather than expose a second client write path.
+Create/update/reschedule share the canonical mutation service. Status/cancel/no-show paths must converge into the same mutation authority. The final persistence step is a protected DB command boundary; direct authenticated table writes are not an accepted alternate path.
 
 ## 11. Provider contract
 Provider is conditional, not universal.
@@ -119,13 +119,20 @@ Late arrival and overrun do not silently rewrite planned appointment truth. Actu
 Reschedule is currently an update to the same Appointment entity. The existing `rescheduled` status records the lifecycle action, and old/new values are preserved through audit.
 Do not introduce a second linked appointment record solely to model reschedule unless future evidence proves the current appointment/audit model insufficient.
 
-## 19. Audit contract
+## 19. Persistence / Database command contract
+All appointment persistence mutations use narrow Agenda DB command functions invoked only by the trusted server-side mutation service. The functions are protected by explicit tenant/actor/current-state checks and tightly-scoped execution privileges, following the already-proven Gate 01 D3 command-boundary pattern. They do not recreate the Availability or Conflict engines.
+
+Planned commands: create, update/reschedule, status transition, cancel. No delete command is required by the current Gate 04 product contract.
+
+Authenticated/anonymous INSERT/UPDATE/DELETE access to `master_agenda_events` must not remain as a browser-accessible bypass once all active application callers are migrated. SELECT remains governed by Agenda RLS.
+
+## 20. Audit contract
 Every appointment mutation must produce reconstructible audit evidence:
 CREATE, UPDATE, STATUS_CHANGE, CANCEL, RESCHEDULE.
 The canonical `audit_trail` is reused. Audit must preserve tenant, actor, role, action, table, record, old/new values, reason/context and timestamp as available.
 UX error detail is permission-aware and must not expose audit-level internal data to unauthorized users.
 
-## 20. Cross-domain contracts
+## 21. Cross-domain contracts
 ### Treatment Plan → Agenda
 `Treatment Plan → Next Action → Booking Requirement → Agenda → Appointment`.
 Treatment Plan remains clinical authority; Agenda becomes appointment authority.
@@ -143,7 +150,7 @@ Agenda state can support pre-booked arrival/check-in; Patient Flow owns actual c
 ### Follow-up → Agenda
 Follow-up may request an appointment; Follow-up retains continuity ownership; Agenda owns the appointment created from the request.
 
-## 21. Deferred scope
+## 22. Deferred scope
 Gate 04 does not implement new engines for:
 - waitlist;
 - generalized emergency insertion workflow;
@@ -157,7 +164,7 @@ Gate 04 does not implement new engines for:
 
 These remain explicit integration extension points or future owning-gate work.
 
-## 22. Failure / exception contract
+## 23. Failure / exception contract
 Failure must identify the violated invariant and owning layer. No workaround may hide a real Agenda defect.
 Examples:
 - provider unavailable → Agenda feasibility failure;
@@ -168,9 +175,10 @@ Examples:
 - Follow-up continuity failure → Gate 11;
 - clinical progression failure → Treatment Plan/Clinical.
 
-## 23. Acceptance criteria
+## 24. Acceptance criteria
 Gate 04 implementation is acceptable only when all of the following are proven:
-- all active Appointment writes converge on the canonical server mutation authority;
+- all active Appointment writes converge on the canonical server mutation authority and protected DB command boundary;
+- authenticated/anonymous direct table-write bypasses are removed or denied;
 - provider optionality matches the Service/Procedure contract;
 - required booking constraints are explicit and tenant-safe;
 - provider/room/resource conflicts are prevented and explainable;
@@ -181,10 +189,10 @@ Gate 04 implementation is acceptable only when all of the following are proven:
 - Treatment Plan / Follow-up integrations preserve ownership;
 - no parallel scheduler or resource engine exists.
 
-## 24. Required evidence
+## 25. Required evidence
 Evidence must progress through:
 `UI → server action/API → domain decision → persisted appointment state → audit → downstream handoff`.
 Required automated evidence is defined in the Gate 04 Verification Plan. Production evidence is only accepted against the exact promoted main candidate.
 
-## 25. Closure condition
+## 26. Closure condition
 Gate 04 closes only after the approved implementation, engineering validation, database/migration/security verification, authenticated real-world E2E, cross-domain verification, final review, exact production verification where required, and synchronized CSAPI documentation are all PASS.
