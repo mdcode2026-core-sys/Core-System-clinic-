@@ -1,7 +1,7 @@
 # CSAPI Gate 05 — Clinical Implementation Design
 ## Version 1 — 2026-09-30
 
-Status: IMPLEMENTATION DESIGN — READY FOR CONTROLLED EXECUTION
+Status: IMPLEMENTATION DESIGN — FROZEN / IMPLEMENTATION-READY
 Gate: 05 — Clinical Care
 Implementation: NOT STARTED
 Production mutation: NONE
@@ -362,22 +362,49 @@ Each command must:
 
 No client-side direct mutation for canonical Gate 05 writes.
 
-## 8. Permission model
+## 8. Permission model — FROZEN
 
-Reuse existing effective-permission engine.
+Reuse the existing effective-permission engine. Gate 05 does not create a second authorization engine.
 
-Proposed permission families:
-- clinical:read;
-- clinical:write;
-- clinical:finalize;
-- clinical:attest;
-- clinical:manage_templates;
-- clinical:manage_problems;
-- clinical:manage_recommendations;
-- clinical:execute_procedures;
-- clinical:record_patient_decision.
+### Existing permissions retained
+- `visits:read` — current Visit read compatibility.
+- `visits:update` — current Visit/Patient Flow-compatible Visit editing.
+- All existing `medical_files:*` permissions remain owned by Medical Files.
+- All existing `agenda:*` permissions remain owned by Agenda.
 
-Exact permission keys must be reconciled with the existing permission registry before migration. Do not create synonyms that duplicate an existing canonical permission.
+### Canonical new Gate 05 permission keys
+The following exact permission keys are frozen for the Gate 05 implementation migration:
+- `clinical:read`
+- `clinical:write`
+- `clinical:finalize`
+- `clinical:attest`
+- `clinical:manage_templates`
+- `clinical:manage_problems`
+- `clinical:manage_recommendations`
+- `clinical:execute_procedures`
+- `clinical:record_patient_decision`
+
+These names are implementation authority, not current-live rows. The current Live registry has no `clinical:*` keys; the Gate 05 migration will seed exactly these keys into the existing `public.permissions` registry and connect them through the existing role/effective-permission mechanism. No synonym set is permitted.
+
+### Command authorization mapping
+| Operation | Required permission |
+|---|---|
+| Read canonical Clinical entities / Clinical Record projection | `clinical:read` |
+| Create or edit Observation / Assessment / Decision / Document draft | `clinical:write` |
+| Problem create/update/resolve | `clinical:manage_problems` |
+| Recommendation create/update/present | `clinical:manage_recommendations` |
+| Patient Decision recording | `clinical:record_patient_decision` |
+| Procedure Execution create/update | `clinical:execute_procedures` |
+| Finalize an applicable clinical entity/document | `clinical:finalize` |
+| Attest an applicable clinical document | `clinical:attest` |
+| Create/update/publish/retire template configuration | `clinical:manage_templates` |
+
+Where an operation changes an entity that also requires finalization or attestation, both the base action permission and the finalization/attestation permission are required.
+
+Procedure Execution additionally validates Workforce capability for the selected performer where a capability-controlled procedure is involved. Permission grants are never treated as medical capability.
+
+### Pre-existing compatibility boundary
+The new structured Clinical entities use `clinical:*` permissions. The existing Visit lifecycle continues using its established `sessions:*` / `visits:*` permissions according to the owning Patient Flow / Visit commands. Gate 05 does not rename or duplicate those permissions.
 
 ## 9. Clinical template validation contract
 
@@ -495,7 +522,7 @@ Not part of Gate 05 implementation:
 ## 14. Implementation sequence
 
 1. Freeze Gate 05 implementation design.
-2. Reconcile exact existing permission keys and database naming.
+2. Assert the frozen permission/naming contract against the migration and generated types; no architectural rename or second permission engine is permitted.
 3. Create isolated Gate 05 implementation branch.
 4. Implement canonical schema additions and Procedure Execution extension.
 5. Implement RLS, permissions and domain write actions.
@@ -525,7 +552,7 @@ Schema migration: NOT STARTED
 Production mutation: NONE
 
 Gate 05 is therefore:
-IMPLEMENTATION-READY
+**IMPLEMENTATION-READY — PLANNING/TRANSFER ONLY**
 
 Implementation-ready does not mean implemented or verified.
 
@@ -540,3 +567,22 @@ Do not move Treatment Plan or Follow-up lifecycle ownership into Clinical.
 Do not implement from an older Gate 05 draft when this Implementation Design and its preceding architecture records are available.
 
 End of document.
+
+## Final implementation-readiness reconciliation — 2026-09-30
+
+The final unresolved planning item was the authorization/naming boundary. It is now frozen above.
+
+Readiness conditions now satisfied:
+- current repository and Live Supabase reconciliation completed;
+- canonical Clinical entity/lifecycle model frozen;
+- actor and provenance model frozen;
+- Procedure Execution repetition semantics and legacy compatibility strategy frozen;
+- Clinical Template/documentation architecture frozen;
+- Clinical Workspace target frozen;
+- exact Gate 05 permission keys and command mapping frozen;
+- cross-domain source-reference ownership frozen;
+- implementation sequence frozen;
+- verification requirements frozen in the Gate 05 Verification Plan;
+- no unresolved Product Owner decision remains within the approved Gate 05 scope.
+
+Implementation remains **NOT STARTED** and no migration/production mutation is authorized by this planning document.
