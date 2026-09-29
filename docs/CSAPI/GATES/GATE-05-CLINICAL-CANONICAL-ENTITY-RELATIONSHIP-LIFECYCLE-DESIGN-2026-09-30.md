@@ -252,7 +252,7 @@ These are architecture details, not Product Owner blockers unless they materiall
 ## 13. Gate 05 continuity checkpoint
 
 A new CSAPI conversation must resume from:
-Gate 05 → Current-State Reconciliation V1 → Canonical Clinical Entity Relationship & Lifecycle Design V1 → resolve implementation-design details → Clinical Template / Documentation Architecture → Clinical Workspace Target Interaction Design → Gate 05 Implementation Design → IMPLEMENTATION-READY.
+Gate 05 → frozen architecture package → Execution Contract / Implementation Plan / Verification Plan → IMPLEMENTATION-READY → controlled implementation after Gate 04 closure.
 
 Do not reopen Gates 01–03, reinterpret Gate 04 ownership, move Treatment Plan or Follow-up ownership into Clinical, or begin schema implementation from this design alone.
 
@@ -265,7 +265,7 @@ Implementation Design: COMPLETE — FROZEN
 Implementation: NOT STARTED
 Schema migration: NOT STARTED
 Production mutation: NONE
-Next step: controlled review of the eight implementation-design details, beginning with exact entity cardinalities and the Visit actor participation model.
+Next step: controlled Gate 05 implementation after Gate 04 closure; no new architecture review is pending within this frozen scope.
 
 End of document.
 
