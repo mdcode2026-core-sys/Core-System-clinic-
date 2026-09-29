@@ -3,9 +3,9 @@
 Status: ACTIVE — Decision-Gate Workstream
 Last reconciled: 2026-09-22
 Canonical implementation base: main; focused branches for changes
-Current Gate: Gate 03 — Patient & Identity — CLOSED / VERIFIED / PRODUCTION VERIFIED
-Previous Gate: Gate 02 — Patient Journey — CLOSED / VERIFIED / PRODUCTION VERIFIED
-Execution mode: Decision-first; Gate 02 is CLOSED; Gate 03 implementation verified through engineering, DB and live Supabase checks; final production deployment/runtime verification pending
+Current Gate: Gate 04 — Agenda & Scheduling — OPEN / PRECHECK / OWNERSHIP & INTEGRATION RECONCILIATION
+Previous Gate: Gate 03 — Patient & Identity — CLOSED / VERIFIED / PRODUCTION VERIFIED
+Execution mode: Decision-first; Gates 01–03 are CLOSED / VERIFIED / PRODUCTION VERIFIED; Gate 04 is active and must complete ownership/source/integration reconciliation before implementation.
 
 ## 1. Purpose
 
@@ -294,3 +294,14 @@ Treatment Plan → explicit Update → Next Action → patient-specific Agenda h
 Authoritative Gate 03 closure record: `docs/CSAPI/GATES/GATE-03-FINAL-CLOSURE-RECONCILIATION-2026-09-29.md`.
 
 Next CSAPI execution may proceed to Gate 04 only according to the approved 20-gate sequence. Gate 11 Follow-up work remains deferred until its owning gate.
+## Gate 04 current state — 2026-09-29
+
+Gate 04 — Agenda & Scheduling is the active CSAPI gate.
+
+The four Product Owner-approved Gate 04 decisions are:
+1. Resource concurrency/capacity is policy-driven; default exclusivity applies where no explicit sharing/capacity policy exists.
+2. Service/Procedure owns operational requirements; Agenda consumes them to determine appointment feasibility; provider/doctor is conditional by service.
+3. Appointment create, update, status, cancellation and reschedule operations require full audit traceability.
+4. Gate 04 consumes canonical Workforce availability/eligibility/schedule/leave information; legacy fallback cleanup remains with the Workforce owning gate.
+
+No implementation has been authorized outside these boundaries. No finding currently reopens Gates 01–03 or transfers Follow-up/Gate 11 or Treatment Plan ownership into Agenda.

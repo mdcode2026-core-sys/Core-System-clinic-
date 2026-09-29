@@ -366,3 +366,15 @@ This file is append-only for material CSAPI events. Historical entries remain ev
 - Verification boundary: repository inspection confirms zero duplicate numeric migration versions after PR #198; this is not yet equivalent to a successful clean replay.
 - Main correction commit: `462022296f12f5f691de8cf88f6a819c38c33877`.
 - Status: OPEN — CLEAN MIGRATION VERIFICATION REQUIRED.
+
+### CSAPI-2026-09-29-035
+- Date: 2026-09-29
+- Gate: Gate 04 — Agenda & Scheduling
+- Type: Decision / Approval
+- Source(s): Gate 04 Module/Domain Architecture Reconciliation; current Gate 04 handoff; repository Agenda implementation; Live Supabase ownership/schema evidence; explicit Product Owner approval of proposals 1–4
+- Statement: Four Gate 04 decisions are frozen: (1) resource concurrency/capacity is policy-driven with default exclusivity when no explicit sharing/capacity policy exists; (2) Service/Procedure owns the canonical operational requirements and Agenda consumes them for booking feasibility; provider/doctor is conditional by service; (3) every appointment create/update/status/cancel/reschedule mutation must be traceable through the canonical audit boundary; (4) Gate 04 consumes the canonical Workforce contract and does not repair legacy Workforce fallback sources, which remain assigned to the Workforce owning gate.
+- Evidence: Live master_agenda_events contains provider/room/resource/patient exclusion constraints; clinic_rooms contains capacity; clinic_procedures contains duration/buffer/provider metadata; Workforce schedules/unavailability/capability sources exist; current Agenda mutation and availability services are present; current audit trigger covers UPDATE and therefore identifies CREATE coverage as a concrete gap; historical procedure-resource validator reports active_model=false.
+- Product Owner decision: Approved all four proposed decisions exactly as stated.
+- Implementation consequence: Gate 04 may implement the smallest additive changes required to realize these decisions. No generic Resource Engine, no second scheduler, no Workforce-engine rebuild, no resurrection of historical clinic_procedure_resources solely because it existed in old migrations.
+- Verification evidence: 2026-09-29 read-only repository and Live Supabase reconciliation; no application or database mutation was performed by this decision freeze.
+- Status: FROZEN / APPROVED
