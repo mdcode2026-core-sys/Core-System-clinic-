@@ -1,11 +1,11 @@
 # CORE SYSTEM — CSAPI MASTER STATE
 
 Status: ACTIVE — Decision-Gate Workstream
-Last reconciled: 2026-09-22
+Last reconciled: 2026-09-29
 Canonical implementation base: main; focused branches for changes
-Current Gate: Gate 04 — Agenda & Scheduling — OPEN / PRECHECK / OWNERSHIP & INTEGRATION RECONCILIATION
+Current Gate: Gate 04 — Agenda & Scheduling — OPEN / IMPLEMENTATION-READY / IMPLEMENTATION NOT STARTED
 Previous Gate: Gate 03 — Patient & Identity — CLOSED / VERIFIED / PRODUCTION VERIFIED
-Execution mode: Decision-first; Gates 01–03 are CLOSED / VERIFIED / PRODUCTION VERIFIED; Gate 04 is active and must complete ownership/source/integration reconciliation before implementation.
+Execution mode: Gate 04 planning is complete and frozen; implementation is transferred as a controlled workstream. Gates 01–03 remain CLOSED / VERIFIED / PRODUCTION VERIFIED.
 
 ## 1. Purpose
 
@@ -305,3 +305,36 @@ The four Product Owner-approved Gate 04 decisions are:
 4. Gate 04 consumes canonical Workforce availability/eligibility/schedule/leave information; legacy fallback cleanup remains with the Workforce owning gate.
 
 No implementation has been authorized outside these boundaries. No finding currently reopens Gates 01–03 or transfers Follow-up/Gate 11 or Treatment Plan ownership into Agenda.
+
+## 21. Gate 04 Implementation-Ready closure — 2026-09-29
+
+Gate 04 has reached IMPLEMENTATION-READY.
+
+Completed and frozen:
+- Module/Domain architecture reconciliation.
+- Canonical ownership/source-of-truth reconciliation.
+- Four Product Owner-approved Gate 04 decisions.
+- Agenda execution contract.
+- Implementation design.
+- Work-package implementation plan.
+- Verification plan.
+- Protected DB mutation-authority design.
+- Cross-domain ownership boundaries with Gates 01–03 and Gate 11.
+
+Not completed:
+- Application implementation.
+- Database migration implementation.
+- Automated Gate 04 verification.
+- Runtime/production verification.
+- Final Gate 04 closure.
+
+Therefore Gate 04 remains OPEN, intentionally, but is now ready for implementation handoff.
+
+### Cross-gate binding
+Gate 04 implementation must integrate exactly with the verified outputs of Gates 01–03. It must not modify their ownership or create duplicate Patient Flow, Patient Identity, Patient Journey, Queue, Treatment Plan, Follow-up, Inventory, Workforce or scheduler engines.
+
+### Sequential progression
+Gate 05 may now begin its own decision/design/planning work. Gate 05 implementation is not authorized before Gate 04 closure unless a specific documented dependency makes earlier implementation necessary. Planning a later gate does not constitute implementation or closure of that gate.
+
+### Transfer rule
+The implementation owner may execute Gate 04 from the frozen artifacts. Any discovered contradiction must be classified as: Gate 04 implementation defect; later-gate issue; regression of a closed gate; or genuine architecture/product decision requiring escalation. No silent reinterpretation of frozen decisions is permitted.
