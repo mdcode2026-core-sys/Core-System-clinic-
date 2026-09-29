@@ -117,6 +117,7 @@ console.log("PASS|18-clinical-decision-treatment-plan|19-multi-stage-plan"); // 
   const stageOneStatus=stageOneRow.locator("select").first();
   await stageOneStatus.waitFor({state:"visible",timeout:15000});
   await stageOneStatus.selectOption("completed");
+  await stageOneRow.getByRole("button",{name:/update|تحديث/i}).click();
   await goto("/work-center");
   const booking=page.locator('a[href*="bookingWorkItemId="][href*="patientId='+encodeURIComponent(patientId)+'"]').first();
   await booking.waitFor({state:"visible",timeout:30000});
