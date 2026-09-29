@@ -134,3 +134,16 @@ The system-wide engineering foundation remains CLOSED. The active CSAPI continua
 Current CSAPI authority is the newer Gate 04 handoff, Master State, Gate Plan and Decision & Action Ledger. The 2026-09-25 snapshot in this document is retained as historical baseline and must not override the current CSAPI continuation.
 
 Gate 04 ownership correction: `clinic_resources` is the clinic's operational-resource configuration boundary consumed by Agenda; `inventory_items` remains consumable inventory stock truth. The earlier broad `Inventory / resources` wording must not be interpreted as assigning appointment/resource-configuration ownership to Inventory.
+
+
+## Reconciliation checkpoint — 2026-09-30 — Gate 05 readiness
+
+The system-wide engineering foundation remains closed. The active CSAPI sequential implementation gate remains Gate 04.
+
+Gate 05 Clinical planning has now reached **OPEN — IMPLEMENTATION-READY / IMPLEMENTATION NOT STARTED** through its reconciled architecture, entity/lifecycle design, template/documentation design, Clinical Workspace design, Execution Contract, Implementation Plan and Verification Plan.
+
+Gate 06 may begin planning in the next CSAPI conversation, but **Gate 06 implementation is prohibited until BOTH Gate 04 and Gate 05 are CLOSED / VERIFIED / PRODUCTION VERIFIED**.
+
+Gate 05 implementation is likewise blocked until Gate 04 closes, unless an explicit CSAPI dependency is documented.
+
+These are planning/continuity controls. They do not imply implementation, migration or production mutation.
