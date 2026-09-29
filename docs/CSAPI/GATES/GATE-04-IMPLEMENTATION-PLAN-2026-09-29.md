@@ -49,6 +49,7 @@ Team functions are responsibility boundaries; they may be combined by the Engine
 ### Backend / Domain Engineer
 - Refactor Appointment mutation authority.
 - Integrate protected DB command boundary for create/update/transition/cancel.
+- Create/use a dedicated server-only service-role client; do not reuse the Auth administration client.
 - Ensure DB command functions do not duplicate availability/conflict engines.
 - Implement provider optionality and feasibility pipeline.
 - Build the Service/Procedure requirement adapter.
