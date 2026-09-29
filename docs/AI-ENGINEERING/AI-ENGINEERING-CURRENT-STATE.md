@@ -127,3 +127,10 @@ The foundation has now produced controlled work-package findings rather than onl
 - public-schema extension review.
 
 These are registered in the system-wide reconciliation document and are not being patched opportunistically.
+
+## Reconciliation note — 2026-09-29
+
+The system-wide engineering foundation remains CLOSED. The active CSAPI continuation is now Gate 04 — Agenda & Scheduling.
+Current CSAPI authority is the newer Gate 04 handoff, Master State, Gate Plan and Decision & Action Ledger. The 2026-09-25 snapshot in this document is retained as historical baseline and must not override the current CSAPI continuation.
+
+Gate 04 ownership correction: `clinic_resources` is the clinic's operational-resource configuration boundary consumed by Agenda; `inventory_items` remains consumable inventory stock truth. The earlier broad `Inventory / resources` wording must not be interpreted as assigning appointment/resource-configuration ownership to Inventory.
