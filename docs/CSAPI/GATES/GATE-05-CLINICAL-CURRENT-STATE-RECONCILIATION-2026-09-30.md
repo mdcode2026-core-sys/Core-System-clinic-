@@ -2,7 +2,7 @@
 # CSAPI Gate 05 — Clinical Current-State Reconciliation
 ## Version 1 — 2026-09-30
 
-**Status:** ARCHITECTURE / CURRENT-STATE RECONCILIATION — NO IMPLEMENTATION AUTHORIZED
+**Status:** FINAL CURRENT-STATE RECONCILIATION COMPLETE — FROZEN INPUT
 **Gate:** 05 — Clinical Care
 **Purpose:** Reconcile the approved Gate 05 Clinical Capability Map, Ownership & Boundary Matrix, and Entity & Lifecycle Matrix against current repository and Live Supabase reality before schema/implementation design.
 
@@ -361,3 +361,27 @@ Production mutation: NONE
 Next step: Canonical Clinical Entity Relationship & Lifecycle Design
 
 End of checkpoint.
+
+
+## Final reconciliation — 2026-09-30
+
+The earlier section identifying readiness blockers is historical and is superseded by the completed Gate 05 design package on this branch.
+
+The reconciliation is now closed as a planning artifact because the previously open readiness questions have been resolved in the binding Gate 05 implementation package:
+- Canonical Clinical Entity Relationship & Lifecycle Design V1
+- Clinical Entity Design Review V1
+- Clinical Template / Documentation Architecture V1
+- Clinical Workspace Target Interaction Design V1
+- Gate 05 Clinical Implementation Design V1
+- Gate 05 Clinical Execution Contract V1
+- Gate 05 Implementation Plan V1
+- Gate 05 Verification Plan V1
+- Gate 05 Implementation-Ready Closure V1
+
+No application code, migration, live DB mutation, or production deployment was performed by the planning package.
+
+### Binding sequencing barrier
+- **Gate 04:** remains the active sequential implementation workstream.
+- **Gate 05:** implementation is blocked until Gate 04 is **CLOSED / VERIFIED / PRODUCTION VERIFIED**, unless a concrete dependency is explicitly recorded by CSAPI.
+- **Gate 06:** planning may begin after Gate 05 reaches Implementation-Ready, but **no Gate 06 application implementation, schema migration, live DB mutation, runtime release, or production verification may begin until BOTH Gate 04 and Gate 05 are CLOSED / VERIFIED / PRODUCTION VERIFIED**.
+- Planning a gate never authorizes implementing that gate.
