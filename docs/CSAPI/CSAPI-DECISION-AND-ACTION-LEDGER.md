@@ -389,3 +389,27 @@ This file is append-only for material CSAPI events. Historical entries remain ev
 - Implementation consequence: WP-1 is expanded to include DB command authority; Security/QA must prove direct authenticated/anonymous table writes are denied and supported server mutations still succeed.
 - Verification evidence: Live inspection on 2026-09-29 showed authenticated INSERT/UPDATE/DELETE table privileges and authenticated Agenda RLS write policies on `master_agenda_events`.
 - Status: FROZEN — ENGINEERING DECISION
+
+### CSAPI-2026-09-29-037
+- Date: 2026-09-29
+- Gate: Gate 04 — Agenda & Scheduling
+- Type: Transition / Implementation-Ready
+- Source(s): Gate 04 ownership reconciliation; implementation design; execution contract; implementation plan; verification plan; current handoff
+- Statement: Gate 04 decision/design/planning work is complete and frozen. Gate 04 is now an implementation-ready workstream, with implementation intentionally not started in this session.
+- Evidence: All authoritative Gate 04 planning artifacts are present on main; four Product Owner-approved decisions are frozen; DB mutation-authority/security boundary is frozen; no unresolved Product Owner decision remains within the approved Gate 04 scope.
+- Product Owner decision: Transfer Gate 04 implementation to a controlled implementation owner while preserving the frozen contract exactly.
+- Implementation consequence: Implementation must proceed from the frozen Gate 04 artifacts using one coherent workstream branch; no duplicate engines, no silent scope expansion, and no reinterpretation of cross-domain ownership.
+- Verification evidence: Documentation state reconciled against current main cc4286d4c9d6b7309385e8b29cb5a567895caae1 before this transition.
+- Status: IMPLEMENTATION-READY / OPEN
+
+### CSAPI-2026-09-29-038
+- Date: 2026-09-29
+- Gate: CSAPI sequencing / transfer control
+- Type: Decision / Transition
+- Source(s): Product Owner instruction; Gate Plan; Master State; Gate 04 handoff
+- Statement: A later gate may undergo Decision → Reconciliation → Design → Documentation → Planning and reach Implementation-Ready while Gate 04 implementation is transferred, but later-gate implementation must not begin before the preceding gate is implemented and closed unless an explicit CSAPI dependency requires it.
+- Evidence: Gate 04 has reached Implementation-Ready but remains OPEN; Gate 05 is the next sequential gate.
+- Product Owner decision: Adopt this as the binding sequencing rule for the remaining CSAPI gates.
+- Implementation consequence: Gate 05 planning may begin in a new conversation; Gate 05 implementation remains blocked by Gate 04 until Gate 04 closure or an explicit dependency decision.
+- Verification evidence: Recorded in the current handoff and Gate Plan.
+- Status: FROZEN / BINDING
