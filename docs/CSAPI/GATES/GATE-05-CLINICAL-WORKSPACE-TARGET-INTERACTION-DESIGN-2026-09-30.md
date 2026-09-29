@@ -1,7 +1,7 @@
 # CSAPI Gate 05 — Clinical Workspace Target Interaction Design
 ## Version 1 — 2026-09-30
 
-Status: ARCHITECTURE / UX DESIGN — PROVISIONAL; NO IMPLEMENTATION AUTHORIZED
+Status: ARCHITECTURE / UX DESIGN — FROZEN / IMPLEMENTATION-READY INPUT
 Purpose: Translate the comprehensive clinical architecture into a clinician-first workspace that remains simple, direct and fast.
 
 ## 1. UX north star
@@ -328,7 +328,7 @@ Canonical Entity Relationship & Lifecycle Design: COMPLETE — V1
 Entity Design Review: COMPLETE — V1
 Clinical Template & Documentation Architecture: COMPLETE — V1
 Clinical Workspace Target Interaction Design: COMPLETE — V1 / PROVISIONAL
-Implementation Design: NOT STARTED
+Implementation Design: COMPLETE — FROZEN
 Implementation: NOT STARTED
 Schema migration: NOT STARTED
 Production mutation: NONE
@@ -340,3 +340,11 @@ New CSAPI conversation resume point:
 Gate 05 → Clinical Workspace Target Interaction Design V1 → Gate 05 Implementation Design.
 
 End of document.
+
+## Final UX freeze — 2026-09-30
+
+The Clinical Workspace target is now **FROZEN** for implementation.
+
+The implementation contract preserves the central UX requirement: complex clinical structure stays in the backend while the normal clinician path remains direct and progressively disclosed.
+
+The target interaction does not create a second Visit engine, Medical Record store, scheduler, Treatment Plan flow, Follow-up engine, or Medical Files store.
