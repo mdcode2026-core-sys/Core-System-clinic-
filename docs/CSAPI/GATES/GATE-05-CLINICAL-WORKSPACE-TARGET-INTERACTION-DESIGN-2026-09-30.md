@@ -333,11 +333,9 @@ Implementation: NOT STARTED
 Schema migration: NOT STARTED
 Production mutation: NONE
 
-Next stage:
-Gate 05 Implementation Design — translate the approved architecture into an implementation-ready schema, action boundaries, migration plan, tests and verification contract.
+Next stage: Gate 05 controlled implementation after Gate 04 closure, using the frozen implementation-ready package.
 
-New CSAPI conversation resume point:
-Gate 05 → Clinical Workspace Target Interaction Design V1 → Gate 05 Implementation Design.
+Planning handoff complete: Gate 05 → IMPLEMENTATION-READY. New CSAPI conversation should proceed to Gate 06 planning, not implementation.
 
 End of document.
 
