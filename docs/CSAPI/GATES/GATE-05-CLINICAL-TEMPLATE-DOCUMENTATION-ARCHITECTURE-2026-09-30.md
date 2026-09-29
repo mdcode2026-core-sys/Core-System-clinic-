@@ -289,11 +289,9 @@ Implementation: NOT STARTED
 Schema migration: NOT STARTED
 Production mutation: NONE
 
-Next stage:
-Clinical Workspace Target Interaction Design, followed by Gate 05 Implementation Design.
+Next stage: Gate 05 controlled implementation after Gate 04 closure, using the frozen Execution Contract, Implementation Plan and Verification Plan.
 
-New CSAPI conversation resume point:
-Gate 05 → Clinical Template & Documentation Architecture V1 → Clinical Workspace Target Interaction Design.
+Planning package resume point: Gate 05 → IMPLEMENTATION-READY. The next conversation is Gate 06 planning; Gate 05 implementation remains blocked by Gate 04 closure.
 
 End of document.
 
