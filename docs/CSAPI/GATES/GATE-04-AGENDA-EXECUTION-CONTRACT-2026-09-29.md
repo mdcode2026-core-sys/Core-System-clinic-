@@ -122,7 +122,9 @@ Do not introduce a second linked appointment record solely to model reschedule u
 ## 19. Persistence / Database command contract
 All appointment persistence mutations use narrow Agenda DB command functions invoked only by the trusted server-side mutation service. The functions are protected by explicit tenant/actor/current-state checks and tightly-scoped execution privileges, following the already-proven Gate 01 D3 command-boundary pattern. They do not recreate the Availability or Conflict engines.
 
-Planned commands: create, update/reschedule, status transition, cancel. No delete command is required by the current Gate 04 product contract.
+Planned commands: `agenda_create_appointment`, `agenda_update_appointment` (including reschedule), `agenda_transition_appointment`, `agenda_cancel_appointment`. No delete command is required by the current Gate 04 product contract.
+
+These commands are called only by a dedicated trusted server-role client. The existing Auth administration client is not repurposed.
 
 Authenticated/anonymous INSERT/UPDATE/DELETE access to `master_agenda_events` must not remain as a browser-accessible bypass once all active application callers are migrated. SELECT remains governed by Agenda RLS.
 
