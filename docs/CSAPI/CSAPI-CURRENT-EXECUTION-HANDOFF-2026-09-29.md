@@ -315,3 +315,13 @@ Known ownership/documentation correction:
 `clinic_resources` is treated as operational resource configuration owned by Clinic Administration / the owning operational-resource boundary for Gate 04; `inventory_items` remains Inventory stock truth. Older umbrella wording must not be used as evidence of a second resource owner.
 
 Next conversation-independent continuation: begin from the frozen Gate 04 implementation contract, not from a new architecture debate.
+## 16. Gate 04 security-authority reconciliation — 2026-09-29
+
+Live Supabase inspection confirmed `master_agenda_events` currently exposes INSERT/UPDATE/DELETE privileges to authenticated users and corresponding authenticated RLS write policies. Therefore the final Gate 04 design requires a protected persistence command boundary in addition to server-action convergence.
+
+Implementation constraint:
+- first-party mutation decisions remain in `agenda.mutation-service.ts`;
+- persistence uses narrow server-role Agenda command functions;
+- direct authenticated/anonymous table writes are denied after caller migration;
+- no duplicate Availability/Conflict engine is introduced;
+- the existing Auth administration client is not repurposed for Agenda persistence.
