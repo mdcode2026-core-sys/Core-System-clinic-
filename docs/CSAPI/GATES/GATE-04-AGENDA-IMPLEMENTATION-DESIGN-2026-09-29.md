@@ -43,6 +43,8 @@ The application mutation service is the sole first-party decision/orchestration 
 
 The DB command boundary is implemented using the same explicit-command pattern already proven by Gate 01 D3: narrow mutation functions, explicit tenant/actor/state guards, `SECURITY DEFINER`, and tightly-scoped EXECUTE privileges. It must not duplicate the full availability/conflict engine.
 
+The trusted server caller must use a dedicated service-role Supabase client for Agenda persistence. Do not reuse `src/infrastructure/supabase/admin.ts` for this purpose because that module is explicitly scoped to Auth administration. Create a separate server-only client boundary if the existing infrastructure does not provide one.
+
 The mutation service becomes authoritative for:
 - create;
 - update/reschedule;
@@ -180,10 +182,10 @@ The final architecture has two deliberately separated layers:
 The DB command layer is not a second Agenda engine. It is the protected persistence boundary that prevents direct authenticated table writes from bypassing the canonical application decision path.
 
 Planned command boundary:
-- `create` appointment;
-- `update/reschedule` appointment;
-- `transition` appointment status;
-- `cancel` appointment.
+- `agenda_create_appointment`;
+- `agenda_update_appointment` (including reschedule);
+- `agenda_transition_appointment`;
+- `agenda_cancel_appointment`.
 
 No delete command is required by the current Gate 04 feature contract; cancellation remains the normal lifecycle mechanism.
 
