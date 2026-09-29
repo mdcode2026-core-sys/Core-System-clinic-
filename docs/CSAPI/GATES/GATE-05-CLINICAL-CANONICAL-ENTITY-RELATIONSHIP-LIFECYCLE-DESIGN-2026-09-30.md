@@ -1,7 +1,7 @@
 # CSAPI Gate 05 — Canonical Clinical Entity Relationship & Lifecycle Design
 ## Version 1 — 2026-09-30
 
-Status: ARCHITECTURE DESIGN — PROVISIONAL / READY FOR CROSS-DOMAIN REVIEW
+Status: ARCHITECTURE DESIGN — FROZEN / IMPLEMENTATION-READY INPUT
 Gate: 05 — Clinical Care
 Prerequisite: Gate 05 Current-State Reconciliation V1
 Implementation: NOT AUTHORIZED
@@ -261,10 +261,18 @@ Do not reopen Gates 01–03, reinterpret Gate 04 ownership, move Treatment Plan 
 Gate 05: OPEN
 Current-State Reconciliation: COMPLETE — V1
 Canonical Entity Relationship & Lifecycle Design: COMPLETE — V1 / PROVISIONAL
-Implementation Design: NOT STARTED
+Implementation Design: COMPLETE — FROZEN
 Implementation: NOT STARTED
 Schema migration: NOT STARTED
 Production mutation: NONE
 Next step: controlled review of the eight implementation-design details, beginning with exact entity cardinalities and the Visit actor participation model.
 
 End of document.
+
+## Final architecture freeze — 2026-09-30
+
+This V1 design is now **FROZEN** as the Gate 05 canonical entity and lifecycle baseline for implementation.
+
+No unresolved entity cardinality, lifecycle ownership, actor/provenance, versioning, cross-domain ownership, or longitudinal-record architecture question remains within the approved Gate 05 scope.
+
+Implementation is still controlled by the Gate 04 → Gate 05 sequencing barrier; this document does not authorize implementation by itself.
