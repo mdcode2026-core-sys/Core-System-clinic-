@@ -355,3 +355,32 @@ Gate 05 planning may begin now because Gate 04 has reached Implementation-Ready.
 
 ### Handoff principle
 The implementation owner inherits the decisions in this handoff as binding engineering instructions, not suggestions. Any deviation requires evidence, classification and explicit decision/change control before implementation proceeds.
+
+
+## 18. Gate 05 planning checkpoint — 2026-09-30
+
+Gate 05 — Clinical Care has completed its architecture, current-state reconciliation, canonical entity/lifecycle design, template/documentation architecture, Clinical Workspace interaction design, and Implementation Design.
+
+Gate 05 state:
+- OPEN — IMPLEMENTATION-READY / implementation not started.
+- Clinical architecture is comprehensive from the beginning and specialty-capable.
+- Clinician UX remains one simple Clinical Workspace with progressive disclosure.
+- Medical Record is a projection/read model, not a mega-table.
+- Visit remains independent from Treatment Plan.
+- Procedure Definition remains Gate 07; Procedure Execution belongs to Clinical.
+- Follow-up remains Gate 11; Clinical produces the clinical requirement/consequence only.
+- Agenda remains Gate 04 owner of appointments.
+- Patient Flow remains Gate 01 owner of clinic-day Visit lifecycle.
+- No generic Clinical Result/Consequence table or generic global Rules Engine is authorized.
+
+Binding Gate 05 artifacts:
+- docs/CSAPI/GATES/GATE-05-CLINICAL-CURRENT-STATE-RECONCILIATION-2026-09-30.md
+- docs/CSAPI/GATES/GATE-05-CLINICAL-CANONICAL-ENTITY-RELATIONSHIP-LIFECYCLE-DESIGN-2026-09-30.md
+- docs/CSAPI/GATES/GATE-05-CLINICAL-ENTITY-DESIGN-REVIEW-2026-09-30.md
+- docs/CSAPI/GATES/GATE-05-CLINICAL-TEMPLATE-DOCUMENTATION-ARCHITECTURE-2026-09-30.md
+- docs/CSAPI/GATES/GATE-05-CLINICAL-WORKSPACE-TARGET-INTERACTION-DESIGN-2026-09-30.md
+- docs/CSAPI/GATES/GATE-05-CLINICAL-IMPLEMENTATION-DESIGN-2026-09-30.md
+
+The next Gate 05 execution step, when Gate 04 is closed or an explicit dependency is approved, is VERIFY current main/relevant cross-domain state → reconcile exact permission/naming boundaries → create one coherent implementation workstream → implement → build/test → runtime verify → production verify where required → document → close.
+
+A new conversation starting with CSAPI must not restart Gate 05 architecture or reopen Gates 01–03 unless current evidence demonstrates a real contradiction/regression. It should use these artifacts as the starting planning authority and verify current reality before implementation.
