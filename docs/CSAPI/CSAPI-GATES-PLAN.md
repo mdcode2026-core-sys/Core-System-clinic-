@@ -13,7 +13,7 @@ Previous Gate: Gate 03 — Patient & Identity — CLOSED / VERIFIED / PRODUCTION
 | 02 | Patient Journey | Longitudinal patient lifecycle over time; next actions and continuity | CLOSED — VERIFIED / PRODUCTION VERIFIED |
 | 03 | Patient & Identity | Canonical identity, clinic relationship, duplicate detection, search, history, insurance, portal relationship | CLOSED — VERIFIED / PRODUCTION VERIFIED |
 | 04 | Agenda & Scheduling | Agenda authority, Calendar representation, provider/resource availability, conflicts, cancel/reschedule/no-show/context | OPEN |
-| 05 | Clinical Care | Clinical Visit, Clinical Decision, Medical Record, Medical Files, Measurements, Photos, Procedure, Session | OPEN |
+| 05 | Clinical Care | Clinical Visit, Clinical Decision, Medical Record, Medical Files, Measurements, Photos, Procedure, Session | OPEN — IMPLEMENTATION-READY (PLANNING COMPLETE) |
 | 06 | Treatment Planning | Plan lifecycle, stages, next actions, linkage to visits/appointments/packages/finance; not every visit requires a plan | OPEN |
 | 07 | Procedures / Services / Packages / Offers | Medical procedure vs clinic service vs commercial package/offer; master/customization relationships | OPEN |
 | 08 | Financial & Commercial Flow | Commercial commitment, financial plan, invoice, payment, refund, insurance, expense, revenue | OPEN |
