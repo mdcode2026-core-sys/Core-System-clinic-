@@ -559,12 +559,12 @@ Implementation-ready does not mean implemented or verified.
 ## 16. Continuity checkpoint
 
 New CSAPI conversation resume point:
-Gate 05 → IMPLEMENTATION-READY → exact permission/naming reconciliation → isolated implementation → BUILD → VERIFY → REVIEW → DOCUMENT → CLOSE.
+Gate 05 → IMPLEMENTATION-READY → wait for Gate 04 closure → controlled implementation → BUILD/TEST → VERIFY → REVIEW → RECONCILE → DOCUMENT → CLOSE.
 
 Do not reopen Gates 01–03.
 Do not reinterpret Gate 04 ownership.
 Do not move Treatment Plan or Follow-up lifecycle ownership into Clinical.
-Do not implement from an older Gate 05 draft when this Implementation Design and its preceding architecture records are available.
+Do not implement Gate 05 before Gate 04 closure unless an explicit CSAPI dependency is recorded. Do not use older drafts as execution authority.
 
 End of document.
 
