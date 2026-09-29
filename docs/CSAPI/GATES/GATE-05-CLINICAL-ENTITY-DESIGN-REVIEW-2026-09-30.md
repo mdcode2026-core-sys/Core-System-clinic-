@@ -1,7 +1,7 @@
 # CSAPI Gate 05 — Clinical Entity Design Review
 ## Version 1 — 2026-09-30
 
-Status: ARCHITECTURE REVIEW — PROVISIONAL; NO IMPLEMENTATION AUTHORIZED
+Status: ARCHITECTURE REVIEW COMPLETE — FROZEN INPUT
 Purpose: Resolve the principal entity-cardinality, actor, versioning, migration, projection, consequence, and repeated-execution questions raised by Gate 05 Canonical Entity Relationship & Lifecycle Design V1.
 
 ## 1. Cardinality baseline
@@ -231,7 +231,7 @@ Medical Record is a projection across these truths.
 Current-State Reconciliation: COMPLETE — V1
 Canonical Entity Relationship & Lifecycle Design: COMPLETE — V1
 Entity Design Review: COMPLETE — V1 for principal architecture questions
-Implementation Design: NOT STARTED
+Implementation Design: COMPLETE — FROZEN
 Implementation: NOT STARTED
 Schema migration: NOT STARTED
 Production mutation: NONE
@@ -249,3 +249,11 @@ Do not reinterpret Gate 04, Gate 06 or Gate 11 ownership.
 Do not begin implementation or migration from this document alone.
 
 End of document.
+
+## Final review disposition — 2026-09-30
+
+The design-review questions raised by V1 are resolved and incorporated into the Gate 05 Implementation Design and Execution Contract.
+
+**Review result: FROZEN / NO OUTSTANDING GATE 05 ARCHITECTURE BLOCKER.**
+
+The review does not authorize implementation by itself; execution remains controlled by the Gate 05 implementation-ready closure and the Gate 04 → Gate 05 sequencing barrier.
