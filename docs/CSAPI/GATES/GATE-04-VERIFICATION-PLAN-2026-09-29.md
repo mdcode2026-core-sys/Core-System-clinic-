@@ -22,6 +22,8 @@ Mandatory:
 - production build;
 - Agenda architectural/static checks;
 - no active direct mutation path into `master_agenda_events`;
+- protected DB command boundary is the only supported Appointment write path;
+- authenticated and anonymous direct table INSERT/UPDATE/DELETE attempts are denied;
 - no duplicate scheduler/calendar engine;
 - no unintended Treatment Plan / Follow-up ownership transfer.
 
@@ -44,6 +46,9 @@ Negative:
 - user without `agenda:update` cannot update/status/cancel/reschedule;
 - cross-tenant patient/provider/room/resource references are rejected;
 - client-submitted expected status cannot override persisted state;
+- direct table mutation from an authenticated browser client is rejected;
+- direct table mutation from anonymous access is rejected;
+- trusted server command boundary performs final tenant/actor/state guards;
 - audit data is not exposed at unauthorized detail levels.
 
 ## 6. Core authenticated E2E scenarios
