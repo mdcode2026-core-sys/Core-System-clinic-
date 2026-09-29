@@ -380,3 +380,36 @@ Authoritative Gate 05 planning artifacts:
 - docs/CSAPI/GATES/GATE-05-CLINICAL-TEMPLATE-DOCUMENTATION-ARCHITECTURE-2026-09-30.md
 - docs/CSAPI/GATES/GATE-05-CLINICAL-WORKSPACE-TARGET-INTERACTION-DESIGN-2026-09-30.md
 - docs/CSAPI/GATES/GATE-05-CLINICAL-IMPLEMENTATION-DESIGN-2026-09-30.md
+
+
+## Gate 05 final planning authority — 2026-09-30
+
+Gate 05 planning is now frozen at **OPEN — IMPLEMENTATION-READY / IMPLEMENTATION NOT STARTED**.
+
+The final readiness package is governed by:
+- `GATE-05-CLINICAL-CURRENT-STATE-RECONCILIATION-2026-09-30.md`
+- `GATE-05-CLINICAL-CANONICAL-ENTITY-RELATIONSHIP-LIFECYCLE-DESIGN-2026-09-30.md`
+- `GATE-05-CLINICAL-ENTITY-DESIGN-REVIEW-2026-09-30.md`
+- `GATE-05-CLINICAL-TEMPLATE-DOCUMENTATION-ARCHITECTURE-2026-09-30.md`
+- `GATE-05-CLINICAL-WORKSPACE-TARGET-INTERACTION-DESIGN-2026-09-30.md`
+- `GATE-05-CLINICAL-IMPLEMENTATION-DESIGN-2026-09-30.md`
+- `GATE-05-CLINICAL-EXECUTION-CONTRACT-2026-09-30.md`
+- `GATE-05-CLINICAL-IMPLEMENTATION-PLAN-2026-09-30.md`
+- `GATE-05-VERIFICATION-PLAN-2026-09-30.md`
+- `GATE-05-IMPLEMENTATION-READY-CLOSURE-2026-09-30.md`
+
+The exact `clinical:*` permission contract is frozen and uses the existing effective-permission engine. No application code, migration, Live DB mutation, or production deployment was performed by this planning package.
+
+### Binding two-gate implementation barrier
+
+Gate 04 remains the active sequential implementation workstream.
+
+Gate 05 implementation remains blocked until Gate 04 is CLOSED / VERIFIED / PRODUCTION VERIFIED unless an explicit CSAPI dependency is recorded.
+
+Gate 06 may begin Decision → Reconciliation → Design → Implementation-Ready planning in a new conversation, but:
+
+**NO Gate 06 IMPLEMENTATION is permitted before BOTH Gate 04 AND Gate 05 are CLOSED / VERIFIED / PRODUCTION VERIFIED.**
+
+This prohibition includes application code, database migrations, Live Supabase mutation, runtime release and production verification.
+
+Planning never authorizes implementation.
