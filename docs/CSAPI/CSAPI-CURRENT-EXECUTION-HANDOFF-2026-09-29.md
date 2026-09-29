@@ -252,3 +252,44 @@ the AI Engineering Leader must:
 **Gates 01–03:** CLOSED
 
 This document is a continuation control point, not a substitute for current-state verification.
+
+## 14. Gate 04 — Product / Architecture Decision Freeze — 2026-09-29
+
+The following four decisions were explicitly approved by the Product Owner after the Gate 04 ownership/integration reconciliation:
+
+### D04-01 — Resource concurrency / capacity
+- Agenda resource concurrency is policy-driven.
+- Default behavior for a resource with no explicit sharing/capacity policy is exclusive use.
+- The architecture must support shared/capacity-based use later where the owning clinic/resource policy explicitly permits it.
+- Agenda must not encode a universal permanent exclusivity rule.
+
+### D04-02 — Service/Procedure requirements
+- The Service/Procedure definition is the canonical source for what operational resources a service requires.
+- Agenda is the scheduling authority and consumes those requirements as integration input.
+- Agenda determines whether the required provider/room/device/resource combination is schedulable; it does not become the owner of the underlying resource requirement truth.
+- Provider/doctor is conditional by service and is not a universal appointment requirement.
+
+### D04-03 — Appointment auditability
+- Every Appointment mutation must be traceable through the canonical audit boundary, including create, update, status transition, cancellation, and reschedule.
+- Audit evidence must preserve the complete decision context while respecting the permission-aware UX disclosure boundary.
+
+### D04-04 — Workforce source boundary
+- Gate 04 consumes the canonical Workforce contract for availability, schedule, leave/unavailability and eligibility/capability.
+- Legacy Workforce fallback/source cleanup is outside Gate 04 and remains assigned to the Workforce owning gate.
+- Gate 04 must not create another workforce availability engine.
+
+### Engineering findings frozen without additional Product Owner decision
+The following are execution findings, not new product decisions:
+- The current Agenda TypeScript/server mutation contract still makes doctorId mandatory; this must be reconciled with the approved conditional-provider model.
+- The live procedure-resource validator is an inactive/historical compatibility boundary (active_model=false); the historical clinic_procedure_resources model must not be resurrected without evidence. Gate 04 must establish the current canonical Service/Procedure → requirement contract before enforcement.
+- The current Agenda audit trigger covers UPDATE, not CREATE; create audit coverage is therefore a Gate 04 implementation gap.
+- Direct client mutation hooks exist in agenda.queries.ts, but repository search found no active callers. They are classified as a duplicate/bypass code surface; runtime activation must be verified before removal or routing changes.
+- Current database exclusion constraints enforce exclusive doctor/room/resource/patient overlap; these remain defense-in-depth while the approved policy-driven concurrency contract is reconciled.
+- Emergency insertion, provider transfer, waitlist and booking approval must remain explicit scoped integration/extension points; no ad-hoc second workflow or scheduler is authorized.
+- Existing appointments must not be silently deleted/rebooked merely because Workforce availability changes; impact handling remains an owning-domain/coordination integration concern.
+- Late arrival and overruns belong to actual Queue/Visit execution timing and must not silently rewrite the planned Agenda appointment schedule.
+
+### Gate ownership result
+No finding currently requires reopening Gate 01, Gate 02 or Gate 03. Follow-up continuity remains Gate 11. Treatment Plan remains the owner of clinical progression and next-action generation; Agenda owns the appointment when that next action becomes a booking.
+
+Gate 04 implementation authorization remains bounded to the approved Gate 04 scope and the four decisions above.
