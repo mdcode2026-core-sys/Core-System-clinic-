@@ -1,7 +1,7 @@
 # CSAPI Gate 05 — Clinical Template & Documentation Architecture
 ## Version 1 — 2026-09-30
 
-Status: ARCHITECTURE DESIGN — PROVISIONAL; NO IMPLEMENTATION AUTHORIZED
+Status: ARCHITECTURE DESIGN — FROZEN / IMPLEMENTATION-READY INPUT
 Purpose: Define how the comprehensive Clinical model becomes configurable for specialties and visit types while preserving canonical clinical truth and a simple clinician UX.
 
 ## 1. Core architecture rule
@@ -284,7 +284,7 @@ Current-State Reconciliation: COMPLETE — V1
 Canonical Entity Relationship & Lifecycle Design: COMPLETE — V1
 Entity Design Review: COMPLETE — V1
 Clinical Template & Documentation Architecture: COMPLETE — V1 / PROVISIONAL
-Implementation Design: NOT STARTED
+Implementation Design: COMPLETE — FROZEN
 Implementation: NOT STARTED
 Schema migration: NOT STARTED
 Production mutation: NONE
@@ -296,3 +296,11 @@ New CSAPI conversation resume point:
 Gate 05 → Clinical Template & Documentation Architecture V1 → Clinical Workspace Target Interaction Design.
 
 End of document.
+
+## Final template/documentation freeze — 2026-09-30
+
+The template and clinical-document architecture is now frozen for implementation.
+
+The bounded template evaluator, immutable published template versions, documentation versioning, finalization/attestation semantics, and the distinction between canonical clinical facts and document snapshots are part of the Gate 05 Execution Contract and Verification Plan.
+
+No generic cross-domain rules engine is introduced.
