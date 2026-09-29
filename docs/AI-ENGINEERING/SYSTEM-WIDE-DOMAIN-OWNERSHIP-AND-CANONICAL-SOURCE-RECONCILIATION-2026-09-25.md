@@ -663,3 +663,14 @@ Live schema inspection confirms that `patient_identities` does not currently con
 The 20260922190000 source was re-inspected. Its intended authorization corrections are technically aligned with the canonical `has_tenant_permission()` boundary, but its legacy national-ID backfill still uses `clinic_patients.cp.id` as `patient_identity_id`. Because those UUID primary keys are independently generated and the governed relationship is `patient_clinic_relationships`, that backfill assumption remains an execution-readiness blocker until proven against actual identity relationships. No Live mutation was performed.
 
 The current Live `register_patient_identity()` and `update_patient_identity()` bodies remain the pre-correction versions and still lack the `patients:create` / `patients:update` permission checks. This confirms that ENG-AUTH-01 and ENG-AUTH-02 remain live implementation findings rather than documentation-only findings.
+
+## Ownership wording correction — 2026-09-29
+
+This correction does not reopen the 2026-09-25 closed system-wide foundation. During Gate 04 reconciliation, the phrase `Inventory / resources` was found to be too broad when it includes `clinic_resources`.
+
+Current canonical interpretation:
+- `inventory_items` / lots / inventory ledger = consumable Inventory stock truth.
+- `clinic_resources` / `clinic_rooms` / operational resource configuration = Clinic Administration / owning operational-resource configuration truth, consumed by Agenda.
+- Agenda owns appointment truth, not operational-resource configuration truth.
+
+The historical umbrella wording remains retained for provenance, but it is superseded for current ownership decisions by the specific Clinic Administration operational-resource boundary and the Gate 04 reconciliation record.

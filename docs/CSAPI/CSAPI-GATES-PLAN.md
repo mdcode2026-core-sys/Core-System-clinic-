@@ -1,9 +1,9 @@
 # CORE SYSTEM — CSAPI DECISION GATES PLAN
 
 Status: ACTIVE / Current sequential plan
-Last reconciled: 2026-09-22
-Current Gate: Gate 03 — Patient & Identity — CLOSED / VERIFIED / PRODUCTION VERIFIED
-Previous Gate: Gate 02 — Patient Journey — CLOSED / VERIFIED / PRODUCTION VERIFIED
+Last reconciled: 2026-09-29
+Current Gate: Gate 04 — Agenda & Scheduling — OPEN / IMPLEMENTATION DESIGN COMPLETE
+Previous Gate: Gate 03 — Patient & Identity — CLOSED / VERIFIED / PRODUCTION VERIFIED
 
 > This is the CSAPI working gate map derived from CSAPI-DOCUMENTATION-PACK-2026-09-17.zip and reconciled with the completed Gate 01 evidence. A gate may be split, merged, reordered or added only through an explicit CSAPI decision recorded in the ledger.
 
@@ -136,3 +136,28 @@ Gate 01 and Gate 02 remain CLOSED. Gate 04 remains OPEN. Gate 11 remains OPEN an
 Authoritative closure record: `docs/CSAPI/GATES/GATE-03-FINAL-CLOSURE-RECONCILIATION-2026-09-29.md`.
 
 No Gate 01 or Gate 02 reopening is authorized by the Gate 11 Follow-up failure.
+## Gate 04 current execution state — 2026-09-29
+
+Gate 04 — Agenda & Scheduling is OPEN and is now at **IMPLEMENTATION DESIGN COMPLETE / PLAN FROZEN / IMPLEMENTATION NOT STARTED**.
+
+Authoritative Gate 04 planning artifacts:
+- `docs/CSAPI/GATES/GATE-04-OWNERSHIP-INTEGRATION-RECONCILIATION-2026-09-29.md`
+- `docs/CSAPI/GATES/GATE-04-AGENDA-IMPLEMENTATION-DESIGN-2026-09-29.md`
+- `docs/CSAPI/GATES/GATE-04-AGENDA-EXECUTION-CONTRACT-2026-09-29.md`
+- `docs/CSAPI/GATES/GATE-04-IMPLEMENTATION-PLAN-2026-09-29.md`
+- `docs/CSAPI/GATES/GATE-04-VERIFICATION-PLAN-2026-09-29.md`
+
+The four Product Owner-approved Gate 04 decisions are frozen in the CSAPI Decision & Action Ledger as `CSAPI-2026-09-29-035`.
+
+Implementation is intentionally not included in this planning stage. The next controlled step is one coherent Gate 04 implementation branch using the frozen contract, work packages and verification design.
+
+Gate 04 must preserve the following boundaries:
+- Agenda owns appointment truth.
+- Workforce owns workforce reality.
+- Service/Procedure owns booking requirements.
+- Clinic Administration / owning operational-resource configuration owns room/resource facts.
+- Inventory owns consumable stock.
+- Patient Flow owns actual clinic-day movement.
+- Treatment Plan owns clinical progression.
+- Follow-up remains Gate 11.
+- no second scheduler, resource engine, queue engine or workflow engine.
