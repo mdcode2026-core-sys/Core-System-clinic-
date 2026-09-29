@@ -37,7 +37,11 @@ Agenda owns the appointment decision and persisted appointment state. Every othe
 
 All Appointment mutations must converge on one server-side authority:
 
-`Agenda server action → agenda.mutation-service.ts → validation → persistence`
+`Agenda server action → agenda.mutation-service.ts → validation/decision → DB command boundary → master_agenda_events`
+
+The application mutation service is the sole first-party decision/orchestration path. The database exposes a narrow mutation command boundary so browser/API clients cannot bypass the service by writing directly to `master_agenda_events`.
+
+The DB command boundary is implemented using the same explicit-command pattern already proven by Gate 01 D3: narrow mutation functions, explicit tenant/actor/state guards, `SECURITY DEFINER`, and tightly-scoped EXECUTE privileges. It must not duplicate the full availability/conflict engine.
 
 The mutation service becomes authoritative for:
 - create;
@@ -50,7 +54,7 @@ The mutation service becomes authoritative for:
 `agenda.actions.ts` remains a thin authentication/input adapter.
 `agenda.queries.ts` remains read/query infrastructure only.
 
-Direct client writes to `master_agenda_events` are prohibited at the application architecture level. Existing mutation hooks are treated as migration targets and must not remain as active write paths.
+Existing direct client mutation hooks are migration targets. Their active callers must be inventoried and moved to server actions. Database INSERT/UPDATE/DELETE privileges for `anon` and `authenticated` must not remain an alternate Appointment write channel once the Gate 04 mutation boundary is activated.
 
 ## 4. Provider model
 
@@ -166,7 +170,26 @@ Reschedule remains an Agenda mutation over the existing appointment entity in Ga
 
 Cancellation reason remains constrained by the canonical database vocabulary.
 
-## 12. Audit design
+## 12. Persistence / Database Mutation Authority
+
+The final architecture has two deliberately separated layers:
+
+1. **Decision layer:** `agenda.mutation-service.ts` performs authentication context, tenant resolution, permissions, time normalization, booking-requirement resolution, Workforce/resource feasibility and conflict checks.
+2. **Persistence command layer:** narrow Agenda DB command functions perform tenant/actor/state validation and the final insert/update transaction against `master_agenda_events`.
+
+The DB command layer is not a second Agenda engine. It is the protected persistence boundary that prevents direct authenticated table writes from bypassing the canonical application decision path.
+
+Planned command boundary:
+- `create` appointment;
+- `update/reschedule` appointment;
+- `transition` appointment status;
+- `cancel` appointment.
+
+No delete command is required by the current Gate 04 feature contract; cancellation remains the normal lifecycle mechanism.
+
+The authenticated/anonymous table-write surface must be removed or denied once all active application callers converge. SELECT remains governed by existing Agenda RLS.
+
+## 13. Audit design
 
 Appointment audit must cover:
 - CREATE;
@@ -181,7 +204,7 @@ Current `tr_audit_agenda` only fires on UPDATE and `fn_audit_changes()` only han
 
 UX explanations remain separate from audit truth.
 
-## 13. Security model
+## 14. Security model
 
 Application permission checks remain mandatory:
 - `agenda:read` for read;
@@ -193,7 +216,7 @@ Tenant is always resolved server-side and cross-tenant references are rejected b
 
 Gate 04 security work will verify the Agenda-specific boundary only. System-wide SECURITY DEFINER findings remain separately governed.
 
-## 14. UI design boundary
+## 15. UI design boundary
 
 Existing Agenda screens and Quick Appointment are adapted rather than redesigned.
 
@@ -207,7 +230,7 @@ UI responsibilities:
 
 UI must not contain duplicate availability/conflict logic.
 
-## 15. Cross-domain contracts
+## 16. Cross-domain contracts
 
 ### Treatment Plan → Agenda
 `Treatment Plan → Next Action → Booking Requirement → Agenda → Appointment`.
@@ -226,7 +249,7 @@ Agenda appointment state may be consumed by arrival/visit workflows; Queue/Visit
 ### Follow-up → Agenda
 Follow-up may request an appointment, but Gate 11 owns follow-up continuity. Agenda only creates the appointment.
 
-## 16. Deferred cases
+## 17. Deferred cases
 
 These are not implemented as new ad-hoc workflows in Gate 04:
 - emergency insertion;
@@ -240,7 +263,7 @@ These are not implemented as new ad-hoc workflows in Gate 04:
 
 They remain explicit future integration points or owning-gate scope.
 
-## 17. Error contract
+## 18. Error contract
 
 Stable codes include:
 - `AGENDA_TENANT_MISSING`
@@ -257,7 +280,7 @@ Stable codes include:
 
 The machine code is the domain contract. Localized presentation is a UI concern.
 
-## 18. Design invariants
+## 19. Design invariants
 
 1. One appointment source of truth.
 2. One Agenda mutation authority.
@@ -268,10 +291,11 @@ The machine code is the domain contract. Localized presentation is a UI concern.
 7. Queue is not scheduling.
 8. Calendar is not authority.
 9. Tenant isolation applies at every mutation boundary.
-10. Audit reconstructs every appointment mutation.
-11. Existing data is preserved.
-12. No historical engine is resurrected without current evidence.
+10. Browser/authenticated direct writes cannot bypass the canonical mutation path.
+11. Audit reconstructs every appointment mutation.
+12. Existing data is preserved.
+13. No historical engine is resurrected without current evidence.
 
-## 19. Implementation readiness
+## 20. Implementation readiness
 
 Design is ready for controlled implementation. No Product Owner decision remains open.
