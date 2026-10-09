@@ -35,8 +35,8 @@ try {
   if (!process.env.CI) {
     throw new Error("This destructive database replay verifier is CI-only; refusing to run outside CI.");
   }
-  requireSuccess("local-supabase-start", "npx", ["--yes", "supabase@latest", "start", "--debug"], { capture: true });
   started = true;
+  requireSuccess("local-supabase-start", "npx", ["--yes", "supabase@latest", "start", "--debug"], { capture: true });
 
   const statusResult = requireSuccess("local-supabase-status", "npx", ["--yes", "supabase@latest", "status", "-o", "json"], { capture: true });
   const info = JSON.parse(statusResult.stdout);
