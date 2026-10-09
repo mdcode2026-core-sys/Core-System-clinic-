@@ -5,6 +5,7 @@ import { checkAvailability } from "./availability.engine";
 import { AgendaEventStatus, AgendaEventStatusValue, ValidStateTransitions } from "./agenda.types";
 import { getEffectivePermissions } from "@/core/permissions/permissionEngine";
 import { tenantLocalToUtc } from "@/shared/utils/dateTime";
+import { resolveBookingRequirements } from "./procedure-resource-requirements";
 
 const DATABASE_ERROR = "AGENDA_DATABASE_ERROR";
 const TENANT_MISSING = "AGENDA_TENANT_MISSING";
@@ -12,7 +13,7 @@ const PERMISSION_DENIED = "AGENDA_PERMISSION_DENIED";
 
 export interface AgendaMutationInput {
   patientId: string;
-  doctorId: string;
+  doctorId: string | null;
   roomId: string | null;
   resourceId: string | null;
   procedureId: string | null;
@@ -90,15 +91,20 @@ async function validateAvailability(
   tenantId: string,
   input: AgendaMutationInput,
   bufferEnd: string,
+  providerRequired: boolean,
+  excludeEventId?: string,
 ) {
   return checkAvailability({
     tenantId,
     doctorId: input.doctorId,
+    providerRequired,
     roomId: input.roomId,
+    resourceId: input.resourceId,
     procedureId: input.procedureId,
     scheduledStart: input.scheduledStart,
     scheduledEnd: input.scheduledEnd,
     bufferEnd,
+    excludeEventId,
   }, supabase as any);
 }
 
@@ -125,8 +131,17 @@ export async function createAgendaEventMutation(input: AgendaMutationInput) {
   if (!timeValidation.valid) return { error: timeValidation.message };
   if (!(await validateResource(ctx.supabase, ctx.tenantId, normalized.resourceId))) return { error: "AGENDA_RESOURCE_UNAVAILABLE" };
 
+  let bookingRequirements;
+  try {
+    bookingRequirements = await resolveBookingRequirements(ctx.supabase as any, ctx.tenantId, normalized.procedureId);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "";
+    return { error: message.includes("AGENDA_PROCEDURE_NOT_AVAILABLE") ? "AGENDA_PROCEDURE_NOT_AVAILABLE" : "AGENDA_BOOKING_REQUIREMENTS_UNAVAILABLE" };
+  }
+  if (bookingRequirements.provider.required && !normalized.doctorId) return { error: "AGENDA_PROVIDER_REQUIRED" };
+
   const bufferEnd = await resolveBufferEnd(ctx.supabase, normalized.procedureId, normalized.scheduledEnd);
-  const availability = await validateAvailability(ctx.supabase, ctx.tenantId, normalized, bufferEnd);
+  const availability = await validateAvailability(ctx.supabase, ctx.tenantId, normalized, bufferEnd, bookingRequirements.provider.required);
   if (!availability.isAvailable) return { error: `AGENDA_UNAVAILABLE|${availability.reason || "requested capacity is unavailable"}` };
 
   const conflictResult = await checkConflicts(ctx.supabase, {
@@ -173,8 +188,17 @@ export async function updateAgendaEventMutation(input: AgendaUpdateInput) {
   if (!timeValidation.valid) return { error: timeValidation.message };
   if (!(await validateResource(ctx.supabase, ctx.tenantId, normalized.resourceId))) return { error: "AGENDA_RESOURCE_UNAVAILABLE" };
 
+  let bookingRequirements;
+  try {
+    bookingRequirements = await resolveBookingRequirements(ctx.supabase as any, ctx.tenantId, normalized.procedureId);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "";
+    return { error: message.includes("AGENDA_PROCEDURE_NOT_AVAILABLE") ? "AGENDA_PROCEDURE_NOT_AVAILABLE" : "AGENDA_BOOKING_REQUIREMENTS_UNAVAILABLE" };
+  }
+  if (bookingRequirements.provider.required && !normalized.doctorId) return { error: "AGENDA_PROVIDER_REQUIRED" };
+
   const bufferEnd = await resolveBufferEnd(ctx.supabase, normalized.procedureId, normalized.scheduledEnd);
-  const availability = await validateAvailability(ctx.supabase, ctx.tenantId, normalized, bufferEnd);
+  const availability = await validateAvailability(ctx.supabase, ctx.tenantId, normalized, bufferEnd, bookingRequirements.provider.required, input.eventId);
   if (!availability.isAvailable) return { error: `AGENDA_UNAVAILABLE|${availability.reason || "requested capacity is unavailable"}` };
 
   const conflictResult = await checkConflicts(ctx.supabase, {
