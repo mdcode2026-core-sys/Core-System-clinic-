@@ -15,6 +15,11 @@ export interface BookingRequirementSet {
   resourceRequirementsSource: "not-configured";
 }
 
+export function isProviderRequired(providerType: string | null | undefined) {
+  const normalized = typeof providerType === "string" ? providerType.trim().toLowerCase() : "";
+  return normalized.length > 0 && !["none", "optional", "not_required", "no_provider"].includes(normalized);
+}
+
 export interface ResourceConcurrencyPolicy {
   mode: "exclusive" | "capacity";
   capacity: number;
@@ -95,17 +100,10 @@ export async function resolveBookingRequirements(
 
   const rawProviderType =
     typeof data.provider_type === "string" ? data.provider_type.trim() : "";
-  const normalizedProviderType = rawProviderType.toLowerCase();
-  const explicitlyOptional = [
-    "none",
-    "optional",
-    "not_required",
-    "no_provider",
-  ].includes(normalizedProviderType);
 
   return {
     provider: {
-      required: rawProviderType.length > 0 && !explicitlyOptional,
+      required: isProviderRequired(rawProviderType),
       providerType: rawProviderType || null,
     },
     // No explicit canonical room-required fact exists in the current Service/Procedure source.
