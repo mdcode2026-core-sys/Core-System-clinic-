@@ -54,7 +54,7 @@ check("db-command-state-guards", commandMigration.includes("AGENDA_STATE_CONFLIC
 check("db-no-reschedule-from-terminal-states", /p_reschedule AND p_expected_status NOT IN \('scheduled', 'confirmed', 'no_show'\)/.test(commandMigration));
 
 check("agenda-command-uses-session-client", !mutationService.includes("SUPABASE_SERVICE_ROLE_KEY") && !mutationService.includes("createAgendaCommandClient"));
-check("agenda-command-validates-authenticated-actor", (commandMigration.match(/cu\\.auth_user_id = auth\\.uid\\(\\)/g) || []).length >= 4);
+check("agenda-command-validates-authenticated-actor", commandMigration.split("cu.auth_user_id = auth.uid()").length - 1 >= 4);
 check("canonical-service-calls-protected-commands", requiredCommands.every((name) => mutationService.includes(`"${name}"`)));
 check("server-actions-delegate-to-canonical-service",
   actions.includes("createAgendaEventMutation") &&
