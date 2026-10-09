@@ -56,5 +56,22 @@
   "suppress_workstreams_when_applicable": [
     "csapi-gate02-patient-journey"
   ],
-  "suppression_rationale": "Gate 02 is closed. Its broad legacy path matcher includes Agenda files and triggers a separate, credential-backed longitudinal E2E lane. Gate 04 has its own local-only database/static verification contract; do not reopen or run Gate 02's mutation-capable runtime suite as incidental coverage. Re-run Gate 02 only if direct evidence demonstrates a regression and the owning gate authorizes that verification."
+  "suppression_rationale": "Gate 02 is closed. Its broad legacy path matcher includes Agenda files and triggers a separate, credential-backed longitudinal E2E lane. Gate 04 has its own local-only database/static verification contract; do not reopen or run Gate 02's mutation-capable runtime suite as incidental coverage. Re-run Gate 02 only if direct evidence demonstrates a regression and the owning gate authorizes that verification.",
+  "suppression_bypass_patterns": {
+    "csapi-gate02-patient-journey": [
+      "^src/domain/treatment-plan/",
+      "^src/features/treatment-plans/",
+      "^src/domain/followup/",
+      "^src/features/followup/",
+      "^src/domain/journey-coordination/",
+      "^src/app/\\\\(dashboard\\\\)/work-center/",
+      "^supabase/migrations/20260829",
+      "^supabase/migrations/20260830",
+      "^supabase/migrations/20260923",
+      "^tools/clinic-admin-real-world-e2e-v2\\\\.mjs$",
+      "^tools/csapi-gate02-clean-db\\\\.mjs$",
+      "^docs/CSAPI/GATES/GATE-0[12]-",
+      "^docs/testing/workstream-contracts/csapi-gate02-patient-journey\\\\.execution\\\\.json$"
+    ]
+  }
 }
