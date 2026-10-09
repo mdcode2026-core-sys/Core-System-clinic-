@@ -49,11 +49,23 @@ BEGIN
     v_tenant_id := COALESCE(NEW.tenant_id, OLD.tenant_id);
   END IF;
 
-  -- Only the trusted server-role Agenda command path may supply this context.
-  IF v_request_role = 'service_role' THEN
-    v_actor_id := NULLIF(current_setting('app.agenda_actor_id', true), '')::uuid;
-    v_actor_role := NULLIF(current_setting('app.agenda_actor_role', true), '');
-    v_reason := NULLIF(current_setting('app.agenda_reason', true), '');
+  -- The Agenda command has already authenticated the caller and verified that the
+  -- actor is the caller's own active clinic-user row. Revalidate that binding here
+  -- before using transaction-local audit context.
+  IF v_request_role = 'authenticated' THEN
+    SELECT cu.id, cu.role::text
+      INTO v_actor_id, v_actor_role
+    FROM public.clinic_users cu
+    WHERE cu.id = NULLIF(current_setting('app.agenda_actor_id', true), '')::uuid
+      AND cu.auth_user_id = auth.uid()
+      AND cu.tenant_id = v_tenant_id
+      AND cu.is_active = true
+      AND cu.deleted_at IS NULL
+    LIMIT 1;
+
+    IF v_actor_id IS NOT NULL THEN
+      v_reason := NULLIF(current_setting('app.agenda_reason', true), '');
+    END IF;
   END IF;
 
   IF v_actor_id IS NULL THEN
