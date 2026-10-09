@@ -160,7 +160,7 @@ try {
       INSERT INTO public.clinic_users (
         id, tenant_id, full_name, role, employee_code, pin_code, role_id, auth_user_id, is_active
       ) VALUES (v_clinic_user_id, v_tenant_id, 'Gate 04 local test actor', 'gate04_ci',
-        'GATE04-CI-' || v_suffix, '1234', v_role_id, v_auth_user_id, true);
+        'G4-' || substr(v_suffix, 1, 12), '1234', v_role_id, v_auth_user_id, true);
       INSERT INTO public.clinic_patients (id, tenant_id, first_name, last_name, phone_primary)
       VALUES (v_patient_id, v_tenant_id, 'Gate', 'Four',
         '+96279' || lpad((random() * 9999999)::integer::text, 7, '0'));
