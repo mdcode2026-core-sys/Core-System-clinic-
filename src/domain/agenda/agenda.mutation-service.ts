@@ -1,5 +1,4 @@
 import { createClient } from "@/infrastructure/supabase/server";
-import { createAgendaCommandClient } from "@/infrastructure/supabase/agenda-command";
 import { checkConflicts, isValidTimeRange } from "./conflict.engine";
 import { checkAvailability } from "./availability.engine";
 import { AgendaEventStatus, ValidStateTransitions, type AgendaEventStatusValue } from "./agenda.types";
@@ -160,7 +159,7 @@ export async function createAgendaEventMutation(input: AgendaMutationInput) {
   });
   if (conflictResult.hasConflict) return { error: conflictResult.message };
 
-  const result = await invokeAgendaCommand("agenda_create_appointment", {
+  const result = await invokeAgendaCommand(ctx.supabase, "agenda_create_appointment", {
     p_tenant_id: ctx.tenantId,
     p_actor_clinic_user_id: ctx.clinicUser.id,
     p_patient_id: normalized.patientId,
@@ -230,7 +229,7 @@ export async function updateAgendaEventMutation(input: AgendaUpdateInput) {
     return { error: currentEventError ? DATABASE_ERROR : "AGENDA_EVENT_NOT_FOUND" };
   }
 
-  return invokeAgendaCommand("agenda_update_appointment", {
+  return invokeAgendaCommand(ctx.supabase, "agenda_update_appointment", {
     p_tenant_id: ctx.tenantId,
     p_actor_clinic_user_id: ctx.clinicUser.id,
     p_event_id: input.eventId,
@@ -262,7 +261,7 @@ export async function updateAgendaEventStatusMutation(
     return { error: `AGENDA_INVALID_STATUS_TRANSITION|${expectedCurrentStatus}|${newStatus}` };
   }
 
-  return invokeAgendaCommand("agenda_transition_appointment", {
+  return invokeAgendaCommand(ctx.supabase, "agenda_transition_appointment", {
     p_tenant_id: ctx.tenantId,
     p_actor_clinic_user_id: ctx.clinicUser.id,
     p_event_id: eventId,
@@ -290,7 +289,7 @@ export async function cancelAgendaEventMutation(
     return { error: `AGENDA_INVALID_CANCELLATION|${expectedCurrentStatus}` };
   }
 
-  return invokeAgendaCommand("agenda_cancel_appointment", {
+  return invokeAgendaCommand(ctx.supabase, "agenda_cancel_appointment", {
     p_tenant_id: ctx.tenantId,
     p_actor_clinic_user_id: ctx.clinicUser.id,
     p_event_id: eventId,
@@ -335,12 +334,12 @@ function mapAgendaCommandError(error: AgendaCommandError | null | undefined) {
 }
 
 async function invokeAgendaCommand(
+  client: Awaited<ReturnType<typeof createClient>>,
   functionName: "agenda_create_appointment" | "agenda_update_appointment" | "agenda_transition_appointment" | "agenda_cancel_appointment",
   args: Record<string, unknown>,
 ) {
   try {
-    const commandClient = createAgendaCommandClient() as any;
-    const { data, error } = await commandClient.rpc(functionName, args);
+    const { data, error } = await (client as any).rpc(functionName, args);
     if (error) {
       console.error("[AgendaCommand] command failed:", functionName, error.code ?? "UNKNOWN");
       return { error: mapAgendaCommandError(error) };
@@ -348,11 +347,7 @@ async function invokeAgendaCommand(
     return { data };
   } catch (error) {
     const message = error instanceof Error ? error.message : "";
-    console.error("[AgendaCommand] client configuration or invocation failed");
-    return {
-      error: message.includes("AGENDA_COMMAND_CONFIGURATION_MISSING")
-        ? "AGENDA_COMMAND_CONFIGURATION_MISSING"
-        : DATABASE_ERROR,
-    };
+    console.error("[AgendaCommand] invocation failed");
+    return { error: DATABASE_ERROR };
   }
 }
