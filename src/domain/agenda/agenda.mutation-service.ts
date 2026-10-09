@@ -202,7 +202,7 @@ export async function updateAgendaEventMutation(input: AgendaUpdateInput) {
   }
   if (bookingRequirements.provider.required && !normalized.doctorId) return { error: "AGENDA_PROVIDER_REQUIRED" };
 
-  const bufferEnd = await resolveBufferEnd(ctx.supabase, normalized.procedureId, normalized.scheduledEnd);
+  const bufferEnd = await resolveBufferEnd(ctx.supabase, ctx.tenantId, normalized.procedureId, normalized.scheduledEnd);
   const availability = await validateAvailability(ctx.supabase, ctx.tenantId, normalized, bufferEnd, bookingRequirements.provider.required, input.eventId);
   if (!availability.isAvailable) return { error: `AGENDA_UNAVAILABLE|${availability.reason || "requested capacity is unavailable"}` };
 
