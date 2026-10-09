@@ -4,7 +4,7 @@ import { createAgendaEventMutation, updateAgendaEventMutation } from "@/domain/a
 type AgendaRequestBody = {
   id?: string;
   patient_id?: string;
-  doctor_id?: string;
+  doctor_id?: string | null;
   room_id?: string | null;
   resource_id?: string | null;
   procedure_id?: string | null;
@@ -27,7 +27,7 @@ async function parseBody(request: Request): Promise<AgendaRequestBody | null> {
 }
 
 function required(body: AgendaRequestBody) {
-  return body.patient_id?.trim() && body.doctor_id?.trim() && body.scheduled_start?.trim() && body.scheduled_end?.trim();
+  return body.patient_id?.trim() && body.scheduled_start?.trim() && body.scheduled_end?.trim();
 }
 
 export async function POST(request: Request) {
@@ -35,7 +35,7 @@ export async function POST(request: Request) {
   if (!body || !required(body)) return NextResponse.json({ error: INVALID_REQUEST }, { status: 400 });
   const result = await createAgendaEventMutation({
     patientId: body.patient_id!.trim(),
-    doctorId: body.doctor_id!.trim(),
+    doctorId: body.doctor_id?.trim() || null,
     roomId: body.room_id || null,
     resourceId: body.resource_id || null,
     procedureId: body.procedure_id || null,
