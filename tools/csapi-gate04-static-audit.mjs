@@ -55,7 +55,7 @@ check("db-command-state-guards", commandMigration.includes("AGENDA_STATE_CONFLIC
 check("db-no-reschedule-from-terminal-states", /p_reschedule AND p_expected_status NOT IN \('scheduled', 'confirmed', 'no_show'\)/.test(commandMigration));
 
 check("agenda-command-client-is-server-only", commandClient.includes('import "server-only"') && commandClient.includes("SUPABASE_SERVICE_ROLE_KEY"));
-check("agenda-command-rebinds-effective-actor", (commandMigration.match(/request\\.jwt\\.claim\\.sub/g) || []).length >= 4 && (commandMigration.match(/get_effective_permissions\\(/g) || []).length >= 4);
+check("agenda-command-rebinds-effective-actor", commandMigration.split("request.jwt.claim.sub").length - 1 >= 4 && commandMigration.split("get_effective_permissions(").length - 1 >= 4);
 check("canonical-service-calls-protected-commands", requiredCommands.every((name) => mutationService.includes(`"${name}"`)));
 check("server-actions-delegate-to-canonical-service",
   actions.includes("createAgendaEventMutation") &&
