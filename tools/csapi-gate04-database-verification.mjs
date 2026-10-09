@@ -280,7 +280,7 @@ try {
       SELECT count(*) INTO v_count
       FROM public.audit_trail
       WHERE tenant_id = v_tenant_id AND table_name = 'master_agenda_events'
-        AND record_id = v_event.id AND action = 'STATUS_CHANGE'
+        AND record_id = v_event.id AND action = 'RESCHEDULE'
         AND old_values ->> 'status' = 'cancelled'
         AND new_values ->> 'status' = 'scheduled'
         AND reason = 'appointment_rescheduled'
