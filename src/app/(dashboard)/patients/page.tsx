@@ -27,7 +27,7 @@ export default function PatientsPage() {
   const { data: patients = [] } = usePatients(tenantId);
   const doctorOptions = doctors.map((d) => ({ id: d.id, name: d.full_name, specialization: d.specialization }));
   const roomOptions = rooms.map((r) => ({ id: r.id, name: r.room_name }));
-  const procedureOptions = procedures.map((p) => ({ id: p.id, name: p.procedure_name, duration: p.standard_duration_minutes }));
+  const procedureOptions = procedures.map((p) => ({ id: p.id, name: p.procedure_name, duration: p.standard_duration_minutes, provider_type: p.provider_type }));
   const patientOptions = patients.map((p) => ({ id: p.id, name: `${p.first_name} ${p.last_name}`, phone: p.phone_primary }));
   function handleBookAppointment(patientId: string) { setAgendaPatientId(patientId); setIsAgendaOpen(true); }
 
