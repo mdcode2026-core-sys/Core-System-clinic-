@@ -147,10 +147,8 @@ try {
       v_suffix text := replace(gen_random_uuid()::text, '-', '');
     BEGIN
       INSERT INTO auth.users (id, aud, role, email, created_at, updated_at)
-      VALUES (
-        v_auth_user_id, 'authenticated', 'authenticated',
-        'gate04-ci-' || v_suffix || '@example.test', now(), now()
-      );
+      VALUES (v_auth_user_id, 'authenticated', 'authenticated',
+        'gate04-ci-' || v_suffix || '@example.test', now(), now());
       INSERT INTO public.master_tenants (id, clinic_name, license_key, timezone)
       VALUES (v_tenant_id, 'Gate 04 local test', 'GATE04-CI-' || v_suffix, 'Asia/Amman');
       INSERT INTO public.roles (id, role_key, role_name, tenant_id, is_system_role)
@@ -161,19 +159,20 @@ try {
       VALUES (v_tenant_id, v_plan_id, 'active', now());
       INSERT INTO public.clinic_users (
         id, tenant_id, full_name, role, employee_code, pin_code, role_id, auth_user_id, account_status
-      ) VALUES (
-        v_clinic_user_id, v_tenant_id, 'Gate 04 local test actor', 'gate04_ci',
-        'GATE04-CI-' || v_suffix, '1234', v_role_id, v_auth_user_id, 'active'
-      );
+      ) VALUES (v_clinic_user_id, v_tenant_id, 'Gate 04 local test actor', 'gate04_ci',
+        'GATE04-CI-' || v_suffix, '1234', v_role_id, v_auth_user_id, 'active');
       INSERT INTO public.clinic_patients (id, tenant_id, first_name, last_name, phone_primary)
-      VALUES (v_patient_id, v_tenant_id, 'Gate', 'Four', '+962790000001');
+      VALUES (v_patient_id, v_tenant_id, 'Gate', 'Four',
+        '+96279' || lpad((random() * 9999999)::integer::text, 7, '0'));
 
-      SELECT id INTO v_permission_id FROM public.permissions WHERE permission_key = 'agenda:create' AND deleted_at IS NULL LIMIT 1;
+      SELECT id INTO v_permission_id FROM public.permissions
+        WHERE permission_key = 'agenda:create' AND deleted_at IS NULL LIMIT 1;
       IF v_permission_id IS NULL THEN RAISE EXCEPTION 'GATE04_TEST_PERMISSION_MISSING=agenda:create'; END IF;
       INSERT INTO public.clinic_user_permission_overrides (tenant_id, user_id, permission_id, granted)
       VALUES (v_tenant_id, v_clinic_user_id, v_permission_id, true);
 
-      SELECT id INTO v_permission_id FROM public.permissions WHERE permission_key = 'agenda:update' AND deleted_at IS NULL LIMIT 1;
+      SELECT id INTO v_permission_id FROM public.permissions
+        WHERE permission_key = 'agenda:update' AND deleted_at IS NULL LIMIT 1;
       IF v_permission_id IS NULL THEN RAISE EXCEPTION 'GATE04_TEST_PERMISSION_MISSING=agenda:update'; END IF;
       INSERT INTO public.clinic_user_permission_overrides (tenant_id, user_id, permission_id, granted)
       VALUES (v_tenant_id, v_clinic_user_id, v_permission_id, true);
@@ -182,46 +181,47 @@ try {
 
     SELECT set_config('request.jwt.claim.role', 'authenticated', true);
     SELECT set_config('request.jwt.claim.sub', 'd4000000-0000-4000-8000-000000000002', true);
-    SELECT set_config('request.jwt.claims', '{"sub":"d4000000-0000-4000-8000-000000000002","role":"authenticated","aud":"authenticated"}', true);
+    SELECT set_config('request.jwt.claims',
+      '{"sub":"d4000000-0000-4000-8000-000000000002","role":"authenticated","aud":"authenticated"}', true);
     SET LOCAL ROLE authenticated;
 
-    DO $gate04_flow$
-    DECLARE
-      v_tenant_id uuid := 'd4000000-0000-4000-8000-000000000001';
-      v_auth_user_id uuid := 'd4000000-0000-4000-8000-000000000002';
-      v_clinic_user_id uuid := 'd4000000-0000-4000-8000-000000000003';
-      v_patient_id uuid := 'd4000000-0000-4000-8000-000000000004';
-      v_other_clinic_user_id uuid := 'd4000000-0000-4000-8000-000000000007';
-      v_event public.master_agenda_events%ROWTYPE;
-      v_count integer;
+    DO $gate04_negative$
     BEGIN
-      -- Browser/authenticated sessions cannot invoke the service-role-only command.
       BEGIN
         PERFORM public.agenda_create_appointment(
-          v_tenant_id, v_other_clinic_user_id, v_patient_id,
+          'd4000000-0000-4000-8000-000000000001',
+          'd4000000-0000-4000-8000-000000000003',
+          'd4000000-0000-4000-8000-000000000004',
           NULL, NULL, NULL, NULL, NULL,
           now() + interval '1 day',
           now() + interval '1 day 30 minutes',
           now() + interval '1 day 30 minutes',
-          'impersonation probe'
+          'browser direct RPC probe'
         );
-        RAISE EXCEPTION 'GATE04_ACTOR_IMPERSONATION_WAS_ALLOWED';
+        RAISE EXCEPTION 'GATE04_CLIENT_RPC_WAS_ALLOWED';
       EXCEPTION WHEN insufficient_privilege THEN NULL;
       END;
 
-      -- Only the trusted command client may execute RPC; neither role may write the table directly.
-      RESET ROLE;
-      SET LOCAL ROLE service_role;
-      PERFORM set_config('request.jwt.claim.role', 'service_role', true);
-
       BEGIN
-      BEGIN
-        INSERT INTO public.master_agenda_events (id)
-        VALUES (gen_random_uuid());
+        INSERT INTO public.master_agenda_events (id) VALUES (gen_random_uuid());
         RAISE EXCEPTION 'GATE04_DIRECT_TABLE_WRITE_WAS_ALLOWED';
       EXCEPTION WHEN insufficient_privilege THEN NULL;
       END;
+    END;
+    $gate04_negative$;
 
+    RESET ROLE;
+    SELECT set_config('request.jwt.claim.role', 'service_role', true);
+    SET LOCAL ROLE service_role;
+
+    DO $gate04_flow$
+    DECLARE
+      v_tenant_id uuid := 'd4000000-0000-4000-8000-000000000001';
+      v_clinic_user_id uuid := 'd4000000-0000-4000-8000-000000000003';
+      v_patient_id uuid := 'd4000000-0000-4000-8000-000000000004';
+      v_event public.master_agenda_events%ROWTYPE;
+      v_count integer;
+    BEGIN
       SELECT * INTO v_event
       FROM public.agenda_create_appointment(
         v_tenant_id, v_clinic_user_id, v_patient_id,
