@@ -1,6 +1,8 @@
 -- CSAPI Gate 04 / WP-1: protected canonical Agenda persistence commands.
 -- The command layer deliberately does not duplicate the application availability/conflict engines.
--- The authenticated clinic-user session is bound to the actor and rechecked here.
+-- Only the trusted server-side Agenda command client may invoke these RPCs.
+-- The functions validate active tenant membership, then bind the existing permission engine
+-- to that validated actor within the command transaction.
 
 BEGIN;
 
