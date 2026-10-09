@@ -262,6 +262,16 @@ export async function updateAgendaEventStatusMutation(
     return { error: `AGENDA_INVALID_STATUS_TRANSITION|${expectedCurrentStatus}|${newStatus}` };
   }
 
+  if (newStatus === AgendaEventStatus.CANCELLED) {
+    return invokeAgendaCommand("agenda_cancel_appointment", {
+      p_tenant_id: ctx.tenantId,
+      p_actor_clinic_user_id: ctx.clinicUser.id,
+      p_event_id: eventId,
+      p_expected_status: expectedCurrentStatus,
+      p_reason: null,
+    });
+  }
+
   return invokeAgendaCommand("agenda_transition_appointment", {
     p_tenant_id: ctx.tenantId,
     p_actor_clinic_user_id: ctx.clinicUser.id,
