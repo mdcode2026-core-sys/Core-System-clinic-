@@ -158,9 +158,9 @@ try {
       INSERT INTO public.subscriptions (tenant_id, plan_id, status, started_at)
       VALUES (v_tenant_id, v_plan_id, 'active', now());
       INSERT INTO public.clinic_users (
-        id, tenant_id, full_name, role, employee_code, pin_code, role_id, auth_user_id, account_status
+        id, tenant_id, full_name, role, employee_code, pin_code, role_id, auth_user_id, account_status, is_active
       ) VALUES (v_clinic_user_id, v_tenant_id, 'Gate 04 local test actor', 'gate04_ci',
-        'GATE04-CI-' || v_suffix, '1234', v_role_id, v_auth_user_id, 'active');
+        'GATE04-CI-' || v_suffix, '1234', v_role_id, v_auth_user_id, 'active', true);
       INSERT INTO public.clinic_patients (id, tenant_id, first_name, last_name, phone_primary)
       VALUES (v_patient_id, v_tenant_id, 'Gate', 'Four',
         '+96279' || lpad((random() * 9999999)::integer::text, 7, '0'));
