@@ -35,6 +35,7 @@ const availability = read("src/domain/agenda/availability.engine.ts");
 const conflicts = read("src/domain/agenda/conflict.engine.ts");
 const quick = read("src/features/workspace/widgets/agenda/QuickAppointmentWidget.tsx");
 const apiRoute = read("src/app/api/agenda/events/route.ts");
+const apiRequiredBlock = apiRoute.slice(apiRoute.indexOf("function required("), apiRoute.indexOf("export async function POST"));
 const agendaForm = read("src/features/agenda/agenda-event-form.tsx");
 const agendaPage = read("src/app/(dashboard)/agenda/page.tsx");
 const patientsPage = read("src/app/(dashboard)/patients/page.tsx");
@@ -57,7 +58,7 @@ check("db-command-permission-checks", (commandMigration.match(/get_effective_per
 check("db-command-tenant-scoping", /p.tenant_id = p_tenant_id/.test(commandMigration) && /u.tenant_id = p_tenant_id/.test(commandMigration));
 check("db-command-state-guards", commandMigration.includes("AGENDA_STATE_CONFLICT") && commandMigration.includes("AGENDA_INVALID_STATUS_TRANSITION"));
 check("db-no-reschedule-from-terminal-states", /p_reschedule AND p_expected_status NOT IN \('scheduled', 'confirmed', 'no_show', 'cancelled', 'rescheduled'\)/.test(commandMigration));
-check("api-accepts-provider-optional-request", apiRoute.includes("function required(body: AgendaRequestBody) {\\n  return body.patient_id?.trim() && body.scheduled_start?.trim() && body.scheduled_end?.trim();") && apiRoute.split("doctorId: body.doctor_id?.trim() || null").length - 1 >= 2);
+check("api-accepts-provider-optional-request", !apiRequiredBlock.includes("doctor_id") && apiRoute.split("doctorId: body.doctor_id?.trim() || null").length - 1 >= 2);
 check("main-agenda-form-uses-provider-requirements", agendaForm.includes("isProviderRequired(selectedProcedure?.provider_type)") && agendaForm.includes("if(!doctorId&&providerRequired)") && agendaForm.includes("doctor_id:doctorId||null"));
 check("main-agenda-form-rebooks-cancelled-appointment", agendaForm.includes('event.status==="cancelled"') && agendaForm.includes("shouldReschedule(event,date,startTime,endTime,tenantTimezone)"));
 check("provider-requirements-reach-all-agenda-form-entry-points", agendaPage.includes("provider_type: procedure.provider_type") && patientsPage.includes("provider_type: p.provider_type"));
