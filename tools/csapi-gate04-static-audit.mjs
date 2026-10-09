@@ -1,0 +1,129 @@
+#!/usr/bin/env node
+
+import { existsSync, readFileSync, readdirSync } from "node:fs";
+import { join } from "node:path";
+
+const checks = [];
+function check(name, condition, detail = "") {
+  checks.push({ name, status: condition ? "PASS" : "FAIL", detail });
+}
+function read(path) {
+  if (!existsSync(path)) throw new Error(`REQUIRED_FILE_MISSING=${path}`);
+  return readFileSync(path, "utf8");
+}
+function walk(dir) {
+  if (!existsSync(dir)) return [];
+  return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
+    const path = join(dir, entry.name);
+    if (entry.isDirectory()) {
+      if (["node_modules", ".next", ".git", "coverage"].includes(entry.name)) return [];
+      return walk(path);
+    }
+    return /\.(?:ts|tsx|js|jsx|mjs)$/.test(entry.name) ? [path] : [];
+  });
+}
+
+const commandMigration = read("supabase/migrations/20261010100000_csapi_gate04_agenda_command_boundary.sql");
+const auditMigration = read("supabase/migrations/20261010110000_csapi_gate04_agenda_audit_completion.sql");
+const aclMigration = read("supabase/migrations/20261010120000_csapi_gate04_agenda_write_acl_lockdown.sql");
+const mutationService = read("src/domain/agenda/agenda.mutation-service.ts");
+const actions = read("src/domain/agenda/agenda.actions.ts");
+const queries = read("src/domain/agenda/agenda.queries.ts");
+const commandClient = read("src/infrastructure/supabase/agenda-command.ts");
+const requirements = read("src/domain/agenda/procedure-resource-requirements.ts");
+const availability = read("src/domain/agenda/availability.engine.ts");
+const conflicts = read("src/domain/agenda/conflict.engine.ts");
+const quick = read("src/features/workspace/widgets/agenda/QuickAppointmentWidget.tsx");
+
+const requiredCommands = [
+  "agenda_create_appointment",
+  "agenda_update_appointment",
+  "agenda_transition_appointment",
+  "agenda_cancel_appointment",
+];
+for (const name of requiredCommands) {
+  check(`db-command-exists:${name}`, commandMigration.includes(`FUNCTION public.${name}(`));
+  check(`db-command-server-only-acl:${name}`,
+    new RegExp(`REVOKE ALL ON FUNCTION public\\.${name}\\([^;]+FROM PUBLIC, anon, authenticated`, "s").test(commandMigration) &&
+    new RegExp(`GRANT EXECUTE ON FUNCTION public\\.${name}\\([^;]+TO service_role`, "s").test(commandMigration));
+}
+check("db-commands-security-definer", (commandMigration.match(/SECURITY DEFINER/g) || []).length >= 4);
+check("db-commands-controlled-search-path", (commandMigration.match(/SET search_path = pg_catalog, public/g) || []).length >= 4);
+check("db-command-permission-checks", (commandMigration.match(/get_effective_permissions\(/g) || []).length >= 4);
+check("db-command-tenant-scoping", /p.tenant_id = p_tenant_id/.test(commandMigration) && /u.tenant_id = p_tenant_id/.test(commandMigration));
+check("db-command-state-guards", commandMigration.includes("AGENDA_STATE_CONFLICT") && commandMigration.includes("AGENDA_INVALID_STATUS_TRANSITION"));
+check("db-no-reschedule-from-terminal-states", /p_reschedule AND p_expected_status NOT IN \('scheduled', 'confirmed', 'no_show'\)/.test(commandMigration));
+
+check("server-only-agenda-client", commandClient.includes('import "server-only"') && commandClient.includes("SUPABASE_SERVICE_ROLE_KEY"));
+check("service-does-not-use-auth-admin-client", !commandClient.includes('@/infrastructure/supabase/admin'));
+check("canonical-service-calls-protected-commands", requiredCommands.every((name) => mutationService.includes(`"${name}"`)));
+check("server-actions-delegate-to-canonical-service",
+  actions.includes("createAgendaEventMutation") &&
+  actions.includes("updateAgendaEventMutation") &&
+  actions.includes("updateAgendaEventStatusMutation") &&
+  actions.includes("cancelAgendaEventMutation"));
+check("canonical-service-no-direct-table-writes",
+  !/\.from\(\s*["'`]master_agenda_events["'`]\s*\)\s*\.\s*(?:insert|update|delete|upsert)\s*\(/s.test(mutationService));
+check("browser-hooks-no-appointment-writes",
+  !/export function use(?:Create|Update|Cancel)AgendaEvent[^\n]*useMutation/.test(queries) &&
+  !/\.from\(\s*["'`]master_agenda_events["'`]\s*\)\s*\.\s*(?:insert|update|delete|upsert)\s*\(/s.test(queries));
+
+const directWritePattern = /\.from\(\s*["'`]master_agenda_events["'`]\s*\)\s*\.\s*(?:insert|update|delete|upsert)\s*\(/gs;
+const directWriters = [];
+for (const path of walk("src")) {
+  const content = readFileSync(path, "utf8");
+  directWritePattern.lastIndex = 0;
+  if (directWritePattern.test(content)) directWriters.push(path);
+}
+check("no-active-direct-appointment-write-surface", directWriters.length === 0, directWriters.join(","));
+
+check("audit-insert-and-update-trigger",
+  /CREATE TRIGGER tr_audit_agenda\s+AFTER INSERT OR UPDATE ON public\.master_agenda_events/s.test(auditMigration));
+check("audit-reuses-canonical-table", auditMigration.includes("INSERT INTO public.audit_trail") && !/CREATE TABLE/i.test(auditMigration));
+check("audit-captures-service-actor", auditMigration.includes("app.agenda_actor_id") && auditMigration.includes("app.agenda_actor_role"));
+check("audit-classifies-create-update-status-cancel-reschedule",
+  ["CREATE", "UPDATE", "STATUS_CHANGE", "CANCEL", "RESCHEDULE"].every((word) => auditMigration.includes(`'${word}'`)));
+check("audit-does-not-expand-other-domain-behavior",
+  auditMigration.includes("IF TG_TABLE_NAME <> 'master_agenda_events' THEN") &&
+  auditMigration.includes("IF TG_OP = 'UPDATE' THEN"));
+
+check("acl-removes-direct-write-policies",
+  ["rls_master_agenda_events_insert", "rls_master_agenda_events_update", "rls_master_agenda_events_delete"].every((name) => aclMigration.includes(name)));
+check("acl-revokes-direct-write-privileges",
+  /REVOKE INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER[\s\S]+FROM PUBLIC, anon, authenticated, service_role/.test(aclMigration));
+check("acl-retains-select-only",
+  /GRANT SELECT ON TABLE public\.master_agenda_events TO authenticated, service_role/.test(aclMigration));
+
+check("booking-requirement-consumer-contract", requirements.includes("export interface BookingRequirementSet"));
+check("procedure-type-is-tenant-scoped-and-active",
+  requirements.includes('.eq("tenant_id", tenantId)') &&
+  requirements.includes('.eq("is_active", true)') &&
+  requirements.includes('.is("deleted_at", null)'));
+check("provider-optionality-shared", requirements.includes("export function isProviderRequired"));
+check("resource-default-policy-exclusive", requirements.includes('mode: "exclusive"') && requirements.includes("capacity: 1"));
+check("no-historical-resource-model-resurrection", !/CREATE TABLE.*clinic_procedure_resources/is.test(commandMigration + auditMigration + aclMigration));
+check("availability-skips-provider-only-when-optional",
+  availability.includes("providerRequired") && availability.includes("AGENDA_PROVIDER_REQUIRED"));
+check("update-excludes-current-event-from-availability",
+  availability.includes("excludeEventId") && availability.includes("query.neq(\"id\",excludeEventId)"));
+check("conflict-engine-still-checks-without-provider",
+  !conflicts.includes("if (!tenantId || !doctorId || !patientId") && conflicts.includes('ids.doctorId && event.doctor_id === ids.doctorId'));
+
+check("quick-appointment-keeps-tenant-wall-clock",
+  quick.includes('fd.set("scheduled_start", form.start_time)') &&
+  quick.includes('fd.set("scheduled_end", scheduledEndLocal)') &&
+  !quick.includes('new Date(form.start_time).toISOString()'));
+check("quick-appointment-honors-provider-optional", quick.includes("required={providerRequired}"));
+check("quick-appointment-submits-notes", quick.includes('fd.set("notes", form.notes.trim())'));
+check("quick-appointment-uses-procedure-duration", quick.includes("selectedProcedure!.standard_duration_minutes"));
+
+const failures = checks.filter((item) => item.status === "FAIL");
+console.log(JSON.stringify({
+  audit: "csapi-gate04-static-audit",
+  completed_at: new Date().toISOString(),
+  status: failures.length ? "FAIL" : "PASS",
+  passed: checks.length - failures.length,
+  failed: failures.length,
+  checks,
+}, null, 2));
+if (failures.length) process.exitCode = 1;
