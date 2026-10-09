@@ -33,12 +33,20 @@ BEGIN
   SELECT cu.* INTO v_actor
   FROM public.clinic_users cu
   WHERE cu.id = p_actor_clinic_user_id
-    AND cu.tenant_id = p_tenant_id AND cu.auth_user_id = auth.uid()
+    AND cu.tenant_id = p_tenant_id
     AND cu.is_active = true
     AND cu.deleted_at IS NULL;
   IF NOT FOUND OR v_actor.auth_user_id IS NULL THEN
     RAISE EXCEPTION USING ERRCODE = 'P0001', MESSAGE = 'AGENDA_ACTOR_NOT_ACTIVE_IN_TENANT';
   END IF;
+  -- The command is service-role-only. Rebind the existing effective-permission
+  -- engine to this server-validated actor without implementing a second ACL engine.
+  PERFORM pg_catalog.set_config('request.jwt.claim.sub', v_actor.auth_user_id::text, true);
+  PERFORM pg_catalog.set_config(
+    'request.jwt.claims',
+    pg_catalog.jsonb_build_object('sub', v_actor.auth_user_id, 'role', 'authenticated', 'aud', 'authenticated')::text,
+    true
+  );
   IF NOT COALESCE('agenda:create' = ANY(public.get_effective_permissions(v_actor.auth_user_id, p_tenant_id)), false) THEN
     RAISE EXCEPTION USING ERRCODE = 'P0001', MESSAGE = 'AGENDA_PERMISSION_DENIED';
   END IF;
@@ -137,11 +145,19 @@ BEGIN
   END IF;
   SELECT cu.* INTO v_actor
   FROM public.clinic_users cu
-  WHERE cu.id = p_actor_clinic_user_id AND cu.tenant_id = p_tenant_id AND cu.auth_user_id = auth.uid()
+  WHERE cu.id = p_actor_clinic_user_id AND cu.tenant_id = p_tenant_id
     AND cu.is_active = true AND cu.deleted_at IS NULL;
   IF NOT FOUND OR v_actor.auth_user_id IS NULL THEN
     RAISE EXCEPTION USING ERRCODE = 'P0001', MESSAGE = 'AGENDA_ACTOR_NOT_ACTIVE_IN_TENANT';
   END IF;
+  -- The command is service-role-only. Rebind the existing effective-permission
+  -- engine to this server-validated actor without implementing a second ACL engine.
+  PERFORM pg_catalog.set_config('request.jwt.claim.sub', v_actor.auth_user_id::text, true);
+  PERFORM pg_catalog.set_config(
+    'request.jwt.claims',
+    pg_catalog.jsonb_build_object('sub', v_actor.auth_user_id, 'role', 'authenticated', 'aud', 'authenticated')::text,
+    true
+  );
   IF NOT COALESCE('agenda:update' = ANY(public.get_effective_permissions(v_actor.auth_user_id, p_tenant_id)), false) THEN
     RAISE EXCEPTION USING ERRCODE = 'P0001', MESSAGE = 'AGENDA_PERMISSION_DENIED';
   END IF;
@@ -249,11 +265,19 @@ BEGIN
   END IF;
   SELECT cu.* INTO v_actor
   FROM public.clinic_users cu
-  WHERE cu.id = p_actor_clinic_user_id AND cu.tenant_id = p_tenant_id AND cu.auth_user_id = auth.uid()
+  WHERE cu.id = p_actor_clinic_user_id AND cu.tenant_id = p_tenant_id
     AND cu.is_active = true AND cu.deleted_at IS NULL;
   IF NOT FOUND OR v_actor.auth_user_id IS NULL THEN
     RAISE EXCEPTION USING ERRCODE = 'P0001', MESSAGE = 'AGENDA_ACTOR_NOT_ACTIVE_IN_TENANT';
   END IF;
+  -- The command is service-role-only. Rebind the existing effective-permission
+  -- engine to this server-validated actor without implementing a second ACL engine.
+  PERFORM pg_catalog.set_config('request.jwt.claim.sub', v_actor.auth_user_id::text, true);
+  PERFORM pg_catalog.set_config(
+    'request.jwt.claims',
+    pg_catalog.jsonb_build_object('sub', v_actor.auth_user_id, 'role', 'authenticated', 'aud', 'authenticated')::text,
+    true
+  );
   IF NOT COALESCE('agenda:update' = ANY(public.get_effective_permissions(v_actor.auth_user_id, p_tenant_id)), false) THEN
     RAISE EXCEPTION USING ERRCODE = 'P0001', MESSAGE = 'AGENDA_PERMISSION_DENIED';
   END IF;
@@ -315,11 +339,19 @@ BEGIN
   END IF;
   SELECT cu.* INTO v_actor
   FROM public.clinic_users cu
-  WHERE cu.id = p_actor_clinic_user_id AND cu.tenant_id = p_tenant_id AND cu.auth_user_id = auth.uid()
+  WHERE cu.id = p_actor_clinic_user_id AND cu.tenant_id = p_tenant_id
     AND cu.is_active = true AND cu.deleted_at IS NULL;
   IF NOT FOUND OR v_actor.auth_user_id IS NULL THEN
     RAISE EXCEPTION USING ERRCODE = 'P0001', MESSAGE = 'AGENDA_ACTOR_NOT_ACTIVE_IN_TENANT';
   END IF;
+  -- The command is service-role-only. Rebind the existing effective-permission
+  -- engine to this server-validated actor without implementing a second ACL engine.
+  PERFORM pg_catalog.set_config('request.jwt.claim.sub', v_actor.auth_user_id::text, true);
+  PERFORM pg_catalog.set_config(
+    'request.jwt.claims',
+    pg_catalog.jsonb_build_object('sub', v_actor.auth_user_id, 'role', 'authenticated', 'aud', 'authenticated')::text,
+    true
+  );
   IF NOT COALESCE('agenda:update' = ANY(public.get_effective_permissions(v_actor.auth_user_id, p_tenant_id)), false) THEN
     RAISE EXCEPTION USING ERRCODE = 'P0001', MESSAGE = 'AGENDA_PERMISSION_DENIED';
   END IF;
@@ -354,14 +386,14 @@ BEGIN
 END;
 $function$;
 
-REVOKE ALL ON FUNCTION public.agenda_create_appointment(uuid,uuid,uuid,uuid,uuid,uuid,uuid,uuid,timestamptz,timestamptz,timestamptz,text) FROM PUBLIC, anon, authenticated, service_role;
-REVOKE ALL ON FUNCTION public.agenda_update_appointment(uuid,uuid,uuid,text,uuid,uuid,uuid,uuid,uuid,timestamptz,timestamptz,timestamptz,text,boolean) FROM PUBLIC, anon, authenticated, service_role;
-REVOKE ALL ON FUNCTION public.agenda_transition_appointment(uuid,uuid,uuid,text,text) FROM PUBLIC, anon, authenticated, service_role;
-REVOKE ALL ON FUNCTION public.agenda_cancel_appointment(uuid,uuid,uuid,text,text) FROM PUBLIC, anon, authenticated, service_role;
+REVOKE ALL ON FUNCTION public.agenda_create_appointment(uuid,uuid,uuid,uuid,uuid,uuid,uuid,uuid,timestamptz,timestamptz,timestamptz,text) FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION public.agenda_update_appointment(uuid,uuid,uuid,text,uuid,uuid,uuid,uuid,uuid,timestamptz,timestamptz,timestamptz,text,boolean) FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION public.agenda_transition_appointment(uuid,uuid,uuid,text,text) FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION public.agenda_cancel_appointment(uuid,uuid,uuid,text,text) FROM PUBLIC, anon, authenticated;
 
-GRANT EXECUTE ON FUNCTION public.agenda_create_appointment(uuid,uuid,uuid,uuid,uuid,uuid,uuid,uuid,timestamptz,timestamptz,timestamptz,text) TO authenticated;
-GRANT EXECUTE ON FUNCTION public.agenda_update_appointment(uuid,uuid,uuid,text,uuid,uuid,uuid,uuid,uuid,timestamptz,timestamptz,timestamptz,text,boolean) TO authenticated;
-GRANT EXECUTE ON FUNCTION public.agenda_transition_appointment(uuid,uuid,uuid,text,text) TO authenticated;
-GRANT EXECUTE ON FUNCTION public.agenda_cancel_appointment(uuid,uuid,uuid,text,text) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.agenda_create_appointment(uuid,uuid,uuid,uuid,uuid,uuid,uuid,uuid,timestamptz,timestamptz,timestamptz,text) TO service_role;
+GRANT EXECUTE ON FUNCTION public.agenda_update_appointment(uuid,uuid,uuid,text,uuid,uuid,uuid,uuid,uuid,timestamptz,timestamptz,timestamptz,text,boolean) TO service_role;
+GRANT EXECUTE ON FUNCTION public.agenda_transition_appointment(uuid,uuid,uuid,text,text) TO service_role;
+GRANT EXECUTE ON FUNCTION public.agenda_cancel_appointment(uuid,uuid,uuid,text,text) TO service_role;
 
 COMMIT;
