@@ -133,6 +133,142 @@ try {
   if (Object.values(result).some((value) => value !== true)) {
     throw new Error("GATE04_DATABASE_SECURITY_ASSERTIONS_FAILED");
   }
+  const commandFlowSql = `
+    BEGIN;
+    DO $gate04_seed$
+    DECLARE
+      v_tenant_id uuid := 'd4000000-0000-4000-8000-000000000001';
+      v_auth_user_id uuid := 'd4000000-0000-4000-8000-000000000002';
+      v_clinic_user_id uuid := 'd4000000-0000-4000-8000-000000000003';
+      v_patient_id uuid := 'd4000000-0000-4000-8000-000000000004';
+      v_role_id uuid := 'd4000000-0000-4000-8000-000000000005';
+      v_plan_id uuid := 'd4000000-0000-4000-8000-000000000006';
+      v_permission_id uuid;
+      v_suffix text := replace(gen_random_uuid()::text, '-', '');
+    BEGIN
+      INSERT INTO auth.users (id, aud, role, email, created_at, updated_at)
+      VALUES (
+        v_auth_user_id, 'authenticated', 'authenticated',
+        'gate04-ci-' || v_suffix || '@example.test', now(), now()
+      );
+      INSERT INTO public.master_tenants (id, clinic_name, license_key, timezone)
+      VALUES (v_tenant_id, 'Gate 04 local test', 'GATE04-CI-' || v_suffix, 'Asia/Amman');
+      INSERT INTO public.roles (id, role_key, role_name, tenant_id, is_system_role)
+      VALUES (v_role_id, 'gate04_ci_' || v_suffix, 'Gate 04 local test role', v_tenant_id, false);
+      INSERT INTO public.subscription_plans (id, plan_key, plan_name, modules, is_active)
+      VALUES (v_plan_id, 'gate04-ci-' || v_suffix, 'Gate 04 local test plan', '["basic"]'::jsonb, true);
+      INSERT INTO public.subscriptions (tenant_id, plan_id, status, started_at)
+      VALUES (v_tenant_id, v_plan_id, 'active', now());
+      INSERT INTO public.clinic_users (
+        id, tenant_id, full_name, role, employee_code, pin_code, role_id, auth_user_id, account_status
+      ) VALUES (
+        v_clinic_user_id, v_tenant_id, 'Gate 04 local test actor', 'gate04_ci',
+        'GATE04-CI-' || v_suffix, '1234', v_role_id, v_auth_user_id, 'active'
+      );
+      INSERT INTO public.clinic_patients (id, tenant_id, first_name, last_name, phone_primary)
+      VALUES (v_patient_id, v_tenant_id, 'Gate', 'Four', '+962790000001');
+
+      SELECT id INTO v_permission_id FROM public.permissions WHERE permission_key = 'agenda:create' AND deleted_at IS NULL LIMIT 1;
+      IF v_permission_id IS NULL THEN RAISE EXCEPTION 'GATE04_TEST_PERMISSION_MISSING=agenda:create'; END IF;
+      INSERT INTO public.clinic_user_permission_overrides (tenant_id, user_id, permission_id, granted)
+      VALUES (v_tenant_id, v_clinic_user_id, v_permission_id, true);
+
+      SELECT id INTO v_permission_id FROM public.permissions WHERE permission_key = 'agenda:update' AND deleted_at IS NULL LIMIT 1;
+      IF v_permission_id IS NULL THEN RAISE EXCEPTION 'GATE04_TEST_PERMISSION_MISSING=agenda:update'; END IF;
+      INSERT INTO public.clinic_user_permission_overrides (tenant_id, user_id, permission_id, granted)
+      VALUES (v_tenant_id, v_clinic_user_id, v_permission_id, true);
+    END;
+    $gate04_seed$;
+
+    SELECT set_config('request.jwt.claim.role', 'authenticated', true);
+    SELECT set_config('request.jwt.claim.sub', 'd4000000-0000-4000-8000-000000000002', true);
+    SELECT set_config('request.jwt.claims', '{"sub":"d4000000-0000-4000-8000-000000000002","role":"authenticated","aud":"authenticated"}', true);
+    SET LOCAL ROLE authenticated;
+
+    DO $gate04_flow$
+    DECLARE
+      v_tenant_id uuid := 'd4000000-0000-4000-8000-000000000001';
+      v_auth_user_id uuid := 'd4000000-0000-4000-8000-000000000002';
+      v_clinic_user_id uuid := 'd4000000-0000-4000-8000-000000000003';
+      v_patient_id uuid := 'd4000000-0000-4000-8000-000000000004';
+      v_other_clinic_user_id uuid := 'd4000000-0000-4000-8000-000000000007';
+      v_event public.master_agenda_events%ROWTYPE;
+      v_count integer;
+    BEGIN
+      -- A caller cannot attribute an operation to a different clinic-user identity.
+      BEGIN
+        PERFORM public.agenda_create_appointment(
+          v_tenant_id, v_other_clinic_user_id, v_patient_id,
+          NULL, NULL, NULL, NULL, NULL,
+          now() + interval '1 day',
+          now() + interval '1 day 30 minutes',
+          now() + interval '1 day 30 minutes',
+          'impersonation probe'
+        );
+        RAISE EXCEPTION 'GATE04_ACTOR_IMPERSONATION_WAS_ALLOWED';
+      EXCEPTION WHEN OTHERS THEN
+        IF SQLERRM NOT LIKE '%AGENDA_ACTOR_NOT_ACTIVE_IN_TENANT%' THEN RAISE; END IF;
+      END;
+
+      -- Direct DML is denied even though the command RPC is executable.
+      BEGIN
+        INSERT INTO public.master_agenda_events (id)
+        VALUES (gen_random_uuid());
+        RAISE EXCEPTION 'GATE04_DIRECT_TABLE_WRITE_WAS_ALLOWED';
+      EXCEPTION WHEN insufficient_privilege THEN NULL;
+      END;
+
+      SELECT * INTO v_event
+      FROM public.agenda_create_appointment(
+        v_tenant_id, v_clinic_user_id, v_patient_id,
+        NULL, NULL, NULL, NULL, NULL,
+        now() + interval '1 day',
+        now() + interval '1 day 30 minutes',
+        now() + interval '1 day 30 minutes',
+        'gate04 authenticated command test'
+      );
+      IF v_event.id IS NULL OR v_event.status <> 'scheduled' THEN
+        RAISE EXCEPTION 'GATE04_CREATE_COMMAND_FAILED';
+      END IF;
+
+      SELECT count(*) INTO v_count
+      FROM public.audit_trail
+      WHERE tenant_id = v_tenant_id AND table_name = 'master_agenda_events'
+        AND record_id = v_event.id AND action = 'CREATE'
+        AND actor_id = v_clinic_user_id;
+      IF v_count <> 1 THEN RAISE EXCEPTION 'GATE04_CREATE_AUDIT_FAILED count=%', v_count; END IF;
+
+      PERFORM public.agenda_transition_appointment(
+        v_tenant_id, v_clinic_user_id, v_event.id, 'scheduled', 'confirmed'
+      );
+      SELECT count(*) INTO v_count
+      FROM public.audit_trail
+      WHERE tenant_id = v_tenant_id AND table_name = 'master_agenda_events'
+        AND record_id = v_event.id AND action = 'STATUS_CHANGE'
+        AND new_values ->> 'status' = 'confirmed' AND actor_id = v_clinic_user_id;
+      IF v_count <> 1 THEN RAISE EXCEPTION 'GATE04_STATUS_AUDIT_FAILED count=%', v_count; END IF;
+
+      PERFORM public.agenda_cancel_appointment(
+        v_tenant_id, v_clinic_user_id, v_event.id, 'confirmed', 'gate04 cancellation probe'
+      );
+      SELECT count(*) INTO v_count
+      FROM public.audit_trail
+      WHERE tenant_id = v_tenant_id AND table_name = 'master_agenda_events'
+        AND record_id = v_event.id AND action = 'CANCEL'
+        AND reason = 'gate04 cancellation probe' AND actor_id = v_clinic_user_id;
+      IF v_count <> 1 THEN RAISE EXCEPTION 'GATE04_CANCEL_AUDIT_FAILED count=%', v_count; END IF;
+    END;
+    $gate04_flow$;
+
+    RESET ROLE;
+    ROLLBACK;
+  `;
+  requireSuccess("authenticated-agenda-command-audit-flow", "psql", [
+    "postgresql://postgres:postgres@127.0.0.1:54322/postgres",
+    "-v", "ON_ERROR_STOP=1", "-c", commandFlowSql,
+  ], { capture: true });
+  log("authenticated-agenda-command-audit-flow", "PASS");
+
 } catch (error) {
   log("database-verifier", "FAIL", error instanceof Error ? error.message : String(error));
   process.exitCode = 1;
