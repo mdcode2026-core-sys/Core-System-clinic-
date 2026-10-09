@@ -1,4 +1,5 @@
 import { createClient } from "@/infrastructure/supabase/server";
+import { createAgendaCommandClient } from "@/infrastructure/supabase/agenda-command";
 import { checkConflicts, isValidTimeRange } from "./conflict.engine";
 import { checkAvailability } from "./availability.engine";
 import { AgendaEventStatus, ValidStateTransitions, type AgendaEventStatusValue } from "./agenda.types";
@@ -334,12 +335,13 @@ function mapAgendaCommandError(error: AgendaCommandError | null | undefined) {
 }
 
 async function invokeAgendaCommand(
-  client: Awaited<ReturnType<typeof createClient>>,
+  _client: Awaited<ReturnType<typeof createClient>>,
   functionName: "agenda_create_appointment" | "agenda_update_appointment" | "agenda_transition_appointment" | "agenda_cancel_appointment",
   args: Record<string, unknown>,
 ) {
   try {
-    const { data, error } = await (client as any).rpc(functionName, args);
+    const commandClient = createAgendaCommandClient() as any;
+    const { data, error } = await commandClient.rpc(functionName, args);
     if (error) {
       console.error("[AgendaCommand] command failed:", functionName, error.code ?? "UNKNOWN");
       return { error: mapAgendaCommandError(error) };
@@ -347,7 +349,8 @@ async function invokeAgendaCommand(
     return { data };
   } catch (error) {
     const message = error instanceof Error ? error.message : "";
+    const message = error instanceof Error ? error.message : "";
     console.error("[AgendaCommand] invocation failed");
-    return { error: DATABASE_ERROR };
+    return { error: message.includes("AGENDA_COMMAND_CONFIGURATION_MISSING") ? "AGENDA_COMMAND_CONFIGURATION_MISSING" : DATABASE_ERROR };
   }
 }
