@@ -348,7 +348,6 @@ async function invokeAgendaCommand(
     return { data };
   } catch (error) {
     const message = error instanceof Error ? error.message : "";
-    const message = error instanceof Error ? error.message : "";
     console.error("[AgendaCommand] invocation failed");
     return { error: message.includes("AGENDA_COMMAND_CONFIGURATION_MISSING") ? "AGENDA_COMMAND_CONFIGURATION_MISSING" : DATABASE_ERROR };
   }
