@@ -34,6 +34,10 @@ const requirements = read("src/domain/agenda/procedure-resource-requirements.ts"
 const availability = read("src/domain/agenda/availability.engine.ts");
 const conflicts = read("src/domain/agenda/conflict.engine.ts");
 const quick = read("src/features/workspace/widgets/agenda/QuickAppointmentWidget.tsx");
+const apiRoute = read("src/app/api/agenda/events/route.ts");
+const agendaForm = read("src/features/agenda/agenda-event-form.tsx");
+const agendaPage = read("src/app/(dashboard)/agenda/page.tsx");
+const patientsPage = read("src/app/(dashboard)/patients/page.tsx");
 
 const requiredCommands = [
   "agenda_create_appointment",
