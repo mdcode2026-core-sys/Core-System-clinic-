@@ -1,0 +1,103 @@
+-- CSAPI Gate 04 / WP-4: make canonical appointment audit reconstructible.
+-- Reuses audit_trail; no parallel Agenda audit store is introduced.
+
+BEGIN;
+
+CREATE OR REPLACE FUNCTION public.fn_audit_changes()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = pg_catalog, public
+AS $function$
+DECLARE
+  v_tenant_id uuid;
+  v_actor_id uuid;
+  v_actor_role text;
+  v_action text := 'UPDATE';
+  v_reason text;
+  v_request_role text := current_setting('request.jwt.claim.role', true);
+BEGIN
+  IF TG_TABLE_NAME = 'master_tenants' THEN
+    v_tenant_id := COALESCE(NEW.id, OLD.id);
+  ELSE
+    v_tenant_id := COALESCE(NEW.tenant_id, OLD.tenant_id);
+  END IF;
+
+  -- Only the trusted service-role Agenda command path may supply actor context.
+  -- Browser/authenticated callers cannot control audit attribution by setting a GUC.
+  IF TG_TABLE_NAME = 'master_agenda_events' AND v_request_role = 'service_role' THEN
+    v_actor_id := NULLIF(current_setting('app.agenda_actor_id', true), '')::uuid;
+    v_actor_role := NULLIF(current_setting('app.agenda_actor_role', true), '');
+    v_reason := NULLIF(current_setting('app.agenda_reason', true), '');
+  END IF;
+
+  IF v_actor_id IS NULL THEN
+    SELECT cu.id, cu.role::text
+      INTO v_actor_id, v_actor_role
+    FROM public.clinic_users cu
+    WHERE cu.auth_user_id = auth.uid()
+      AND cu.tenant_id = v_tenant_id
+      AND cu.is_active = true
+      AND cu.deleted_at IS NULL
+    ORDER BY cu.created_at ASC
+    LIMIT 1;
+  END IF;
+  IF v_actor_role IS NULL THEN
+    v_actor_role := public.get_current_user_role();
+  END IF;
+
+  IF TG_TABLE_NAME = 'master_agenda_events' THEN
+    IF TG_OP = 'INSERT' THEN
+      v_action := 'CREATE';
+    ELSIF NEW.status IS DISTINCT FROM OLD.status AND NEW.status = 'cancelled' THEN
+      v_action := 'CANCEL';
+    ELSIF NEW.status IS DISTINCT FROM OLD.status AND NEW.status = 'rescheduled' THEN
+      v_action := 'RESCHEDULE';
+    ELSIF NEW.status IS DISTINCT FROM OLD.status THEN
+      v_action := 'STATUS_CHANGE';
+    ELSE
+      v_action := 'UPDATE';
+    END IF;
+  ELSE
+    v_action := TG_OP;
+  END IF;
+
+  INSERT INTO public.audit_trail (
+    tenant_id,
+    actor_id,
+    actor_role,
+    action,
+    table_name,
+    record_id,
+    old_values,
+    new_values,
+    reason
+  ) VALUES (
+    v_tenant_id,
+    v_actor_id,
+    v_actor_role,
+    v_action,
+    TG_TABLE_NAME,
+    CASE WHEN TG_OP = 'DELETE' THEN OLD.id ELSE NEW.id END,
+    CASE WHEN TG_OP = 'INSERT' THEN NULL ELSE to_jsonb(OLD) END,
+    CASE WHEN TG_OP = 'DELETE' THEN NULL ELSE to_jsonb(NEW) END,
+    v_reason
+  );
+
+  IF TG_OP = 'DELETE' THEN
+    RETURN OLD;
+  END IF;
+  RETURN NEW;
+END;
+$function$;
+
+DROP TRIGGER IF EXISTS tr_audit_agenda ON public.master_agenda_events;
+CREATE TRIGGER tr_audit_agenda
+AFTER INSERT OR UPDATE ON public.master_agenda_events
+FOR EACH ROW
+EXECUTE FUNCTION public.fn_audit_changes();
+
+REVOKE ALL ON FUNCTION public.fn_audit_changes() FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.fn_audit_changes() TO service_role;
+
+COMMIT;
