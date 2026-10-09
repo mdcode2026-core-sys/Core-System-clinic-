@@ -1,11 +1,12 @@
 #!/usr/bin/env node
 
 import { spawnSync } from "node:child_process";
-import { readFileSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync, unlinkSync, writeFileSync } from "node:fs";
 
 const timeout = Number(process.env.GATE04_DATABASE_TIMEOUT_MS || 900000);
 let started = false;
 let originalSupabaseConfig = null;
+let createdSupabaseConfig = false;
 const supabaseConfigPath = "supabase/config.toml";
 const checks = [];
 function log(name, status, detail = "") {
@@ -37,6 +38,10 @@ function requireSuccess(name, command, args, options = {}) {
 try {
   if (!process.env.CI) {
     throw new Error("This destructive database replay verifier is CI-only; refusing to run outside CI.");
+  }
+  if (!existsSync(supabaseConfigPath)) {
+    createdSupabaseConfig = true;
+    requireSuccess("initialize-local-supabase-config", "npx", ["--yes", "supabase@latest", "init"]);
   }
   originalSupabaseConfig = readFileSync(supabaseConfigPath, "utf8");
   if (!/^project_id\s*=.*$/m.test(originalSupabaseConfig)) {
@@ -140,14 +145,13 @@ try {
       process.exitCode = 1;
     }
   }
-  if (originalSupabaseConfig !== null) {
-    try {
-      writeFileSync(supabaseConfigPath, originalSupabaseConfig);
-      log("restore-supabase-config", "PASS");
-    } catch (error) {
-      log("restore-supabase-config", "FAIL", error instanceof Error ? error.message : String(error));
-      process.exitCode = 1;
-    }
+  try {
+    if (createdSupabaseConfig && existsSync(supabaseConfigPath)) unlinkSync(supabaseConfigPath);
+    else if (originalSupabaseConfig !== null) writeFileSync(supabaseConfigPath, originalSupabaseConfig);
+    log("restore-supabase-config", "PASS");
+  } catch (error) {
+    log("restore-supabase-config", "FAIL", error instanceof Error ? error.message : String(error));
+    process.exitCode = 1;
   }
   const failures = checks.filter((item) => item.status === "FAIL");
   console.log(JSON.stringify({
