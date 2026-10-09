@@ -1,3 +1,4 @@
+import "server-only";
 import { createClient } from "@/infrastructure/supabase/server";
 import { createAgendaCommandClient } from "@/infrastructure/supabase/agenda-command";
 import { checkConflicts, isValidTimeRange } from "./conflict.engine";
