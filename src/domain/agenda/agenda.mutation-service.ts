@@ -2,7 +2,7 @@ import { createClient } from "@/infrastructure/supabase/server";
 import { createAgendaCommandClient } from "@/infrastructure/supabase/agenda-command";
 import { checkConflicts, isValidTimeRange } from "./conflict.engine";
 import { checkAvailability } from "./availability.engine";
-import { AgendaEventStatus, AgendaEventStatusValue, ValidStateTransitions } from "./agenda.types";
+import { AgendaEventStatus, ValidStateTransitions, type AgendaEventStatusValue } from "./agenda.types";
 import { getEffectivePermissions } from "@/core/permissions/permissionEngine";
 import { tenantLocalToUtc } from "@/shared/utils/dateTime";
 import { resolveBookingRequirements } from "./procedure-resource-requirements";
@@ -37,6 +37,7 @@ async function resolveContext() {
     .select("id, tenant_id, is_active")
     .eq("auth_user_id", user.id)
     .eq("is_active", true)
+    .is("deleted_at", null)
     .maybeSingle();
   if (clinicUserError || !clinicUser) return null;
   const permissions = await getEffectivePermissions(user.id, clinicUser.tenant_id);
@@ -117,6 +118,7 @@ function normalizeScheduleTimes(input: AgendaMutationInput, tenantTimezone: stri
 }
 
 export async function createAgendaEventMutation(input: AgendaMutationInput) {
+  if (!input.patientId) return { error: "AGENDA_PATIENT_REQUIRED" };
   const ctx = await resolveContext();
   if (!ctx) return { error: TENANT_MISSING };
   if (!can(ctx.permissions, "agenda:create")) return { error: PERMISSION_DENIED };
@@ -174,6 +176,7 @@ export async function createAgendaEventMutation(input: AgendaMutationInput) {
 }
 
 export async function updateAgendaEventMutation(input: AgendaUpdateInput) {
+  if (!input.eventId || !input.patientId) return { error: "AGENDA_EVENT_OR_PATIENT_REQUIRED" };
   const ctx = await resolveContext();
   if (!ctx) return { error: TENANT_MISSING };
   if (!can(ctx.permissions, "agenda:update")) return { error: PERMISSION_DENIED };
@@ -315,6 +318,9 @@ function mapAgendaCommandError(error: AgendaCommandError | null | undefined) {
     "AGENDA_STATE_CONFLICT",
     "AGENDA_INVALID_STATUS_TRANSITION",
     "AGENDA_INVALID_CANCELLATION",
+    "AGENDA_PATIENT_REQUIRED",
+    "AGENDA_EVENT_OR_PATIENT_REQUIRED",
+    "AGENDA_COMMAND_CONFIGURATION_MISSING",
   ];
   const known = knownCodes.find((code) => message.includes(code));
   if (known === "AGENDA_ACTOR_OR_TENANT_MISSING" || known === "AGENDA_ACTOR_TENANT_OR_EVENT_MISSING" ||
