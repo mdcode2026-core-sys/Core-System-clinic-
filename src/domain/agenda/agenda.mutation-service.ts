@@ -59,12 +59,14 @@ function can(permissions: string[], key: string) {
   return permissions.includes(key);
 }
 
-async function resolveBufferEnd(supabase: Awaited<ReturnType<typeof createClient>>, procedureId: string | null, scheduledEnd: string) {
+async function resolveBufferEnd(supabase: Awaited<ReturnType<typeof createClient>>, tenantId: string, procedureId: string | null, scheduledEnd: string) {
   if (!procedureId) return scheduledEnd;
   const { data } = await supabase
     .from("clinic_procedures")
     .select("buffer_time_minutes")
     .eq("id", procedureId)
+    .eq("tenant_id", tenantId)
+    .eq("is_active", true)
     .is("deleted_at", null)
     .maybeSingle();
   const bufferMinutes = Number(data?.buffer_time_minutes ?? 0);
@@ -142,7 +144,7 @@ export async function createAgendaEventMutation(input: AgendaMutationInput) {
   }
   if (bookingRequirements.provider.required && !normalized.doctorId) return { error: "AGENDA_PROVIDER_REQUIRED" };
 
-  const bufferEnd = await resolveBufferEnd(ctx.supabase, normalized.procedureId, normalized.scheduledEnd);
+  const bufferEnd = await resolveBufferEnd(ctx.supabase, ctx.tenantId, normalized.procedureId, normalized.scheduledEnd);
   const availability = await validateAvailability(ctx.supabase, ctx.tenantId, normalized, bufferEnd, bookingRequirements.provider.required);
   if (!availability.isAvailable) return { error: `AGENDA_UNAVAILABLE|${availability.reason || "requested capacity is unavailable"}` };
 
