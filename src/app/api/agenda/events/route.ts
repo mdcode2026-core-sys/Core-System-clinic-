@@ -53,7 +53,7 @@ export async function PATCH(request: Request) {
   const result = await updateAgendaEventMutation({
     eventId: body.id.trim(),
     patientId: body.patient_id!.trim(),
-    doctorId: body.doctor_id!.trim(),
+    doctorId: body.doctor_id?.trim() || null,
     roomId: body.room_id || null,
     resourceId: body.resource_id || null,
     procedureId: body.procedure_id || null,
