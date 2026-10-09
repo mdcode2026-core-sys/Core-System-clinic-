@@ -52,5 +52,9 @@
       "required": true,
       "execution_owner": "workstream-verification"
     }
-  ]
+  ],
+  "suppress_workstreams_when_applicable": [
+    "csapi-gate02-patient-journey"
+  ],
+  "suppression_rationale": "Gate 02 is closed. Its broad legacy path matcher includes Agenda files and triggers a separate, credential-backed longitudinal E2E lane. Gate 04 has its own local-only database/static verification contract; do not reopen or run Gate 02's mutation-capable runtime suite as incidental coverage. Re-run Gate 02 only if direct evidence demonstrates a regression and the owning gate authorizes that verification."
 }
