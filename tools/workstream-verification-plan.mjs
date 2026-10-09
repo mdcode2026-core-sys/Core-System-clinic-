@@ -70,11 +70,16 @@ const descriptorsForChangedFiles = allDescriptors.filter(({ contract }) => {
   return Array.isArray(patterns) &&
     changed.some((file) => patterns.some((pattern) => new RegExp(pattern).test(file)));
 });
-const suppressedWorkstreams = new Set(descriptorsForChangedFiles.flatMap(({ contract }) =>
-  Array.isArray(contract.suppress_workstreams_when_applicable)
-    ? contract.suppress_workstreams_when_applicable
-    : []
-));
+const suppressedWorkstreams = new Set();
+for (const { contract } of descriptorsForChangedFiles) {
+  for (const workstreamId of contract.suppress_workstreams_when_applicable || []) {
+    const bypassPatterns = contract.suppression_bypass_patterns?.[workstreamId] || [];
+    const hasDirectWorkstreamChanges = changed.some((file) =>
+      bypassPatterns.some((pattern) => new RegExp(pattern).test(file))
+    );
+    if (!hasDirectWorkstreamChanges) suppressedWorkstreams.add(workstreamId);
+  }
+}
 const contractDir = "docs/testing/workstream-contracts";
 
 if (existsSync(contractDir)) {
