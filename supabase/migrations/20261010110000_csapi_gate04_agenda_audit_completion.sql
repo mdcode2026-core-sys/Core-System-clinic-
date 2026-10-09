@@ -84,6 +84,9 @@ BEGIN
 
   IF TG_OP = 'INSERT' THEN
     v_action := 'CREATE';
+  ELSIF TG_OP = 'UPDATE'
+    AND NULLIF(current_setting('app.agenda_reason', true), '') = 'appointment_rescheduled' THEN
+    v_action := 'RESCHEDULE';
   ELSIF NEW.status IS DISTINCT FROM OLD.status AND NEW.status = 'cancelled' THEN
     v_action := 'CANCEL';
   ELSIF NEW.status IS DISTINCT FROM OLD.status AND NEW.status = 'rescheduled' THEN
