@@ -79,8 +79,8 @@ try {
         AND bool_and(prosecdef)
         AND bool_and(array_to_string(proconfig, ',') LIKE '%search_path=pg_catalog, public%')
         AND bool_and(NOT has_function_privilege('anon', oid, 'EXECUTE'))
-        AND bool_and(has_function_privilege('authenticated', oid, 'EXECUTE'))
-        AND bool_and(NOT has_function_privilege('service_role', oid, 'EXECUTE')) AS ok
+        AND bool_and(NOT has_function_privilege('authenticated', oid, 'EXECUTE'))
+        AND bool_and(has_function_privilege('service_role', oid, 'EXECUTE')) AS ok
       FROM command_functions
     ),
     acl_check AS (
@@ -195,7 +195,7 @@ try {
       v_event public.master_agenda_events%ROWTYPE;
       v_count integer;
     BEGIN
-      -- A caller cannot attribute an operation to a different clinic-user identity.
+      -- Browser/authenticated sessions cannot invoke the service-role-only command.
       BEGIN
         PERFORM public.agenda_create_appointment(
           v_tenant_id, v_other_clinic_user_id, v_patient_id,
@@ -206,11 +206,15 @@ try {
           'impersonation probe'
         );
         RAISE EXCEPTION 'GATE04_ACTOR_IMPERSONATION_WAS_ALLOWED';
-      EXCEPTION WHEN OTHERS THEN
-        IF SQLERRM NOT LIKE '%AGENDA_ACTOR_NOT_ACTIVE_IN_TENANT%' THEN RAISE; END IF;
+      EXCEPTION WHEN insufficient_privilege THEN NULL;
       END;
 
-      -- Direct DML is denied even though the command RPC is executable.
+      -- Only the trusted command client may execute RPC; neither role may write the table directly.
+      RESET ROLE;
+      SET LOCAL ROLE service_role;
+      PERFORM set_config('request.jwt.claim.role', 'service_role', true);
+
+      BEGIN
       BEGIN
         INSERT INTO public.master_agenda_events (id)
         VALUES (gen_random_uuid());
