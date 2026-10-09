@@ -67,6 +67,8 @@ check("agenda-command-client-is-server-only", commandClient.includes('import "se
 check("agenda-command-rebinds-effective-actor", commandMigration.split("request.jwt.claim.sub").length - 1 >= 4 && commandMigration.split("get_effective_permissions(").length - 1 >= 4);
 check("canonical-service-calls-protected-commands", requiredCommands.every((name) => mutationService.includes(`"${name}"`)));
 check("status-cancellation-uses-dedicated-command", mutationService.includes('newStatus === AgendaEventStatus.CANCELLED') && mutationService.includes('invokeAgendaCommand("agenda_cancel_appointment"'));
+check("mutation-service-is-server-only", mutationService.startsWith('import "server-only";'));
+check("no-show-reschedule-keeps-lifecycle-intent", agendaForm.includes('event.status==="no_show"') && agendaForm.includes("shouldReschedule(event,date,startTime,endTime,tenantTimezone)"));
 check("server-actions-delegate-to-canonical-service",
   actions.includes("createAgendaEventMutation") &&
   actions.includes("updateAgendaEventMutation") &&
