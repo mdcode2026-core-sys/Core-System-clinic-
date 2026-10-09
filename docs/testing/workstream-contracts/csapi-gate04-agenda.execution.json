@@ -1,0 +1,56 @@
+{
+  "contract_version": "1.0",
+  "contract_type": "workstream",
+  "workstream_id": "csapi-gate04-agenda",
+  "status": "binding",
+  "contract_path": "docs/CSAPI/GATES/GATE-04-AGENDA-EXECUTION-CONTRACT-2026-09-29.md",
+  "applicability": {
+    "match_any": [
+      "^src/domain/agenda/.*\\.ts$",
+      "^src/features/workspace/widgets/agenda/.*\\.tsx$",
+      "^src/infrastructure/supabase/agenda-command\\.ts$",
+      "^supabase/migrations/.*csapi_gate04_agenda.*\\.sql$",
+      "^tools/csapi-gate04-.*\\.mjs$",
+      "^docs/CSAPI/GATES/GATE-04-.*\\.md$"
+    ]
+  },
+  "regression_level": "R3",
+  "required_engineering": [
+    "typecheck",
+    "lint",
+    "build"
+  ],
+  "planned_suites": [
+    "csapi-gate04-static",
+    "csapi-gate04-database"
+  ],
+  "required_suites": [
+    "engineering",
+    "csapi-gate04-static",
+    "csapi-gate04-database"
+  ],
+  "required_evidence": [
+    "canonical mutation and protected command convergence",
+    "tenant-scoped actor and appointment validation",
+    "direct table writes denied to browser and service-role clients",
+    "CREATE/UPDATE/status/cancel/reschedule audit reconstruction",
+    "provider-optional and provider-required booking requirements",
+    "resource policy defaults to exclusive without activating a capacity engine",
+    "tenant-local wall-clock semantics",
+    "clean local database migration replay"
+  ],
+  "workstream_checks": [
+    {
+      "name": "gate04-agenda-static-contract",
+      "command": "node tools/csapi-gate04-static-audit.mjs",
+      "required": true,
+      "execution_owner": "workstream-verification"
+    },
+    {
+      "name": "gate04-agenda-local-database",
+      "command": "node tools/csapi-gate04-database-verification.mjs",
+      "required": true,
+      "execution_owner": "workstream-verification"
+    }
+  ]
+}
