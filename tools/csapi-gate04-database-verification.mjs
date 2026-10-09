@@ -74,8 +74,8 @@ try {
         AND bool_and(prosecdef)
         AND bool_and(array_to_string(proconfig, ',') LIKE '%search_path=pg_catalog, public%')
         AND bool_and(NOT has_function_privilege('anon', oid, 'EXECUTE'))
-        AND bool_and(NOT has_function_privilege('authenticated', oid, 'EXECUTE'))
-        AND bool_and(has_function_privilege('service_role', oid, 'EXECUTE')) AS ok
+        AND bool_and(has_function_privilege('authenticated', oid, 'EXECUTE'))
+        AND bool_and(NOT has_function_privilege('service_role', oid, 'EXECUTE')) AS ok
       FROM command_functions
     ),
     acl_check AS (
