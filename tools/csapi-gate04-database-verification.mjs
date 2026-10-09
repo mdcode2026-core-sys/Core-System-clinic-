@@ -1,9 +1,12 @@
 #!/usr/bin/env node
 
 import { spawnSync } from "node:child_process";
+import { readFileSync, writeFileSync } from "node:fs";
 
 const timeout = Number(process.env.GATE04_DATABASE_TIMEOUT_MS || 900000);
 let started = false;
+let originalSupabaseConfig = null;
+const supabaseConfigPath = "supabase/config.toml";
 const checks = [];
 function log(name, status, detail = "") {
   checks.push({ name, status, detail });
@@ -35,6 +38,11 @@ try {
   if (!process.env.CI) {
     throw new Error("This destructive database replay verifier is CI-only; refusing to run outside CI.");
   }
+  originalSupabaseConfig = readFileSync(supabaseConfigPath, "utf8");
+  if (!/^project_id\s*=.*$/m.test(originalSupabaseConfig)) {
+    throw new Error("GATE04_DATABASE_CONFIG_INVALID: project_id missing from supabase/config.toml");
+  }
+  writeFileSync(supabaseConfigPath, originalSupabaseConfig.replace(/^project_id\s*=.*$/m, 'project_id = "core-system-gate04-ci"'));
   started = true;
   requireSuccess("local-supabase-start", "npx", ["--yes", "supabase@latest", "start", "--debug"], { capture: true });
 
@@ -129,6 +137,15 @@ try {
     if ((stopped.status ?? 1) === 0) log("local-supabase-stop", "PASS");
     else {
       log("local-supabase-stop", "FAIL", `exit ${stopped.status ?? "unknown"}`);
+      process.exitCode = 1;
+    }
+  }
+  if (originalSupabaseConfig !== null) {
+    try {
+      writeFileSync(supabaseConfigPath, originalSupabaseConfig);
+      log("restore-supabase-config", "PASS");
+    } catch (error) {
+      log("restore-supabase-config", "FAIL", error instanceof Error ? error.message : String(error));
       process.exitCode = 1;
     }
   }
