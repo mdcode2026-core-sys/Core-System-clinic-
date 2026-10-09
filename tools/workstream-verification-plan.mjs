@@ -11,6 +11,8 @@ const changed = execFileSync("git", ["diff", "--name-only", `${base}...${head}`]
 
 const laneRegistry = {
   engineering: { id: "engineering" },
+  "csapi-gate04-static": { id: "csapi-gate04-static" },
+  "csapi-gate04-database": { id: "csapi-gate04-database" },
   i18n: { id: "i18n" },
   "authenticated-e2e": { id: "authenticated-e2e" },
   "patient-journey": { id: "patient-journey" },
@@ -34,6 +36,8 @@ const laneRegistry = {
 };
 
 const commandToLane = new Map([
+  ["node tools/csapi-gate04-static-audit.mjs", "csapi-gate04-static"],
+  ["node tools/csapi-gate04-database-verification.mjs", "csapi-gate04-database"],
   ["npm run test:global-experience-presentation", "global-experience-presentation-static"],
   ["node tools/global-experience-presentation-runtime.spec.mjs", "global-experience-presentation-runtime"],
   ["npm run test:global-surfaces-workspace-authority", "global-surfaces-workspace-authority"],
