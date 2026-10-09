@@ -12,7 +12,7 @@ export interface BookingRequirementSet {
     required: boolean;
     quantity: number;
   }>;
-  resourceRequirementsSource: "not-configured" | "service-procedure";
+  resourceRequirementsSource: "not-configured";
 }
 
 export interface ResourceConcurrencyPolicy {
@@ -86,6 +86,7 @@ export async function resolveBookingRequirements(
     .select("id,tenant_id,provider_type")
     .eq("id", procedureId)
     .eq("tenant_id", tenantId)
+    .eq("is_active", true)
     .is("deleted_at", null)
     .maybeSingle();
 
