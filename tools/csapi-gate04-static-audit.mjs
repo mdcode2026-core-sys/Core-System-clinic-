@@ -29,6 +29,7 @@ const aclMigration = read("supabase/migrations/20261010120000_csapi_gate04_agend
 const mutationService = read("src/domain/agenda/agenda.mutation-service.ts");
 const actions = read("src/domain/agenda/agenda.actions.ts");
 const queries = read("src/domain/agenda/agenda.queries.ts");
+const commandClient = read("src/infrastructure/supabase/agenda-command.ts");
 const requirements = read("src/domain/agenda/procedure-resource-requirements.ts");
 const availability = read("src/domain/agenda/availability.engine.ts");
 const conflicts = read("src/domain/agenda/conflict.engine.ts");
@@ -44,7 +45,7 @@ for (const name of requiredCommands) {
   check(`db-command-exists:${name}`, commandMigration.includes(`FUNCTION public.${name}(`));
   check(`db-command-server-only-acl:${name}`,
     new RegExp(`REVOKE ALL ON FUNCTION public\\.${name}\\([^;]+FROM PUBLIC, anon, authenticated`, "s").test(commandMigration) &&
-    new RegExp(`GRANT EXECUTE ON FUNCTION public\\.${name}\\([^;]+TO authenticated`, "s").test(commandMigration));
+    new RegExp(`GRANT EXECUTE ON FUNCTION public\\.${name}\\([^;]+TO service_role`, "s").test(commandMigration));
 }
 check("db-commands-security-definer", (commandMigration.match(/SECURITY DEFINER/g) || []).length >= 4);
 check("db-commands-controlled-search-path", (commandMigration.match(/SET search_path = pg_catalog, public/g) || []).length >= 4);
@@ -53,8 +54,8 @@ check("db-command-tenant-scoping", /p.tenant_id = p_tenant_id/.test(commandMigra
 check("db-command-state-guards", commandMigration.includes("AGENDA_STATE_CONFLICT") && commandMigration.includes("AGENDA_INVALID_STATUS_TRANSITION"));
 check("db-no-reschedule-from-terminal-states", /p_reschedule AND p_expected_status NOT IN \('scheduled', 'confirmed', 'no_show'\)/.test(commandMigration));
 
-check("agenda-command-uses-session-client", !mutationService.includes("SUPABASE_SERVICE_ROLE_KEY") && !mutationService.includes("createAgendaCommandClient"));
-check("agenda-command-validates-authenticated-actor", commandMigration.split("cu.auth_user_id = auth.uid()").length - 1 >= 4);
+check("agenda-command-client-is-server-only", commandClient.includes('import "server-only"') && commandClient.includes("SUPABASE_SERVICE_ROLE_KEY"));
+check("agenda-command-rebinds-effective-actor", (commandMigration.match(/request\\.jwt\\.claim\\.sub/g) || []).length >= 4 && (commandMigration.match(/get_effective_permissions\\(/g) || []).length >= 4);
 check("canonical-service-calls-protected-commands", requiredCommands.every((name) => mutationService.includes(`"${name}"`)));
 check("server-actions-delegate-to-canonical-service",
   actions.includes("createAgendaEventMutation") &&
