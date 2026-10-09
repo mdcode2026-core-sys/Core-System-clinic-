@@ -55,12 +55,36 @@ const commandToLane = new Map([
 
 const lanes = new Map([["engineering", { id: "engineering" }]]);
 const contracts = [];
+// Closed-gate regression contracts may have broad path patterns. When a later gate
+// explicitly declares a narrow suppression, respect it rather than re-running a closed
+// gate's mutation-capable E2E as incidental coverage for this change.
+const descriptorDir = "docs/testing/workstream-contracts";
+const allDescriptors = existsSync(descriptorDir)
+  ? readdirSync(descriptorDir).filter((file) => file.endsWith(".execution.json")).map((name) => ({
+      path: join(descriptorDir, name),
+      contract: JSON.parse(readFileSync(join(descriptorDir, name), "utf8")),
+    }))
+  : [];
+const descriptorsForChangedFiles = allDescriptors.filter(({ contract }) => {
+  const patterns = contract?.applicability?.match_any;
+  return Array.isArray(patterns) &&
+    changed.some((file) => patterns.some((pattern) => new RegExp(pattern).test(file)));
+});
+const suppressedWorkstreams = new Set(descriptorsForChangedFiles.flatMap(({ contract }) =>
+  Array.isArray(contract.suppress_workstreams_when_applicable)
+    ? contract.suppress_workstreams_when_applicable
+    : []
+));
 const contractDir = "docs/testing/workstream-contracts";
 
 if (existsSync(contractDir)) {
   for (const name of readdirSync(contractDir).filter((file) => file.endsWith(".execution.json"))) {
     const path = join(contractDir, name);
     const contract = JSON.parse(readFileSync(path, "utf8"));
+    if (suppressedWorkstreams.has(contract.workstream_id)) {
+      console.log(`SUPPRESSED_CLOSED_WORKSTREAM=${contract.workstream_id} reason=explicitly-declared-by-applicable-workstream`);
+      continue;
+    }
     const patterns = contract?.applicability?.match_any;
     if (!Array.isArray(patterns)) continue;
     const applies = changed.some((file) => patterns.some((pattern) => new RegExp(pattern).test(file)));
