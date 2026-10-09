@@ -156,6 +156,9 @@ BEGIN
   IF p_expected_status IS NULL OR v_event.status IS DISTINCT FROM p_expected_status THEN
     RAISE EXCEPTION USING ERRCODE = 'P0001', MESSAGE = 'AGENDA_STATE_CONFLICT';
   END IF;
+  IF p_reschedule AND p_expected_status NOT IN ('scheduled', 'confirmed', 'no_show') THEN
+    RAISE EXCEPTION USING ERRCODE = 'P0001', MESSAGE = 'AGENDA_INVALID_STATUS_TRANSITION';
+  END IF;
   IF p_patient_id IS NULL OR NOT EXISTS (
     SELECT 1 FROM public.clinic_patients p
     WHERE p.id = p_patient_id AND p.tenant_id = p_tenant_id AND p.deleted_at IS NULL
