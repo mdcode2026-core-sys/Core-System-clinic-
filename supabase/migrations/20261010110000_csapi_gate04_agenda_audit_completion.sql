@@ -49,10 +49,9 @@ BEGIN
     v_tenant_id := COALESCE(NEW.tenant_id, OLD.tenant_id);
   END IF;
 
-  -- The Agenda command has already authenticated the caller and verified that the
-  -- actor is the caller's own active clinic-user row. Revalidate that binding here
-  -- before using transaction-local audit context.
-  IF v_request_role = 'authenticated' THEN
+  -- Only the protected service-role command boundary can supply Agenda audit context.
+  -- Validate its actor against the claim installed by the server-side command before attribution.
+  IF v_request_role = 'service_role' THEN
     SELECT cu.id, cu.role::text
       INTO v_actor_id, v_actor_role
     FROM public.clinic_users cu
