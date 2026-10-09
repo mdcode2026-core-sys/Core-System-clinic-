@@ -70,7 +70,7 @@ export default function AgendaPage() {
   const doctorOptions = doctorsData.map((doctor) => ({ id: doctor.id, name: doctor.full_name, specialization: doctor.specialization }));
   const roomOptions = roomsData.map((room) => ({ id: room.id, name: room.room_name }));
   const resourceOptions = resourcesData.map((resource) => ({ id: resource.id, name: resource.resource_name, type: resource.resource_type }));
-  const procedureOptions = proceduresData.map((procedure) => ({ id: procedure.id, name: procedure.procedure_name, duration: procedure.standard_duration_minutes }));
+  const procedureOptions = proceduresData.map((procedure) => ({ id: procedure.id, name: procedure.procedure_name, duration: procedure.standard_duration_minutes, provider_type: procedure.provider_type }));
 
   const handleEventClick = useCallback((event: AgendaEventWithRelations) => { setSelectedEvent(event); setIsDetailOpen(true); }, []);
   const handleTimeSlotClick = useCallback((date: string) => { setSelectedEvent(null); setFormDefaultDate(date); setIsFormOpen(true); }, []);
