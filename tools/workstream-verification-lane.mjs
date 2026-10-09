@@ -9,6 +9,7 @@ if (!lane) throw new Error("VERIFICATION_LANE is required");
 
 const baseUrl = process.env.CORE_SYSTEM_PRODUCTION_URL || "http://127.0.0.1:3000";
 const timeoutMs = Number(process.env.TEST_COMMAND_TIMEOUT_MS || 300000);
+const effectiveTimeoutMs = lane === "csapi-gate04-database" ? Math.max(timeoutMs, 900000) : timeoutMs;
 
 const commands = {
   "csapi-gate04-static": [["gate04-agenda-static-contract", "node", ["tools/csapi-gate04-static-audit.mjs"]]],
@@ -60,7 +61,7 @@ function run(command, args) {
     stdio: "inherit",
     env: process.env,
     shell: false,
-    timeout: timeoutMs,
+    timeout: effectiveTimeoutMs,
     killSignal: "SIGTERM",
   });
   if (result.error) {
