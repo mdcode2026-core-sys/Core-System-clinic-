@@ -261,6 +261,30 @@ try {
         AND record_id = v_event.id AND action = 'CANCEL'
         AND reason = 'gate04 cancellation probe' AND actor_id = v_clinic_user_id;
       IF v_count <> 1 THEN RAISE EXCEPTION 'GATE04_CANCEL_AUDIT_FAILED count=%', v_count; END IF;
+
+      -- Rebooking a cancelled appointment restores the same appointment to scheduled.
+      PERFORM public.agenda_update_appointment(
+        v_tenant_id, v_clinic_user_id, v_event.id, 'cancelled',
+        v_patient_id, NULL, NULL, NULL, NULL,
+        now() + interval '2 days',
+        now() + interval '2 days 30 minutes',
+        now() + interval '2 days 30 minutes',
+        'gate04 rebooking probe', true
+      );
+      SELECT status INTO v_count
+      FROM public.master_agenda_events WHERE id = v_event.id AND tenant_id = v_tenant_id;
+      IF v_count IS DISTINCT FROM 'scheduled' THEN
+        RAISE EXCEPTION 'GATE04_REBOOK_STATUS_FAILED status=%', v_count;
+      END IF;
+      SELECT count(*) INTO v_count
+      FROM public.audit_trail
+      WHERE tenant_id = v_tenant_id AND table_name = 'master_agenda_events'
+        AND record_id = v_event.id AND action = 'STATUS_CHANGE'
+        AND old_values ->> 'status' = 'cancelled'
+        AND new_values ->> 'status' = 'scheduled'
+        AND reason = 'appointment_rescheduled'
+        AND actor_id = v_clinic_user_id;
+      IF v_count <> 1 THEN RAISE EXCEPTION 'GATE04_REBOOK_AUDIT_FAILED count=%', v_count; END IF;
     END;
     $gate04_flow$;
 
