@@ -11,6 +11,8 @@ const baseUrl = process.env.CORE_SYSTEM_PRODUCTION_URL || "http://127.0.0.1:3000
 const timeoutMs = Number(process.env.TEST_COMMAND_TIMEOUT_MS || 300000);
 
 const commands = {
+  "csapi-gate04-static": [["gate04-agenda-static-contract", "node", ["tools/csapi-gate04-static-audit.mjs"]]],
+  "csapi-gate04-database": [["gate04-agenda-clean-local-database", "node", ["tools/csapi-gate04-database-verification.mjs"]]],
   engineering: [
     ["typecheck", "npx", ["tsc", "--noEmit"]],
     ["lint", "npm", ["run", "lint"]],
