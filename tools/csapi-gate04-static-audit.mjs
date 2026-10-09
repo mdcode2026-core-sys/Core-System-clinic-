@@ -59,6 +59,7 @@ check("db-command-tenant-scoping", /p.tenant_id = p_tenant_id/.test(commandMigra
 check("db-command-state-guards", commandMigration.includes("AGENDA_STATE_CONFLICT") && commandMigration.includes("AGENDA_INVALID_STATUS_TRANSITION"));
 check("db-no-reschedule-from-terminal-states", /p_reschedule AND p_expected_status NOT IN \('scheduled', 'confirmed', 'no_show', 'cancelled', 'rescheduled'\)/.test(commandMigration));
 check("api-accepts-provider-optional-request", !apiRequiredBlock.includes("doctor_id") && apiRoute.split("doctorId: body.doctor_id?.trim() || null").length - 1 >= 2);
+check("main-agenda-form-derives-requirement-after-state", agendaForm.indexOf("const[procedureId,setProcedureId]=useState") < agendaForm.indexOf("const selectedProcedure=procedures.find"));
 check("main-agenda-form-uses-provider-requirements", agendaForm.includes("isProviderRequired(selectedProcedure?.provider_type)") && agendaForm.includes("if(!doctorId&&providerRequired)") && agendaForm.includes("doctor_id:doctorId||null"));
 check("main-agenda-form-rebooks-cancelled-appointment", agendaForm.includes('event.status==="cancelled"') && agendaForm.includes("shouldReschedule(event,date,startTime,endTime,tenantTimezone)"));
 check("provider-requirements-reach-all-agenda-form-entry-points", agendaPage.includes("provider_type: procedure.provider_type") && patientsPage.includes("provider_type: p.provider_type"));
