@@ -17,10 +17,10 @@ export function QuickAppointmentWidget(_props: WidgetComponentProps) {
   const { data: doctors = [] } = useDoctors(tenantId);
   const { data: rooms = [] } = useRooms(tenantId);
   const { data: procedures = [] } = useProcedures(tenantId);
-  const selectedProcedure = procedures.find((procedure) => procedure.id === form.procedure_id);
-  const providerRequired = isProviderRequired(selectedProcedure?.provider_type);
   const [isSubmitting, setIsSubmitting] = useState(false); const [submitted, setSubmitted] = useState(false);
   const [form, setForm] = useState({ patient_id: "", doctor_id: "", room_id: "", procedure_id: "", start_time: "", end_time: "", notes: "" });
+  const selectedProcedure = procedures.find((procedure) => procedure.id === form.procedure_id);
+  const providerRequired = isProviderRequired(selectedProcedure?.provider_type);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
