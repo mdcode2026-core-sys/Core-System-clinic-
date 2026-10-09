@@ -301,10 +301,10 @@ BEGIN
     RAISE EXCEPTION USING ERRCODE = 'P0001', MESSAGE = 'AGENDA_STATE_CONFLICT';
   END IF;
   v_allowed :=
-    (p_expected_status = 'scheduled' AND p_new_status IN ('confirmed','cancelled','rescheduled')) OR
-    (p_expected_status = 'confirmed' AND p_new_status IN ('arrived','no_show','cancelled','rescheduled')) OR
-    (p_expected_status = 'arrived' AND p_new_status IN ('in_session','no_show','cancelled')) OR
-    (p_expected_status = 'in_session' AND p_new_status IN ('completed','cancelled')) OR
+    (p_expected_status = 'scheduled' AND p_new_status IN ('confirmed','rescheduled')) OR
+    (p_expected_status = 'confirmed' AND p_new_status IN ('arrived','no_show','rescheduled')) OR
+    (p_expected_status = 'arrived' AND p_new_status IN ('in_session','no_show')) OR
+    (p_expected_status = 'in_session' AND p_new_status = 'completed') OR
     (p_expected_status = 'no_show' AND p_new_status = 'rescheduled') OR
     (p_expected_status = 'cancelled' AND p_new_status = 'scheduled') OR
     (p_expected_status = 'rescheduled' AND p_new_status = 'scheduled');
