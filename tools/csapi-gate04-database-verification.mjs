@@ -221,6 +221,7 @@ try {
       v_patient_id uuid := 'd4000000-0000-4000-8000-000000000004';
       v_event public.master_agenda_events%ROWTYPE;
       v_count integer;
+      v_status text;
     BEGIN
       SELECT * INTO v_event
       FROM public.agenda_create_appointment(
@@ -271,10 +272,10 @@ try {
         now() + interval '2 days 30 minutes',
         'gate04 rebooking probe', true
       );
-      SELECT status INTO v_count
+      SELECT status INTO v_status
       FROM public.master_agenda_events WHERE id = v_event.id AND tenant_id = v_tenant_id;
-      IF v_count IS DISTINCT FROM 'scheduled' THEN
-        RAISE EXCEPTION 'GATE04_REBOOK_STATUS_FAILED status=%', v_count;
+      IF v_status IS DISTINCT FROM 'scheduled' THEN
+        RAISE EXCEPTION 'GATE04_REBOOK_STATUS_FAILED status=%', v_status;
       END IF;
       SELECT count(*) INTO v_count
       FROM public.audit_trail
