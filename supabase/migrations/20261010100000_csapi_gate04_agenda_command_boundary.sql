@@ -1,6 +1,6 @@
 -- CSAPI Gate 04 / WP-1: protected canonical Agenda persistence commands.
 -- The command layer deliberately does not duplicate the application availability/conflict engines.
--- Only the dedicated trusted server-side Agenda client may execute these functions.
+-- The authenticated clinic-user session is bound to the actor and rechecked here.
 
 BEGIN;
 
