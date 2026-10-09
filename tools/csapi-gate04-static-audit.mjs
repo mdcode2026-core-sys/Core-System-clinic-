@@ -56,7 +56,11 @@ check("db-commands-controlled-search-path", (commandMigration.match(/SET search_
 check("db-command-permission-checks", (commandMigration.match(/get_effective_permissions\(/g) || []).length >= 4);
 check("db-command-tenant-scoping", /p.tenant_id = p_tenant_id/.test(commandMigration) && /u.tenant_id = p_tenant_id/.test(commandMigration));
 check("db-command-state-guards", commandMigration.includes("AGENDA_STATE_CONFLICT") && commandMigration.includes("AGENDA_INVALID_STATUS_TRANSITION"));
-check("db-no-reschedule-from-terminal-states", /p_reschedule AND p_expected_status NOT IN \('scheduled', 'confirmed', 'no_show'\)/.test(commandMigration));
+check("db-no-reschedule-from-terminal-states", /p_reschedule AND p_expected_status NOT IN \('scheduled', 'confirmed', 'no_show', 'cancelled', 'rescheduled'\)/.test(commandMigration));
+check("api-accepts-provider-optional-request", !/function required\(body: AgendaRequestBody\)[\s\S]*?body\.doctor_id/.test(apiRoute) && apiRoute.split("doctorId: body.doctor_id?.trim() || null").length - 1 >= 2);
+check("main-agenda-form-uses-provider-requirements", agendaForm.includes("isProviderRequired(selectedProcedure?.provider_type)") && agendaForm.includes("if(!doctorId&&providerRequired)") && agendaForm.includes("doctor_id:doctorId||null"));
+check("main-agenda-form-rebooks-cancelled-appointment", agendaForm.includes('event.status==="cancelled"') && agendaForm.includes("shouldReschedule(event,date,startTime,endTime,tenantTimezone)"));
+check("provider-requirements-reach-all-agenda-form-entry-points", agendaPage.includes("provider_type: procedure.provider_type") && patientsPage.includes("provider_type: p.provider_type"));
 
 check("agenda-command-client-is-server-only", commandClient.includes('import "server-only"') && commandClient.includes("SUPABASE_SERVICE_ROLE_KEY"));
 check("agenda-command-rebinds-effective-actor", commandMigration.split("request.jwt.claim.sub").length - 1 >= 4 && commandMigration.split("get_effective_permissions(").length - 1 >= 4);
