@@ -33,7 +33,7 @@ BEGIN
   SELECT cu.* INTO v_actor
   FROM public.clinic_users cu
   WHERE cu.id = p_actor_clinic_user_id
-    AND cu.tenant_id = p_tenant_id
+    AND cu.tenant_id = p_tenant_id AND cu.auth_user_id = auth.uid()
     AND cu.is_active = true
     AND cu.deleted_at IS NULL;
   IF NOT FOUND OR v_actor.auth_user_id IS NULL THEN
@@ -137,7 +137,7 @@ BEGIN
   END IF;
   SELECT cu.* INTO v_actor
   FROM public.clinic_users cu
-  WHERE cu.id = p_actor_clinic_user_id AND cu.tenant_id = p_tenant_id
+  WHERE cu.id = p_actor_clinic_user_id AND cu.tenant_id = p_tenant_id AND cu.auth_user_id = auth.uid()
     AND cu.is_active = true AND cu.deleted_at IS NULL;
   IF NOT FOUND OR v_actor.auth_user_id IS NULL THEN
     RAISE EXCEPTION USING ERRCODE = 'P0001', MESSAGE = 'AGENDA_ACTOR_NOT_ACTIVE_IN_TENANT';
@@ -249,7 +249,7 @@ BEGIN
   END IF;
   SELECT cu.* INTO v_actor
   FROM public.clinic_users cu
-  WHERE cu.id = p_actor_clinic_user_id AND cu.tenant_id = p_tenant_id
+  WHERE cu.id = p_actor_clinic_user_id AND cu.tenant_id = p_tenant_id AND cu.auth_user_id = auth.uid()
     AND cu.is_active = true AND cu.deleted_at IS NULL;
   IF NOT FOUND OR v_actor.auth_user_id IS NULL THEN
     RAISE EXCEPTION USING ERRCODE = 'P0001', MESSAGE = 'AGENDA_ACTOR_NOT_ACTIVE_IN_TENANT';
@@ -315,7 +315,7 @@ BEGIN
   END IF;
   SELECT cu.* INTO v_actor
   FROM public.clinic_users cu
-  WHERE cu.id = p_actor_clinic_user_id AND cu.tenant_id = p_tenant_id
+  WHERE cu.id = p_actor_clinic_user_id AND cu.tenant_id = p_tenant_id AND cu.auth_user_id = auth.uid()
     AND cu.is_active = true AND cu.deleted_at IS NULL;
   IF NOT FOUND OR v_actor.auth_user_id IS NULL THEN
     RAISE EXCEPTION USING ERRCODE = 'P0001', MESSAGE = 'AGENDA_ACTOR_NOT_ACTIVE_IN_TENANT';
@@ -354,14 +354,14 @@ BEGIN
 END;
 $function$;
 
-REVOKE ALL ON FUNCTION public.agenda_create_appointment(uuid,uuid,uuid,uuid,uuid,uuid,uuid,uuid,timestamptz,timestamptz,timestamptz,text) FROM PUBLIC, anon, authenticated;
-REVOKE ALL ON FUNCTION public.agenda_update_appointment(uuid,uuid,uuid,text,uuid,uuid,uuid,uuid,uuid,timestamptz,timestamptz,timestamptz,text,boolean) FROM PUBLIC, anon, authenticated;
-REVOKE ALL ON FUNCTION public.agenda_transition_appointment(uuid,uuid,uuid,text,text) FROM PUBLIC, anon, authenticated;
-REVOKE ALL ON FUNCTION public.agenda_cancel_appointment(uuid,uuid,uuid,text,text) FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION public.agenda_create_appointment(uuid,uuid,uuid,uuid,uuid,uuid,uuid,uuid,timestamptz,timestamptz,timestamptz,text) FROM PUBLIC, anon, authenticated, service_role;
+REVOKE ALL ON FUNCTION public.agenda_update_appointment(uuid,uuid,uuid,text,uuid,uuid,uuid,uuid,uuid,timestamptz,timestamptz,timestamptz,text,boolean) FROM PUBLIC, anon, authenticated, service_role;
+REVOKE ALL ON FUNCTION public.agenda_transition_appointment(uuid,uuid,uuid,text,text) FROM PUBLIC, anon, authenticated, service_role;
+REVOKE ALL ON FUNCTION public.agenda_cancel_appointment(uuid,uuid,uuid,text,text) FROM PUBLIC, anon, authenticated, service_role;
 
-GRANT EXECUTE ON FUNCTION public.agenda_create_appointment(uuid,uuid,uuid,uuid,uuid,uuid,uuid,uuid,timestamptz,timestamptz,timestamptz,text) TO service_role;
-GRANT EXECUTE ON FUNCTION public.agenda_update_appointment(uuid,uuid,uuid,text,uuid,uuid,uuid,uuid,uuid,timestamptz,timestamptz,timestamptz,text,boolean) TO service_role;
-GRANT EXECUTE ON FUNCTION public.agenda_transition_appointment(uuid,uuid,uuid,text,text) TO service_role;
-GRANT EXECUTE ON FUNCTION public.agenda_cancel_appointment(uuid,uuid,uuid,text,text) TO service_role;
+GRANT EXECUTE ON FUNCTION public.agenda_create_appointment(uuid,uuid,uuid,uuid,uuid,uuid,uuid,uuid,timestamptz,timestamptz,timestamptz,text) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.agenda_update_appointment(uuid,uuid,uuid,text,uuid,uuid,uuid,uuid,uuid,timestamptz,timestamptz,timestamptz,text,boolean) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.agenda_transition_appointment(uuid,uuid,uuid,text,text) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.agenda_cancel_appointment(uuid,uuid,uuid,text,text) TO authenticated;
 
 COMMIT;
