@@ -55,6 +55,9 @@ BEGIN
   IF NOT EXISTS (SELECT 1 FROM public.master_tenants t WHERE t.id = p_tenant_id AND t.deleted_at IS NULL) THEN
     RAISE EXCEPTION USING ERRCODE = 'P0001', MESSAGE = 'AGENDA_TENANT_MISSING';
   END IF;
+  IF p_expected_status = 'completed' THEN
+    RAISE EXCEPTION USING ERRCODE = 'P0001', MESSAGE = 'AGENDA_INVALID_STATUS_TRANSITION';
+  END IF;
   IF p_patient_id IS NULL OR NOT EXISTS (
     SELECT 1 FROM public.clinic_patients p
     WHERE p.id = p_patient_id AND p.tenant_id = p_tenant_id AND p.deleted_at IS NULL
@@ -174,7 +177,7 @@ BEGIN
   IF p_expected_status IS NULL OR v_event.status IS DISTINCT FROM p_expected_status THEN
     RAISE EXCEPTION USING ERRCODE = 'P0001', MESSAGE = 'AGENDA_STATE_CONFLICT';
   END IF;
-  IF p_reschedule AND p_expected_status NOT IN ('scheduled', 'confirmed', 'no_show') THEN
+  IF p_reschedule AND p_expected_status NOT IN ('scheduled', 'confirmed', 'no_show', 'cancelled', 'rescheduled') THEN
     RAISE EXCEPTION USING ERRCODE = 'P0001', MESSAGE = 'AGENDA_INVALID_STATUS_TRANSITION';
   END IF;
   IF p_patient_id IS NULL OR NOT EXISTS (
@@ -234,7 +237,11 @@ BEGIN
       scheduled_end = p_scheduled_end,
       buffer_end = p_buffer_end,
       booking_notes = p_booking_notes,
-      status = CASE WHEN p_reschedule THEN 'rescheduled' ELSE e.status END,
+      status = CASE
+        WHEN p_reschedule AND p_expected_status = 'cancelled' THEN 'scheduled'
+        WHEN p_reschedule THEN 'rescheduled'
+        ELSE e.status
+      END,
       updated_at = pg_catalog.now()
   WHERE e.id = p_event_id AND e.tenant_id = p_tenant_id AND e.status = p_expected_status
   RETURNING * INTO v_event;
