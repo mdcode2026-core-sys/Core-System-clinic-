@@ -22,7 +22,7 @@ function formNullableString(formData: FormData, key: string) {
 export async function createAgendaEvent(formData: FormData) {
   return createAgendaEventMutation({
     patientId: formString(formData, "patient_id"),
-    doctorId: formString(formData, "doctor_id"),
+    doctorId: formString(formData, "doctor_id") || null,
     roomId: formNullableString(formData, "room_id"),
     resourceId: formNullableString(formData, "resource_id"),
     procedureId: formNullableString(formData, "procedure_id"),
