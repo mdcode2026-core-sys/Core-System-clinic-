@@ -160,7 +160,7 @@ export async function createAgendaEventMutation(input: AgendaMutationInput) {
   });
   if (conflictResult.hasConflict) return { error: conflictResult.message };
 
-  const result = await invokeAgendaCommand(ctx.supabase, "agenda_create_appointment", {
+  const result = await invokeAgendaCommand("agenda_create_appointment", {
     p_tenant_id: ctx.tenantId,
     p_actor_clinic_user_id: ctx.clinicUser.id,
     p_patient_id: normalized.patientId,
@@ -230,7 +230,7 @@ export async function updateAgendaEventMutation(input: AgendaUpdateInput) {
     return { error: currentEventError ? DATABASE_ERROR : "AGENDA_EVENT_NOT_FOUND" };
   }
 
-  return invokeAgendaCommand(ctx.supabase, "agenda_update_appointment", {
+  return invokeAgendaCommand("agenda_update_appointment", {
     p_tenant_id: ctx.tenantId,
     p_actor_clinic_user_id: ctx.clinicUser.id,
     p_event_id: input.eventId,
@@ -262,7 +262,7 @@ export async function updateAgendaEventStatusMutation(
     return { error: `AGENDA_INVALID_STATUS_TRANSITION|${expectedCurrentStatus}|${newStatus}` };
   }
 
-  return invokeAgendaCommand(ctx.supabase, "agenda_transition_appointment", {
+  return invokeAgendaCommand("agenda_transition_appointment", {
     p_tenant_id: ctx.tenantId,
     p_actor_clinic_user_id: ctx.clinicUser.id,
     p_event_id: eventId,
@@ -290,7 +290,7 @@ export async function cancelAgendaEventMutation(
     return { error: `AGENDA_INVALID_CANCELLATION|${expectedCurrentStatus}` };
   }
 
-  return invokeAgendaCommand(ctx.supabase, "agenda_cancel_appointment", {
+  return invokeAgendaCommand("agenda_cancel_appointment", {
     p_tenant_id: ctx.tenantId,
     p_actor_clinic_user_id: ctx.clinicUser.id,
     p_event_id: eventId,
@@ -335,7 +335,6 @@ function mapAgendaCommandError(error: AgendaCommandError | null | undefined) {
 }
 
 async function invokeAgendaCommand(
-  _client: Awaited<ReturnType<typeof createClient>>,
   functionName: "agenda_create_appointment" | "agenda_update_appointment" | "agenda_transition_appointment" | "agenda_cancel_appointment",
   args: Record<string, unknown>,
 ) {
