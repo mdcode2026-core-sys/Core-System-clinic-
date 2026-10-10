@@ -39,6 +39,7 @@ const apiRequiredBlock = apiRoute.slice(apiRoute.indexOf("function required("), 
 const agendaForm = read("src/features/agenda/agenda-event-form.tsx");
 const agendaPage = read("src/app/(dashboard)/agenda/page.tsx");
 const patientsPage = read("src/app/(dashboard)/patients/page.tsx");
+const patientForm = read("src/features/patients/patient-form.tsx");
 
 const requiredCommands = [
   "agenda_create_appointment",
@@ -129,6 +130,13 @@ check("quick-appointment-keeps-tenant-wall-clock",
 check("quick-appointment-honors-provider-optional", quick.includes("required={providerRequired}"));
 check("quick-appointment-submits-notes", quick.includes('fd.set("notes", form.notes.trim())'));
 check("quick-appointment-uses-procedure-duration", quick.includes("selectedProcedure!.standard_duration_minutes"));
+
+check("agenda-new-patient-routes-to-canonical-registration", agendaForm.includes('router.push("/patients?registerForBooking=1")'));
+check("registration-query-opens-canonical-patient-form", patientsPage.includes('searchParams.get("registerForBooking") === "1"') && patientsPage.includes("useState(registerForBooking)"));
+check("registration-success-returns-selected-patient-to-agenda", patientsPage.includes("setAgendaPatientId(patientId); setIsAgendaOpen(true)") && patientsPage.includes("defaultPatientId={agendaPatientId || undefined}"));
+check("patient-form-propagates-canonical-patient-id", (patientForm.match(/result\\.data\\?\\.id \\?\\? result\\.patient_id/g) || []).length >= 2);
+check("quick-appointment-searches-and-selects-tenant-scoped-patient", quick.includes("usePatients(tenantId, patientSearch)") && quick.includes("setForm((f) => ({ ...f, patient_id: patient.id }))"));
+check("quick-appointment-requires-selected-record-not-manual-id", quick.includes("if (!form.patient_id ||") && !/name=["']patient_id/.test(quick));
 
 const failures = checks.filter((item) => item.status === "FAIL");
 console.log(JSON.stringify({

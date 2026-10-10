@@ -27,7 +27,9 @@
   "required_suites": [
     "engineering",
     "csapi-gate04-static",
-    "csapi-gate04-database"
+    "csapi-gate04-database",
+    "authenticated-e2e",
+    "cross-domain"
   ],
   "required_evidence": [
     "canonical mutation and protected command convergence",

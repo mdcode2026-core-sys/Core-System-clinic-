@@ -122,3 +122,22 @@ Do not merge or promote this work until the latest candidate has:
 - Exact-head Workstream Verification run 38037566782 (#964) ran against candidate 96fa6c812f61b55c72df91aeff992ae0e03de724. Gate 04 static audit and the Gate 03 identity lane passed. Engineering failed on one lint finding introduced by the new registration-return flow: setting modal state synchronously inside an effect in PatientsPage. The global i18n lane also failed on the already-known ten literals in Follow-up, Kiosk and QuickRegistrationWidget; no changes to those out-of-scope surfaces were made.
 - Corrected the Gate 04 finding by initializing the registration modal state from the route query at component initialization, removing the state-setting effect. Commit: 36e45055d4c720c626fc8b9f131b2a2c0ae46c28.
 - The earlier run was superseded by this fix and is not a final pass. Re-run exact-head verification. WP-7 remains OPEN until the new candidate's engineering, Gate 04 database/audit and relevant integration lanes complete. PR #242 stays Draft; no merge, hosted DB change or production promotion.
+
+
+## 10. Exact-head verification and migration-lineage checkpoint — 2026-10-10
+
+- Exact-head Workstream Verification [run #968](https://github.com/mdcode2026-core-sys/Core-System-clinic-/actions/runs/38038149678) passed on code candidate `926e97dc99fa84abb85eb1e30e8d48f3489a451d` (run attempt 2). Engineering Governance run #228 also passed.
+- Passed lanes on that candidate: typecheck/lint/build; Gate 04 static audit; isolated local database clean replay, command ACL, table-write ACL, RLS and appointment command/audit/rebooking probes; authenticated route E2E; Gate 03 identity audit/E2E; global presentation static/runtime; and changed-source i18n plus full AR/EN catalogue parity.
+- The global presentation runtime lane initially failed with `JWT issued at future`; retrying that failed job on the same SHA passed. No application code was changed to mask or bypass that failure.
+- The i18n lane now scans changed source files in CI while retaining the full catalogue parity check. The normal `npm run i18n:audit` invocation still audits the full source tree, so the known Follow-up/Kiosk/QuickRegistrationWidget findings remain visible to a full audit and were not deleted or suppressed.
+- The next exact-head verification adds explicit static assertions for the approved quick-registration return path and patient selection, and adds the contract-required read-only cross-domain runtime reconciliation lane. WP-7 remains OPEN until that new candidate's required lanes pass.
+
+### Read-only repository ↔ hosted migration-history comparison
+
+- Hosted project inspected read-only: `core-system-clinic` / `qaslsjyxjwvdoiczmhgq`; no hosted schema, data or migration-history changes were made.
+- Comparison baseline: 235 repository SQL files in `main` versus 292 hosted migration-history rows; no duplicate version identifiers were found in either list.
+- Exact version comparison found 102 versioned repository migration identifiers absent from hosted history, 160 hosted version identifiers absent from the current repository, and 12 shared version identifiers whose recorded migration names differ. The unversioned `seed_feature_flags.sql` is not counted as a versioned migration.
+- Latest hosted history version: `20260926105306`; latest repository migration version: `20260926110000`. The four Gate 04 migrations `20261010100000`–`20261010130000` exist only on the feature branch and are intentionally not applied to hosted Supabase.
+- This comparison proves that migration lineage is not reconciled; it does **not** prove that every differing row is a missing schema change. Do not bulk-apply migrations, edit history rows, or infer a repair from names alone. WP-8 remains BLOCKED pending a separate evidence-backed lineage plan and explicit release authorization.
+
+**Disposition at this checkpoint:** Gate 04 remains OPEN; WP-8 is BLOCKED; PR #242 remains Draft. No merge, hosted Supabase mutation, or production promotion.
