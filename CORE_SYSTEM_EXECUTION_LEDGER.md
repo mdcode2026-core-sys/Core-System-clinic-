@@ -450,3 +450,14 @@ D3 remained formally CLOSED at this historical record point; subsequent integrat
 **Final main SHA:** `e087243204c1f8308be323bc4eea24b18252dfee`
 
 **No Gate 01 implementation or production work remains open.**
+
+
+## 2026-10-10 CSAPI Gate 04 — WP1–WP6 Evidence Reconciliation (OPEN)
+
+| Date | Action | Evidence | Result | Decision / Boundary | Next Action |
+|---|---|---|---|---|---|
+| 2026-10-10 | Reconciled actual implementation against WP1–WP6 exit criteria | PR #242 candidate `8a2000350bc905427fb1ffdc2ffb4748c9b07b03`; Gate 04 implementation plan, execution contract and verification plan | Implementation for WP1–WP6 exists; their exit criteria are not all proven. Do not describe the work as stopped at WP1, and do not mark WP1–WP6 closed solely because code exists. | Detailed evidence, scope limits and per-WP status are recorded in `docs/CSAPI/GATES/GATE-04-WP1-WP6-EVIDENCE-RECONCILIATION-2026-10-10.md`. | Resolve the first concrete blocker within a bounded investigation, recording evidence before changes. |
+| 2026-10-10 | Reconciled latest observed CI rather than stale “pending” status | [Workstream Verification #38001733010](https://github.com/mdcode2026-core-sys/Core-System-clinic-/actions/runs/38001733010), candidate `8a2000350bc905427fb1ffdc2ffb4748c9b07b03` | Gate 04 static PASS (49/49); authenticated E2E PASS; clean local replay PASS; schema/ACL/RLS checks PASS; database command/audit flow FAIL before assertions because the fixture could not find `agenda:create` in `public.permissions`; i18n audit FAIL on ten out-of-scope literals. | The permission-key cause is unresolved. Do not seed permissions, change the assertion, or alter production policy by guess. The i18n finding stays outside Gate 04 absent a proven dependency. | Inspect canonical permission definitions, migrations/seeds, effective-permission function and existing fixtures; capture the root-cause finding before a fix. |
+| 2026-10-10 | Established bounded work and stop checkpoints | Gate 04 WP1–WP6 evidence reconciliation record | One focused investigation: 25-minute target, hard stop at 30 minutes; stop after two unsuccessful attempts at the same proposed fix; record every failure before further changes. | No silent continuation, speculative patch chain, production promotion, hosted DB change, or merge. Docs-only commits do not validate code. | Report at the checkpoint with evidence, ruled-out hypotheses, unresolved questions and the next bounded action. |
+
+**Current Gate 04 implementation status:** WP1–WP6 implementation present but not all exit conditions evidenced; WP7 OPEN; WP8 BLOCKED. PR #242 remains Draft. No production release or hosted Supabase mutation is authorized.
