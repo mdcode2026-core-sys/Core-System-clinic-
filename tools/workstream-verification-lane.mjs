@@ -20,7 +20,7 @@ const commands = {
     ["build", "npm", ["run", "build"]],
   ],
   i18n: [
-    ["i18n-audit", "npm", ["run", "i18n:audit"]],
+    ["i18n-audit-changed-source-files", "npm", ["run", "i18n:audit", "--", "--changed-files"]],
     ["i18n-parity", "npm", ["run", "i18n:parity"]],
   ],
   "authenticated-e2e": [[
