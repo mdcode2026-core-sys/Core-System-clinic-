@@ -5,7 +5,9 @@
 **Controlling contract:** `docs/CSAPI/GATES/GATE-04-AGENDA-EXECUTION-CONTRACT-2026-09-29.md`  
 **Implementation design:** `docs/CSAPI/GATES/GATE-04-AGENDA-IMPLEMENTATION-DESIGN-2026-09-29.md`  
 **Execution plan:** `docs/CSAPI/GATES/GATE-04-IMPLEMENTATION-PLAN-2026-09-29.md`  
-**Delivery PR:** #242 — Draft; base `main`; implementation branch `csapi/gate04-agenda-implementation-2026-10-10`
+**Delivery PR:** #242 — Draft; base `main`; implementation branch `csapi/gate04-agenda-implementation-2026-10-10`  
+**WP1–WP6 evidence reconciliation:** [`GATE-04-WP1-WP6-EVIDENCE-RECONCILIATION-2026-10-10.md`](GATE-04-WP1-WP6-EVIDENCE-RECONCILIATION-2026-10-10.md)  
+**Reviewed candidate:** `8a2000350bc905427fb1ffdc2ffb4748c9b07b03`
 
 ## 1. Scope and engineering ownership
 
@@ -28,11 +30,18 @@ No direct changes were made to `main`. No hosted Supabase schema, data, or migra
 
 ## 3. Current verification evidence
 
-- Engineering-governance workflow succeeded on revision `1e0617c63094078dfe008f89f7e9012ebee1be70`; later branch revisions include follow-up fixes and require verification against the exact latest head.
-- An earlier Workstream Verification attempt found a duplicate local declaration in the Agenda command invoker. The duplicate was removed on the branch. Results from the earlier revision are not treated as proof for the current head.
-- An earlier static Gate 04 audit completed successfully before the final verification assertions were added. It does not replace a latest-head run.
-- The prior verification attempt also reported a baseline i18n audit failure for existing literals in Follow-up, Kiosk, and Patient Quick Registration. Those surfaces are outside Gate 04 and were not changed. Their failures must not be silently marked as Gate 04 implementation failures or fixed as unrelated scope.
-- The latest-head Workstream Verification workflow was created but remained `pending` with no published jobs at the latest check. Therefore no latest-head pass is claimed in this record. Re-check the workflow run and its artifacts before approving merge or calling WP-7 complete.
+Latest observed run: [Workstream Verification #38001733010](https://github.com/mdcode2026-core-sys/Core-System-clinic-/actions/runs/38001733010), candidate `8a2000350bc905427fb1ffdc2ffb4748c9b07b03`. This run **completed and failed**; it was not pending.
+
+- Engineering governance: PASS.
+- Gate 04 static audit: PASS — 49 checks, 0 failures.
+- Authenticated E2E: PASS.
+- Presentation static/runtime lanes: PASS.
+- Local Supabase startup, isolated local target guard, clean migration replay, schema/security inspection, protected command ACL, appointment-table write ACL, Agenda audit-trigger presence, and Agenda RLS-enabled checks: PASS.
+- **Database flow: FAIL** before command/audit assertions. The fixture raised `GATE04_TEST_PERMISSION_MISSING=agenda:create` while querying `public.permissions`. Root cause is not yet determined; reconcile canonical permission keys, migrations/seeds, effective-permission logic and fixtures before any change.
+- **Global i18n audit: FAIL** on ten literals in Follow-up, Kiosk and Patient Quick Registration files. These files are not changed by PR #242; keep this finding outside Gate 04 unless a direct dependency is demonstrated.
+- Final verification gate: FAIL because required lanes did not all pass.
+
+The detailed WP-by-WP evidence and exit assessment are maintained in the linked WP1–WP6 reconciliation record. Do not treat static success, a passed E2E lane, or implementation-present status as work-package closure.
 
 ## 4. Reconciled architecture and safety boundaries
 
@@ -46,7 +55,7 @@ No direct changes were made to `main`. No hosted Supabase schema, data, or migra
 ## 5. Known blockers and exclusions
 
 - **Release blocker — migration lineage:** the repository and hosted migration histories are not reconciled. This is not resolved by this PR and must be handled through the project's migration-lineage reconciliation procedure before production release. No hosted migration-history rows were inserted or rewritten.
-- **Verification blocker — latest-head CI:** the static/database/engineering verification lanes must finish on the exact current PR head. A pending workflow is not a pass.
+- **Verification blocker — database flow:** latest observed CI completed on candidate `8a2000350bc905427fb1ffdc2ffb4748c9b07b03`; the database lane failed at fixture setup because `agenda:create` was not found in `public.permissions`. Static audit and included authenticated E2E passed, but WP-7 remains open.
 - **Pre-existing i18n baseline:** older verification logs reported unrelated literals in `src/features/followup/followup-shell.tsx`, `src/features/kiosk/AmbientKioskView.tsx`, and `src/features/workspace/widgets/patients/QuickRegistrationWidget.tsx`. They remain outside this gate unless a direct scoped dependency is proven.
 - No other gate has been reopened. Gate 02, Gate 03, Patient Flow, Follow-up Gate 11, Treatment Plan, workforce, inventory, and other domains remain outside this implementation scope.
 
@@ -60,4 +69,4 @@ Do not merge or promote this work until the latest candidate has:
 5. independent security/code review; and
 6. a separate, evidence-backed resolution of migration-lineage reconciliation before WP-8 production release.
 
-**Current overall disposition:** implementation branch in progress; WP-7 evidence incomplete; WP-8 blocked; PR #242 must remain Draft.
+**Current overall disposition:** WP1–WP6 implementation is present but their exit conditions are not all evidenced; WP-7 is OPEN after a failed DB lane; WP-8 is BLOCKED by integrated verification and migration-lineage reconciliation; PR #242 must remain Draft. The linked reconciliation record governs the current detailed status.
