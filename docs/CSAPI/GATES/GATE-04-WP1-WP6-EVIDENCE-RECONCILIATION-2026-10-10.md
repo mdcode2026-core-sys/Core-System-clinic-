@@ -136,7 +136,19 @@ Evidence:
 
 **Root-cause classification:** canonical migration-chain omission of Agenda permission catalogue rows; fixture is correctly surfacing that omission. get_effective_permissions is a consumer of the canonical catalogue, not the cause identified here.
 
-**Bounded investigation log:** one focused source review completed within the declared 25-minute target; hard-stop limit remains 30 minutes. No patch attempts were made. This finding is documented before any implementation change. Next action is a separately bounded, additive migration repair for the missing canonical catalogue entries and only the role grants required by the approved existing model, followed by the same isolated DB lane. Do not change hosted permissions, alter the effective-permission engine, or weaken the fixture. Existing role grants must be checked before deciding whether new role-permission rows are appropriate; the app-side matrix alone is not authority to change database grants.
+**Bounded investigation log:** one focused source review completed within the declared 25-minute target; hard-stop limit remains 30 minutes. No patch attempts were made. This finding is documented before any implementation change. The additive repair is committed in 20261010130000_csapi_gate04_agenda_permission_catalog_reconciliation.sql. Next action is exact-head CI verification in the same isolated DB lane; no second fix without recording the first concrete failure. Do not change hosted permissions, alter the effective-permission engine, or weaken the fixture. Existing role grants must be checked before deciding whether new role-permission rows are appropriate; the app-side matrix alone is not authority to change database grants.
+
+### Bounded permission-catalog repair — implementation checkpoint (2026-10-10)
+
+**Implementation status: COMMITTED; verification NOT YET PROVEN.** Following the documented root-cause finding, an additive migration was added:
+- `supabase/migrations/20261010130000_csapi_gate04_agenda_permission_catalog_reconciliation.sql`
+- Commit: `7b22ebb6968488e6184d1fa5c446c0d522b96a35`
+
+The migration idempotently restores the four canonical Agenda catalogue keys (`agenda:read`, `agenda:create`, `agenda:update`, `agenda:delete`) and reactivates their catalogue records if soft-deleted. It restores role grants to match the current application `permissionMatrix`: clinic_admin gets read/create/update/delete; doctor gets read; receptionist gets read/create/update. It does not grant delete to doctor/receptionist, activate other roles, alter `get_effective_permissions`, change fixtures, or touch hosted data. This also repairs the catalogue rows needed by existing Agenda RLS read/delete policies, beyond the create/update keys directly exposed by the failed fixture.
+
+**Pre-verification risk:** the migration has only been committed to the feature branch. Clean replay, migration syntax, role-grant uniqueness/reactivation, and the Agenda DB command/audit flow must be proven by CI before calling the repair successful. The existing test fixture uses explicit user permission overrides, so its passing would prove catalogue availability and command flow, not by itself prove every role matrix end-to-end.
+
+**Timebox / stop:** source investigation and the focused additive repair were performed as one bounded work item; the 25-minute target and 30-minute hard stop remain in force. No hosted Supabase query or mutation, production release, merge, or fixture weakening occurred. At the next checkpoint, inspect the exact-head CI. If DB replay or the command/audit flow fails, record the first concrete failure and stop; do not stack a speculative second patch.
 
 ## 3. Workflow evidence and failure classification
 
