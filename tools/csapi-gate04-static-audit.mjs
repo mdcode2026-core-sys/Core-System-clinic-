@@ -134,7 +134,7 @@ check("quick-appointment-uses-procedure-duration", quick.includes("selectedProce
 check("agenda-new-patient-routes-to-canonical-registration", agendaForm.includes('router.push("/patients?registerForBooking=1")'));
 check("registration-query-opens-canonical-patient-form", patientsPage.includes('searchParams.get("registerForBooking") === "1"') && patientsPage.includes("useState(registerForBooking)"));
 check("registration-success-returns-selected-patient-to-agenda", patientsPage.includes("setAgendaPatientId(patientId); setIsAgendaOpen(true)") && patientsPage.includes("defaultPatientId={agendaPatientId || undefined}"));
-check("patient-form-propagates-canonical-patient-id", (patientForm.match(/result\\.data\\?\\.id \\?\\? result\\.patient_id/g) || []).length >= 2);
+check("patient-form-propagates-canonical-patient-id", patientForm.split("result.data?.id ?? result.patient_id").length - 1 >= 2);
 check("quick-appointment-searches-and-selects-tenant-scoped-patient", quick.includes("usePatients(tenantId, patientSearch)") && quick.includes("setForm((f) => ({ ...f, patient_id: patient.id }))"));
 check("quick-appointment-requires-selected-record-not-manual-id", quick.includes("if (!form.patient_id ||") && !/name=["']patient_id/.test(quick));
 
