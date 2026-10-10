@@ -37,7 +37,7 @@ Latest observed run: [Workstream Verification #38001733010](https://github.com/m
 - Authenticated E2E: PASS.
 - Presentation static/runtime lanes: PASS.
 - Local Supabase startup, isolated local target guard, clean migration replay, schema/security inspection, protected command ACL, appointment-table write ACL, Agenda audit-trigger presence, and Agenda RLS-enabled checks: PASS.
-- **Database flow: FAIL** before command/audit assertions. The fixture raised `GATE04_TEST_PERMISSION_MISSING=agenda:create` while querying `public.permissions`. Root cause is not yet determined; reconcile canonical permission keys, migrations/seeds, effective-permission logic and fixtures before any change.
+- **Database flow: FAIL** before command/audit assertions. The fixture raised `GATE04_TEST_PERMISSION_MISSING=agenda:create` while querying `public.permissions`. Bounded source investigation completed and root cause is recorded in the WP1–WP6 reconciliation: the clean migration chain references Agenda permission keys in policy/application code but does not create the canonical `agenda:create` / `agenda:update` rows in `public.permissions`. The existing effective-permission function consumes this catalogue and does not synthesize missing keys. No code fix or hosted DB change was made.
 - **Global i18n audit: FAIL** on ten literals in Follow-up, Kiosk and Patient Quick Registration files. These files are not changed by PR #242; keep this finding outside Gate 04 unless a direct dependency is demonstrated.
 - Final verification gate: FAIL because required lanes did not all pass.
 
@@ -55,7 +55,7 @@ The detailed WP-by-WP evidence and exit assessment are maintained in the linked 
 ## 5. Known blockers and exclusions
 
 - **Release blocker — migration lineage:** the repository and hosted migration histories are not reconciled. This is not resolved by this PR and must be handled through the project's migration-lineage reconciliation procedure before production release. No hosted migration-history rows were inserted or rewritten.
-- **Verification blocker — database flow:** latest observed CI completed on candidate `8a2000350bc905427fb1ffdc2ffb4748c9b07b03`; the database lane failed at fixture setup because `agenda:create` was not found in `public.permissions`. Static audit and included authenticated E2E passed, but WP-7 remains open.
+- **Verification blocker — database flow:** latest observed CI completed on candidate `8a2000350bc905427fb1ffdc2ffb4748c9b07b03`; the database lane failed at fixture setup because `agenda:create` was not found in `public.permissions`. Root cause is documented as missing canonical permission catalogue entries in the clean migration chain. Static audit and included authenticated E2E passed, but WP-7 remains open.
 - **Pre-existing i18n baseline:** older verification logs reported unrelated literals in `src/features/followup/followup-shell.tsx`, `src/features/kiosk/AmbientKioskView.tsx`, and `src/features/workspace/widgets/patients/QuickRegistrationWidget.tsx`. They remain outside this gate unless a direct scoped dependency is proven.
 - No other gate has been reopened. Gate 02, Gate 03, Patient Flow, Follow-up Gate 11, Treatment Plan, workforce, inventory, and other domains remain outside this implementation scope.
 
@@ -70,3 +70,13 @@ Do not merge or promote this work until the latest candidate has:
 6. a separate, evidence-backed resolution of migration-lineage reconciliation before WP-8 production release.
 
 **Current overall disposition:** WP1–WP6 implementation is present but their exit conditions are not all evidenced; WP-7 is OPEN after a failed DB lane; WP-8 is BLOCKED by integrated verification and migration-lineage reconciliation; PR #242 must remain Draft. The linked reconciliation record governs the current detailed status.
+
+
+## 7. Permission-catalog investigation checkpoint — 2026-10-10
+
+- **Status:** investigation complete; source-level root cause identified; implementation fix not started.
+- **Root cause:** canonical migration-chain omission for Agenda permission catalogue rows. The application type/matrix and RLS/command SQL reference agenda:create / agenda:update, but the inspected migration chain does not seed those keys into public.permissions. get_effective_permissions resolves grants through that catalogue and is not the origin of the omission.
+- **Evidence:** isolated clean replay succeeded before the fixture failed on missing agenda:create; migration/function inspection supports the catalogue gap. The agenda:update lookup was not reached in the recorded CI run.
+- **Timebox:** investigation finished within the declared 25-minute target; 30 minutes remains the hard stop. No speculative patch attempts.
+- **Next bounded action:** propose/add an isolated, additive migration only after checking the existing database role-grant model; rerun the same local DB lane. No hosted DB changes, permission-engine redesign, fixture weakening, merge, or production promotion.
+- **Record:** see [WP1–WP6 Evidence Reconciliation](GATE-04-WP1-WP6-EVIDENCE-RECONCILIATION-2026-10-10.md).
