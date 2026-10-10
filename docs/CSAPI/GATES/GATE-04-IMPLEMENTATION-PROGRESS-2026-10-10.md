@@ -80,3 +80,14 @@ Do not merge or promote this work until the latest candidate has:
 - **Timebox:** investigation finished within the declared 25-minute target; 30 minutes remains the hard stop. No speculative patch attempts.
 - **Next bounded action:** propose/add an isolated, additive migration only after checking the existing database role-grant model; rerun the same local DB lane. No hosted DB changes, permission-engine redesign, fixture weakening, merge, or production promotion.
 - **Record:** see [WP1–WP6 Evidence Reconciliation](GATE-04-WP1-WP6-EVIDENCE-RECONCILIATION-2026-10-10.md).
+
+
+## 8. Permission catalogue repair — implementation committed, verification pending
+
+- Added migration: `supabase/migrations/20261010130000_csapi_gate04_agenda_permission_catalog_reconciliation.sql`.
+- Commit: `7b22ebb6968488e6184d1fa5c446c0d522b96a35`.
+- Restores the four canonical Agenda permission catalogue rows and reactivates existing soft-deleted rows. Role grants follow the existing `src/core/permissions/permissionMatrix.ts`: clinic_admin read/create/update/delete; doctor read; receptionist read/create/update.
+- No parallel permission engine, fixture bypass, production/hosted DB change, merge, or promotion was made.
+- **Not yet a pass:** exact-head CI must prove clean replay, permission catalogue/grants, protected command execution, audit assertions and applicable engineering checks. WP-7 remains OPEN until the exact candidate passes required verification. If the lane fails, capture and document the first concrete failure before any further patch.
+- Bounded stop rule remains: 25-minute target / 30-minute hard stop for the next focused verification investigation; no repeated speculative attempts.
+- Detailed implementation evidence: [WP1–WP6 reconciliation](GATE-04-WP1-WP6-EVIDENCE-RECONCILIATION-2026-10-10.md).
