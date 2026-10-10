@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useTenantId } from "@/core/auth/useTenantId";
 import { PatientList } from "@/features/patients/patient-list";
 import { PatientForm } from "@/features/patients/patient-form";
@@ -16,6 +17,10 @@ export default function PatientsPage() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isAgendaOpen, setIsAgendaOpen] = useState(false);
   const [agendaPatientId, setAgendaPatientId] = useState<string | null>(null);
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const registerForBooking = searchParams.get("registerForBooking") === "1";
+  useEffect(() => { if (registerForBooking) setIsFormOpen(true); }, [registerForBooking]);
   const { hasPermission, isLoading: permsLoading } = usePermissions();
   const { tenantId, userId } = useTenantId();
   const { messages } = useI18n();
@@ -37,7 +42,7 @@ export default function PatientsPage() {
       {!permsLoading && hasPermission("patients:create") && <Button onClick={() => setIsFormOpen(true)} className="w-full sm:w-auto"><UserPlus className="w-4 h-4 ml-2" />{t.add}</Button>}
     </div>
     <PatientList onBookAppointment={handleBookAppointment} />
-    {isFormOpen && <PatientForm isOpen={true} onClose={() => setIsFormOpen(false)} onSuccess={() => setIsFormOpen(false)} />}
+    {isFormOpen && <PatientForm isOpen={true} onClose={() => setIsFormOpen(false)} onSuccess={(patientId) => { setIsFormOpen(false); if (registerForBooking && patientId) { setAgendaPatientId(patientId); setIsAgendaOpen(true); const next = new URLSearchParams(searchParams.toString()); next.delete("registerForBooking"); router.replace(next.toString() ? `/patients?${next.toString()}` : "/patients"); } }} />}
     <AgendaEventForm isOpen={isAgendaOpen} onClose={() => { setIsAgendaOpen(false); setAgendaPatientId(null); }} tenantId={tenantId || ""} userId={userId || ""} patients={patientOptions} doctors={doctorOptions} rooms={roomOptions} procedures={procedureOptions} defaultPatientId={agendaPatientId || undefined} />
   </div>;
 }
