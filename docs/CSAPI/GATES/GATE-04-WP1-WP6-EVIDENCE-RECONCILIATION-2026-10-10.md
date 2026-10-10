@@ -123,6 +123,21 @@ The database failure is currently classified as **verification-fixture/permissio
 - WP6 infrastructure is present and executes, but its required DB lane does not pass; it is not ready to support WP7 closure.
 - WP6 is **infrastructure implemented; static lane passes; DB lane fails at fixture setup; exit not proven; do not close**.
 
+### Permission-catalog investigation result — 2026-10-10 (recorded before any fix)
+
+**Finding: FAIL — canonical database permission catalogue is missing the Agenda permission rows in the clean migration chain.** This is a migration/catalogue completeness defect, not evidence that agenda:create / agenda:update are aliases or that the fixture should be weakened.
+
+Evidence:
+- src/core/permissions/types.ts declares agenda:read, agenda:create, agenda:update, and agenda:delete; src/core/permissions/permissionMatrix.ts assigns the create/update keys to the existing clinic-admin and receptionist application matrix.
+- The relevant Agenda RLS migration 20260903080530_approved_non_breaking_rbac_patient_flow_remediation_20260903.sql references these keys in policies and permission checks, but the repository search of migration SQL found no corresponding INSERT/upsert that creates the agenda:create or agenda:update rows in public.permissions.
+- The Gate 04 command migration checks public.get_effective_permissions(...). The canonical Stage 17 function (20260909170000_stage17_subscription_permission_boundary.sql) builds permissions by joining role/direct grants and overrides back to public.permissions, and applies the subscription boundary using that catalogue's resource. It does not synthesize missing permission catalogue entries. permissionEngine.ts delegates to this database function; it is not the source of the missing catalogue rows.
+- CI #38001733010's isolated db reset --local --no-seed completed migration replay and then failed at fixture setup when its lookup of public.permissions returned no active agenda:create row. The same fixture next requires agenda:update; that lookup was not reached in the failed run, so its absence is strongly indicated by the same missing-seed gap but has not separately been observed in that run.
+- No production/hosted database was queried or changed during this investigation.
+
+**Root-cause classification:** canonical migration-chain omission of Agenda permission catalogue rows; fixture is correctly surfacing that omission. get_effective_permissions is a consumer of the canonical catalogue, not the cause identified here.
+
+**Bounded investigation log:** one focused source review completed within the declared 25-minute target; hard-stop limit remains 30 minutes. No patch attempts were made. This finding is documented before any implementation change. Next action is a separately bounded, additive migration repair for the missing canonical catalogue entries and only the role grants required by the approved existing model, followed by the same isolated DB lane. Do not change hosted permissions, alter the effective-permission engine, or weaken the fixture. Existing role grants must be checked before deciding whether new role-permission rows are appropriate; the app-side matrix alone is not authority to change database grants.
+
 ## 3. Workflow evidence and failure classification
 
 Run: [#38001733010](https://github.com/mdcode2026-core-sys/Core-System-clinic-/actions/runs/38001733010)  
