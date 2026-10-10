@@ -474,3 +474,19 @@ D3 remained formally CLOSED at this historical record point; subsequent integrat
 | 2026-10-10 | Recorded implementation checkpoint in Gate 04 progress/reconciliation records | WP1–WP6 evidence reconciliation and Gate 04 implementation progress | Implementation and verification state are now distinguished explicitly. | 25-minute target / 30-minute hard stop remains in force for the next focused verification investigation. | Keep WP-7 OPEN and PR #242 Draft until exact-head verification and remaining owner/release blockers are resolved. |
 
 **Current Gate 04 implementation status:** WP1–WP6 implementation present but not all exit conditions evidenced; WP7 OPEN; WP8 BLOCKED. PR #242 remains Draft. No production release or hosted Supabase mutation is authorized.
+
+
+## 2026-10-10 — WP5 Quick Registration / Quick Appointment integration
+
+**Owner decisions recorded:**
+1. New-patient booking uses Option A: route to the canonical patient-registration workflow, then return to booking with the newly registered patient selected.
+2. Quick Appointment must search by patient name or phone and let the user select an existing patient record; free-form patient-ID entry is not the intended UX.
+
+**Implementation on Gate 04 branch:**
+- The canonical PatientForm now returns the created/linked clinic patient ID through its success callback.
+- The Agenda form's “New patient” action routes to /patients?registerForBooking=1; the Patients page opens the canonical registration form and, after successful registration/review resolution, opens the Agenda form with that patient selected.
+- Quick Appointment now uses the existing tenant-scoped usePatients search query and renders selectable name/phone matches. It submits the selected record ID through the existing Agenda action; no second patient or appointment persistence path was introduced.
+- Files changed: src/features/patients/patient-form.tsx, src/app/(dashboard)/patients/page.tsx, src/features/agenda/agenda-event-form.tsx, src/features/workspace/widgets/agenda/QuickAppointmentWidget.tsx.
+- Commits: 31f85aa604e603b067d4d2504909577932e961c3, 3bada1d0e30c78fa4cef705ada951e3bf7a972ac, 0765c798061563ac69d54d8aff93aa996291ad6b, b68d6b7c825e9d671911340f4e6c6a66379e4070.
+
+**Verification state:** implementation is committed to the existing Gate 04 feature branch / PR #242 only. Exact-head CI was triggered for b68d6b7c825e9d671911340f4e6c6a66379e4070; at the last check Workstream Verification run 38037440414 was pending and Engineering Governance run 38037440423 was queued. This is not a test pass. WP-7 remains OPEN; PR #242 remains Draft; no merge, hosted Supabase change, or production promotion was performed. Recheck latest-head CI and inspect any failures before closing WP5/WP7.
