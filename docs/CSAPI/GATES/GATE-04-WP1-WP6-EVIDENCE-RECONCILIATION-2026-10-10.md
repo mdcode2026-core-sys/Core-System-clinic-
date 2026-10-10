@@ -211,3 +211,11 @@ Effective immediately for this Gate 04 continuation:
 - Commits: 31f85aa604e603b067d4d2504909577932e961c3, 3bada1d0e30c78fa4cef705ada951e3bf7a972ac, 0765c798061563ac69d54d8aff93aa996291ad6b, b68d6b7c825e9d671911340f4e6c6a66379e4070.
 
 **Verification state:** implementation is committed to the existing Gate 04 feature branch / PR #242 only. Exact-head CI was triggered for b68d6b7c825e9d671911340f4e6c6a66379e4070; at the last check Workstream Verification run 38037440414 was pending and Engineering Governance run 38037440423 was queued. This is not a test pass. WP-7 remains OPEN; PR #242 remains Draft; no merge, hosted Supabase change, or production promotion was performed. Recheck latest-head CI and inspect any failures before closing WP5/WP7.
+
+
+## 2026-10-10 — Quick booking integration follow-up / final implementation checkpoint
+
+- Corrected the PatientForm success callback to propagate the patient ID returned by the canonical registration API (top-level patient_id or the existing data.id response shape), including match-review resolution. Without this, the return-to-booking path could not reliably preselect the newly registered patient.
+- Quick Appointment now reuses the Agenda form's existing localized patient-search placeholder and no-results text; selection is by patient name/phone, not manual identifier entry.
+- Follow-up commits: 906181e52fa00aaf9aefbd0c6f308378bb65aeb6 and dbfdecb9c9ca169d916ad4ab8014509f5f2529a2. Code is on the existing Gate 04 branch and PR #242; latest code candidate before this documentation update: dbfdecb9c9ca169d916ad4ab8014509f5f2529a2.
+- Verification limitation: the connector did not return a workflow run associated with that latest code candidate at the time of this checkpoint; only Vercel preview status was pending. Therefore TypeScript/build/runtime success is NOT asserted for the new integration. WP-5 implementation is present; its integrated verification remains pending. WP-7 remains OPEN, PR #242 remains Draft, and no merge/hosted DB change/production promotion was performed.
