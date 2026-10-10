@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTenantId } from "@/core/auth/useTenantId";
 import { PatientList } from "@/features/patients/patient-list";
@@ -14,13 +14,12 @@ import { usePermissions } from "@/core/permissions/usePermissions";
 import { useI18n } from "@/core/i18n/I18nProvider";
 
 export default function PatientsPage() {
-  const [isFormOpen, setIsFormOpen] = useState(false);
-  const [isAgendaOpen, setIsAgendaOpen] = useState(false);
-  const [agendaPatientId, setAgendaPatientId] = useState<string | null>(null);
   const router = useRouter();
   const searchParams = useSearchParams();
   const registerForBooking = searchParams.get("registerForBooking") === "1";
-  useEffect(() => { if (registerForBooking) setIsFormOpen(true); }, [registerForBooking]);
+  const [isFormOpen, setIsFormOpen] = useState(registerForBooking);
+  const [isAgendaOpen, setIsAgendaOpen] = useState(false);
+  const [agendaPatientId, setAgendaPatientId] = useState<string | null>(null);
   const { hasPermission, isLoading: permsLoading } = usePermissions();
   const { tenantId, userId } = useTenantId();
   const { messages } = useI18n();
