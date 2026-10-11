@@ -150,7 +150,7 @@ Patient/Identity supplies canonical patient reference; Agenda owns the appointme
 Agenda state can support pre-booked arrival/check-in; Patient Flow owns actual clinic-day movement.
 
 ### Follow-up → Agenda
-Follow-up may request an appointment; Follow-up retains continuity ownership; Agenda owns the appointment created from the request.
+Follow-up may request an appointment; Follow-up retains continuity ownership; Agenda owns the appointment created from the request. The Gate 04 minimum integration is an appointment action on an active Follow-up appointment request that opens the canonical Agenda form with the same tenant patient and request context. Appointment creation remains exclusively in Agenda. No Follow-up lifecycle changes or parallel appointment state are included.
 
 ## 22. Deferred scope
 Gate 04 does not implement new engines for:
@@ -162,7 +162,7 @@ Gate 04 does not implement new engines for:
 - automated communications;
 - generalized N-resource aggregation beyond the current model;
 - Workforce legacy cleanup;
-- Treatment Plan or Follow-up lifecycle.
+- Treatment Plan lifecycle or Follow-up lifecycle redesign/state transitions (the minimum Follow-up appointment-request handoff defined in §21 remains in Gate 04 scope).
 
 These remain explicit integration extension points or future owning-gate work.
 
