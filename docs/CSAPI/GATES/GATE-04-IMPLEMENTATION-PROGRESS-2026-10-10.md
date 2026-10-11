@@ -149,3 +149,16 @@ Owner-approved minimum scope: an active Follow-up record whose action is `appoin
 Verification added: Gate 04 static assertions for the route/context contract and authenticated browser E2E coverage that the request URL opens the Agenda form and displays the Follow-up context. This is not yet considered passed until the exact-head CI results are reviewed. The UI bridge is an initiation handoff; it does not introduce a new database foreign key or claim that a durable appointment-to-follow-up relation exists.
 
 The latest preceding exact-head run failed only in the Gate 03 identity E2E lane at patient registration with a PostgreSQL statement timeout; the other Gate 04 engineering, static, database, authenticated E2E, i18n and cross-domain-runtime lanes passed. Treat the identity failure as a retry/root-cause item because this branch also changes the patient-registration return-to-booking path. Gate 04 remains OPEN until the new exact-head run passes all required lanes and the final review is complete. WP-8 remains blocked by the independently unreconciled repository/hosted migration lineage. No merge, hosted Supabase mutation or production promotion.
+
+
+ 
+## 8. Operational continuation checkpoint — 2026-10-12
+
+Canonical cross-conversation handoff: `docs/CSAPI/CSAPI-GATE-04-CONTINUATION-HANDOFF-2026-10-11.md`.
+
+Owner decision: the minimum Follow-up appointment-request → Agenda handoff is required for Gate 04 closure. Implemented bridge: localized Book appointment action from operational and scheduled Follow-up views; canonical Agenda form receives patient and request context; Agenda retains appointment persistence authority. No Follow-up lifecycle redesign or parallel appointment persistence.
+
+Exact candidate `fe4f4d2b34b546540236102cd469946dcab4a59d`; PR #242 remains Draft/unmerged. Engineering Governance #244 PASS. Workstream Verification #984 FAIL: Gate 04 static/local DB, engineering, authenticated E2E, Gate 03 identity/E2E, read-only cross-domain runtime, changed-source i18n/catalogue parity, and global static passed; legacy patient-journey lane failed by redirect to login from `/patients`; global presentation runtime failed with Playwright TimeoutError. Final gate correctly failed.
+
+Immediate next action is to reconcile descriptor/planner suppression so the closed Gate 02 mutation-capable E2E is not triggered incidentally by Gate 04 Follow-up presentation changes, while preserving Gate 04-owned static/authenticated integration tests. Then rerun exact-head CI and investigate the global presentation runtime timeout without assuming cause. WP-7 OPEN; WP-8 BLOCKED by migration lineage. No merge, hosted Supabase mutation/history edits, or production promotion.
+
