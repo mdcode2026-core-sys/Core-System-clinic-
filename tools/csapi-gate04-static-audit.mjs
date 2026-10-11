@@ -138,6 +138,19 @@ check("patient-form-propagates-canonical-patient-id", patientForm.split("result.
 check("quick-appointment-searches-and-selects-tenant-scoped-patient", quick.includes("usePatients(tenantId, patientSearch)") && quick.includes("setForm((f) => ({ ...f, patient_id: patient.id }))"));
 check("quick-appointment-requires-selected-record-not-manual-id", quick.includes("if (!form.patient_id ||") && !/name=["']patient_id/.test(quick));
 
+const followupList = read("src/features/followup/followup-list-view.tsx");
+const followupScheduled = read("src/features/followup/followup-scheduled-view.tsx");
+check("followup-appointment-action-routes-to-agenda",
+  followupList.includes("followupRequestId=\u0024{encodeURIComponent(record.id)}") &&
+  followupScheduled.includes("followupRequestId=\u0024{encodeURIComponent(record.id)}"));
+check("agenda-opens-booking-form-from-followup-request",
+  agendaPage.includes('searchParams.get("followupRequestId")') &&
+  agendaPage.includes("Boolean(bookingWorkItemId || followupRequestId)") &&
+  agendaPage.includes("defaultPatientId={patientId || undefined}"));
+check("followup-agenda-entry-keeps-owning-domain-context",
+  agendaPage.includes("followupRequestId ? t.followupRequest") &&
+  agendaPage.includes('next.delete("followupRequestId")'));
+
 const failures = checks.filter((item) => item.status === "FAIL");
 console.log(JSON.stringify({
   audit: "csapi-gate04-static-audit",
