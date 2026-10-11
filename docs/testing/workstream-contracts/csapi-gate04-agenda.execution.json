@@ -64,7 +64,7 @@
       "^src/domain/treatment-plan/",
       "^src/features/treatment-plans/",
       "^src/domain/followup/",
-      "^src/features/followup/",
+      "^src/features/followup/(?!followup-list-view\\.tsx$|followup-scheduled-view\\.tsx$)",
       "^src/domain/journey-coordination/",
       "^src/app/\\\\(dashboard\\\\)/work-center/",
       "^supabase/migrations/20260829",
