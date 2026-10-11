@@ -11,6 +11,19 @@
 **Verification authority:** `GATE-04-VERIFICATION-PLAN-2026-09-29.md`
 
 ## 1. Executive finding
+## Owner-approved minimum integration addendum — 2026-10-11
+
+The owner approved Follow-up → Agenda integration as part of the minimum Gate 04 closure scope. The narrow bridge is implemented as follows:
+
+- Active Follow-up records with `action_type = appointment` show a localized booking action in both Follow-up work-list and scheduled views.
+- The action navigates to Agenda with the same `patientId` and `followupRequestId` context.
+- Agenda opens its existing appointment form, preselects the patient, and identifies the originating request. Appointment mutation still runs only through Agenda's canonical server-side mutation service and protected database command boundary.
+- Follow-up remains owner of follow-up continuity. This bridge does not change Follow-up lifecycle rules, create a competing appointment record, or claim a persisted relational link from the appointment back to the follow-up. The marker is request context for initiating the booking only.
+- Added static assertions and authenticated browser E2E coverage. Their status must be taken from the exact-head run, not from the existence of test code.
+
+This approved bridge is within Gate 04 scope. Gate 11 remains open and is not being implemented or reclassified here.
+
+
 
 The branch contains implementation work for WP1–WP6. It is inaccurate to describe the work as having stopped at WP1. However, **implementation present is not equivalent to a work package passing its exit condition**. On the reviewed candidate, WP1–WP6 are recorded as implementation-present but not formally closed because required integrated evidence is incomplete, and WP7 is open.
 
