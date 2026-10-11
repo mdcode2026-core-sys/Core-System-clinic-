@@ -83,7 +83,7 @@ test("Follow-up appointment request opens the Agenda booking form in patient con
   const patientId = "11111111-1111-4111-8111-111111111111";
   const followupRequestId = "22222222-2222-4222-8222-222222222222";
   await page.goto(`${baseUrl}/agenda?patientId=${patientId}&followupRequestId=${followupRequestId}`, { waitUntil: "domcontentloaded", timeout: 60000 });
-  await expect(page).not.toHaveURL(/\\/login(?:[/?#]|$)/i);
+  await expect(page).not.toHaveURL(/\/login(?:[/?#]|$)/i);
   const dialog = page.getByRole("dialog");
   await expect(dialog).toBeVisible({ timeout: 15000 });
   await expect(dialog).toContainText(/New Appointment|موعد جديد/i);
