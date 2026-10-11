@@ -729,3 +729,14 @@ A fresh GitHub Actions run was not created for the documentation-only integrated
 **Gate 01 closure decision:** **CLOSED**
 
 Historical sections above are retained as chronological evidence only and must not override this final current-state block.
+
+
+ 
+## CSAPI Gate 04 — Current operational resume (2026-10-12)
+
+**Current handoff:** `docs/CSAPI/CSAPI-GATE-04-CONTINUATION-HANDOFF-2026-10-11.md`. This is the authoritative short path for the next CSAPI conversation and supersedes stale Gate 03/current-gate labels elsewhere in this long historical handoff.
+
+Current Gate 04 branch: `csapi/gate04-agenda-implementation-2026-10-10`; PR #242 OPEN/DRAFT/unmerged; candidate `fe4f4d2b34b546540236102cd469946dcab4a59d`. Governance #244 PASS; Workstream Verification #984 FAIL. The failure classification and next action are recorded in the current handoff.
+
+Owner decision 2026-10-11: minimum Follow-up appointment-request → Agenda booking handoff is required for Gate 04 closure. Do not ask again. Gate 11 remains separate. Next: fix the descriptor/planner issue causing the closed Gate 02 mutation-capable E2E to run on Follow-up presentation changes, preserve Gate 04's own integration evidence, rerun exact-head CI, then investigate the separate global presentation runtime TimeoutError. WP-7 OPEN; WP-8 BLOCKED by migration lineage. No merge, hosted Supabase schema/data/history changes, or Vercel promotion.
+
