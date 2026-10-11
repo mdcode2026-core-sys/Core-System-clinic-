@@ -162,3 +162,10 @@ Exact candidate `fe4f4d2b34b546540236102cd469946dcab4a59d`; PR #242 remains Draf
 
 Immediate next action is to reconcile descriptor/planner suppression so the closed Gate 02 mutation-capable E2E is not triggered incidentally by Gate 04 Follow-up presentation changes, while preserving Gate 04-owned static/authenticated integration tests. Then rerun exact-head CI and investigate the global presentation runtime timeout without assuming cause. WP-7 OPEN; WP-8 BLOCKED by migration lineage. No merge, hosted Supabase mutation/history edits, or production promotion.
 
+
+
+## 9. Verification update — Workstream #996 / Governance #256 (2026-10-12)
+
+Exact implementation candidate `60940355af233c9023e4e06ea0ca4e5192226c79` passed both [Workstream Verification #996](https://github.com/mdcode2026-core-sys/Core-System-clinic-/actions/runs/38176686805) and [Engineering Governance #256](https://github.com/mdcode2026-core-sys/Core-System-clinic-/actions/runs/38176686800). All 12 Workstream jobs passed. Gate 04 static explicitly passed the Follow-up appointment-action route, Agenda form opening with request context, owning-domain context preservation, and the narrow Gate 02 suppression assertion. Authenticated E2E passed 3 tests, including “Follow-up appointment request opens the Agenda booking form in patient context.” Global presentation runtime passed on this candidate after the timeout observed in #984.
+
+The closed Gate 02 legacy patient-journey lane was not selected; Gate 02 remains closed. These results validate this exact candidate only. Gate 04 remains OPEN pending independent diff/contract review and WP1–WP8 reconciliation. WP-8 remains BLOCKED until migration lineage is separately reconciled with evidence. PR #242 remains Draft/unmerged; no hosted Supabase changes or Vercel promotion. A documentation-only commit changes the candidate SHA and therefore requires fresh exact-head CI.

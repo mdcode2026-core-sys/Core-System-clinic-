@@ -358,3 +358,12 @@ The implementation owner may execute Gate 04 from the frozen artifacts. Any disc
 - No merge, hosted Supabase schema/data/history changes, or Vercel promotion.
 - On a new conversation beginning with `CSAPI`, read the operational handoff above and verify the current PR/head/Actions before work. Continue from the stated next action; do not restart design or repeat owner decisions.
 
+
+
+## Current Gate 04 verification override — 2026-10-12
+
+- Last verified candidate before this documentation update: `60940355af233c9023e4e06ea0ca4e5192226c79`.
+- Workstream Verification #996: PASS, all 12 jobs; Engineering Governance #256: PASS on the same SHA.
+- Follow-up → Agenda handoff static assertions and authenticated E2E passed; the global presentation runtime lane passed on this candidate. The closed Gate 02 legacy patient-journey lane was not selected; Gate 02 remains closed.
+- Gate 04 is still **OPEN / implementation verification and independent review in progress**. WP-8 remains blocked by migration-lineage reconciliation. PR #242 remains OPEN/DRAFT/unmerged.
+- Next: independent diff/contract review, evidence-based WP1–WP8 reconciliation, then exact-head CI after this documentation update. No merge, hosted Supabase schema/data/history changes, or Vercel promotion.

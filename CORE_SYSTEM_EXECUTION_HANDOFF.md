@@ -740,3 +740,10 @@ Current Gate 04 branch: `csapi/gate04-agenda-implementation-2026-10-10`; PR #242
 
 Owner decision 2026-10-11: minimum Follow-up appointment-request → Agenda booking handoff is required for Gate 04 closure. Do not ask again. Gate 11 remains separate. Next: fix the descriptor/planner issue causing the closed Gate 02 mutation-capable E2E to run on Follow-up presentation changes, preserve Gate 04's own integration evidence, rerun exact-head CI, then investigate the separate global presentation runtime TimeoutError. WP-7 OPEN; WP-8 BLOCKED by migration lineage. No merge, hosted Supabase schema/data/history changes, or Vercel promotion.
 
+
+
+## CSAPI Gate 04 — Verification update (2026-10-12)
+
+Current verified candidate before this documentation update: `60940355af233c9023e4e06ea0ca4e5192226c79`. Workstream Verification #996 PASS (all 12 jobs): https://github.com/mdcode2026-core-sys/Core-System-clinic-/actions/runs/38176686805. Engineering Governance #256 PASS on the same SHA: https://github.com/mdcode2026-core-sys/Core-System-clinic-/actions/runs/38176686800. Gate 04 static assertions passed for Follow-up → Agenda action routing, booking form/context, owning-domain context, and narrow Gate 02 suppression. Authenticated E2E passed 3 tests including the Follow-up appointment request patient-context scenario. Global presentation runtime also passed on this candidate; the timeout from #984 did not reproduce.
+
+Next: independently review the diff and WP1–WP8 evidence; WP-8 remains blocked until the repository/hosted migration lineage is reconciled. PR #242 remains OPEN/DRAFT/unmerged. No hosted Supabase changes, migration-history edits, or Vercel promotion. Because this update creates a new candidate SHA, run Workstream Verification and Engineering Governance against the exact new head before relying on this documentation checkpoint.

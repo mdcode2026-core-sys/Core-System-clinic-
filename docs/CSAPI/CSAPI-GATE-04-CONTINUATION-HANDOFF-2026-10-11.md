@@ -146,3 +146,24 @@ These differences prove lineage is unreconciled, not that every missing identifi
 12. `docs/testing/workstream-contracts/csapi-gate04-agenda.execution.json`
 
 **Current closure statement:** Gate 04 is NOT CLOSED. Continue from §5 on the existing branch and do not ask the Product Owner again whether minimum Follow-up → Agenda integration belongs in Gate 04; that decision is approved.
+
+
+## 10. Exact-head verification checkpoint — 2026-10-12 (Workstream #996)
+
+**Verified candidate:** `60940355af233c9023e4e06ea0ca4e5192226c79` (the next documentation commit will supersede this exact-head evidence and must be reverified).
+
+- [Workstream Verification #996](https://github.com/mdcode2026-core-sys/Core-System-clinic-/actions/runs/38176686805): **PASS** on this SHA. All 12 jobs passed, including Gate 04 static, isolated Gate 04 database, engineering, authenticated E2E, Gate 03 identity static/E2E, cross-domain read-only runtime, i18n/catalogue parity, global presentation static/runtime, and final gate.
+- [Engineering Governance #256](https://github.com/mdcode2026-core-sys/Core-System-clinic-/actions/runs/38176686800): **PASS** on the same SHA.
+- Gate 04 static evidence explicitly passes `followup-appointment-action-routes-to-agenda`, `agenda-opens-booking-form-from-followup-request`, `followup-agenda-entry-keeps-owning-domain-context`, and `approved-followup-bridge-does-not-bypass-closed-gate02`.
+- Authenticated E2E reports **3 passed**, including `Follow-up appointment request opens the Agenda booking form in patient context`.
+- The prior global presentation runtime timeout did not reproduce: this lane now passes on #996. Record this as resolved for this candidate only; do not infer broader root cause beyond the evidence.
+- The Gate 02 legacy patient-journey lane was not selected by the applicable plan; this is supported by the successful plan/final gate and the descriptor's narrow exception. Gate 02 remains closed.
+- Current branch head at the last check: `60940355af233c9023e4e06ea0ca4e5192226c79`. PR #242 remains OPEN / DRAFT / NOT MERGED.
+
+### Required next work — no closure yet
+1. Perform the independent diff review against the Gate 04 execution contract and inspect WP1–WP8 reconciliation; record evidence rather than infer completion from green CI.
+2. Resolve WP-8 only through a separate, evidence-backed repository-versus-hosted migration lineage plan. The previously recorded 235 repository SQL files versus 292 hosted history rows, 102 repo-only versions, 160 hosted-only versions, and 12 shared-version name mismatches remain a blocker until freshly reconciled. No bulk apply or hosted history edits.
+3. Verify whether WP-7 and every other Gate 04 exit criterion are satisfied from current evidence; do not declare Gate 04 closed while WP-8 remains blocked.
+4. Update PR description and all operational docs to the new candidate SHA, then run exact-head Workstream Verification and Engineering Governance again because documentation changes create a new candidate.
+
+**Release boundary unchanged:** keep PR #242 Draft; do not merge, change hosted Supabase schema/data/history, or promote Vercel.
