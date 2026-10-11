@@ -1,0 +1,148 @@
+# CSAPI Gate 04 — Operational Continuation Handoff
+**Record date:** 2026-10-12  
+**Status:** ACTIVE — CONTINUE IMPLEMENTATION / VERIFICATION; NOT CLOSED  
+**Gate:** Gate 04 — Agenda & Scheduling  
+**Branch:** `csapi/gate04-agenda-implementation-2026-10-10`  
+**PR:** #242 — OPEN / DRAFT / NOT MERGED  
+**Last exact candidate verified in Actions:** `fe4f4d2b34b546540236102cd469946dcab4a59d`  
+**Last Workstream Verification:** [Run #984](https://github.com/mdcode2026-core-sys/Core-System-clinic-/actions/runs/38172836080) — FAIL  
+**Last Engineering Governance:** [Run #244](https://github.com/mdcode2026-core-sys/Core-System-clinic-/actions/runs/38172836077) — PASS
+
+This is the operational resume record for the next conversation. It supersedes stale status statements in older CSAPI entry pages and PR #242's previous “owner decision required” wording only where this record explicitly updates them. It does not override the binding Gate 04 execution contract or erase historical evidence.
+
+## 1. Entry instruction for the next conversation
+
+When the user starts the next conversation with **CSAPI**, read this file first after the CSAPI Master State, Gate Plan, Master Engineering Prompt, execution handoff/ledger, and binding Gate 04 records. Then verify the live branch, PR, current SHA, latest Actions and changed files before making changes.
+
+**Resume exactly from the Gate 04 verification/reconciliation point. Do not restart Gate 04 design, repeat completed work, switch gates, or report closure based on documentation alone.** Continue autonomously within the approved scope and timebox; request the owner only for a genuinely reserved product/architecture decision.
+
+Required sequence:
+1. Reconcile current GitHub PR/head and latest workflow runs against this record.
+2. Fix the verification-lane classification described in §5 so a closed Gate 02 mutation-capable suite is not accidentally run for the approved Gate 04 Follow-up UI bridge.
+3. Rerun exact-head Engineering Governance and Workstream Verification.
+4. Investigate and repair any remaining relevant failure within the existing timebox/attempt limits. Do not mask, weaken, or silently bypass a failing test.
+5. Obtain explicit evidence for the minimum Follow-up → Agenda handoff, all Gate 04 contract evidence, security and isolated local DB replay.
+6. Independently review the diff and reconcile WP1–WP8, migration lineage, handoff, ledger, and PR description.
+7. Keep PR #242 Draft until every required exit condition is proven. Do not merge, mutate hosted Supabase, edit hosted migration history, or promote Vercel under the current boundary.
+
+## 2. Owner-approved Follow-up integration decision
+
+On 2026-10-11 the Product Owner explicitly approved **Follow-up ↔ Agenda integration as part of the minimum required scope for Gate 04 closure**. This decision is no longer an open question and must not be asked again.
+
+Minimum required behavior:
+- An active Follow-up whose requested action is an appointment exposes a localized **Book appointment** action in both the operational list and scheduled view.
+- The action opens the canonical Agenda form, carries the same tenant-scoped patient reference, and passes a Follow-up request context marker.
+- Agenda visibly identifies the booking as initiated from a Follow-up appointment request and can clear the context.
+- Appointment creation remains exclusively within Agenda's canonical mutation path and `master_agenda_events` source of truth.
+- Follow-up remains the continuity/lifecycle owner. Gate 04 must not implement a second appointment store, Follow-up lifecycle engine, new Follow-up state transitions, or an unapproved durable foreign-key relationship.
+- Gate 11 remains a separate gate. Its broader lifecycle is not reopened by this minimum booking handoff.
+
+Relevant implementation commits already present in the branch include:
+- `9483043f81b8a0911a1a83e9912001174336829f` — localized Follow-up booking action/context.
+- `83dc5aedb01333deb6c526404a30aa67793ab9d3` — Agenda Follow-up context label.
+- `bf85897636c2862f7028c5adec1f503db6b82add`, `cd025d2837b0798f528a05405b87b9959dab0046`, `94c894eeb492858674d90db9d6de5cb08291b9df` — operational/scheduled Follow-up booking handoff.
+- `06c292d9ac4d10eaab19ea13b01390d87d49aa37`, `383a2f0cc86e209a4f4f33af130dad9980c87c9d`, `a2582751992e7f47fb5b102f0816da7453cda99a` — static assertions and route/context test corrections.
+- Documentation decision reconciliation: `774e6f4772b85386865e7e9172c9b7b6270dde6f`, `d49ad35f82c658ff4e6648f132200d6b35e2c27c`, `619f39e03b30205e7297cf0d504b03a3aa134edf`, `fe4f4d2b34b546540236102cd469946dcab4a59d`.
+
+## 3. Latest verification evidence — exact candidate `fe4f4d2b34b546540236102cd469946dcab4a59d`
+
+Workstream Verification [#984](https://github.com/mdcode2026-core-sys/Core-System-clinic-/actions/runs/38172836080) completed **FAIL**. The result must not be described as a pass or Gate 04 closure.
+
+| Lane | Result | Evidence / interpretation |
+|---|---|---|
+| Build applicable lane plan | PASS | Lane plan generated. |
+| Engineering | PASS | Typecheck, lint and build passed. |
+| Gate 04 static | PASS | `csapi-gate04-static` passed, including the Gate 04 contract assertions available in that lane. |
+| Gate 04 database | PASS | Isolated local Gate 04 DB/security/command/audit/rebooking verification passed. |
+| Authenticated route E2E | PASS | Authenticated route suite passed. |
+| Gate 03 identity static | PASS | Passed. |
+| Gate 03 identity E2E | PASS | Passed on run #984; this supersedes the previous candidate's hosted registration timeout for this run only. |
+| Cross-domain runtime | PASS | Read-only reconciliation lane passed. It is not proof of every cross-domain E2E scenario. |
+| Changed-source i18n/catalogue parity | PASS | Changed-source audit and AR/EN catalogue integrity passed. |
+| Global presentation static | PASS | Passed. |
+| Patient Journey lane | **FAIL — classification/verification blocker** | The old `patient-journey` lane invoked `tools/csapi-gate02-longitudinal-e2e.mjs` and failed with `CSAPI_GATE02_LONGITUDINAL_E2E=FAIL|Error: Redirected to login from /patients`. Gate 02 is closed. This old suite is credential-backed/mutation-capable and is not the correct substitute for Gate 04's explicit minimum Follow-up → Agenda handoff test. |
+| Global presentation runtime | **FAIL — runtime test blocker** | The lane ended in a Playwright `TimeoutError`; inspect full job logs and distinguish an environmental/authentication/session issue from a genuine regression before any repair. Do not assume the cause. |
+| Final gate | FAIL | Correctly failed because required lanes failed. |
+
+Run jobs and logs:
+- Patient Journey job: `114569695260`
+- Global presentation runtime job: `114569695337`
+- Final gate job: `114570411299`
+
+Latest Engineering Governance run #244 passed on the same candidate. The branch head at this checkpoint is `fe4f4d2b34b546540236102cd469946dcab4a59d`; re-fetch it before acting because any documentation update changes the candidate SHA.
+
+## 4. Gate 04 implementation and owner decisions already established
+
+### Canonical booking architecture
+- Agenda is the scheduling module and appointment authority.
+- `master_agenda_events` is the canonical appointment source of truth.
+- Appointment CREATE/UPDATE/status/cancel/reschedule uses the canonical server mutation service and protected database command boundary.
+- Reuse existing domain engines; do not introduce a second scheduler, calendar, queue, resource, Follow-up, or workflow engine.
+- Provider requirements are conditional on Service/Procedure metadata; resource concurrency defaults to exclusive unless the owning domain explicitly defines otherwise.
+- Appointment audit must be reconstructible for create/update/status/cancel/reschedule.
+- Tenant-local wall-clock input is normalized server-side; stored times are UTC.
+- No direct browser table-write bypass may be restored.
+
+### Owner decisions recorded 2026-10-10
+1. Booking a new patient routes to canonical patient registration and returns to Agenda with the registered patient selected.
+2. Quick Appointment searches by patient name or phone and requires selecting the correct patient record; no manual patient-ID entry.
+
+### Existing branch-only migration boundary
+Four Gate 04 migrations are on the feature branch and must not be applied to hosted Supabase during this work:
+- `20261010100000_csapi_gate04_agenda_command_boundary.sql`
+- `20261010110000_csapi_gate04_agenda_audit_completion.sql`
+- `20261010120000_csapi_gate04_agenda_write_acl_lockdown.sql`
+- `20261010130000_csapi_gate04_agenda_permission_catalog_reconciliation.sql`
+
+## 5. Root cause to resolve next: closed Gate 02 suite is being pulled into Gate 04 verification
+
+The binding Gate 04 descriptor `docs/testing/workstream-contracts/csapi-gate04-agenda.execution.json` declares Gate 02 suppression because Gate 02 is closed and its broad legacy E2E is not safe as incidental coverage. Its `suppression_bypass_patterns.csapi-gate02-patient-journey` currently includes `^src/features/followup/`. The approved minimum Gate 04 handoff necessarily modifies Follow-up presentation files, so the bypass pattern prevents suppression and makes the old `patient-journey` suite run.
+
+Next action:
+- Inspect the descriptor, planner semantics and relevant workflow output.
+- Adjust the suppression/bypass contract narrowly so the Gate 04-owned Follow-up appointment handoff is verified by Gate 04's own static and authenticated E2E coverage, while Gate 02 remains closed and its legacy mutation-capable suite is not incidentally invoked.
+- Do not globally suppress legitimate future Gate 02 regressions or weaken required Gate 04 evidence. If the descriptor cannot express the intended narrow rule, update the lane selection logic and add an executable planner assertion.
+- Commit the contract/planner correction on the existing Gate 04 branch, then rerun exact-head CI. This is a verification-contract correction, not a product-architecture decision.
+
+## 6. Work-package disposition
+
+- **WP-1:** Canonical mutation service/protected command boundary implemented; Gate 04 local DB lane passed on #984. Keep evidence reconciled with exact-head diff/security review.
+- **WP-2/WP-3:** Procedure booking requirements, provider optionality and exclusive-by-default resource concurrency implemented; keep contract/DB evidence exact-head.
+- **WP-4:** Audit boundary implemented; Gate 04 local DB verification passed; independent review still required.
+- **WP-5:** Agenda/Quick Appointment convergence and canonical patient registration/return handoff implemented. The newly approved Follow-up request handoff is also implemented in operational and scheduled views; verify the full route/context behavior on exact head.
+- **WP-6:** Binding descriptor/static/local DB checks exist; descriptor/planner closed-gate suppression has the specific defect in §5.
+- **WP-7:** **OPEN** — integrated verification and independent review are not closed; run #984 failed.
+- **WP-8:** **BLOCKED** — repository-vs-hosted migration history remains unreconciled; it is not permission to mutate hosted history.
+
+## 7. WP-8 migration lineage — read-only evidence only
+
+Previously recorded comparison: 235 SQL migration files in repository `main` versus 292 hosted migration-history rows; 102 repository version identifiers absent from hosted history, 160 hosted identifiers absent from repository, and 12 shared versions with different names. Latest recorded hosted version: `20260926105306`; latest recorded repository version: `20260926110000`.
+
+These differences prove lineage is unreconciled, not that every missing identifier should be applied. Do not bulk-apply migrations, edit hosted history, perform hosted DDL/data changes, merge, or promote production as part of this Gate 04 continuation. WP-8 needs a separate evidence-backed lineage plan and release authorization.
+
+## 8. Required work discipline and stop rules
+
+- Follow the repository's governing AI Engineering Master Prompt, CSAPI Master State, Gate Plan, binding Gate 04 execution contract, Verification Plan, descriptor, and execution handoff.
+- Execution order: VERIFY → PLAN → IMPLEMENT → BUILD/TEST → VERIFY → REVIEW → DOCUMENT → CLOSE.
+- Focused investigation target: 25 minutes; hard stop at 30 minutes. After two unsuccessful attempts at the same proposed repair, stop and reassess rather than stacking speculative patches.
+- Record failures immediately and classify them as code defect, test defect, environment/credentials, unrelated pre-existing issue, or scope/contract mismatch only when supported by evidence.
+- Do not call pending work passed. Documentation-only commits create a new candidate and require exact-head verification.
+- Do not touch `main`; keep PR #242 Draft; no merge, hosted Supabase mutation/history edits, or Vercel promotion.
+- Before ending the next session, update this handoff, Gate 04 progress/evidence, execution ledger, CSAPI Master State/entry guidance, and PR description to reflect the exact latest candidate and outcomes.
+
+## 9. Canonical files to read
+
+1. `docs/AI-ENGINEERING/AI-ENGINEERING-MASTER-PROMPT.md`
+2. `docs/CSAPI/CSAPI-MASTER-STATE.md`
+3. `docs/CSAPI/CSAPI-GATES-PLAN.md`
+4. `docs/CSAPI/CSAPI-DECISION-AND-ACTION-LEDGER.md`
+5. `CORE_SYSTEM_EXECUTION_HANDOFF.md`
+6. `CORE_SYSTEM_EXECUTION_LEDGER.md`
+7. `docs/CSAPI/GATES/GATE-04-AGENDA-EXECUTION-CONTRACT-2026-09-29.md`
+8. `docs/CSAPI/GATES/GATE-04-VERIFICATION-PLAN-2026-09-29.md`
+9. `docs/CSAPI/GATES/GATE-04-IMPLEMENTATION-PLAN-2026-09-29.md`
+10. `docs/CSAPI/GATES/GATE-04-IMPLEMENTATION-PROGRESS-2026-10-10.md`
+11. `docs/CSAPI/GATES/GATE-04-WP1-WP6-EVIDENCE-RECONCILIATION-2026-10-10.md`
+12. `docs/testing/workstream-contracts/csapi-gate04-agenda.execution.json`
+
+**Current closure statement:** Gate 04 is NOT CLOSED. Continue from §5 on the existing branch and do not ask the Product Owner again whether minimum Follow-up → Agenda integration belongs in Gate 04; that decision is approved.
