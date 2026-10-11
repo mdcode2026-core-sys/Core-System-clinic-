@@ -248,3 +248,21 @@ Effective immediately for this Gate 04 continuation:
 - Follow-up verification work strengthens the Gate 04 static audit with explicit checks for the owner-approved patient-registration return path and Quick Appointment record selection, and declares the existing read-only cross-domain runtime lane required because the frozen Verification Plan includes cross-domain integration evidence. These additions are not yet verified until the next exact-head run passes.
 - Read-only migration-history comparison: hosted project `qaslsjyxjwvdoiczmhgq` lists 292 migration rows; current `main` has 235 SQL files. Exact-version comparison found 102 versioned repository identifiers not present in hosted history, 160 hosted identifiers not present in the repository, and 12 shared versions with different names. Latest hosted version is `20260926105306`; latest repository version is `20260926110000`. The four Gate 04 migrations remain branch-only.
 - These discrepancies are a release blocker, not permission to repair hosted history. No hosted schema/data/history changes, merge, or production promotion were performed. WP-8 remains BLOCKED; do not mark Gate 04 fully closed.
+
+
+ 
+## 8. Exact-head continuation and Follow-up minimum handoff — 2026-10-12
+
+The Product Owner approved the minimum Follow-up appointment-request → Agenda handoff as mandatory Gate 04 closure scope on 2026-10-11. The decision is final for this scope and must not be re-asked. See the operational handoff for exact ownership and execution boundaries.
+
+Exact candidate: `fe4f4d2b34b546540236102cd469946dcab4a59d`. Workstream Verification #984 failed; Engineering Governance #244 passed.
+
+Verified passing lanes on #984: engineering/typecheck/lint/build, Gate 04 static, Gate 04 isolated local DB, authenticated route E2E, Gate 03 identity static/E2E, read-only cross-domain runtime, changed-source i18n/catalogue parity, global presentation static. Failures:
+1. `patient-journey`: the legacy Gate 02 longitudinal runtime E2E was invoked and failed with `Redirected to login from /patients`. Because Gate 02 is closed and this suite is not the Gate 04 integration test, first correct the workstream descriptor/planner classification that causes it to run on Follow-up presentation changes. Do not label this as proof of a Follow-up product defect.
+2. `global-experience-presentation-runtime`: Playwright TimeoutError; root cause remains unknown and requires full-log review and bounded diagnosis.
+Final gate = FAIL. WP-7 remains OPEN.
+
+The required Gate 04 Follow-up evidence is the minimum UI handoff into canonical Agenda with patient/request context, without Follow-up lifecycle changes or parallel appointment storage. The read-only cross-domain integrity lane alone is not equivalent to this E2E. After planner correction, verify the Gate 04 static assertions and authenticated route/runtime behavior on the exact candidate.
+
+WP-8 remains BLOCKED: recorded comparison is 235 repository SQL migration files versus 292 hosted migration rows, 102 repo versions absent from hosted history, 160 hosted versions absent from repo, and 12 shared-version name mismatches. Do not mutate hosted schema/data/history or bulk-apply migrations.
+
