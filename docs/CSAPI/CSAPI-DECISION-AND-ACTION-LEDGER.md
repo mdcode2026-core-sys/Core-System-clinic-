@@ -413,3 +413,17 @@ This file is append-only for material CSAPI events. Historical entries remain ev
 - Implementation consequence: Gate 05 planning may begin in a new conversation; Gate 05 implementation remains blocked by Gate 04 until Gate 04 closure or an explicit dependency decision.
 - Verification evidence: Recorded in the current handoff and Gate Plan.
 - Status: FROZEN / BINDING
+
+
+ 
+### CSAPI-2026-10-11-G04-FOLLOWUP-AGENDA-MINIMUM
+- Date: 2026-10-11
+- Gate: Gate 04 — Agenda & Scheduling (with Gate 11 boundary preserved)
+- Type: Product Owner Decision / Scope Approval
+- Source(s): Explicit Product Owner instruction in the CSAPI Gate 04 continuation conversation; binding Gate 04 execution contract §21; Gate 04 Verification Plan cross-domain scenarios.
+- Statement: Minimum integration between Follow-up appointment requests and Agenda is required for Gate 04 closure.
+- Evidence: An active Follow-up with appointment action must expose a localized booking action in the operational and scheduled views; it opens the canonical Agenda form with the same tenant patient and request context. Agenda remains the sole appointment persistence authority.
+- Product Owner decision: APPROVED. Do not ask this scope question again.
+- Implementation consequence: Include and verify the minimum UI handoff in Gate 04. Do not add a second appointment store, a new durable relation without contract evidence, or Follow-up lifecycle/state redesign. Gate 11 remains a separate gate.
+- Verification evidence: On candidate `fe4f4d2b34b546540236102cd469946dcab4a59d`, static/authenticated route and other core Gate 04 lanes passed, but Workstream Verification #984 failed due to the legacy closed Gate 02 patient-journey lane redirecting to login and a separate global presentation runtime TimeoutError. Therefore the decision is approved, but Gate 04 is not closed.
+- Status: APPROVED / IMPLEMENTATION PRESENT / INTEGRATED VERIFICATION OPEN
