@@ -151,6 +151,17 @@ check("followup-agenda-entry-keeps-owning-domain-context",
   agendaPage.includes("followupRequestId ? t.followupRequest") &&
   agendaPage.includes('next.delete("followupRequestId")'));
 
+
+const gate04Contract = JSON.parse(read("docs/testing/workstream-contracts/csapi-gate04-agenda.execution.json"));
+const gate02Bypass = gate04Contract.suppression_bypass_patterns?.["csapi-gate02-patient-journey"] || [];
+const followupFeatureBypass = gate02Bypass.find((pattern) => pattern.startsWith("^src/features/followup/"));
+check("approved-followup-bridge-does-not-bypass-closed-gate02",
+  Boolean(followupFeatureBypass) &&
+  !new RegExp(followupFeatureBypass).test("src/features/followup/followup-list-view.tsx") &&
+  !new RegExp(followupFeatureBypass).test("src/features/followup/followup-scheduled-view.tsx") &&
+  new RegExp(followupFeatureBypass).test("src/features/followup/followup-detail.tsx") &&
+  gate02Bypass.some((pattern) => new RegExp(pattern).test("src/domain/followup/followup.lifecycle.ts")));
+
 const failures = checks.filter((item) => item.status === "FAIL");
 console.log(JSON.stringify({
   audit: "csapi-gate04-static-audit",
