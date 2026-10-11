@@ -77,3 +77,15 @@ test("Clinic Admin local production shell remains usable at mobile viewport", as
   const dir = await page.locator("html").getAttribute("dir");
   expect(dir).toMatch(/^(rtl|ltr)$/);
 });
+
+test("Follow-up appointment request opens the Agenda booking form in patient context", async ({ page, context }) => {
+  await login(page, context);
+  const patientId = "11111111-1111-4111-8111-111111111111";
+  const followupRequestId = "22222222-2222-4222-8222-222222222222";
+  await page.goto(`${baseUrl}/agenda?patientId=${patientId}&followupRequestId=${followupRequestId}`, { waitUntil: "domcontentloaded", timeout: 60000 });
+  await expect(page).not.toHaveURL(/\\/login(?:[/?#]|$)/i);
+  const dialog = page.getByRole("dialog");
+  await expect(dialog).toBeVisible({ timeout: 15000 });
+  await expect(dialog).toContainText(/New Appointment|موعد جديد/i);
+  await expect(page.locator("body")).toContainText(/Appointment requested from Follow-up|طلب موعد من المتابعة/i);
+});
