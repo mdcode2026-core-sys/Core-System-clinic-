@@ -338,3 +338,23 @@ Gate 05 may now begin its own decision/design/planning work. Gate 05 implementat
 
 ### Transfer rule
 The implementation owner may execute Gate 04 from the frozen artifacts. Any discovered contradiction must be classified as: Gate 04 implementation defect; later-gate issue; regression of a closed gate; or genuine architecture/product decision requiring escalation. No silent reinterpretation of frozen decisions is permitted.
+
+
+ 
+## Current operational continuation — Gate 04 / 2026-10-12
+
+**This section supersedes older current-gate labels earlier in this file where they conflict with the active Gate 04 evidence.** Historical entries remain historical.
+
+- Active gate: Gate 04 — Agenda & Scheduling — **OPEN / implementation in progress / not closed**.
+- Operational handoff: `docs/CSAPI/CSAPI-GATE-04-CONTINUATION-HANDOFF-2026-10-11.md`.
+- Active branch: `csapi/gate04-agenda-implementation-2026-10-10`.
+- PR #242: OPEN / DRAFT / NOT MERGED.
+- Latest verified candidate at this checkpoint: `fe4f4d2b34b546540236102cd469946dcab4a59d`.
+- Latest Engineering Governance #244: PASS.
+- Latest Workstream Verification #984: FAIL. Engineering, Gate 04 static, Gate 04 local DB, authenticated route E2E, Gate 03 identity and identity E2E, cross-domain read-only runtime, changed-source i18n/catalogue parity, and global presentation static passed. The patient-journey lane failed by redirecting to login from `/patients`; global presentation runtime failed with a Playwright TimeoutError. Final gate therefore correctly failed.
+- Product Owner decision, 2026-10-11: the minimum Follow-up appointment-request → Agenda handoff is REQUIRED for Gate 04 closure. This is approved and must not be re-asked. Gate 11 remains separate; no Follow-up lifecycle redesign.
+- Immediate next action: fix the narrow workstream-planner/descriptor classification that inadvertently invokes the closed Gate 02 mutation-capable E2E when Gate 04 changes `src/features/followup/`. Keep Gate 02 closed and preserve Gate 04's own static/authenticated E2E evidence. Then rerun exact-head CI and investigate the independent global presentation runtime timeout.
+- WP-7 OPEN. WP-8 BLOCKED by unreconciled repository/hosted migration lineage.
+- No merge, hosted Supabase schema/data/history changes, or Vercel promotion.
+- On a new conversation beginning with `CSAPI`, read the operational handoff above and verify the current PR/head/Actions before work. Continue from the stated next action; do not restart design or repeat owner decisions.
+
