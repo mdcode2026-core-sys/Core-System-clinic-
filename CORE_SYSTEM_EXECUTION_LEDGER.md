@@ -526,3 +526,9 @@ D3 remained formally CLOSED at this historical record point; subsequent integrat
 
 
 | 2026-10-12 | Gate 04 verification continuation | Workstream Verification #996 + Engineering Governance #256 on `60940355af233c9023e4e06ea0ca4e5192226c79`; Gate 04 static and authenticated E2E logs | PASS — all 12 Workstream jobs and Governance passed. Follow-up → Agenda static assertions passed; authenticated E2E 3/3 passed including patient-context handoff; global presentation runtime passed. Closed Gate 02 legacy patient-journey lane not selected. | This is exact-candidate evidence only; Gate 04 is not closed. WP-8 migration lineage remains blocked. PR #242 stays Draft; no hosted DB/history mutation, merge or Vercel promotion. | Independently review Gate 04 diff/contract and WP1–WP8 evidence, reconcile migration lineage, update PR/docs and rerun exact-head CI after documentation commit. |
+
+## 2026-10-12 — Gate 04 exact-head verification #997
+
+Candidate `534474015383716e6517a7b0d26cc205864a493f`: Workstream Verification #997 **PASS (12/12 jobs)** and Engineering Governance #257 **PASS**. Gate 04 static 59/59; isolated local DB replay/ACL/RLS and create/status/cancel/rebook audit flow passed; authenticated E2E 3/3 including Follow-up → Agenda patient-context bridge. All other required workflow lanes and final gate passed.
+
+Review disposition: protected server-derived actor/tenant path and service-role-only DB command boundary are present; direct authenticated/anonymous appointment writes are denied. Do not equate this run with full WP exit closure: provider requirement variants, conflict/time/workforce cases, concurrency race probes, and complete lifecycle/cross-domain scenario coverage must be reconciled against the Verification Plan. WP7 remains OPEN; WP8 remains BLOCKED by migration lineage. No merge, hosted Supabase change, or Vercel promotion.

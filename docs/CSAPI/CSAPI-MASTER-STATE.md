@@ -367,3 +367,11 @@ The implementation owner may execute Gate 04 from the frozen artifacts. Any disc
 - Follow-up → Agenda handoff static assertions and authenticated E2E passed; the global presentation runtime lane passed on this candidate. The closed Gate 02 legacy patient-journey lane was not selected; Gate 02 remains closed.
 - Gate 04 is still **OPEN / implementation verification and independent review in progress**. WP-8 remains blocked by migration-lineage reconciliation. PR #242 remains OPEN/DRAFT/unmerged.
 - Next: independent diff/contract review, evidence-based WP1–WP8 reconciliation, then exact-head CI after this documentation update. No merge, hosted Supabase schema/data/history changes, or Vercel promotion.
+
+## Current Gate 04 exact-head override — 2026-10-12 / Workstream #997
+
+- Candidate `534474015383716e6517a7b0d26cc205864a493f`: Workstream Verification #997 PASS (12/12 jobs); Engineering Governance #257 PASS.
+- Direct evidence: Gate 04 static 59/59; isolated local DB replay/ACL/RLS and create/status/cancel/rebook audit probes pass; authenticated route E2E 3/3 including Follow-up → Agenda patient/request context; all other lanes and final gate pass.
+- Preliminary source review: server-derived actor/tenant, service-role-only command client, DB permission/tenant/reference/state checks, and no ordinary client write path.
+- Closure remains blocked pending explicit scenario-level reconciliation for provider-required/optional, conflict/time/workforce, concurrency, lifecycle and cross-domain Verification Plan cases. WP7 OPEN; WP8 BLOCKED by unreconciled migration lineage.
+- PR #242 remains OPEN/DRAFT/unmerged. No hosted DB/history changes or Vercel promotion. This documentation checkpoint needs fresh exact-head CI.

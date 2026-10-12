@@ -167,3 +167,17 @@ These differences prove lineage is unreconciled, not that every missing identifi
 4. Update PR description and all operational docs to the new candidate SHA, then run exact-head Workstream Verification and Engineering Governance again because documentation changes create a new candidate.
 
 **Release boundary unchanged:** keep PR #242 Draft; do not merge, change hosted Supabase schema/data/history, or promote Vercel.
+ 
+
+## Exact-head verification + independent review checkpoint — 2026-10-12
+
+- Candidate SHA: `534474015383716e6517a7b0d26cc205864a493f`.
+- [Workstream Verification #997](https://github.com/mdcode2026-core-sys/Core-System-clinic-/actions/runs/38178282485): **PASS**, all 12 jobs including final gate.
+- [Engineering Governance #257](https://github.com/mdcode2026-core-sys/Core-System-clinic-/actions/runs/38178282396): **PASS** on the same SHA.
+- Exact-head Gate 04 static audit: **59 checks passed, 0 failed**. The approved Follow-up bridge narrow Gate 02 suppression assertion passed.
+- Exact-head isolated local database lane: clean migration replay, command ACL, direct table-write ACL, Agenda audit trigger/RLS checks, and authenticated command/audit flow passed. The flow specifically verified create + CREATE audit, scheduled→confirmed + STATUS_CHANGE audit, cancellation + reason/actor audit, and cancelled→scheduled rebooking + RESCHEDULE audit.
+- Authenticated route E2E: **3 passed**, including the Follow-up appointment request opening the Agenda form with patient/request context. Cross-domain read-only, identity, i18n/catalogue parity, global presentation static/runtime, and engineering lanes also passed.
+- Preliminary independent source review confirms the server action does not accept tenant/actor identity from submitted form data: mutation context is derived from the authenticated session; the dedicated server-only service-role client calls protected RPCs; SQL commands validate active tenant actor, effective permission, tenant-scoped references and expected state; ordinary authenticated/anonymous roles cannot call the RPC or write appointment rows directly. This is a source-level review, not a substitute for the complete Gate 04 security and scenario matrix.
+- **Evidence boundary:** the DB lane does not itself prove every scenario listed in the Gate 04 Verification Plan. In particular, integrated provider-required/provider-optional cases, true concurrent competing-booking probes, and the full positive/negative lifecycle/cross-domain matrix still require explicit traceable evidence before WP7 can be called complete. Do not infer those scenarios from green generic lanes.
+- WP1/WP4 protected command and audit probes now have direct local evidence for the tested flows; WP2/WP3/WP5 and WP7 must still be reconciled against each specific exit criterion and the missing scenario evidence. WP8 remains **BLOCKED** pending a fresh, evidence-backed repository-versus-hosted migration-lineage reconciliation.
+- PR #242 remains OPEN / DRAFT / NOT MERGED. No hosted Supabase mutation/history edit, merge, or production promotion. This checkpoint is documentation-only; fresh exact-head CI is required for the resulting SHA.

@@ -266,3 +266,11 @@ The required Gate 04 Follow-up evidence is the minimum UI handoff into canonical
 
 WP-8 remains BLOCKED: recorded comparison is 235 repository SQL migration files versus 292 hosted migration rows, 102 repo versions absent from hosted history, 160 hosted versions absent from repo, and 12 shared-version name mismatches. Do not mutate hosted schema/data/history or bulk-apply migrations.
 
+
+## Exact-head evidence reconciliation — 2026-10-12 / Workstream #997
+
+The latest exact candidate `534474015383716e6517a7b0d26cc205864a493f` passed Workstream Verification #997 (all 12 jobs) and Engineering Governance #257. Direct evidence now includes Gate 04 static 59/59 checks; isolated local DB clean replay/ACL/RLS checks; a command/audit flow proving create, status change, cancel, and cancelled-appointment rebooking with corresponding audit actor/reason assertions; and 3 authenticated route E2E tests including the approved Follow-up → Agenda patient-context handoff. Global presentation runtime passed on this candidate; the earlier timeout did not reproduce. The Gate 02 legacy patient-journey suite was not selected and Gate 02 remains closed.
+
+Independent source review (preliminary, not closure) found mutation identity/tenant derived by the server from the authenticated session; service-role-only RPC invocation; database validation of active tenant actor, effective permission, tenant-scoped references and expected status; and revoked ordinary client appointment writes. Pattern checks and these focused probes do not establish every contract scenario.
+
+**Remaining evidence gap:** Gate 04 Verification Plan explicitly calls for provider-required and provider-optional positive/negative cases, provider/room/resource/patient conflicts, time normalization and buffer behavior, concurrency/race probes, workforce availability interactions, full lifecycle negatives, and cross-domain cases. The current green lanes and focused DB flow do not individually prove all of these. Reconcile each scenario to an executable test/log or mark it unresolved; do not close WP7 on the aggregate green status alone. WP8 remains blocked pending fresh read-only repository-versus-hosted migration lineage evidence and an approved resolution plan. No hosted mutation/history edits, merge or production promotion.
