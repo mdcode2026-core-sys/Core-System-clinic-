@@ -1,3 +1,7 @@
+> **Latest verified checkpoint — 2026-10-13:** Candidate `c88fbc376a5225db44d4a4897c67ccfe7ba633c5` passed Workstream Verification #1014 and Governance #274. Timezone helper behavior is PASS; actual availability-engine behavior is directly tested (scenarios 2 and 6 PARTIAL pending full booking-submit integration). The next candidate replaces direct-URL-only Follow-up E2E with actual Book appointment clicks from both work and scheduled views; exact-head CI is pending. The new E2E is read-only and does not create hosted appointments. WP-7 remains OPEN; WP-8 remains BLOCKED; hosted schema/data/history unchanged.
+
+---
+
 > **Latest verified checkpoint — 2026-10-13:** Candidate `1d2bf5c76eeda9f32907fc5b5362924c6850220e` passed Workstream Verification [#1013](https://github.com/mdcode2026-core-sys/Core-System-clinic-/actions/runs/38387583325) and Engineering Governance [#273](https://github.com/mdcode2026-core-sys/Core-System-clinic-/actions/runs/38387583360). The static lane executes the real timezone helpers and availability engine: scenario 16 is PASS; scenarios 2 and 6 are PARTIAL (engine decision proven, integrated appointment-submit behavior remains untested). DB clean replay, reschedule/no-show, and four-dimension conflict probes pass. WP-7 remains OPEN for remaining integrated scenarios; WP-8 remains BLOCKED. Hosted preflight/migration-lineage status unchanged; no hosted writes, merge or production promotion.
 
 ---

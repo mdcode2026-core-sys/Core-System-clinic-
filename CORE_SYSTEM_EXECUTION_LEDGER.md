@@ -600,3 +600,6 @@ Read-only comparison found the application conflict engine excludes completed ap
 
 
 | 2026-10-13 | Verify Agenda timezone and provider availability behavior | Workstream Verification #1013 PASS on `1d2bf5c76eeda9f32907fc5b5362924c6850220e`; Governance #273 PASS; static behavioral assertions passed | Scenario 16 PASS; scenarios 2 and 6 PARTIAL because actual availability decisions are tested but full appointment-submit behavior remains uncovered | WP-7 OPEN; WP-8 BLOCKED; hosted DB/history unchanged | Add integrated booking-submit evidence and continue remaining scenario gaps |
+
+
+| 2026-10-13 | Exercise actual Follow-up booking actions | Last verified SHA `c88fbc376a5225db44d4a4897c67ccfe7ba633c5` passed #1014 and Governance #274; current candidate replaces direct Agenda URL test with actual clicks from work/scheduled views | Verifies same patient/request context and Agenda form/context label; no appointment submit or hosted mutation; exact-head CI pending | WP-7 OPEN; WP-8 BLOCKED | Verify both E2E paths, then design local-only submit/result-reference evidence |

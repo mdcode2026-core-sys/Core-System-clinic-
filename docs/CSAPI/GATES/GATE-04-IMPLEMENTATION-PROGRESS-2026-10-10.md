@@ -1,3 +1,7 @@
+> **Latest verified checkpoint — 2026-10-13:** Candidate `c88fbc376a5225db44d4a4897c67ccfe7ba633c5` passed Workstream Verification #1014 and Governance #274. Scenario 16 PASS; scenarios 2 and 6 PARTIAL. Current candidate tests the actual Follow-up booking action from both work and scheduled views through Agenda context, without submitting a hosted appointment. Exact-head CI pending. WP-7 remains OPEN; WP-8 remains BLOCKED. No hosted DB/history mutation, merge, or production promotion.
+
+---
+
 > **Latest verified checkpoint — 2026-10-13:** Candidate `1d2bf5c76eeda9f32907fc5b5362924c6850220e` passed Workstream Verification #1013 and Governance #273. Timezone conversion/round-trip behavior is PASS; provider availability/out-of-hours/active-conflict behavior is PARTIAL pending full booking-submit coverage. The local DB lifecycle/conflict suite passes. WP-7 remains OPEN; WP-8 remains BLOCKED. No hosted DB/history mutation, merge, or production promotion.
 
 ---

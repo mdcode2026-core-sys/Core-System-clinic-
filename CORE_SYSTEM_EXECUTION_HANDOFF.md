@@ -1,3 +1,7 @@
+> **Latest CSAPI execution state — 2026-10-13:** Gate 04 is active. Last verified candidate `c88fbc376a5225db44d4a4897c67ccfe7ba633c5` passed Workstream Verification #1014 and Governance #274. The current candidate adds actual Follow-up work/scheduled-view booking-action E2E checks; exact-head CI pending. WP-7 OPEN, WP-8 BLOCKED. Continue from the Gate 04 operational handoff. Do not merge, deploy, or mutate hosted Supabase/migration history.
+
+---
+
 > **Latest CSAPI execution state — 2026-10-13:** Gate 04 is active. Candidate `1d2bf5c76eeda9f32907fc5b5362924c6850220e` passed Workstream Verification #1013 and Governance #273. Scenario 16 is PASS; scenarios 2 and 6 are PARTIAL pending integrated booking-submit evidence. WP-7 OPEN, WP-8 BLOCKED. Continue from the Gate 04 operational handoff and evidence matrix. Do not merge, deploy, or mutate hosted Supabase/migration history.
 
 ---

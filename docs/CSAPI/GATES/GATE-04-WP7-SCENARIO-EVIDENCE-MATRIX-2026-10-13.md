@@ -50,7 +50,7 @@
 | 31 | Treatment Plan Next Action requests an Agenda-owned appointment | No direct Treatment Plan → Agenda E2E evidence on this candidate. | GAP |
 | 32 | Appointment reference returns to requesting cross-domain context | No direct Treatment Plan return-reference scenario. | GAP |
 | 33 | Pre-booked appointment enters Patient Flow without Queue becoming a scheduler | No direct Agenda → Patient Flow E2E scenario. | GAP |
-| 34 | Follow-up appointment request creates an Agenda appointment | Authenticated E2E verifies that the request opens the Agenda form with patient/request context; it does not submit and verify appointment creation. | PARTIAL |
+| 34 | Follow-up appointment request creates an Agenda appointment | New authenticated E2E now clicks the actual Book appointment action from both Follow-up work and scheduled views, verifies patient/request UUIDs in the link, opens Agenda with the same context, and checks the context label. It does not submit the booking or verify the created appointment. | PARTIAL |
 
 ## Additional protected-command, authorization and audit probes
 
@@ -134,3 +134,8 @@ Candidate `1d2bf5c76eeda9f32907fc5b5362924c6850220e` passed Workstream Verificat
 ## Current exact-head availability evidence — 2026-10-13
 
 The Gate 04 static lane passed on `1d2bf5c76eeda9f32907fc5b5362924c6850220e`, including actual timezone helper behavior and availability-engine behavior. This raises scenario 16 to PASS and scenarios 2 and 6 to PARTIAL; the latter still need an integrated appointment-submit assertion. The isolated DB lane and all required workstream jobs passed on the same exact head. Remaining scenario gaps still keep WP-7 open.
+
+
+## Follow-up action end-to-end extension — pending (2026-10-13)
+
+The next candidate replaces the previous direct-URL-only E2E with two read-only UI flows: click the real Book appointment action from the Follow-up work view and from the scheduled view, verify the tenant-scoped patient/request context in the generated Agenda URL, and confirm the Agenda form opens with the Follow-up context label. No appointment is submitted and no hosted data is mutated. Scenario 34 remains PARTIAL until an authorized local integration test proves the appointment-submit/result-reference path.
