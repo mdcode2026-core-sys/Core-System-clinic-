@@ -165,6 +165,15 @@ try {
       VALUES (v_patient_id, v_tenant_id, 'Gate', 'Four',
         '+96279' || lpad((random() * 9999999)::integer::text, 7, '0'));
 
+      -- A second tenant/patient proves command-level reference isolation.
+      INSERT INTO public.master_tenants (id, clinic_name, license_key, timezone)
+      VALUES ('d4000000-0000-4000-8000-000000000007', 'Gate 04 other tenant',
+        'GATE04-CI-OTHER-' || v_suffix, 'Asia/Amman');
+      INSERT INTO public.clinic_patients (id, tenant_id, first_name, last_name, phone_primary)
+      VALUES ('d4000000-0000-4000-8000-000000000008',
+        'd4000000-0000-4000-8000-000000000007', 'Other', 'Tenant',
+        '+96278' || lpad((random() * 9999999)::integer::text, 7, '0'));
+
       SELECT id INTO v_permission_id FROM public.permissions
         WHERE permission_key = 'agenda:create' AND deleted_at IS NULL LIMIT 1;
       IF v_permission_id IS NULL THEN RAISE EXCEPTION 'GATE04_TEST_PERMISSION_MISSING=agenda:create'; END IF;
@@ -219,10 +228,27 @@ try {
       v_tenant_id uuid := 'd4000000-0000-4000-8000-000000000001';
       v_clinic_user_id uuid := 'd4000000-0000-4000-8000-000000000003';
       v_patient_id uuid := 'd4000000-0000-4000-8000-000000000004';
+      v_other_patient_id uuid := 'd4000000-0000-4000-8000-000000000008';
       v_event public.master_agenda_events%ROWTYPE;
       v_count integer;
       v_status text;
     BEGIN
+      -- Reject a patient belonging to a different tenant before persistence.
+      BEGIN
+        PERFORM public.agenda_create_appointment(
+          v_tenant_id, v_clinic_user_id, v_other_patient_id,
+          NULL, NULL, NULL, NULL, NULL,
+          now() + interval '3 days',
+          now() + interval '3 days 30 minutes',
+          now() + interval '3 days 30 minutes',
+          'gate04 cross-tenant patient probe'
+        );
+        RAISE EXCEPTION 'GATE04_CROSS_TENANT_PATIENT_WAS_ACCEPTED';
+      EXCEPTION WHEN OTHERS THEN
+        IF SQLERRM = 'GATE04_CROSS_TENANT_PATIENT_WAS_ACCEPTED' THEN RAISE; END IF;
+        IF SQLERRM NOT LIKE '%AGENDA_PATIENT_NOT_FOUND_IN_TENANT%' THEN RAISE; END IF;
+      END;
+
       SELECT * INTO v_event
       FROM public.agenda_create_appointment(
         v_tenant_id, v_clinic_user_id, v_patient_id,
@@ -243,6 +269,24 @@ try {
         AND actor_id = v_clinic_user_id;
       IF v_count <> 1 THEN RAISE EXCEPTION 'GATE04_CREATE_AUDIT_FAILED count=%', v_count; END IF;
 
+      -- Exercise a normal update separately from lifecycle transition/reschedule.
+      PERFORM public.agenda_update_appointment(
+        v_tenant_id, v_clinic_user_id, v_event.id, 'scheduled',
+        v_patient_id, NULL, NULL, NULL, NULL,
+        now() + interval '1 day 5 minutes',
+        now() + interval '1 day 35 minutes',
+        now() + interval '1 day 35 minutes',
+        'gate04 normal update probe', false
+      );
+      SELECT count(*) INTO v_count
+      FROM public.audit_trail
+      WHERE tenant_id = v_tenant_id AND table_name = 'master_agenda_events'
+        AND record_id = v_event.id AND action = 'UPDATE'
+        AND reason = 'appointment_updated'
+        AND new_values ->> 'booking_notes' = 'gate04 normal update probe'
+        AND actor_id = v_clinic_user_id;
+      IF v_count <> 1 THEN RAISE EXCEPTION 'GATE04_UPDATE_AUDIT_FAILED count=%', v_count; END IF;
+
       PERFORM public.agenda_transition_appointment(
         v_tenant_id, v_clinic_user_id, v_event.id, 'scheduled', 'confirmed'
       );
@@ -252,6 +296,17 @@ try {
         AND record_id = v_event.id AND action = 'STATUS_CHANGE'
         AND new_values ->> 'status' = 'confirmed' AND actor_id = v_clinic_user_id;
       IF v_count <> 1 THEN RAISE EXCEPTION 'GATE04_STATUS_AUDIT_FAILED count=%', v_count; END IF;
+
+      -- A stale client expectation must not override the persisted status.
+      BEGIN
+        PERFORM public.agenda_transition_appointment(
+          v_tenant_id, v_clinic_user_id, v_event.id, 'scheduled', 'cancelled'
+        );
+        RAISE EXCEPTION 'GATE04_STALE_EXPECTED_STATUS_WAS_ACCEPTED';
+      EXCEPTION WHEN OTHERS THEN
+        IF SQLERRM = 'GATE04_STALE_EXPECTED_STATUS_WAS_ACCEPTED' THEN RAISE; END IF;
+        IF SQLERRM NOT LIKE '%AGENDA_STATE_CONFLICT%' THEN RAISE; END IF;
+      END;
 
       PERFORM public.agenda_cancel_appointment(
         v_tenant_id, v_clinic_user_id, v_event.id, 'confirmed', 'gate04 cancellation probe'
