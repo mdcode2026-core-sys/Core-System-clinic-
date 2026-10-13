@@ -186,14 +186,16 @@ const availabilityJavaScript = ts.transpileModule(availabilitySource, {
 );
 const availabilityModuleUrl = `data:text/javascript;base64,${Buffer.from(availabilityJavaScript).toString("base64")}`;
 const availabilityEngine = await import(availabilityModuleUrl);
-function createAvailabilityClient({ occupied = false, schedule = [{ day_of_week: 3, start_time: "09:00:00", end_time: "17:00:00", is_active: true }] } = {}) {
+function createAvailabilityClient({ occupied = false, occupiedRoom = false, schedule = [{ day_of_week: 3, start_time: "09:00:00", end_time: "17:00:00", is_active: true }] } = {}) {
   function resultFor(table, state) {
     if (table === "master_tenants") return { data: { timezone: "Asia/Amman" }, error: null };
     if (table === "workforce_employees") return { data: null, error: null };
     if (table === "clinic_provider_availability") return { data: schedule, error: null };
     if (table === "master_agenda_events") {
       const bookingConflictQuery = state.operations.includes("lt") && state.operations.includes("gt");
-      return { data: occupied && bookingConflictQuery && state.filters.doctor_id === "doctor-1" ? [{ id: "occupied-event" }] : [], error: null };
+      const doctorConflict = occupied && state.filters.doctor_id === "doctor-1";
+      const roomConflict = occupiedRoom && state.filters.room_id === "room-1";
+      return { data: bookingConflictQuery && (doctorConflict || roomConflict) ? [{ id: "occupied-event" }] : [], error: null };
     }
     return { data: [], error: null };
   }
@@ -255,6 +257,64 @@ check("provider-required-without-provider-rejected",
   !missingRequiredProviderResult.isAvailable && missingRequiredProviderResult.reason === "AGENDA_PROVIDER_REQUIRED",
   JSON.stringify(missingRequiredProviderResult));
 
+// Exercise the actual conflict engine with deterministic overlapping event rows.
+// This remains isolated: no hosted database or appointment mutation is invoked.
+const conflictSource = read("src/domain/agenda/conflict.engine.ts");
+const conflictJavaScript = ts.transpileModule(conflictSource, {
+  compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022 },
+}).outputText;
+const conflictModuleUrl = `data:text/javascript;base64,${Buffer.from(conflictJavaScript).toString("base64")}`;
+const conflictEngine = await import(conflictModuleUrl);
+function createConflictClient(events = []) {
+  return {
+    from() {
+      const query = {
+        select() { return this; },
+        eq() { return this; },
+        not() { return this; },
+        lt() { return this; },
+        gt() { return this; },
+        neq() { return this; },
+        then(resolve, reject) { return Promise.resolve({ data: events, error: null }).then(resolve, reject); },
+      };
+      return query;
+    },
+  };
+}
+const conflictInput = {
+  tenantId: "tenant-1",
+  doctorId: "doctor-1",
+  roomId: "room-1",
+  resourceId: "device-1",
+  patientId: "patient-1",
+  scheduledStart: "2026-10-14T06:00:00.000Z",
+  scheduledEnd: "2026-10-14T06:30:00.000Z",
+  bufferEnd: "2026-10-14T06:30:00.000Z",
+};
+const roomConflictResult = await conflictEngine.checkConflicts(createConflictClient([{
+  id: "room-occupied", doctor_id: "doctor-other", room_id: "room-1", resource_id: "device-other", patient_id: "patient-other",
+  scheduled_start: "2026-10-14T06:10:00.000Z", scheduled_end: "2026-10-14T06:40:00.000Z", buffer_end: "2026-10-14T06:40:00.000Z",
+}]), conflictInput);
+check("room-conflict-engine-rejects-overlapping-room",
+  roomConflictResult.hasConflict && roomConflictResult.rule === "room",
+  JSON.stringify(roomConflictResult));
+const resourceConflictResult = await conflictEngine.checkConflicts(createConflictClient([{
+  id: "device-occupied", doctor_id: "doctor-other", room_id: "room-other", resource_id: "device-1", patient_id: "patient-other",
+  scheduled_start: "2026-10-14T06:10:00.000Z", scheduled_end: "2026-10-14T06:40:00.000Z", buffer_end: "2026-10-14T06:40:00.000Z",
+}]), conflictInput);
+check("resource-conflict-engine-rejects-overlapping-device",
+  resourceConflictResult.hasConflict && resourceConflictResult.rule === "resource",
+  JSON.stringify(resourceConflictResult));
+const combinedAvailability = await availabilityEngine.checkAvailability({
+  ...availabilityInput,
+  roomId: "room-1",
+  resourceId: "device-1",
+}, createAvailabilityClient());
+const combinedConflict = await conflictEngine.checkConflicts(createConflictClient([]), conflictInput);
+check("provider-room-device-combined-feasibility",
+  combinedAvailability.isAvailable && combinedAvailability.details.doctorAvailable &&
+  combinedAvailability.details.roomAvailable && combinedConflict.hasConflict === false,
+  JSON.stringify({ availability: combinedAvailability, conflict: combinedConflict }));
 
 const gate04Contract = JSON.parse(read("docs/testing/workstream-contracts/csapi-gate04-agenda.execution.json"));
 const gate02Bypass = gate04Contract.suppression_bypass_patterns?.["csapi-gate02-patient-journey"] || [];

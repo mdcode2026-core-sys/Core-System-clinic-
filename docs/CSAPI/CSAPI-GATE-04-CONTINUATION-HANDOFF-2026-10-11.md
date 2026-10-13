@@ -1,3 +1,7 @@
+> **Latest verified checkpoint — 2026-10-13:** Candidate `94a2ad508aff6ffa49ddabefda1a8c2c85198b48` passed Workstream Verification #1015 and Engineering Governance #275. Timezone helper and availability-engine behavior are already verified; do not reopen timezone work unless new evidence fails. The next candidate adds isolated runtime probes against the actual conflict engine for room conflict, device/resource conflict, and combined provider+room+device feasibility. These are intentionally partial until protected mutation submission and authoritative requirement configuration are tested. Exact-head CI is pending for this new candidate. WP-7 remains OPEN; WP-8 remains BLOCKED; hosted schema/data/history unchanged.
+
+---
+
 > **Latest verified checkpoint — 2026-10-13:** Candidate `c88fbc376a5225db44d4a4897c67ccfe7ba633c5` passed Workstream Verification #1014 and Governance #274. Timezone helper behavior is PASS; actual availability-engine behavior is directly tested (scenarios 2 and 6 PARTIAL pending full booking-submit integration). The next candidate replaces direct-URL-only Follow-up E2E with actual Book appointment clicks from both work and scheduled views; exact-head CI is pending. The new E2E is read-only and does not create hosted appointments. WP-7 remains OPEN; WP-8 remains BLOCKED; hosted schema/data/history unchanged.
 
 ---

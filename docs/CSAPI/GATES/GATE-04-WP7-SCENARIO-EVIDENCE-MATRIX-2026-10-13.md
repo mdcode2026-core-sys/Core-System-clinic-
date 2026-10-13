@@ -19,9 +19,9 @@
 |---:|---|---|---|
 | 1 | Standard appointment booking | Local protected command creates a scheduled appointment, but no full UI submission scenario is exercised. | PARTIAL |
 | 2 | Booking within provider availability | Isolated behavioral check executes the actual availability engine and confirms a feasible 09:00 Asia/Amman slot is available within configured provider hours; it does not submit a full appointment command/UI booking. | PARTIAL |
-| 3 | Booking requiring a room/resource | No integrated room/resource booking probe. | GAP |
-| 4 | Booking requiring a device/resource | No device/resource scenario probe. | GAP |
-| 5 | Provider + room + device simultaneously feasible | No combined feasibility scenario probe. | GAP |
+| 3 | Booking requiring a room/resource | Actual conflict engine rejects an overlapping room and allows the no-conflict room path in the combined provider/room/device feasibility probe; full mutation submit remains untested. | PARTIAL |
+| 4 | Booking requiring a device/resource | Actual conflict engine rejects an overlapping selected device/resource; combined feasibility probe includes the selected resource with no overlap. Full mutation submit remains untested. | PARTIAL |
+| 5 | Provider + room + device simultaneously feasible | Actual availability engine accepts the configured provider and room together; actual conflict engine confirms no patient/provider/room/device conflict for the same candidate interval. Full mutation submit remains untested. | PARTIAL |
 | 6 | Provider unavailable | Isolated behavioral checks confirm the actual availability engine rejects an out-of-hours slot and a provider with an active overlapping booking; full appointment-submit rejection is not independently exercised. | PARTIAL |
 | 7 | Room conflict | Isolated clean-replay DB probe rejects an active overlapping booking for the same room; after the first appointment completes, an overlapping booking is accepted. | PASS |
 | 8 | Resource conflict | Isolated clean-replay DB probe rejects an active overlapping booking for the same resource/device; after completion, an overlapping booking is accepted. | PASS |
@@ -139,3 +139,8 @@ The Gate 04 static lane passed on `1d2bf5c76eeda9f32907fc5b5362924c6850220e`, in
 ## Follow-up action end-to-end extension — pending (2026-10-13)
 
 The next candidate replaces the previous direct-URL-only E2E with two read-only UI flows: click the real Book appointment action from the Follow-up work view and from the scheduled view, verify the tenant-scoped patient/request context in the generated Agenda URL, and confirm the Agenda form opens with the Follow-up context label. No appointment is submitted and no hosted data is mutated. Scenario 34 remains PARTIAL until an authorized local integration test proves the appointment-submit/result-reference path.
+
+
+## Provider / room / device feasibility probes — isolated runtime (2026-10-13)
+
+The Gate 04 static lane now transpiles and executes the real `conflict.engine.ts` against deterministic overlapping event rows. It asserts that room overlap returns the `room` conflict rule and device/resource overlap returns the `resource` rule. A combined scenario executes the real availability engine for a provider plus room, then the conflict engine for provider, room, device/resource and patient with no overlapping event; the candidate is accepted by both engines. These probes are intentionally classified PARTIAL for scenarios 3–5 because they do not submit through the full protected mutation service or configure authoritative procedure resource requirements. No capacity/resource-requirement model is inferred or activated.

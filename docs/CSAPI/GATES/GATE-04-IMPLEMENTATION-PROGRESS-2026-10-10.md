@@ -1,3 +1,7 @@
+> **Latest verified checkpoint — 2026-10-13:** Candidate `94a2ad508aff6ffa49ddabefda1a8c2c85198b48` passed Workstream Verification #1015 and Governance #275. Timezone behavior is resolved for the frozen helper scenario. Current code candidate adds direct isolated runtime assertions for room/resource conflicts and combined provider-room-device feasibility through the actual conflict and availability engines; exact-head CI pending. Scenarios 3–5 are PARTIAL until full protected mutation submission and owning-domain requirement configuration are covered. WP-7 OPEN; WP-8 BLOCKED. No hosted writes, merge or production promotion.
+
+---
+
 > **Latest verified checkpoint — 2026-10-13:** Candidate `c88fbc376a5225db44d4a4897c67ccfe7ba633c5` passed Workstream Verification #1014 and Governance #274. Scenario 16 PASS; scenarios 2 and 6 PARTIAL. Current candidate tests the actual Follow-up booking action from both work and scheduled views through Agenda context, without submitting a hosted appointment. Exact-head CI pending. WP-7 remains OPEN; WP-8 remains BLOCKED. No hosted DB/history mutation, merge, or production promotion.
 
 ---

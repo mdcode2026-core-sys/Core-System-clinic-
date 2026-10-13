@@ -603,3 +603,6 @@ Read-only comparison found the application conflict engine excludes completed ap
 
 
 | 2026-10-13 | Exercise actual Follow-up booking actions | Last verified SHA `c88fbc376a5225db44d4a4897c67ccfe7ba633c5` passed #1014 and Governance #274; current candidate replaces direct Agenda URL test with actual clicks from work/scheduled views | Verifies same patient/request context and Agenda form/context label; no appointment submit or hosted mutation; exact-head CI pending | WP-7 OPEN; WP-8 BLOCKED | Verify both E2E paths, then design local-only submit/result-reference evidence |
+
+
+| 2026-10-13 | Add real-engine room/resource feasibility probes | Actual `conflict.engine.ts` is executed in isolated deterministic checks for room conflict, device/resource conflict and combined provider+room+device feasibility | Implemented; exact-head verification pending | Scenarios 3–5 move from GAP to PARTIAL because full protected mutation submit and authoritative resource-requirement configuration remain untested | Run exact-head CI; then address next uncovered WP-7 scenarios without reopening verified timezone helper work |

@@ -1,3 +1,7 @@
+> **Latest CSAPI execution state — 2026-10-13:** Gate 04 is active. Last verified SHA `94a2ad508aff6ffa49ddabefda1a8c2c85198b48` passed Workstream Verification #1015 and Governance #275. The current code candidate adds isolated real-engine probes for room/resource conflict rejection and combined provider-room-device feasibility; exact-head CI pending. Timezone helper behavior is closed as PASS for scenario 16. Continue from `docs/CSAPI/CSAPI-GATE-04-CONTINUATION-HANDOFF-2026-10-11.md`. WP-7 OPEN, WP-8 BLOCKED; no hosted mutation, merge or deployment.
+
+---
+
 > **Latest CSAPI execution state — 2026-10-13:** Gate 04 is active. Last verified candidate `c88fbc376a5225db44d4a4897c67ccfe7ba633c5` passed Workstream Verification #1014 and Governance #274. The current candidate adds actual Follow-up work/scheduled-view booking-action E2E checks; exact-head CI pending. WP-7 OPEN, WP-8 BLOCKED. Continue from the Gate 04 operational handoff. Do not merge, deploy, or mutate hosted Supabase/migration history.
 
 ---
