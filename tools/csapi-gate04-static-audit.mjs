@@ -198,10 +198,11 @@ const availabilityJavaScript = ts.transpileModule(availabilitySource, {
   );
 const availabilityModuleUrl = `data:text/javascript;base64,${Buffer.from(availabilityJavaScript).toString("base64")}`;
 const availabilityEngine = await import(availabilityModuleUrl);
-function createAvailabilityClient({ occupied = false, occupiedRoom = false, schedule = [{ day_of_week: 3, start_time: "09:00:00", end_time: "17:00:00", is_active: true }] } = {}) {
+function createAvailabilityClient({ occupied = false, occupiedRoom = false, schedule = [{ day_of_week: 3, start_time: "09:00:00", end_time: "17:00:00", is_active: true }], workforceEmployee = false, workforceSchedule = null, workforceLeave = null } = {}) {
   function resultFor(table, state) {
     if (table === "master_tenants") return { data: { timezone: "Asia/Amman" }, error: null };
-    if (table === "workforce_employees") return { data: null, error: null };
+    if (table === "workforce_employees") return { data: workforceEmployee ? { id: "workforce-employee-1", status: "active" } : null, error: null };
+    if (table === "workforce_staff_schedules") return { data: workforceSchedule ? [workforceSchedule] : [], error: null };
     if (table === "clinic_provider_availability") return { data: schedule, error: null };
     if (table === "master_agenda_events") {
       const bookingConflictQuery = state.operations.includes("lt") && state.operations.includes("gt");
@@ -231,7 +232,7 @@ function createAvailabilityClient({ occupied = false, occupiedRoom = false, sche
       };
       return query;
     },
-    async rpc() { return { data: [], error: null }; },
+    async rpc(name) { if (name === "get_workforce_unavailability" && workforceLeave) return { data: [workforceLeave], error: null }; return { data: [], error: null }; },
   };
 }
 const availabilityInput = {
@@ -268,6 +269,64 @@ const missingRequiredProviderResult = await availabilityEngine.checkAvailability
 check("provider-required-without-provider-rejected",
   !missingRequiredProviderResult.isAvailable && missingRequiredProviderResult.reason === "AGENDA_PROVIDER_REQUIRED",
   JSON.stringify(missingRequiredProviderResult));
+
+const workforceSchedule = { day_of_week: 3, starts_at: "09:00:00", ends_at: "17:00:00", status: "active", effective_from: null, effective_to: null };
+const workforceScheduleResult = await availabilityEngine.checkAvailability(
+  availabilityInput,
+  createAvailabilityClient({ workforceEmployee: true, workforceSchedule }),
+);
+check("workforce-working-pattern-allows-feasible-booking",
+  workforceScheduleResult.isAvailable && workforceScheduleResult.details.withinWorkingHours,
+  JSON.stringify(workforceScheduleResult));
+const approvedLeaveResult = await availabilityEngine.checkAvailability(
+  availabilityInput,
+  createAvailabilityClient({
+    workforceEmployee: true,
+    workforceSchedule,
+    workforceLeave: { starts_at: "2026-10-14T06:10:00.000Z", ends_at: "2026-10-14T06:40:00.000Z", reason: "approved leave", absence_type: "leave" },
+  }),
+);
+check("approved-workforce-unavailability-blocks-booking",
+  !approvedLeaveResult.isAvailable && !approvedLeaveResult.details.notBlocked,
+  JSON.stringify(approvedLeaveResult));
+
+// Resolve explicit Service/Procedure provider requirements through the real adapter,
+// then pass the result into the real availability engine with a missing provider.
+const requirementSource = read("src/domain/agenda/procedure-resource-requirements.ts");
+const requirementJavaScript = ts.transpileModule(requirementSource, {
+  compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022 },
+}).outputText;
+const requirementModuleUrl = `data:text/javascript;base64,${Buffer.from(requirementJavaScript).toString("base64")}`;
+const requirementModule = await import(requirementModuleUrl);
+function createProcedureRequirementClient(providerType) {
+  return {
+    from() {
+      const query = {
+        select() { return this; },
+        eq() { return this; },
+        is() { return this; },
+        maybeSingle() { return Promise.resolve({ data: { id: "procedure-1", tenant_id: "tenant-1", provider_type: providerType }, error: null }); },
+      };
+      return query;
+    },
+  };
+}
+const explicitRequired = await requirementModule.resolveBookingRequirements(createProcedureRequirementClient("doctor"), "tenant-1", "procedure-1");
+const explicitRequiredBooking = await availabilityEngine.checkAvailability({
+  ...availabilityInput, doctorId: null, providerRequired: explicitRequired.provider.required,
+}, createAvailabilityClient());
+check("explicit-provider-required-procedure-rejects-missing-provider",
+  explicitRequired.provider.required && !explicitRequiredBooking.isAvailable && explicitRequiredBooking.reason === "AGENDA_PROVIDER_REQUIRED",
+  JSON.stringify({ requirement: explicitRequired.provider, result: explicitRequiredBooking }));
+const explicitOptional = await requirementModule.resolveBookingRequirements(createProcedureRequirementClient("optional"), "tenant-1", "procedure-1");
+const explicitOptionalBooking = await availabilityEngine.checkAvailability({
+  ...availabilityInput, doctorId: null, providerRequired: explicitOptional.provider.required,
+}, createAvailabilityClient());
+check("explicit-optional-procedure-allows-providerless-availability",
+  !explicitOptional.provider.required && explicitOptionalBooking.isAvailable,
+  JSON.stringify({ requirement: explicitOptional.provider, result: explicitOptionalBooking }));
+check("mutation-service-guards-required-provider-before-command",
+  mutationService.includes('if (bookingRequirements.provider.required && !normalized.doctorId) return { error: "AGENDA_PROVIDER_REQUIRED" };'));
 
 // Exercise the actual conflict engine with deterministic overlapping event rows.
 // This remains isolated: no hosted database or appointment mutation is invoked.
