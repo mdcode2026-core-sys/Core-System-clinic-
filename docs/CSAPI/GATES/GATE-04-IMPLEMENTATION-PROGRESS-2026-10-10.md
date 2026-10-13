@@ -1,3 +1,7 @@
+> **Latest verified checkpoint — 2026-10-13:** Candidate `1d2bf5c76eeda9f32907fc5b5362924c6850220e` passed Workstream Verification #1013 and Governance #273. Timezone conversion/round-trip behavior is PASS; provider availability/out-of-hours/active-conflict behavior is PARTIAL pending full booking-submit coverage. The local DB lifecycle/conflict suite passes. WP-7 remains OPEN; WP-8 remains BLOCKED. No hosted DB/history mutation, merge, or production promotion.
+
+---
+
 > **Latest verified checkpoint — 2026-10-13:** Candidate `c623912fcf6fa22c0d464a1a679e91a1e443bada` passed Workstream Verification #1012 and Governance #272. Actual tenant-local timezone conversion and round-trip behavior passed; scenario 16 is PASS. The next code candidate adds behavior-level provider-hours and busy-provider checks using an isolated client double; exact-head CI is pending. WP-7 remains OPEN; WP-8 remains BLOCKED. No hosted DB/history mutation, merge, or production promotion.
 
 ---

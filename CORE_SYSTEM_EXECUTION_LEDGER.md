@@ -597,3 +597,6 @@ Read-only comparison found the application conflict engine excludes completed ap
 
 
 | 2026-10-13 | Verify tenant-local datetime behavior and add availability probes | Workstream Verification #1012 PASS on `c623912fcf6fa22c0d464a1a679e91a1e443bada`; Governance #272 PASS; actual timezone helper checks passed | Scenario 16 PASS; current candidate adds provider-hours, active-provider-conflict, and required-provider behavior probes, pending exact-head CI | WP-7 OPEN; WP-8 BLOCKED; no hosted DB mutation | Verify availability behavior on exact head; then upgrade only scenarios with direct evidence |
+
+
+| 2026-10-13 | Verify Agenda timezone and provider availability behavior | Workstream Verification #1013 PASS on `1d2bf5c76eeda9f32907fc5b5362924c6850220e`; Governance #273 PASS; static behavioral assertions passed | Scenario 16 PASS; scenarios 2 and 6 PARTIAL because actual availability decisions are tested but full appointment-submit behavior remains uncovered | WP-7 OPEN; WP-8 BLOCKED; hosted DB/history unchanged | Add integrated booking-submit evidence and continue remaining scenario gaps |

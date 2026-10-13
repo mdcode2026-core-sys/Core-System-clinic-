@@ -18,11 +18,11 @@
 | # | Required scenario | Current evidence on `548f050c2f6e18122b9350e655e74ea5ab54090e` | Status |
 |---:|---|---|---|
 | 1 | Standard appointment booking | Local protected command creates a scheduled appointment, but no full UI submission scenario is exercised. | PARTIAL |
-| 2 | Booking within provider availability | Availability engine exists; no scenario-level positive booking probe. | GAP |
+| 2 | Booking within provider availability | Isolated behavioral check executes the actual availability engine and confirms a feasible 09:00 Asia/Amman slot is available within configured provider hours; it does not submit a full appointment command/UI booking. | PARTIAL |
 | 3 | Booking requiring a room/resource | No integrated room/resource booking probe. | GAP |
 | 4 | Booking requiring a device/resource | No device/resource scenario probe. | GAP |
 | 5 | Provider + room + device simultaneously feasible | No combined feasibility scenario probe. | GAP |
-| 6 | Provider unavailable | No direct negative booking scenario. | GAP |
+| 6 | Provider unavailable | Isolated behavioral checks confirm the actual availability engine rejects an out-of-hours slot and a provider with an active overlapping booking; full appointment-submit rejection is not independently exercised. | PARTIAL |
 | 7 | Room conflict | Isolated clean-replay DB probe rejects an active overlapping booking for the same room; after the first appointment completes, an overlapping booking is accepted. | PASS |
 | 8 | Resource conflict | Isolated clean-replay DB probe rejects an active overlapping booking for the same resource/device; after completion, an overlapping booking is accepted. | PASS |
 | 9 | Patient conflict | Isolated clean-replay DB probe verifies completed appointment releases the patient interval and active overlapping appointment is rejected. | PASS |
@@ -128,4 +128,9 @@ The next candidate adds executable checks that import and run the actual `tenant
 
 ## Provider availability behavior probes added — pending (2026-10-13)
 
-The next candidate extends the Gate 04 static audit to execute the actual `checkAvailability` implementation with an isolated Supabase-client double. It asserts: a booking inside configured Asia/Amman provider hours is allowed; a booking outside those hours is rejected; a provider with an overlapping active booking is rejected; and a provider-required booking without a provider is rejected. Scenarios 2 and 6 remain GAP until the exact-head static lane passes with these behavioral assertions.
+Candidate `1d2bf5c76eeda9f32907fc5b5362924c6850220e` passed Workstream Verification #1013 and Governance #273. The isolated behavioral checks execute the actual `checkAvailability` implementation with a controlled Supabase-client double: an in-hours Asia/Amman slot is available, an out-of-hours slot is rejected, an active provider overlap is rejected, and a provider-required booking without a provider is rejected. Scenarios 2 and 6 are PARTIAL because the engine decision is directly verified but a full appointment-submit scenario is not yet covered.
+
+
+## Current exact-head availability evidence — 2026-10-13
+
+The Gate 04 static lane passed on `1d2bf5c76eeda9f32907fc5b5362924c6850220e`, including actual timezone helper behavior and availability-engine behavior. This raises scenario 16 to PASS and scenarios 2 and 6 to PARTIAL; the latter still need an integrated appointment-submit assertion. The isolated DB lane and all required workstream jobs passed on the same exact head. Remaining scenario gaps still keep WP-7 open.

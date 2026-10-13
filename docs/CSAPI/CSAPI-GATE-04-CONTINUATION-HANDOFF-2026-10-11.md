@@ -1,3 +1,7 @@
+> **Latest verified checkpoint — 2026-10-13:** Candidate `1d2bf5c76eeda9f32907fc5b5362924c6850220e` passed Workstream Verification [#1013](https://github.com/mdcode2026-core-sys/Core-System-clinic-/actions/runs/38387583325) and Engineering Governance [#273](https://github.com/mdcode2026-core-sys/Core-System-clinic-/actions/runs/38387583360). The static lane executes the real timezone helpers and availability engine: scenario 16 is PASS; scenarios 2 and 6 are PARTIAL (engine decision proven, integrated appointment-submit behavior remains untested). DB clean replay, reschedule/no-show, and four-dimension conflict probes pass. WP-7 remains OPEN for remaining integrated scenarios; WP-8 remains BLOCKED. Hosted preflight/migration-lineage status unchanged; no hosted writes, merge or production promotion.
+
+---
+
 > **Latest verified checkpoint — 2026-10-13:** Candidate `c623912fcf6fa22c0d464a1a679e91a1e443bada` passed Workstream Verification #1012 and Engineering Governance #272. The Gate 04 static lane now executes the real tenant-local timezone helpers and passed conversion/round-trip/offset-preservation checks; scenario 16 is PASS. The next candidate adds isolated behavioral checks for provider availability and overlap rejection; exact-head CI is pending. WP-7 remains OPEN; WP-8 remains BLOCKED. Hosted Supabase schema/data/history remain unchanged, and no merge or production promotion occurred.
 
 ---
