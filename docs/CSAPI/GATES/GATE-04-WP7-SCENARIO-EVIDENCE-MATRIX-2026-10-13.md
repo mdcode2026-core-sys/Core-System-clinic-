@@ -1,3 +1,7 @@
+> **Exact-head verification update — 2026-10-14:** Candidate `f3f3675855eb4e748064ebb7c10676fb2f4c4650` completed Workstream Verification #1029 **PASS** (including the Gate 04 isolated local database lane and final gate) and Engineering Governance #289 **PASS**. Scenario 22 is now **PASS** on direct branch-local database evidence: approved absence preserves the existing appointment unchanged, while a new overlapping booking is rejected and not persisted. This evidence is local-only; no hosted Supabase mutation, merge, or production promotion occurred. This documentation update is a new candidate and must receive exact-head verification before it is treated as fully verified.
+
+---
+
 > **Verification result correction — 2026-10-14:** Workstream Verification #1026 on candidate `ec6b6572ed679c65f379f0b9d13a70ed263d4840` subsequently completed **PASS**: all 11 verification lanes and the final gate succeeded. Engineering Governance #286 also passed on that candidate. Scenario 19 is therefore PASS on direct branch-local DB evidence and the exact implementation candidate is fully verified. The later documentation-only candidate `369278b00dcbfb25f0f78e8925b1edb91f5fb3e0` started Workstream Verification #1027, but that run is superseded by this status correction; the new documentation candidate created by this correction requires its own exact-head verification. Do not report the current documentation head as verified until its run completes.
 
 ---
@@ -5,9 +9,10 @@
 # Gate 04 — WP-7 Scenario Evidence Matrix
 
 **Record date:** 2026-10-14  
-**Last fully verified candidate:** `66a76b200d7871a5e4e1870727d9150b7fd5db4d` — Workstream #1022 PASS / Governance #282 PASS.  
-**Latest fully verified implementation candidate:** `ec6b6572ed679c65f379f0b9d13a70ed263d4840` — Workstream Verification #1026 PASS (all 11 lanes + final gate) and Engineering Governance #286 PASS.  
-**Engineering Governance:** #286 — PASS on `ec6b6572ed679c65f379f0b9d13a70ed263d4840`.  
+**Latest fully verified candidate:** `f3f3675855eb4e748064ebb7c10676fb2f4c4650` — Workstream Verification #1029 PASS (all required jobs + final gate) and Engineering Governance #289 PASS.  
+**Scenario 19:** PASS on direct branch-local DB evidence at `ec6b6572ed679c65f379f0b9d13a70ed263d4840`.  
+**Scenario 22:** PASS on direct branch-local DB evidence at `f3f3675855eb4e748064ebb7c10676fb2f4c4650`.  
+**Engineering Governance:** #289 — PASS on `f3f3675855eb4e748064ebb7c10676fb2f4c4650`.  
 **Gate status:** OPEN — this matrix is a coverage reconciliation, not a closure declaration.
 
 ## Evidence interpretation
@@ -42,7 +47,7 @@
 | 19 | Overrun does not create a second scheduler state | On candidate `ec6b6572ed679c65f379f0b9d13a70ed263d4840`, isolated clean local DB replay in Workstream Verification #1026 passed the direct overrun assertions: an appointment whose planned end is in the past transitions to `in_session`, remains one `master_agenda_events` row, preserves `scheduled_start`/`scheduled_end`, and remains in the same lifecycle. Hosted DB was not touched. | PASS — branch-local DB evidence |
 | 20 | Workforce working pattern permits booking | Behavioral assertion runs the actual availability engine with an active Workforce schedule and confirms a feasible slot is allowed. Isolated client double; not hosted integration. | PASS — isolated behavior |
 | 21 | Approved leave/unavailability blocks booking | Behavioral assertion runs the actual availability engine with an approved Workforce absence overlapping the requested interval and confirms the slot is blocked. Isolated client double; not hosted integration. | PASS — isolated behavior |
-| 22 | Workforce change does not silently delete/rebook existing appointments | No workforce-change preservation scenario. | GAP |
+| 22 | Workforce change does not silently delete/rebook existing appointments | On candidate `f3f3675855eb4e748064ebb7c10676fb2f4c4650`, Workstream Verification #1029 isolated clean-local DB lane passed: an existing scheduled appointment remained exactly one row with unchanged planned start/end and `scheduled` status after an approved Workforce absence was inserted; a new overlapping booking was rejected as unavailable and was not persisted. Hosted DB was not touched. | PASS — branch-local DB evidence |
 | 23 | Provider-required procedure rejects missing provider | Actual Service/Procedure requirement adapter resolves `provider_type=doctor`; the availability engine rejects a missing provider with `AGENDA_PROVIDER_REQUIRED`. Isolated client double. | PASS — isolated behavior |
 | 24 | Provider-optional procedure permits null provider | Actual Service/Procedure adapter resolves `provider_type=optional`; the availability engine allows providerless feasibility. Isolated client double; no full booking submission. | PASS — isolated behavior |
 | 25 | Provider eligibility uses explicit Workforce capability | New behavioral assertions exercise the actual availability engine with a configured capability: an eligible Workforce provider is allowed, an ineligible provider is rejected, and no configured capability retains the existing fallback. Isolated client double; not hosted integration. | PASS — isolated behavior |

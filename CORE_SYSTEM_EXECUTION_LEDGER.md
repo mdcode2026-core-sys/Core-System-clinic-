@@ -1,5 +1,7 @@
 # CORE SYSTEM — EXECUTION LEDGER
 
+| 2026-10-14 | Gate 04 scenario 22 — Workforce absence preserves existing bookings | Candidate `f3f3675855eb4e748064ebb7c10676fb2f4c4650`; Workstream Verification #1029 PASS including isolated Gate 04 DB lane and final gate; Engineering Governance #289 PASS | Existing scheduled appointment remained exactly one row with planned times and status unchanged after approved absence; overlapping new booking rejected and not persisted on clean local DB | Scenario 22 PASS — branch-local evidence only; WP-7 OPEN, WP-8 BLOCKED; PR #242 remains Draft/unmerged; no hosted DB mutation, merge or production promotion | Verify the documentation-only candidate at exact head; then select the next scenario from the frozen WP-7 matrix |
+
 | Date | Action | Evidence | Result | Decision | Next Action |
 |---|---|---|---|---|---|
 | 2026-10-14 | Corrected exact-head verification state for scenario 19 | Workstream Verification #1026 on `ec6b6572ed679c65f379f0b9d13a70ed263d4840` completed PASS (11 lanes + final gate); Governance #286 PASS | Scenario 19 implementation is fully verified on `ec6b6572`; documentation candidate `369278b00dcbfb25f0f78e8925b1edb91f5fb3e0` needs its own exact-head verification and is superseded by this correction | Evidence remains scenario-specific; WP-7 OPEN, WP-8 BLOCKED; no hosted DB change, merge or production promotion | Verify this documentation candidate at exact head, then proceed to scenario 22 |
