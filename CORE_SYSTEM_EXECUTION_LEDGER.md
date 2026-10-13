@@ -588,3 +588,6 @@ Read-only comparison found the application conflict engine excludes completed ap
 
 
 | 2026-10-13 | Extend Gate 04 lifecycle evidence | `tools/csapi-gate04-database-verification.mjs` adds confirmed reschedule status/audit and no-show status/audit/provider-release probes; WP-7 matrix updates scenarios 11, 13, 14 | Implementation added after #1009 passed on prior SHA; exact-head CI pending | Keep WP-7 open until the new candidate passes; no hosted DB mutation | Verify exact head; then continue the next evidence gap |
+
+
+| 2026-10-13 | Verify reschedule/no-show and reconcile WP-7 matrix | Workstream Verification #1010 PASS on `f7a3d828ff2d133ca4797d8153fd5758e077e1dc`; Governance #270 PASS; DB lane log confirms clean replay and new lifecycle assertions | Scenarios 11, 13, 14 PASS on branch-local evidence; hosted read-only preflight has 0 active conflicting pairs across patient/doctor/room/resource dimensions, 13 cross-dimension time overlaps | WP-7 remains OPEN for remaining gaps; WP-8 remains BLOCKED; hosted DB/history unchanged | Update docs and exact-head verify; continue with next uncovered booking-feasibility scenarios |

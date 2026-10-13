@@ -113,4 +113,9 @@ Workstream Verification #1008 and Engineering Governance #268 passed on `972786d
 
 ## Exact-head scenario expansion — normal reschedule and no-show (2026-10-13)
 
-The next candidate adds executable local-DB assertions for a confirmed appointment rescheduled to a new interval (status and RESCHEDULE audit), the rescheduled-to-scheduled transition, and a confirmed-to-no-show transition (STATUS_CHANGE audit plus provider interval release). Scenario 14 is also upgraded because the already-passing dimension-specific probes exercise the full arrival-to-completion path. These updates are implementation until exact-head Workstream Verification passes; do not treat them as verified before that result.
+Candidate `f7a3d828ff2d133ca4797d8153fd5758e077e1dc` passed Workstream Verification #1010 and Governance #270. The isolated local database lane passed confirmed-appointment reschedule to `rescheduled` with RESCHEDULE audit, `rescheduled → scheduled`, and `confirmed → no_show` with STATUS_CHANGE audit plus provider interval release. Existing dimension-specific probes also verify the full `scheduled → confirmed → arrived → in_session → completed` lifecycle. Scenarios 11, 13, and 14 are therefore PASS on this candidate. The remaining matrix gaps still prevent WP-7 closure.
+
+
+## Hosted active-conflict preflight — read-only (2026-10-13)
+
+A fresh read-only query against hosted `master_agenda_events` found **0 active overlapping pairs** sharing patient, doctor, room, or resource/device. There were 13 pairs with overlapping time ranges, but they shared none of those exclusive dimensions. The four hosted exclusion definitions were also re-read: doctor, patient, and room still exclude only cancelled/no-show statuses and therefore still block completed appointments; resource/device already excludes completed. This is evidence for a safe data preflight at this moment, not permission to apply the branch migration. WP-8 remains blocked pending complete lineage reconciliation and release review.

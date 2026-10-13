@@ -1,3 +1,7 @@
+> **Latest CSAPI execution state — 2026-10-13:** Gate 04 is active. Candidate `f7a3d828ff2d133ca4797d8153fd5758e077e1dc` passed Workstream Verification #1010 and Governance #270. The Gate 04 matrix and continuation handoff are current as of this verification. WP-7 remains OPEN; WP-8 remains BLOCKED. Continue from `docs/CSAPI/CSAPI-GATE-04-CONTINUATION-HANDOFF-2026-10-11.md`. Do not merge, deploy, or mutate hosted Supabase/migration history.
+
+---
+
 > **Latest CSAPI execution state — 2026-10-13:** Gate 04 is active. Last verified candidate: `0ae0f02e93ebf8bbbb506ff6c70ee31f42068b08` (Workstream Verification #1009 PASS; Engineering Governance #269 PASS). Current branch contains the next code candidate adding normal-reschedule and no-show database verification; its exact-head CI is pending. Continue using the Gate 04 operational handoff and scenario evidence matrix linked below. WP-7 OPEN, WP-8 BLOCKED; do not merge, deploy, or mutate hosted Supabase/history.
 
 ---
