@@ -23,15 +23,15 @@
 | 4 | Booking requiring a device/resource | No device/resource scenario probe. | GAP |
 | 5 | Provider + room + device simultaneously feasible | No combined feasibility scenario probe. | GAP |
 | 6 | Provider unavailable | No direct negative booking scenario. | GAP |
-| 7 | Room conflict | Live exclusion constraint exists; no scenario-level competing booking probe. | PARTIAL |
-| 8 | Resource conflict | Live exclusion constraint exists; no scenario-level competing booking probe. | PARTIAL |
-| 9 | Patient conflict | Live exclusion constraint exists; no scenario-level competing booking probe. | PARTIAL |
+| 7 | Room conflict | Isolated clean-replay DB probe rejects an active overlapping booking for the same room; after the first appointment completes, an overlapping booking is accepted. | PASS |
+| 8 | Resource conflict | Isolated clean-replay DB probe rejects an active overlapping booking for the same resource/device; after completion, an overlapping booking is accepted. | PASS |
+| 9 | Patient conflict | Isolated clean-replay DB probe verifies completed appointment releases the patient interval and active overlapping appointment is rejected. | PASS |
 | 10 | Confirmation | Protected transition `scheduled → confirmed` and STATUS_CHANGE audit verified in isolated local DB. | PASS |
 | 11 | Normal reschedule | Cancelled appointment rebooking is verified; rescheduling a scheduled/confirmed appointment is not independently exercised. | PARTIAL |
 | 12 | Normal cancellation | Protected cancel command, reason, actor, and CANCEL audit verified in isolated local DB. | PASS |
 | 13 | No-show | No direct no-show transition scenario. | GAP |
 | 14 | Arrival/status progression | Confirmation is tested; arrived → in_session → completed path is not. | PARTIAL |
-| 15 | Completed appointment no longer blocks active conflicts | The app conflict engine excludes completed, but hosted DB constraints for doctor, patient, and room still include completed in their exclusion predicates; only resource excludes it. The repo patient migration expects a different predicate, and no repo migration definition for the live room constraint was found. | GAP — constraint/schema mismatch confirmed |
+| 15 | Completed appointment no longer blocks active conflicts | Branch-only forward migration aligns all four exclusion predicates. On the exact candidate, isolated clean replay passed separate patient, provider, room, and resource/device probes: completion releases the interval and an active overlap is still rejected. Hosted schema remains unchanged pending WP-8 release review. | PASS — branch-local verification |
 | 16 | Tenant-local wall-clock values persist as correct UTC values | Test tenant uses Asia/Amman, but the DB probe passes UTC timestamps directly; conversion behavior is not tested. | GAP |
 | 17 | Buffer prevents adjacent conflicting booking | No adjacent-booking buffer probe. | GAP |
 | 18 | Late arrival does not mutate planned time | No late-arrival scenario. | GAP |
@@ -44,7 +44,7 @@
 | 25 | Provider eligibility uses explicit Workforce capability | Live capability table exists and source code consults it; configured allowed/denied provider cases are not tested. | PARTIAL |
 | 26 | Required resource unavailable rejects booking | No configured required-resource scenario; historical resource requirement table is not active. | GAP |
 | 27 | Optional resource does not create a hard block | No optional-resource scenario. | GAP |
-| 28 | Default exclusive resource cannot overlap | Live room/resource exclusion constraints exist; no competing requests are executed. | PARTIAL |
+| 28 | Default exclusive resource cannot overlap | Isolated clean-replay resource/device probe confirms active overlapping requests are rejected; no capacity engine is introduced. | PASS |
 | 29 | Explicit shared/capacity policy behaves as configured | No configured capacity/shared policy scenario; do not infer a capacity engine. | GAP |
 | 30 | Consumable shortage does not block booking automatically | No consumable-shortage scenario. | GAP |
 | 31 | Treatment Plan Next Action requests an Agenda-owned appointment | No direct Treatment Plan → Agenda E2E evidence on this candidate. | GAP |
@@ -68,32 +68,24 @@
 | Unauthorized audit-detail disclosure is blocked | No dedicated disclosure-level test. | GAP |
 | Two competing requests cannot both acquire an exclusive provider/room/resource | No concurrent competing-booking test. | GAP |
 
-## Confirmed completed-appointment constraint mismatch — 2026-10-13
+## Completed-appointment conflict policy — branch verification result
 
-The application conflict query excludes `cancelled`, `no_show`, and `completed`. Read-only `pg_get_constraintdef` on hosted Supabase shows:
+The earlier read-only inspection identified a mismatch between the hosted exclusion predicates and the application lifecycle. A forward-only branch migration, `20261013100000_csapi_gate04_completed_appointment_conflict_policy.sql`, now aligns the doctor, patient, room, and resource/device exclusion predicates with the approved active-conflict lifecycle.
 
-- `no_doctor_overlap`: excludes only `cancelled` and `no_show`;
-- `no_patient_overlap`: excludes only `cancelled` and `no_show`, while repository migration `20260830030349_ajm_reality_audit_patient_overlap_constraint.sql` excludes `completed` too;
-- `no_room_overlap`: excludes only `cancelled` and `no_show`, and no matching constraint definition was found in the repository migration SQL;
-- `no_resource_overlap`: excludes `cancelled`, `no_show`, and `completed`.
+On candidate `972786d6569e5e596a6974a8c2e5fde155a6f727`, Workstream Verification #1008 passed, including clean local migration replay and separate patient/provider/room/resource-device flow probes. Each tested dimension allows a new overlapping booking after completion and rejects an active overlap. This is evidence for the branch's clean-replay state only; it does **not** mean the migration was applied to hosted Supabase. Hosted schema/data/history remain unchanged. The migration-lineage and read-only active-overlap preflight remain WP-8 release blockers.
 
-Therefore scenario 15 is not just untested: the live schema predicate is inconsistent with the application conflict rule, and the repository migration chain does not fully represent the live room constraint. This is a Gate 04 verification defect plus WP-8 lineage evidence. Do not silently alter the live constraints. The technical repair plan is a forward-only migration aligning all four exclusion predicates with the approved active-conflict lifecycle, plus clean-replay checks that completed appointments release conflicts while active appointments remain exclusive. Before release, run a read-only data preflight for overlapping active rows and finish migration-lineage reconciliation. No hosted change is authorized here.
+## WP-8 read-only schema and migration-lineage observations — 2026-10-13
 
-## WP-8 read-only schema observations — 2026-10-13
-
-The hosted Supabase project was queried read-only. No hosted schema, data, or migration history was changed.
-
-- Present: `master_agenda_events`, `clinic_provider_availability`, `workforce_staff_schedules`, and `workforce_procedure_capabilities`.
-- Present on `master_agenda_events`: exclusion constraints `no_doctor_overlap`, `no_patient_overlap`, `no_resource_overlap`, and `no_room_overlap`.
-- `workforce_procedure_capabilities` has tenant-scoped policies and indexes; this supports object presence, not proof that a particular migration body was applied unchanged.
-- `clinic_procedure_resources` is absent from the live schema even though hosted history contains a resource-requirement migration under another version key. The approved Gate 04 contract explicitly prohibits resurrecting this historical model merely by replaying old migration files.
-- Fresh inventory remains: 238 repository SQL migration files (233 canonical 14-digit keys plus 5 shorter legacy files), 292 hosted history rows, 121 shared keys, 112 repository-only keys, 171 hosted-only keys, and 12 shared-key name mismatches.
-- A fresh exact-name triage did not reproduce the earlier handoff's stated 82/80/82 candidate counts: this pass found 71 repository-only canonical keys with exact-name hosted candidates and 72 hosted-only rows with exact-name repository candidates. The matching-method discrepancy is unresolved; neither count is equivalence proof.
+- Hosted schema objects and constraints were inspected read-only; no hosted schema, data, or migration history was changed.
+- `clinic_procedure_resources` is absent from live schema. The approved Gate 04 contract prohibits resurrecting that historical model merely by replaying old migration files.
+- Fresh inventory at repository SHA `25bbb3c27f00f662ae438d2f9cbdcc1d8f2cebc6`: 240 repository SQL files, 234 canonical 14-digit migration files, 6 noncanonical legacy files, 292 hosted migration-history rows, 121 shared version keys, 113 repository-only version keys, 171 hosted-only rows, and 12 shared version keys with different names.
+- Exact-name triage identified 71 repository-only version keys with same-name hosted candidates and 72 hosted-only rows with same-name repository candidates. 42 repository-only versions and 99 hosted-only rows have no exact-name candidate. Name matching is correlation only, not proof of identical SQL or effects.
+- Five canonical Gate 04 migrations are branch-only and must be accounted for separately; no hosted history row was inserted or rewritten.
 
 ## Exit disposition
 
-- **WP-7 remains OPEN.** Exact-head CI is green, but the explicit scenario gaps above prevent integrated-verification closure.
-- **WP-8 remains BLOCKED.** Version/name inventory and selected schema observations are not a complete migration-lineage reconciliation.
+- **WP-7 remains OPEN.** Exact-head CI is green, but the remaining scenario gaps in the matrix prevent integrated-verification closure.
+- **WP-8 remains BLOCKED.** The refreshed version/name inventory and selected schema observations are not a complete migration-lineage reconciliation, and hosted preflight/release review remain outstanding.
 - PR #242 remains Draft/open/unmerged. No hosted migration application/history edits, merge, or production promotion is authorized by this checkpoint.
 
 
@@ -112,3 +104,8 @@ Workstream #1004 and Governance #264 passed on this exact candidate. The isolate
 - **Evidence status remains PARTIAL / PENDING exact-head CI.** These new probes are implementation, not evidence of success until the local database lane passes on this exact revision. Do not upgrade scenario 15 to PASS beforehand.
 - The most recent documentation-only candidate `b89a408234aac26e707d22f60152bbf59eac0f0c` had a passing Gate 04 database lane but failed the unrelated global presentation runtime lane while waiting for `global-header` visibility after repeated “destination stream closed early” errors. The targeted retry was initiated; no retry result is assumed here.
 - Scope remains Gate 04 WP-7. WP-7 stays OPEN pending exact-head results and remaining scenarios; WP-8 stays BLOCKED. Branch-only changes: no hosted Supabase mutation/history edits, PR merge, or production promotion.
+
+
+## Exact-head verification refresh — 2026-10-13
+
+Workstream Verification #1008 and Engineering Governance #268 passed on `972786d6569e5e596a6974a8c2e5fde155a6f727`. The local database lane explicitly passed clean replay, schema/security inspection, protected command boundary, direct table-write ACL, audit trigger/RLS checks, and the Gate 04 appointment command/audit flow. Scenario rows 7, 8, 9, 15 and 28 are updated from the new dimension-specific probes. Other rows are not upgraded merely because CI is green. Any subsequent documentation commit is a new candidate and must pass exact-head verification again.

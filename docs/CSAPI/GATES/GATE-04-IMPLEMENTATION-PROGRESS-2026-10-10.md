@@ -1,3 +1,7 @@
+> **Current-state addendum — 2026-10-13:** Latest verified candidate `972786d6569e5e596a6974a8c2e5fde155a6f727`; Workstream Verification [#1008 PASS](https://github.com/mdcode2026-core-sys/Core-System-clinic-/actions/runs/38383256056), Engineering Governance [#268 PASS](https://github.com/mdcode2026-core-sys/Core-System-clinic-/actions/runs/38383256172). Exact-head clean local DB replay and dimension-specific completed-release/active-overlap probes passed for patient, provider, room, and resource/device. Scenario 15 and scenarios 7–9/28 are now supported by direct branch-local evidence; remaining matrix gaps still keep WP-7 OPEN. WP-8 remains BLOCKED. Current lineage snapshot is `docs/CSAPI/GATES/GATE-04-WP8-MIGRATION-LINEAGE-SNAPSHOT-2026-10-13.json`; hosted Supabase schema, data, and migration history were not modified. PR #242 remains Draft/open/unmerged. The following older record is historical; use this addendum for current state.
+
+---
+
 # Gate 04 — Implementation Progress Record
 
 **Record date:** 2026-10-10  

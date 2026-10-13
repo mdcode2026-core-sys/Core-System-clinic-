@@ -1,3 +1,7 @@
+> **Current-state override — 2026-10-13 (read this before older historical sections):** The current branch head at this checkpoint is `972786d6569e5e596a6974a8c2e5fde155a6f727`. Workstream Verification [#1008](https://github.com/mdcode2026-core-sys/Core-System-clinic-/actions/runs/38383256056) and Engineering Governance [#268](https://github.com/mdcode2026-core-sys/Core-System-clinic-/actions/runs/38383256172) passed on that exact SHA. The isolated Gate 04 database lane passed clean migration replay and separate completed-release/active-overlap probes for patient, provider, room, and resource/device. Scenario 15 is now PASS for branch-local clean replay; hosted Supabase remains unchanged. Refreshed WP-8 snapshot: `docs/CSAPI/GATES/GATE-04-WP8-MIGRATION-LINEAGE-SNAPSHOT-2026-10-13.json`, committed in `972786d`. Latest repository counts: 240 SQL files / 234 canonical / 6 legacy; 292 hosted rows; 121 shared, 113 repository-only, 171 hosted-only, 12 shared-name mismatches; 42 repository-only and 99 hosted-only entries have no exact-name candidate. PR #242 remains Draft/open/unmerged. WP-7 remains OPEN for remaining scenario gaps; WP-8 remains BLOCKED for complete lineage reconciliation and release preflight. Any documentation update below creates a new candidate and requires exact-head CI. Do not repeat old status statements below as current evidence.
+
+---
+
 # CSAPI Gate 04 — Operational Continuation Handoff
 **Record date:** 2026-10-12  
 **Status:** ACTIVE — CONTINUE IMPLEMENTATION / VERIFICATION; NOT CLOSED  
