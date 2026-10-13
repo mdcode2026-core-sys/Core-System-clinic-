@@ -1,3 +1,7 @@
+> **Latest Gate 04 state — 2026-10-13:** Relevant lanes on `53624e96010816e763da9c98f39ea52932f02d8b` passed: Gate 04 static (room/resource conflict + combined feasibility probes) and isolated database replay. Overall Workstream #1016 failed on unrelated authenticated route `/financial-resources/financial-plans` with repeated Next.js stream-closure errors; a same-job retry was superseded to continue Gate 04 coverage. Current candidate adds database evidence for buffer exclusion and late-arrival time preservation; exact-head CI pending. Scenario 16 timezone behavior remains PASS. WP-7 OPEN; WP-8 BLOCKED; no hosted writes, merge or production promotion.
+
+---
+
 > **Latest verified checkpoint — 2026-10-13:** Candidate `94a2ad508aff6ffa49ddabefda1a8c2c85198b48` passed Workstream Verification #1015 and Governance #275. Timezone behavior is resolved for the frozen helper scenario. Current code candidate adds direct isolated runtime assertions for room/resource conflicts and combined provider-room-device feasibility through the actual conflict and availability engines; exact-head CI pending. Scenarios 3–5 are PARTIAL until full protected mutation submission and owning-domain requirement configuration are covered. WP-7 OPEN; WP-8 BLOCKED. No hosted writes, merge or production promotion.
 
 ---

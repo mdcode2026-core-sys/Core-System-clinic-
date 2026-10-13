@@ -33,8 +33,8 @@
 | 14 | Arrival/status progression | Isolated DB flow exercises `scheduled → confirmed → arrived → in_session → completed` for patient/provider/room/resource-device conflict scenarios. | PASS |
 | 15 | Completed appointment no longer blocks active conflicts | Branch-only forward migration aligns all four exclusion predicates. On the exact candidate, isolated clean replay passed separate patient, provider, room, and resource/device probes: completion releases the interval and an active overlap is still rejected. Hosted schema remains unchanged pending WP-8 release review. | PASS — branch-local verification |
 | 16 | Tenant-local wall-clock values persist as correct UTC values | Exact-head Gate 04 static lane executes the real `tenantLocalToUtc` and `utcToTenantInput` helpers: Asia/Amman 09:00 local converts to 06:00Z, round-trips to 09:00, and explicit-offset input remains absolute. | PASS — helper behavior verified |
-| 17 | Buffer prevents adjacent conflicting booking | No adjacent-booking buffer probe. | GAP |
-| 18 | Late arrival does not mutate planned time | No late-arrival scenario. | GAP |
+| 17 | Buffer prevents adjacent conflicting booking | Isolated clean-replay DB probe sets a 15-minute buffer: same-resource booking inside the buffer is rejected, and a booking after buffer end succeeds. | PASS |
+| 18 | Late arrival does not mutate planned time | Isolated clean-replay DB probe transitions `scheduled → confirmed → arrived` and asserts `scheduled_start` is unchanged. | PASS |
 | 19 | Overrun does not create a second scheduler state | No overrun scenario. | GAP |
 | 20 | Workforce working pattern permits booking | No positive schedule/availability integration probe. | GAP |
 | 21 | Approved leave/unavailability blocks booking | No direct leave/unavailability scenario. | GAP |
@@ -144,3 +144,8 @@ The next candidate replaces the previous direct-URL-only E2E with two read-only 
 ## Provider / room / device feasibility probes — isolated runtime (2026-10-13)
 
 The Gate 04 static lane now transpiles and executes the real `conflict.engine.ts` against deterministic overlapping event rows. It asserts that room overlap returns the `room` conflict rule and device/resource overlap returns the `resource` rule. A combined scenario executes the real availability engine for a provider plus room, then the conflict engine for provider, room, device/resource and patient with no overlapping event; the candidate is accepted by both engines. These probes are intentionally classified PARTIAL for scenarios 3–5 because they do not submit through the full protected mutation service or configure authoritative procedure resource requirements. No capacity/resource-requirement model is inferred or activated.
+
+
+## Buffer and late-arrival lifecycle probes — isolated database (2026-10-13)
+
+The clean local replay now verifies a 15-minute exclusive-resource buffer: an overlapping booking beginning 5 minutes before buffer end is rejected by the database exclusion constraint, while a new booking beginning 5 minutes after buffer end succeeds. A separate appointment is transitioned to `confirmed` and `arrived`; the stored planned `scheduled_start` must remain identical. These checks do not alter hosted data and do not create an additional scheduler state.

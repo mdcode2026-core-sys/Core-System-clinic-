@@ -254,6 +254,10 @@ try {
       v_no_show_event public.master_agenda_events%ROWTYPE;
       v_no_show_overlap public.master_agenda_events%ROWTYPE;
       v_reschedule_event public.master_agenda_events%ROWTYPE;
+      v_buffer_event public.master_agenda_events%ROWTYPE;
+      v_buffer_after_event public.master_agenda_events%ROWTYPE;
+      v_late_event public.master_agenda_events%ROWTYPE;
+      v_planned_start timestamptz;
       v_count integer;
       v_status text;
     BEGIN
@@ -425,6 +429,54 @@ try {
         'gate04 no-show provider interval released');
       IF v_no_show_overlap.id IS NULL OR v_no_show_overlap.status <> 'scheduled' THEN
         RAISE EXCEPTION 'GATE04_NO_SHOW_PROVIDER_INTERVAL_STILL_BLOCKS';
+      END IF;
+
+      -- Buffer time is exclusive capacity: a booking inside the buffer is rejected,
+      -- while a booking starting after the buffer end is accepted.
+      SELECT * INTO v_buffer_event FROM public.agenda_create_appointment(
+        v_tenant_id, v_clinic_user_id, v_patient_id, NULL, NULL, v_resource_id, NULL, NULL,
+        now() + interval '10 days',
+        now() + interval '10 days 30 minutes',
+        now() + interval '10 days 45 minutes',
+        'gate04 buffer owner');
+      BEGIN
+        PERFORM public.agenda_create_appointment(
+          v_tenant_id, v_clinic_user_id, v_patient_doctor_probe_id, NULL, NULL, v_resource_id, NULL, NULL,
+          now() + interval '10 days 35 minutes',
+          now() + interval '10 days 65 minutes',
+          now() + interval '10 days 65 minutes',
+          'gate04 booking inside buffer must fail');
+        RAISE EXCEPTION 'GATE04_BUFFER_CONFLICT_WAS_ACCEPTED';
+      EXCEPTION WHEN exclusion_violation THEN
+        NULL;
+      END;
+      SELECT * INTO v_buffer_after_event FROM public.agenda_create_appointment(
+        v_tenant_id, v_clinic_user_id, v_patient_room_probe_id, NULL, NULL, v_resource_id, NULL, NULL,
+        now() + interval '10 days 50 minutes',
+        now() + interval '10 days 80 minutes',
+        now() + interval '10 days 80 minutes',
+        'gate04 booking after buffer accepted');
+      IF v_buffer_after_event.id IS NULL OR v_buffer_after_event.status <> 'scheduled' THEN
+        RAISE EXCEPTION 'GATE04_BOOKING_AFTER_BUFFER_FAILED';
+      END IF;
+
+      -- Arrival records lifecycle progress but never rewrites the planned appointment time.
+      SELECT * INTO v_late_event FROM public.agenda_create_appointment(
+        v_tenant_id, v_clinic_user_id, v_patient_resource_probe_id, v_clinic_user_id, NULL, NULL, NULL, NULL,
+        now() + interval '11 days',
+        now() + interval '11 days 30 minutes',
+        now() + interval '11 days 30 minutes',
+        'gate04 late arrival preserves planned time');
+      v_planned_start := v_late_event.scheduled_start;
+      PERFORM public.agenda_transition_appointment(
+        v_tenant_id, v_clinic_user_id, v_late_event.id, 'scheduled', 'confirmed');
+      PERFORM public.agenda_transition_appointment(
+        v_tenant_id, v_clinic_user_id, v_late_event.id, 'confirmed', 'arrived');
+      SELECT scheduled_start INTO v_planned_start
+      FROM public.master_agenda_events
+      WHERE id = v_late_event.id AND tenant_id = v_tenant_id;
+      IF v_planned_start IS DISTINCT FROM v_late_event.scheduled_start THEN
+        RAISE EXCEPTION 'GATE04_LATE_ARRIVAL_CHANGED_PLANNED_TIME';
       END IF;
 
       -- Complete the first appointment through the permitted lifecycle.

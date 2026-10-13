@@ -606,3 +606,6 @@ Read-only comparison found the application conflict engine excludes completed ap
 
 
 | 2026-10-13 | Add real-engine room/resource feasibility probes | Actual `conflict.engine.ts` is executed in isolated deterministic checks for room conflict, device/resource conflict and combined provider+room+device feasibility | Implemented; exact-head verification pending | Scenarios 3–5 move from GAP to PARTIAL because full protected mutation submit and authoritative resource-requirement configuration remain untested | Run exact-head CI; then address next uncovered WP-7 scenarios without reopening verified timezone helper work |
+
+
+| 2026-10-13 | Verify buffer semantics and late arrival | Isolated local DB probes: resource overlap inside 15-minute buffer rejected; booking after buffer accepted; arrival transition preserves planned `scheduled_start` | Implemented; exact-head verification pending | Scenarios 17 and 18 now have direct executable assertions; hosted DB unchanged | Verify exact candidate; continue remaining WP-7 gaps |

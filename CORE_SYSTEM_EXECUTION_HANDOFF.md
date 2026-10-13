@@ -1,3 +1,7 @@
+> **Latest CSAPI execution state — 2026-10-13:** Gate 04 is active. Candidate `53624e96010816e763da9c98f39ea52932f02d8b` passed Gate 04 static and isolated DB lanes; Workstream #1016 failed only in unrelated authenticated-route E2E due to login redirect plus stream-closure errors. Current candidate adds direct DB probes for resource-buffer exclusion and late-arrival planned-time preservation; exact-head verification pending. Timezone scenario 16 is already PASS. Continue from `docs/CSAPI/CSAPI-GATE-04-CONTINUATION-HANDOFF-2026-10-11.md`. WP-7 OPEN, WP-8 BLOCKED; no hosted mutation, merge or deployment.
+
+---
+
 > **Latest CSAPI execution state — 2026-10-13:** Gate 04 is active. Last verified SHA `94a2ad508aff6ffa49ddabefda1a8c2c85198b48` passed Workstream Verification #1015 and Governance #275. The current code candidate adds isolated real-engine probes for room/resource conflict rejection and combined provider-room-device feasibility; exact-head CI pending. Timezone helper behavior is closed as PASS for scenario 16. Continue from `docs/CSAPI/CSAPI-GATE-04-CONTINUATION-HANDOFF-2026-10-11.md`. WP-7 OPEN, WP-8 BLOCKED; no hosted mutation, merge or deployment.
 
 ---
