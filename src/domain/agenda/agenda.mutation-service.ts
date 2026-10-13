@@ -73,7 +73,7 @@ async function resolveBufferEnd(supabase: Awaited<ReturnType<typeof createClient
   const bufferMinutes = Number(data?.buffer_time_minutes ?? 0);
   if (!Number.isFinite(bufferMinutes) || bufferMinutes <= 0) return scheduledEnd;
   const end = new Date(scheduledEnd);
-  end.setMinutes(end.getMinutes() + Math.min(bufferMinutes, 120));
+  end.setTime(end.getTime() + Math.min(bufferMinutes, 120) * 60_000);
   return end.toISOString();
 }
 

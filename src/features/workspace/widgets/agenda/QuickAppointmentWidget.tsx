@@ -4,6 +4,7 @@ import { useState } from "react";
 import type { WidgetComponentProps } from "@/core/workspace/workspace.types";
 import { createAgendaEvent } from "@/domain/agenda/agenda.actions";
 import { isProviderRequired } from "@/domain/agenda/procedure-resource-requirements";
+import { addMinutesToLocalDateTime } from "@/shared/utils/dateTime";
 import { useDoctors, useRooms, useProcedures } from "@/domain/agenda/agenda.queries";
 import { usePatients } from "@/domain/patients/patients.queries";
 import { useTenantId } from "@/core/auth/useTenantId";
@@ -32,9 +33,7 @@ export function QuickAppointmentWidget(_props: WidgetComponentProps) {
     setIsSubmitting(true);
     try {
       const scheduledEndLocal = form.end_time || (() => {
-        const localAsUtc = new Date(`${form.start_time}:00Z`);
-        localAsUtc.setUTCMinutes(localAsUtc.getUTCMinutes() + selectedProcedure!.standard_duration_minutes);
-        return localAsUtc.toISOString().slice(0, 16);
+        return addMinutesToLocalDateTime(form.start_time, selectedProcedure!.standard_duration_minutes);
       })();
       const fd = new FormData();
       fd.set("patient_id", form.patient_id);

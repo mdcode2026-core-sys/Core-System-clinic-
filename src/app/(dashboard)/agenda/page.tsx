@@ -15,6 +15,7 @@ import { usePatients } from "@/domain/patients/patients.queries";
 import { AuthContext } from "@/core/auth/AuthContext";
 import { createClient } from "@/infrastructure/supabase/client";
 import type { AgendaEventWithRelations, CalendarRange } from "@/domain/agenda/agenda.types";
+import { getTenantWeekRangeUtc } from "@/shared/utils/dateTime";
 import type { Patient } from "@/domain/patients/patients.types";
 
 export default function AgendaPage() {
@@ -46,17 +47,7 @@ export default function AgendaPage() {
     return () => { cancelled = true; };
   }, [tenantId]);
 
-  const calendarRange = useMemo<CalendarRange>(() => {
-    const start = new Date(currentDate);
-    const day = start.getDay();
-    start.setDate(start.getDate() - day);
-    start.setHours(0, 0, 0, 0);
-    const end = new Date(start);
-    end.setDate(start.getDate() + 6);
-    end.setHours(23, 59, 59, 999);
-    return { start: start.toISOString(), end: end.toISOString() };
-  }, [currentDate]);
-
+  const calendarRange = useMemo<CalendarRange>(() => getTenantWeekRangeUtc(currentDate, tenantTimezone), [currentDate, tenantTimezone]);
   const { data: events = [], isLoading: eventsLoading } = useAgendaEventsWithRelations(tenantId, calendarRange);
   const { data: patientsData = [], isLoading: patientsLoading } = usePatients(tenantId);
   const { data: doctorsData = [], isLoading: doctorsLoading } = useDoctors(tenantId);
