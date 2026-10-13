@@ -341,6 +341,61 @@ try {
         AND reason = 'appointment_rescheduled'
         AND actor_id = v_clinic_user_id;
       IF v_count <> 1 THEN RAISE EXCEPTION 'GATE04_REBOOK_AUDIT_FAILED count=%', v_count; END IF;
+
+      -- Complete the first appointment through the permitted lifecycle.
+      PERFORM public.agenda_transition_appointment(
+        v_tenant_id, v_clinic_user_id, v_event.id, 'scheduled', 'confirmed'
+      );
+      PERFORM public.agenda_transition_appointment(
+        v_tenant_id, v_clinic_user_id, v_event.id, 'confirmed', 'arrived'
+      );
+      PERFORM public.agenda_transition_appointment(
+        v_tenant_id, v_clinic_user_id, v_event.id, 'arrived', 'in_session'
+      );
+      PERFORM public.agenda_transition_appointment(
+        v_tenant_id, v_clinic_user_id, v_event.id, 'in_session', 'completed'
+      );
+
+      -- A completed appointment must release the patient conflict interval.
+      SELECT * INTO v_event
+      FROM public.agenda_create_appointment(
+        v_tenant_id, v_clinic_user_id, v_patient_id,
+        NULL, NULL, NULL, NULL, NULL,
+        now() + interval '2 days 10 minutes',
+        now() + interval '2 days 40 minutes',
+        now() + interval '2 days 40 minutes',
+        'gate04 completed interval released'
+      );
+      IF v_event.id IS NULL OR v_event.status <> 'scheduled' THEN
+        RAISE EXCEPTION 'GATE04_COMPLETED_INTERVAL_STILL_BLOCKS_BOOKING';
+      END IF;
+
+      -- The new active appointment must still exclude another active booking.
+      BEGIN
+        PERFORM public.agenda_create_appointment(
+          v_tenant_id, v_clinic_user_id, v_patient_id,
+          NULL, NULL, NULL, NULL, NULL,
+          now() + interval '2 days 15 minutes',
+          now() + interval '2 days 45 minutes',
+          now() + interval '2 days 45 minutes',
+          'gate04 active competing interval'
+        );
+        RAISE EXCEPTION 'GATE04_ACTIVE_PATIENT_CONFLICT_WAS_ACCEPTED';
+      EXCEPTION WHEN exclusion_violation THEN
+        NULL;
+      END;
+
+      -- All four canonical database conflict predicates must agree on lifecycle.
+      IF (
+        SELECT count(*) FROM pg_constraint
+        WHERE conrelid = 'public.master_agenda_events'::regclass
+          AND conname IN ('no_doctor_overlap','no_patient_overlap','no_room_overlap','no_resource_overlap')
+          AND pg_get_constraintdef(oid) ILIKE '%completed%'
+          AND pg_get_constraintdef(oid) ILIKE '%cancelled%'
+          AND pg_get_constraintdef(oid) ILIKE '%no_show%'
+      ) <> 4 THEN
+        RAISE EXCEPTION 'GATE04_CONFLICT_CONSTRAINT_POLICY_MISMATCH';
+      END IF;
     END;
     $gate04_flow$;
 
