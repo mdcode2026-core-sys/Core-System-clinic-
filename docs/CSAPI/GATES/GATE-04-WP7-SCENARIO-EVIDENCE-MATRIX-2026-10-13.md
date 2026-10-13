@@ -1,8 +1,12 @@
+> **Verification result correction — 2026-10-14:** Workstream Verification #1026 on candidate `ec6b6572ed679c65f379f0b9d13a70ed263d4840` subsequently completed **PASS**: all 11 verification lanes and the final gate succeeded. Engineering Governance #286 also passed on that candidate. Scenario 19 is therefore PASS on direct branch-local DB evidence and the exact implementation candidate is fully verified. The later documentation-only candidate `369278b00dcbfb25f0f78e8925b1edb91f5fb3e0` started Workstream Verification #1027, but that run is superseded by this status correction; the new documentation candidate created by this correction requires its own exact-head verification. Do not report the current documentation head as verified until its run completes.
+
+---
+
 # Gate 04 — WP-7 Scenario Evidence Matrix
 
 **Record date:** 2026-10-14  
 **Last fully verified candidate:** `66a76b200d7871a5e4e1870727d9150b7fd5db4d` — Workstream #1022 PASS / Governance #282 PASS.  
-**Latest scenario-specific candidate:** `ec6b6572ed679c65f379f0b9d13a70ed263d4840` — Gate 04 database lane PASS in Workstream #1026; the full Workstream run remains IN PROGRESS because authenticated E2E has not completed.  
+**Latest fully verified implementation candidate:** `ec6b6572ed679c65f379f0b9d13a70ed263d4840` — Workstream Verification #1026 PASS (all 11 lanes + final gate) and Engineering Governance #286 PASS.  
 **Engineering Governance:** #286 — PASS on `ec6b6572ed679c65f379f0b9d13a70ed263d4840`.  
 **Gate status:** OPEN — this matrix is a coverage reconciliation, not a closure declaration.
 
@@ -168,5 +172,5 @@ Scenarios 20, 21, 23, 24 and 25 are now directly exercised against the actual Ty
 ### Scenario 19 exact evidence update — 2026-10-14
 
 - Added an isolated local database scenario that creates a past-ended appointment, moves it through `scheduled → confirmed → arrived → in_session`, and asserts exactly one appointment record remains, planned start/end remain unchanged, and status remains `in_session`.
-- The `csapi-gate04-database` lane passed on candidate `ec6b6572ed679c65f379f0b9d13a70ed263d4840` in Workstream Verification #1026. This is direct scenario-level evidence; it does not certify the overall Workstream run because authenticated E2E remains in progress.
+- The `csapi-gate04-database` lane passed on candidate `ec6b6572ed679c65f379f0b9d13a70ed263d4840` in Workstream Verification #1026. This is direct scenario-level evidence; Workstream Verification #1026 subsequently completed PASS across all 11 lanes and the final gate.
 - No hosted Supabase schema/data/history change, merge, or production promotion occurred. WP-7 remains OPEN for remaining gaps; WP-8 remains BLOCKED.
