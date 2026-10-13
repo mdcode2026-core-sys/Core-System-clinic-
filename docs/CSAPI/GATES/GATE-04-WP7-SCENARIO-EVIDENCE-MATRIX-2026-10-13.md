@@ -32,7 +32,7 @@
 | 13 | No-show | Isolated DB flow transitions `confirmed → no_show`, verifies STATUS_CHANGE audit, and verifies the no-show provider interval no longer blocks a new booking. | PASS |
 | 14 | Arrival/status progression | Isolated DB flow exercises `scheduled → confirmed → arrived → in_session → completed` for patient/provider/room/resource-device conflict scenarios. | PASS |
 | 15 | Completed appointment no longer blocks active conflicts | Branch-only forward migration aligns all four exclusion predicates. On the exact candidate, isolated clean replay passed separate patient, provider, room, and resource/device probes: completion releases the interval and an active overlap is still rejected. Hosted schema remains unchanged pending WP-8 release review. | PASS — branch-local verification |
-| 16 | Tenant-local wall-clock values persist as correct UTC values | Test tenant uses Asia/Amman, but the DB probe passes UTC timestamps directly; conversion behavior is not tested. | GAP |
+| 16 | Tenant-local wall-clock values persist as correct UTC values | Exact-head Gate 04 static lane executes the real `tenantLocalToUtc` and `utcToTenantInput` helpers: Asia/Amman 09:00 local converts to 06:00Z, round-trips to 09:00, and explicit-offset input remains absolute. | PASS — helper behavior verified |
 | 17 | Buffer prevents adjacent conflicting booking | No adjacent-booking buffer probe. | GAP |
 | 18 | Late arrival does not mutate planned time | No late-arrival scenario. | GAP |
 | 19 | Overrun does not create a second scheduler state | No overrun scenario. | GAP |
@@ -124,3 +124,8 @@ A fresh read-only query against hosted `master_agenda_events` found **0 active o
 ## Tenant-local wall-clock verification added — pending (2026-10-13)
 
 The next candidate adds executable checks that import and run the actual `tenantLocalToUtc` / `utcToTenantInput` helpers from `src/shared/utils/dateTime.ts`: Asia/Amman wall-clock 09:00 converts to 06:00Z, round-trips to 09:00 local, and an explicitly offset-aware input remains absolute. Scenario 16 remains GAP until the exact-head Gate 04 static lane passes with these behavioral assertions. No status upgrade is inferred from code presence alone.
+
+
+## Provider availability behavior probes added — pending (2026-10-13)
+
+The next candidate extends the Gate 04 static audit to execute the actual `checkAvailability` implementation with an isolated Supabase-client double. It asserts: a booking inside configured Asia/Amman provider hours is allowed; a booking outside those hours is rejected; a provider with an overlapping active booking is rejected; and a provider-required booking without a provider is rejected. Scenarios 2 and 6 remain GAP until the exact-head static lane passes with these behavioral assertions.

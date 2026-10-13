@@ -174,6 +174,87 @@ check("offset-aware-datetime-remains-absolute",
   explicitOffsetUtc === "2026-10-14T06:00:00.000Z",
   `output=${explicitOffsetUtc}`);
 
+// Exercise the real Agenda availability engine with an isolated Supabase-client double.
+// No network/database is used: query responses are controlled so working-hours and busy-provider
+// decisions are behavioral assertions against the TypeScript implementation.
+const availabilitySource = read("src/domain/agenda/availability.engine.ts");
+const availabilityJavaScript = ts.transpileModule(availabilitySource, {
+  compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022 },
+}).outputText.replace(
+  'import { createClient } from "@/infrastructure/supabase/server";',
+  'const createClient = async () => { throw new Error("Unexpected default Supabase client in isolated verification"); };',
+);
+const availabilityModuleUrl = `data:text/javascript;base64,${Buffer.from(availabilityJavaScript).toString("base64")}`;
+const availabilityEngine = await import(availabilityModuleUrl);
+function createAvailabilityClient({ occupied = false, schedule = [{ day_of_week: 3, start_time: "09:00:00", end_time: "17:00:00", is_active: true }] } = {}) {
+  function resultFor(table, state) {
+    if (table === "master_tenants") return { data: { timezone: "Asia/Amman" }, error: null };
+    if (table === "workforce_employees") return { data: null, error: null };
+    if (table === "clinic_provider_availability") return { data: schedule, error: null };
+    if (table === "master_agenda_events") {
+      const bookingConflictQuery = state.operations.includes("lt") && state.operations.includes("gt");
+      return { data: occupied && bookingConflictQuery && state.filters.doctor_id === "doctor-1" ? [{ id: "occupied-event" }] : [], error: null };
+    }
+    return { data: [], error: null };
+  }
+  return {
+    from(table) {
+      const state = { filters: {}, operations: [] };
+      const query = {
+        select() { return this; },
+        eq(key, value) { state.filters[key] = value; return this; },
+        is(key, value) { state.filters[key] = value; return this; },
+        neq(key, value) { state.filters[key] = value; return this; },
+        or() { return this; },
+        order() { return this; },
+        in(key, value) { state.filters[key] = value; state.operations.push("in"); return this; },
+        not() { state.operations.push("not"); return this; },
+        lt() { state.operations.push("lt"); return this; },
+        gt() { state.operations.push("gt"); return this; },
+        limit() { return Promise.resolve(resultFor(table, state)); },
+        maybeSingle() { return Promise.resolve(resultFor(table, state)); },
+        then(resolve, reject) { return Promise.resolve(resultFor(table, state)).then(resolve, reject); },
+      };
+      return query;
+    },
+    async rpc() { return { data: [], error: null }; },
+  };
+}
+const availabilityInput = {
+  tenantId: "tenant-1",
+  doctorId: "doctor-1",
+  providerRequired: true,
+  roomId: null,
+  procedureId: null,
+  scheduledStart: "2026-10-14T06:00:00.000Z",
+  scheduledEnd: "2026-10-14T06:30:00.000Z",
+  bufferEnd: "2026-10-14T06:30:00.000Z",
+};
+const withinHoursResult = await availabilityEngine.checkAvailability(availabilityInput, createAvailabilityClient());
+check("provider-booking-within-working-hours-allowed",
+  withinHoursResult.isAvailable && withinHoursResult.details.withinWorkingHours,
+  JSON.stringify(withinHoursResult));
+const outsideHoursResult = await availabilityEngine.checkAvailability({
+  ...availabilityInput,
+  scheduledStart: "2026-10-14T15:30:00.000Z",
+  scheduledEnd: "2026-10-14T16:00:00.000Z",
+  bufferEnd: "2026-10-14T16:00:00.000Z",
+}, createAvailabilityClient());
+check("provider-booking-outside-working-hours-rejected",
+  !outsideHoursResult.isAvailable && !outsideHoursResult.details.withinWorkingHours,
+  JSON.stringify(outsideHoursResult));
+const occupiedProviderResult = await availabilityEngine.checkAvailability(availabilityInput, createAvailabilityClient({ occupied: true }));
+check("provider-booking-conflict-rejected",
+  !occupiedProviderResult.isAvailable && !occupiedProviderResult.details.doctorAvailable,
+  JSON.stringify(occupiedProviderResult));
+const missingRequiredProviderResult = await availabilityEngine.checkAvailability({
+  ...availabilityInput,
+  doctorId: null,
+}, createAvailabilityClient());
+check("provider-required-without-provider-rejected",
+  !missingRequiredProviderResult.isAvailable && missingRequiredProviderResult.reason === "AGENDA_PROVIDER_REQUIRED",
+  JSON.stringify(missingRequiredProviderResult));
+
 
 const gate04Contract = JSON.parse(read("docs/testing/workstream-contracts/csapi-gate04-agenda.execution.json"));
 const gate02Bypass = gate04Contract.suppression_bypass_patterns?.["csapi-gate02-patient-journey"] || [];

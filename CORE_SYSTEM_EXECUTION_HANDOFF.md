@@ -1,3 +1,7 @@
+> **Latest CSAPI execution state — 2026-10-13:** Gate 04 is active. Last verified candidate `c623912fcf6fa22c0d464a1a679e91a1e443bada` passed Workstream Verification #1012 and Governance #272. Scenario 16 timezone behavior is verified. The current branch adds provider availability behavior probes; exact-head CI is pending. WP-7 OPEN, WP-8 BLOCKED. Continue from the Gate 04 operational handoff. Do not merge, deploy, or mutate hosted Supabase/migration history.
+
+---
+
 > **Latest CSAPI execution state — 2026-10-13:** Gate 04 is active. Last verified candidate `731548e7d7bffcb3baf6c8430ca4b9bfd76d0563` passed Workstream Verification #1011 (attempt 2) and Governance #271. The current branch adds actual timezone helper behavior tests; exact-head CI is pending. Continue from the Gate 04 operational handoff and WP-7 matrix. WP-7 OPEN, WP-8 BLOCKED. Do not merge, deploy, or mutate hosted Supabase/migration history.
 
 ---

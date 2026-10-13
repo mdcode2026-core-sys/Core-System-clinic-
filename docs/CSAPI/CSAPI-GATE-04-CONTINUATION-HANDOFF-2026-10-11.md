@@ -1,3 +1,7 @@
+> **Latest verified checkpoint — 2026-10-13:** Candidate `c623912fcf6fa22c0d464a1a679e91a1e443bada` passed Workstream Verification #1012 and Engineering Governance #272. The Gate 04 static lane now executes the real tenant-local timezone helpers and passed conversion/round-trip/offset-preservation checks; scenario 16 is PASS. The next candidate adds isolated behavioral checks for provider availability and overlap rejection; exact-head CI is pending. WP-7 remains OPEN; WP-8 remains BLOCKED. Hosted Supabase schema/data/history remain unchanged, and no merge or production promotion occurred.
+
+---
+
 > **Latest verified checkpoint — 2026-10-13:** Candidate `731548e7d7bffcb3baf6c8430ca4b9bfd76d0563` passed Workstream Verification #1011 (attempt 2) and Engineering Governance #271. Attempt 1 had one authenticated dashboard-route timeout accompanied by repeated Next.js `destination stream closed early` errors; the single failed job was rerun and passed on the same SHA, while all other lanes passed first attempt. The next candidate adds executable timezone conversion/round-trip assertions to the Gate 04 static audit; exact-head CI is pending for that new code. WP-7 remains OPEN; WP-8 remains BLOCKED. Hosted preflight and migration boundaries remain unchanged: no hosted schema/data/history writes, no merge or production promotion.
 
 ---

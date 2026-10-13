@@ -594,3 +594,6 @@ Read-only comparison found the application conflict engine excludes completed ap
 
 
 | 2026-10-13 | Add tenant-local timezone behavioral verification | Last verified docs SHA `731548e7d7bffcb3baf6c8430ca4b9bfd76d0563` passed #1011 attempt 2 and Governance #271; current candidate adds tests of actual `tenantLocalToUtc` / `utcToTenantInput` helpers | Asia/Amman 09:00 local → 06:00Z → 09:00 local; offset-aware input preserves absolute instant; pending exact-head verification | Keep scenario 16 GAP until behavioral test passes; no hosted DB mutation | Verify exact candidate; if passed, upgrade scenario 16 and continue feasibility scenarios |
+
+
+| 2026-10-13 | Verify tenant-local datetime behavior and add availability probes | Workstream Verification #1012 PASS on `c623912fcf6fa22c0d464a1a679e91a1e443bada`; Governance #272 PASS; actual timezone helper checks passed | Scenario 16 PASS; current candidate adds provider-hours, active-provider-conflict, and required-provider behavior probes, pending exact-head CI | WP-7 OPEN; WP-8 BLOCKED; no hosted DB mutation | Verify availability behavior on exact head; then upgrade only scenarios with direct evidence |
