@@ -1,3 +1,7 @@
+> **Latest verified checkpoint — 2026-10-13:** Candidate `731548e7d7bffcb3baf6c8430ca4b9bfd76d0563` passed Workstream Verification #1011 on retry attempt 2 and Governance #271. A transient authenticated dashboard-route timeout was retried once and passed; no code was changed to mask it. Next code candidate adds executable behavior checks for tenant-local timezone conversion/round-trip; scenario 16 stays GAP until exact-head CI passes. WP-7 remains OPEN; WP-8 remains BLOCKED. No hosted DB/history mutation, merge, or production promotion.
+
+---
+
 > **Latest verified checkpoint — 2026-10-13:** Candidate `f7a3d828ff2d133ca4797d8153fd5758e077e1dc` passed Workstream Verification #1010 and Governance #270. New isolated DB probes for confirmed reschedule and no-show both passed; full arrival-to-completion lifecycle and completed-conflict-release probes also passed. Hosted read-only preflight found 0 active conflict pairs across patient/doctor/room/resource dimensions (13 overlapping time pairs shared no exclusive dimension). Hosted doctor/patient/room constraints still include completed status. WP-7 remains OPEN for other scenario gaps; WP-8 remains BLOCKED by migration lineage/release review. No hosted DB/history mutation, merge, or production promotion.
 
 ---

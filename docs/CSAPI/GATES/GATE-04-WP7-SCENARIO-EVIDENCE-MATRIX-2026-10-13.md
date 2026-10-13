@@ -119,3 +119,8 @@ Candidate `f7a3d828ff2d133ca4797d8153fd5758e077e1dc` passed Workstream Verificat
 ## Hosted active-conflict preflight — read-only (2026-10-13)
 
 A fresh read-only query against hosted `master_agenda_events` found **0 active overlapping pairs** sharing patient, doctor, room, or resource/device. There were 13 pairs with overlapping time ranges, but they shared none of those exclusive dimensions. The four hosted exclusion definitions were also re-read: doctor, patient, and room still exclude only cancelled/no-show statuses and therefore still block completed appointments; resource/device already excludes completed. This is evidence for a safe data preflight at this moment, not permission to apply the branch migration. WP-8 remains blocked pending complete lineage reconciliation and release review.
+
+
+## Tenant-local wall-clock verification added — pending (2026-10-13)
+
+The next candidate adds executable checks that import and run the actual `tenantLocalToUtc` / `utcToTenantInput` helpers from `src/shared/utils/dateTime.ts`: Asia/Amman wall-clock 09:00 converts to 06:00Z, round-trips to 09:00 local, and an explicitly offset-aware input remains absolute. Scenario 16 remains GAP until the exact-head Gate 04 static lane passes with these behavioral assertions. No status upgrade is inferred from code presence alone.

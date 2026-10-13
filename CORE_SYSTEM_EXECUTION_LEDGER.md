@@ -591,3 +591,6 @@ Read-only comparison found the application conflict engine excludes completed ap
 
 
 | 2026-10-13 | Verify reschedule/no-show and reconcile WP-7 matrix | Workstream Verification #1010 PASS on `f7a3d828ff2d133ca4797d8153fd5758e077e1dc`; Governance #270 PASS; DB lane log confirms clean replay and new lifecycle assertions | Scenarios 11, 13, 14 PASS on branch-local evidence; hosted read-only preflight has 0 active conflicting pairs across patient/doctor/room/resource dimensions, 13 cross-dimension time overlaps | WP-7 remains OPEN for remaining gaps; WP-8 remains BLOCKED; hosted DB/history unchanged | Update docs and exact-head verify; continue with next uncovered booking-feasibility scenarios |
+
+
+| 2026-10-13 | Add tenant-local timezone behavioral verification | Last verified docs SHA `731548e7d7bffcb3baf6c8430ca4b9bfd76d0563` passed #1011 attempt 2 and Governance #271; current candidate adds tests of actual `tenantLocalToUtc` / `utcToTenantInput` helpers | Asia/Amman 09:00 local → 06:00Z → 09:00 local; offset-aware input preserves absolute instant; pending exact-head verification | Keep scenario 16 GAP until behavioral test passes; no hosted DB mutation | Verify exact candidate; if passed, upgrade scenario 16 and continue feasibility scenarios |

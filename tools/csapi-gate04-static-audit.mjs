@@ -2,6 +2,7 @@
 
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
+import ts from "typescript";
 
 const checks = [];
 function check(name, condition, detail = "") {
@@ -150,6 +151,28 @@ check("agenda-opens-booking-form-from-followup-request",
 check("followup-agenda-entry-keeps-owning-domain-context",
   agendaPage.includes("followupRequestId ? t.followupRequest") &&
   agendaPage.includes('next.delete("followupRequestId")'));
+
+// Execute the actual tenant-local datetime helpers from the TypeScript source in an isolated module.
+// This validates behavior, not just the presence of the conversion call in Agenda's mutation path.
+const dateTimeSource = read("src/shared/utils/dateTime.ts");
+const dateTimeJavaScript = ts.transpileModule(dateTimeSource, {
+  compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022 },
+}).outputText;
+const dateTimeModuleUrl = `data:text/javascript;base64,${Buffer.from(dateTimeJavaScript).toString("base64")}`;
+const dateTimeHelpers = await import(dateTimeModuleUrl);
+const ammanWallClock = "2026-10-14T09:00:00";
+const ammanUtc = dateTimeHelpers.tenantLocalToUtc(ammanWallClock, "Asia/Amman");
+check("tenant-local-wall-clock-converts-to-utc",
+  ammanUtc === "2026-10-14T06:00:00.000Z",
+  `input=${ammanWallClock} timezone=Asia/Amman output=${ammanUtc}`);
+const ammanRoundTrip = dateTimeHelpers.utcToTenantInput(ammanUtc, "Asia/Amman");
+check("tenant-local-wall-clock-round-trips",
+  ammanRoundTrip.date === "2026-10-14" && ammanRoundTrip.time === "09:00",
+  `date=${ammanRoundTrip.date} time=${ammanRoundTrip.time}`);
+const explicitOffsetUtc = dateTimeHelpers.tenantLocalToUtc("2026-10-14T09:00:00+03:00", "Asia/Amman");
+check("offset-aware-datetime-remains-absolute",
+  explicitOffsetUtc === "2026-10-14T06:00:00.000Z",
+  `output=${explicitOffsetUtc}`);
 
 
 const gate04Contract = JSON.parse(read("docs/testing/workstream-contracts/csapi-gate04-agenda.execution.json"));
