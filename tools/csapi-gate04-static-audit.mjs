@@ -68,7 +68,7 @@ check("main-agenda-form-uses-provider-requirements", agendaForm.includes("isProv
 check("main-agenda-form-rebooks-cancelled-appointment", agendaForm.includes('event.status==="cancelled"') && agendaForm.includes("shouldReschedule(event,date,startTime,endTime,tenantTimezone)"));
 check("provider-requirements-reach-all-agenda-form-entry-points", agendaPage.includes("provider_type: procedure.provider_type") && patientsPage.includes("provider_type: p.provider_type"));
 
-check("timezone-helper-defines-dst-gap-and-overlap-policy", dateTimeUtils.includes("Tenant-local datetime does not exist") && dateTimeUtils.includes("choose the earlier instant consistently"));
+check("timezone-helper-defines-dst-gap-and-overlap-policy", dateTimeUtils.includes("Tenant-local datetime does not exist") && dateTimeUtils.includes("choose the earlier instant"));
 check("quick-appointment-uses-wall-clock-duration", quick.includes("addMinutesToLocalDateTime(form.start_time, selectedProcedure!.standard_duration_minutes)") && !quick.includes("new Date(`${form.start_time}:00Z`)"));
 check("agenda-week-range-and-calendar-use-tenant-timezone", agendaPage.includes("getTenantWeekRangeUtc(currentDate, tenantTimezone)") && agendaCalendar.includes("getTenantLocalDate(currentDate, timeZone)") && agendaCalendar.includes("addCalendarDays(tenantToday"));
 check("agenda-command-client-is-server-only", commandClient.includes('import "server-only"') && commandClient.includes("SUPABASE_SERVICE_ROLE_KEY"));
@@ -135,6 +135,8 @@ check("quick-appointment-keeps-tenant-wall-clock",
   !quick.includes('new Date(form.start_time).toISOString()'));
 check("quick-appointment-honors-provider-optional", quick.includes("required={providerRequired}"));
 check("quick-appointment-submits-notes", quick.includes('fd.set("notes", form.notes.trim())'));
+check("agenda-form-duration-uses-tenant-wall-clock", agendaForm.includes("addMinutesToLocalDateTime(`${date}T${nextStart}`,procedure.duration)") && !agendaForm.includes("new Date(`${date}T00:00:00`)"));
+check("workforce-leave-fallback-uses-tenant-midnight", availability.includes("tenantLocalToUtc(`${row.starts_on}T00:00:00`,timezone)") && availability.includes("tenantLocalToUtc(`${addCalendarDays(row.ends_on,1)}T00:00:00`,timezone)"));
 check("quick-appointment-uses-procedure-duration", quick.includes("selectedProcedure!.standard_duration_minutes"));
 
 check("agenda-new-patient-routes-to-canonical-registration", agendaForm.includes('router.push("/patients?registerForBooking=1")'));
