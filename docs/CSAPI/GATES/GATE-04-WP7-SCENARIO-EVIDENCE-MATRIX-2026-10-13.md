@@ -27,10 +27,10 @@
 | 8 | Resource conflict | Isolated clean-replay DB probe rejects an active overlapping booking for the same resource/device; after completion, an overlapping booking is accepted. | PASS |
 | 9 | Patient conflict | Isolated clean-replay DB probe verifies completed appointment releases the patient interval and active overlapping appointment is rejected. | PASS |
 | 10 | Confirmation | Protected transition `scheduled → confirmed` and STATUS_CHANGE audit verified in isolated local DB. | PASS |
-| 11 | Normal reschedule | Cancelled appointment rebooking is verified; rescheduling a scheduled/confirmed appointment is not independently exercised. | PARTIAL |
+| 11 | Normal reschedule | Isolated DB flow reschedules a confirmed appointment, verifies the `confirmed → rescheduled` state and RESCHEDULE audit, then transitions it back to scheduled. | PASS |
 | 12 | Normal cancellation | Protected cancel command, reason, actor, and CANCEL audit verified in isolated local DB. | PASS |
-| 13 | No-show | No direct no-show transition scenario. | GAP |
-| 14 | Arrival/status progression | Confirmation is tested; arrived → in_session → completed path is not. | PARTIAL |
+| 13 | No-show | Isolated DB flow transitions `confirmed → no_show`, verifies STATUS_CHANGE audit, and verifies the no-show provider interval no longer blocks a new booking. | PASS |
+| 14 | Arrival/status progression | Isolated DB flow exercises `scheduled → confirmed → arrived → in_session → completed` for patient/provider/room/resource-device conflict scenarios. | PASS |
 | 15 | Completed appointment no longer blocks active conflicts | Branch-only forward migration aligns all four exclusion predicates. On the exact candidate, isolated clean replay passed separate patient, provider, room, and resource/device probes: completion releases the interval and an active overlap is still rejected. Hosted schema remains unchanged pending WP-8 release review. | PASS — branch-local verification |
 | 16 | Tenant-local wall-clock values persist as correct UTC values | Test tenant uses Asia/Amman, but the DB probe passes UTC timestamps directly; conversion behavior is not tested. | GAP |
 | 17 | Buffer prevents adjacent conflicting booking | No adjacent-booking buffer probe. | GAP |
@@ -109,3 +109,8 @@ Workstream #1004 and Governance #264 passed on this exact candidate. The isolate
 ## Exact-head verification refresh — 2026-10-13
 
 Workstream Verification #1008 and Engineering Governance #268 passed on `972786d6569e5e596a6974a8c2e5fde155a6f727`. The local database lane explicitly passed clean replay, schema/security inspection, protected command boundary, direct table-write ACL, audit trigger/RLS checks, and the Gate 04 appointment command/audit flow. Scenario rows 7, 8, 9, 15 and 28 are updated from the new dimension-specific probes. Other rows are not upgraded merely because CI is green. Any subsequent documentation commit is a new candidate and must pass exact-head verification again.
+
+
+## Exact-head scenario expansion — normal reschedule and no-show (2026-10-13)
+
+The next candidate adds executable local-DB assertions for a confirmed appointment rescheduled to a new interval (status and RESCHEDULE audit), the rescheduled-to-scheduled transition, and a confirmed-to-no-show transition (STATUS_CHANGE audit plus provider interval release). Scenario 14 is also upgraded because the already-passing dimension-specific probes exercise the full arrival-to-completion path. These updates are implementation until exact-head Workstream Verification passes; do not treat them as verified before that result.

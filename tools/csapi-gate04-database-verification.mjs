@@ -251,6 +251,9 @@ try {
       v_room_id uuid := 'd4000000-0000-4000-8000-00000000000c';
       v_resource_id uuid := 'd4000000-0000-4000-8000-00000000000d';
       v_event public.master_agenda_events%ROWTYPE;
+      v_no_show_event public.master_agenda_events%ROWTYPE;
+      v_no_show_overlap public.master_agenda_events%ROWTYPE;
+      v_reschedule_event public.master_agenda_events%ROWTYPE;
       v_count integer;
       v_status text;
     BEGIN
@@ -362,6 +365,67 @@ try {
         AND reason = 'appointment_rescheduled'
         AND actor_id = v_clinic_user_id;
       IF v_count <> 1 THEN RAISE EXCEPTION 'GATE04_REBOOK_AUDIT_FAILED count=%', v_count; END IF;
+
+      -- A normal reschedule of a confirmed appointment is a distinct audited mutation.
+      SELECT * INTO v_reschedule_event FROM public.agenda_create_appointment(
+        v_tenant_id, v_clinic_user_id, v_patient_resource_probe_id, NULL, NULL, NULL, NULL, NULL,
+        now() + interval '8 days', now() + interval '8 days 30 minutes', now() + interval '8 days 30 minutes',
+        'gate04 normal reschedule original');
+      PERFORM public.agenda_transition_appointment(
+        v_tenant_id, v_clinic_user_id, v_reschedule_event.id, 'scheduled', 'confirmed');
+      SELECT * INTO v_reschedule_event FROM public.agenda_update_appointment(
+        v_tenant_id, v_clinic_user_id, v_reschedule_event.id, 'confirmed',
+        v_patient_resource_probe_id, NULL, NULL, NULL, NULL,
+        now() + interval '8 days 2 hours',
+        now() + interval '8 days 2 hours 30 minutes',
+        now() + interval '8 days 2 hours 30 minutes',
+        'gate04 normal reschedule moved', true);
+      IF v_reschedule_event.status IS DISTINCT FROM 'rescheduled' THEN
+        RAISE EXCEPTION 'GATE04_NORMAL_RESCHEDULE_STATUS_FAILED status=%', v_reschedule_event.status;
+      END IF;
+      SELECT count(*) INTO v_count
+      FROM public.audit_trail
+      WHERE tenant_id = v_tenant_id AND table_name = 'master_agenda_events'
+        AND record_id = v_reschedule_event.id AND action = 'RESCHEDULE'
+        AND old_values ->> 'status' = 'confirmed'
+        AND new_values ->> 'status' = 'rescheduled'
+        AND reason = 'appointment_rescheduled'
+        AND actor_id = v_clinic_user_id;
+      IF v_count <> 1 THEN RAISE EXCEPTION 'GATE04_NORMAL_RESCHEDULE_AUDIT_FAILED count=%', v_count; END IF;
+      PERFORM public.agenda_transition_appointment(
+        v_tenant_id, v_clinic_user_id, v_reschedule_event.id, 'rescheduled', 'scheduled');
+      SELECT status INTO v_status FROM public.master_agenda_events
+      WHERE id = v_reschedule_event.id AND tenant_id = v_tenant_id;
+      IF v_status IS DISTINCT FROM 'scheduled' THEN
+        RAISE EXCEPTION 'GATE04_RESCHEDULED_REBOOK_STATUS_FAILED status=%', v_status;
+      END IF;
+
+      -- No-show is a permitted status transition, is audited, and releases provider overlap.
+      SELECT * INTO v_no_show_event FROM public.agenda_create_appointment(
+        v_tenant_id, v_clinic_user_id, v_patient_doctor_probe_id, v_clinic_user_id, NULL, NULL, NULL, NULL,
+        now() + interval '7 days', now() + interval '7 days 30 minutes', now() + interval '7 days 30 minutes',
+        'gate04 no-show transition original');
+      PERFORM public.agenda_transition_appointment(
+        v_tenant_id, v_clinic_user_id, v_no_show_event.id, 'scheduled', 'confirmed');
+      SELECT * INTO v_no_show_event FROM public.agenda_transition_appointment(
+        v_tenant_id, v_clinic_user_id, v_no_show_event.id, 'confirmed', 'no_show');
+      IF v_no_show_event.status IS DISTINCT FROM 'no_show' THEN
+        RAISE EXCEPTION 'GATE04_NO_SHOW_STATUS_FAILED status=%', v_no_show_event.status;
+      END IF;
+      SELECT count(*) INTO v_count
+      FROM public.audit_trail
+      WHERE tenant_id = v_tenant_id AND table_name = 'master_agenda_events'
+        AND record_id = v_no_show_event.id AND action = 'STATUS_CHANGE'
+        AND new_values ->> 'status' = 'no_show'
+        AND actor_id = v_clinic_user_id;
+      IF v_count <> 1 THEN RAISE EXCEPTION 'GATE04_NO_SHOW_AUDIT_FAILED count=%', v_count; END IF;
+      SELECT * INTO v_no_show_overlap FROM public.agenda_create_appointment(
+        v_tenant_id, v_clinic_user_id, v_patient_room_probe_id, v_clinic_user_id, NULL, NULL, NULL, NULL,
+        now() + interval '7 days 5 minutes', now() + interval '7 days 35 minutes', now() + interval '7 days 35 minutes',
+        'gate04 no-show provider interval released');
+      IF v_no_show_overlap.id IS NULL OR v_no_show_overlap.status <> 'scheduled' THEN
+        RAISE EXCEPTION 'GATE04_NO_SHOW_PROVIDER_INTERVAL_STILL_BLOCKS';
+      END IF;
 
       -- Complete the first appointment through the permitted lifecycle.
       PERFORM public.agenda_transition_appointment(

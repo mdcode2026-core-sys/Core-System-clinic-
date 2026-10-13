@@ -1,3 +1,7 @@
+> **Latest CSAPI execution state — 2026-10-13:** Gate 04 is active. Last verified candidate: `0ae0f02e93ebf8bbbb506ff6c70ee31f42068b08` (Workstream Verification #1009 PASS; Engineering Governance #269 PASS). Current branch contains the next code candidate adding normal-reschedule and no-show database verification; its exact-head CI is pending. Continue using the Gate 04 operational handoff and scenario evidence matrix linked below. WP-7 OPEN, WP-8 BLOCKED; do not merge, deploy, or mutate hosted Supabase/history.
+
+---
+
 > **Current execution resume override — 2026-10-13:** The earlier Gate 01 status below is a historical closure record, not the active workstream. Current work is CSAPI Gate 04 — Agenda & Scheduling, PR #242 (Draft/open/unmerged), branch `csapi/gate04-agenda-implementation-2026-10-10`. Exact candidate `972786d6569e5e596a6974a8c2e5fde155a6f727` passed Workstream Verification #1008 and Engineering Governance #268. Gate 04 WP-7 remains OPEN because scenario gaps remain; WP-8 is BLOCKED by migration-lineage reconciliation and release preflight. Continue from `docs/CSAPI/CSAPI-GATE-04-CONTINUATION-HANDOFF-2026-10-11.md` and `docs/CSAPI/GATES/GATE-04-WP7-SCENARIO-EVIDENCE-MATRIX-2026-10-13.md`. Do not merge, deploy, or mutate hosted Supabase/migration history. New docs-only commits require exact-head verification again.
 
 ---

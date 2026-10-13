@@ -585,3 +585,6 @@ Read-only comparison found the application conflict engine excludes completed ap
 
 
 | 2026-10-13 | Gate 04 exact-head verification and WP-8 lineage refresh | Workstream Verification #1008 PASS on `972786d6569e5e596a6974a8c2e5fde155a6f727`; Engineering Governance #268 PASS; refreshed WP-8 JSON snapshot and scenario matrix | Branch-local DB clean replay and dimension-specific completed-release/active-overlap probes pass for patient, provider, room, and resource/device; 240 repo SQL files / 234 canonical / 6 legacy; 292 hosted history rows; 121 shared, 113 repo-only, 171 hosted-only, 12 shared-name mismatches | Scenario 15 and scenarios 7–9/28 upgraded to PASS only for isolated branch-local evidence; WP-7 remains OPEN; WP-8 remains BLOCKED; no hosted Supabase mutation | Update operational handoffs/matrix, continue remaining scenario gaps and migration-lineage reconciliation, then verify the resulting exact head |
+
+
+| 2026-10-13 | Extend Gate 04 lifecycle evidence | `tools/csapi-gate04-database-verification.mjs` adds confirmed reschedule status/audit and no-show status/audit/provider-release probes; WP-7 matrix updates scenarios 11, 13, 14 | Implementation added after #1009 passed on prior SHA; exact-head CI pending | Keep WP-7 open until the new candidate passes; no hosted DB mutation | Verify exact head; then continue the next evidence gap |
