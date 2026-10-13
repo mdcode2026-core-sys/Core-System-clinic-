@@ -193,3 +193,10 @@ Fresh counts:
 These counts supersede the older WP-8 headline counts in prior notes because the current snapshot is from the current branch head and explicitly separates 14-digit version keys from five shorter legacy filenames. They are **not semantic migration equivalence counts**: a version-key difference can reflect a rename/re-version/replay or an actually unrepresented change; only content/schema evidence can classify it. Matching version keys also do not prove file contents match what was applied. Therefore WP-8 remains **BLOCKED**.
 
 Next: group candidates by normalized intent and compare repository SQL bodies, hosted history names, and current schema/catalog evidence in read-only mode; classify each discrepancy as equivalent/renamed, repo-only not applied, hosted-only untracked, name-only mismatch, or unresolved. Produce an approved remediation plan before any hosted change. Do not bulk-apply migrations, edit hosted history, or infer a safe order from names alone.
+
+
+## Exact-head verification checkpoint — 2026-10-13
+
+Candidate `548f050c2f6e18122b9350e655e74ea5ab54090e`: Workstream Verification #1000 **PASS (12/12 jobs)** and Engineering Governance #260 **PASS**. The Gate 04 local database lane now directly asserts cross-tenant patient rejection, normal UPDATE audit, stale expected-status rejection, create/status/cancel/rebook audit, clean replay, ACL, and RLS/trigger presence. Authenticated route E2E passed 3/3, including the minimum Follow-up → Agenda form-context handoff.
+
+This does not close WP-7. The scenario evidence matrix `GATE-04-WP7-SCENARIO-EVIDENCE-MATRIX-2026-10-13.md` lists remaining direct coverage gaps from the frozen Verification Plan. WP-8 remains blocked by unresolved repository/hosted migration lineage; live schema observations are read-only and do not authorize migration application. PR #242 remains Draft/unmerged; no hosted DB mutation or production promotion.

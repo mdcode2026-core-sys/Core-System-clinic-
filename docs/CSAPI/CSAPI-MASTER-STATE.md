@@ -392,3 +392,11 @@ Fresh counts:
 These counts supersede the older WP-8 headline counts in prior notes because the current snapshot is from the current branch head and explicitly separates 14-digit version keys from five shorter legacy filenames. They are **not semantic migration equivalence counts**: a version-key difference can reflect a rename/re-version/replay or an actually unrepresented change; only content/schema evidence can classify it. Matching version keys also do not prove file contents match what was applied. Therefore WP-8 remains **BLOCKED**.
 
 Next: group candidates by normalized intent and compare repository SQL bodies, hosted history names, and current schema/catalog evidence in read-only mode; classify each discrepancy as equivalent/renamed, repo-only not applied, hosted-only untracked, name-only mismatch, or unresolved. Produce an approved remediation plan before any hosted change. Do not bulk-apply migrations, edit hosted history, or infer a safe order from names alone.
+
+
+## Gate 04 current checkpoint — 2026-10-13
+
+- Current verified candidate: `548f050c2f6e18122b9350e655e74ea5ab54090e`; Workstream #1000 PASS (12/12) and Governance #260 PASS.
+- Gate 04 remains OPEN: scenario-level coverage is incomplete; see `docs/CSAPI/GATES/GATE-04-WP7-SCENARIO-EVIDENCE-MATRIX-2026-10-13.md`.
+- WP-8 remains BLOCKED: repository-vs-hosted migration lineage is unresolved. Read-only schema checks do not authorize hosted changes.
+- PR #242 stays Draft/unmerged; no production promotion or hosted Supabase mutation.

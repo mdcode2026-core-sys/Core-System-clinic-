@@ -549,3 +549,8 @@ Fresh counts:
 These counts supersede the older WP-8 headline counts in prior notes because the current snapshot is from the current branch head and explicitly separates 14-digit version keys from five shorter legacy filenames. They are **not semantic migration equivalence counts**: a version-key difference can reflect a rename/re-version/replay or an actually unrepresented change; only content/schema evidence can classify it. Matching version keys also do not prove file contents match what was applied. Therefore WP-8 remains **BLOCKED**.
 
 Next: group candidates by normalized intent and compare repository SQL bodies, hosted history names, and current schema/catalog evidence in read-only mode; classify each discrepancy as equivalent/renamed, repo-only not applied, hosted-only untracked, name-only mismatch, or unresolved. Produce an approved remediation plan before any hosted change. Do not bulk-apply migrations, edit hosted history, or infer a safe order from names alone.
+
+
+## 2026-10-13 — Gate 04 evidence checkpoint
+
+Verified candidate `548f050c2f6e18122b9350e655e74ea5ab54090e`: Workstream #1000 PASS (12/12) and Engineering Governance #260 PASS. Added local DB probes for cross-tenant patient rejection, normal update audit, and stale-state rejection. Exact scenario coverage and gaps are recorded in `docs/CSAPI/GATES/GATE-04-WP7-SCENARIO-EVIDENCE-MATRIX-2026-10-13.md`. Gate 04 is not closed; WP-7 remains open and WP-8 blocked. No hosted Supabase changes, merge, or production promotion.

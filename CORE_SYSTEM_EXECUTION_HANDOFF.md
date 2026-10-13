@@ -770,3 +770,16 @@ Fresh counts:
 These counts supersede the older WP-8 headline counts in prior notes because the current snapshot is from the current branch head and explicitly separates 14-digit version keys from five shorter legacy filenames. They are **not semantic migration equivalence counts**: a version-key difference can reflect a rename/re-version/replay or an actually unrepresented change; only content/schema evidence can classify it. Matching version keys also do not prove file contents match what was applied. Therefore WP-8 remains **BLOCKED**.
 
 Next: group candidates by normalized intent and compare repository SQL bodies, hosted history names, and current schema/catalog evidence in read-only mode; classify each discrepancy as equivalent/renamed, repo-only not applied, hosted-only untracked, name-only mismatch, or unresolved. Produce an approved remediation plan before any hosted change. Do not bulk-apply migrations, edit hosted history, or infer a safe order from names alone.
+
+
+## Exact-head checkpoint — 2026-10-13 (Workstream #1000 / Governance #260)
+
+- Candidate SHA: `548f050c2f6e18122b9350e655e74ea5ab54090e`.
+- [Workstream Verification #1000](https://github.com/mdcode2026-core-sys/Core-System-clinic-/actions/runs/38368309289): **PASS**, all 12 jobs including final gate.
+- [Engineering Governance #260](https://github.com/mdcode2026-core-sys/Core-System-clinic-/actions/runs/38368309490): **PASS** on the same candidate.
+- Gate 04 isolated local DB clean replay, command ACL, table-write ACL, RLS/audit trigger checks passed. The command flow additionally proves cross-tenant patient rejection, normal UPDATE + UPDATE audit, stale expected-status rejection, CREATE audit, scheduled→confirmed STATUS_CHANGE audit, cancellation reason/actor audit, and cancelled→scheduled RESCHEDULE audit.
+- Authenticated route E2E: **3 passed**, including Follow-up request opening the Agenda booking form with patient/request context. This test opens the form; it does not submit the appointment. Other green lanes do not prove all scenarios in the frozen Verification Plan.
+- Added scenario-by-scenario evidence matrix: `docs/CSAPI/GATES/GATE-04-WP7-SCENARIO-EVIDENCE-MATRIX-2026-10-13.md`. WP-7 remains **OPEN** because provider/resource feasibility, conflicts, concurrency, timezone/buffer, workforce, full lifecycle, and Treatment Plan/Patient Flow integration cases remain unproven.
+- Read-only live schema checks confirmed current appointment exclusion constraints and Workforce capability/availability tables; the historical `clinic_procedure_resources` table is absent. Do not resurrect or bulk-apply old migrations.
+- Fresh exact-name migration triage counts differ from the earlier 82/80/82 note; record the method discrepancy as unresolved rather than treating candidate names as semantic equivalence. WP-8 remains **BLOCKED**.
+- PR #242 remains OPEN / DRAFT / NOT MERGED. No hosted Supabase schema/data/history changes, merge, or production promotion. The documentation commit that follows creates a new candidate and requires exact-head verification.
