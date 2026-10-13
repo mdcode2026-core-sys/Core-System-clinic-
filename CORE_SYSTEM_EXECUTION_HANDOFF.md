@@ -1,3 +1,7 @@
+> **Latest CSAPI execution state — 2026-10-13:** Gate 04 candidate `66a76b200d7871a5e4e1870727d9150b7fd5db4d` passed Workstream Verification #1022 and Governance #282. Tenant-local timezone edge cases now have exact-head automated evidence (12 behavior groups, including DST, non-hour offsets, wall-clock duration, and tenant week boundaries); Gate 04 static and isolated database lanes passed. Continue with the WP-7 evidence matrix; do not close Gate 04 while remaining scenarios are PARTIAL/GAP. WP-8 remains BLOCKED. No hosted DB/history mutation, merge, or deployment.
+
+---
+
 > **Latest CSAPI execution state — 2026-10-13:** Gate 04 is active. Candidate `53624e96010816e763da9c98f39ea52932f02d8b` passed Gate 04 static and isolated DB lanes; Workstream #1016 failed only in unrelated authenticated-route E2E due to login redirect plus stream-closure errors. Current candidate adds direct DB probes for resource-buffer exclusion and late-arrival planned-time preservation; exact-head verification pending. Timezone scenario 16 is already PASS. Continue from `docs/CSAPI/CSAPI-GATE-04-CONTINUATION-HANDOFF-2026-10-11.md`. WP-7 OPEN, WP-8 BLOCKED; no hosted mutation, merge or deployment.
 
 ---

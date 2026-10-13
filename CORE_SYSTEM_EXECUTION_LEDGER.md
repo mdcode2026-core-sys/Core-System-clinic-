@@ -609,3 +609,6 @@ Read-only comparison found the application conflict engine excludes completed ap
 
 
 | 2026-10-13 | Verify buffer semantics and late arrival | Isolated local DB probes: resource overlap inside 15-minute buffer rejected; booking after buffer accepted; arrival transition preserves planned `scheduled_start` | Implemented; exact-head verification pending | Scenarios 17 and 18 now have direct executable assertions; hosted DB unchanged | Verify exact candidate; continue remaining WP-7 gaps |
+
+
+| 2026-10-13 | Verify tenant-local timezone boundary behavior | `66a76b200d7871a5e4e1870727d9150b7fd5db4d`; Workstream #1022 PASS, Governance #282 PASS; timezone verifier `GATE04_TIMEZONE_CHECK=PASS cases=12`; Gate 04 static and isolated database lanes PASS | Scenario 16 upgraded from normal-time-only evidence to DST gap/overlap, non-hour offsets, explicit offset, wall-clock duration, tenant week bounds and tenant-local leave fallback | WP-7 remains OPEN; WP-8 remains BLOCKED; no hosted DB/history changes | Continue the next uncovered WP-7 scenarios without reopening verified timezone behavior unless new evidence fails |

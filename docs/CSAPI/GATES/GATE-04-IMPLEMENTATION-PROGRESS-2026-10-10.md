@@ -1,3 +1,7 @@
+> **Latest verified Gate 04 checkpoint — 2026-10-13:** Candidate `66a76b200d7871a5e4e1870727d9150b7fd5db4d` passed Workstream Verification #1022 and Governance #282. Timezone boundary suite passed 12 behavior groups; Gate 04 static, clean local database replay, engineering, and required cross-domain/authenticated lanes passed on the exact SHA. Scenario 16 timezone boundary behavior is PASS. WP-7 remains OPEN for scenarios still PARTIAL/GAP; WP-8 remains BLOCKED by migration-lineage/release review. Hosted Supabase/history unchanged; no merge or production promotion.
+
+---
+
 > **Latest Gate 04 state — 2026-10-13:** Relevant lanes on `53624e96010816e763da9c98f39ea52932f02d8b` passed: Gate 04 static (room/resource conflict + combined feasibility probes) and isolated database replay. Overall Workstream #1016 failed on unrelated authenticated route `/financial-resources/financial-plans` with repeated Next.js stream-closure errors; a same-job retry was superseded to continue Gate 04 coverage. Current candidate adds database evidence for buffer exclusion and late-arrival time preservation; exact-head CI pending. Scenario 16 timezone behavior remains PASS. WP-7 OPEN; WP-8 BLOCKED; no hosted writes, merge or production promotion.
 
 ---

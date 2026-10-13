@@ -1,9 +1,9 @@
 # Gate 04 — WP-7 Scenario Evidence Matrix
 
 **Record date:** 2026-10-13  
-**Candidate verified:** `548f050c2f6e18122b9350e655e74ea5ab54090e`  
-**Workstream Verification:** [#1000 — PASS](https://github.com/mdcode2026-core-sys/Core-System-clinic-/actions/runs/38368309289)  
-**Engineering Governance:** [#260 — PASS](https://github.com/mdcode2026-core-sys/Core-System-clinic-/actions/runs/38368309490)  
+**Candidate verified:** `66a76b200d7871a5e4e1870727d9150b7fd5db4d`  
+**Workstream Verification:** [#1022 — PASS](https://github.com/mdcode2026-core-sys/Core-System-clinic-/actions/runs/38405509811)  
+**Engineering Governance:** [#282 — PASS](https://github.com/mdcode2026-core-sys/Core-System-clinic-/actions/runs/38405509614)  
 **Gate status:** OPEN — this matrix is a coverage reconciliation, not a closure declaration.
 
 ## Evidence interpretation
@@ -32,7 +32,7 @@
 | 13 | No-show | Isolated DB flow transitions `confirmed → no_show`, verifies STATUS_CHANGE audit, and verifies the no-show provider interval no longer blocks a new booking. | PASS |
 | 14 | Arrival/status progression | Isolated DB flow exercises `scheduled → confirmed → arrived → in_session → completed` for patient/provider/room/resource-device conflict scenarios. | PASS |
 | 15 | Completed appointment no longer blocks active conflicts | Branch-only forward migration aligns all four exclusion predicates. On the exact candidate, isolated clean replay passed separate patient, provider, room, and resource/device probes: completion releases the interval and an active overlap is still rejected. Hosted schema remains unchanged pending WP-8 release review. | PASS — branch-local verification |
-| 16 | Tenant-local wall-clock values persist as correct UTC values | Exact-head Gate 04 static lane executes the real `tenantLocalToUtc` and `utcToTenantInput` helpers: Asia/Amman 09:00 local converts to 06:00Z, round-trips to 09:00, and explicit-offset input remains absolute. | PASS — helper behavior verified |
+| 16 | Tenant-local wall-clock values persist as correct UTC values | Exact-head Gate 04 timezone lane passes 12 behavior groups: normal conversion/round-trip, non-hour UTC offset, explicit-offset preservation, invalid input/timezone rejection, DST spring-gap rejection, deterministic earlier instant during fall-back overlap, wall-clock duration across midnight, and a tenant-local week range spanning a 167-hour DST week. Static assertions also verify Quick Appointment/form duration calculations, tenant-local calendar bounds, and tenant-local workforce-leave fallback. | PASS — timezone boundary behavior verified |
 | 17 | Buffer prevents adjacent conflicting booking | Isolated clean-replay DB probe sets a 15-minute buffer: same-resource booking inside the buffer is rejected, and a booking after buffer end succeeds. | PASS |
 | 18 | Late arrival does not mutate planned time | Isolated clean-replay DB probe transitions `scheduled → confirmed → arrived` and asserts `scheduled_start` is unchanged. | PASS |
 | 19 | Overrun does not create a second scheduler state | No overrun scenario. | GAP |
@@ -149,3 +149,12 @@ The Gate 04 static lane now transpiles and executes the real `conflict.engine.ts
 ## Buffer and late-arrival lifecycle probes — isolated database (2026-10-13)
 
 The clean local replay now verifies a 15-minute exclusive-resource buffer: an overlapping booking beginning 5 minutes before buffer end is rejected by the database exclusion constraint, while a new booking beginning 5 minutes after buffer end succeeds. A separate appointment is transitioned to `confirmed` and `arrived`; the stored planned `scheduled_start` must remain identical. These checks do not alter hosted data and do not create an additional scheduler state.
+
+
+## Exact-head timezone verification — 2026-10-13
+
+- Candidate: `66a76b200d7871a5e4e1870727d9150b7fd5db4d`
+- Workstream Verification [#1022 — PASS](https://github.com/mdcode2026-core-sys/Core-System-clinic-/actions/runs/38405509811); Engineering Governance [#282 — PASS](https://github.com/mdcode2026-core-sys/Core-System-clinic-/actions/runs/38405509614).
+- The dedicated timezone verifier reports `GATE04_TIMEZONE_CHECK=PASS cases=12`; the Gate 04 static lane and isolated local database lane also pass on this exact SHA.
+- Corrected behaviors: reject nonexistent DST-gap wall times, select the earlier instant consistently for repeated fall-back wall times, preserve explicit-offset instants, handle non-hour offsets, calculate durations as tenant wall-clock arithmetic rather than browser-local time, and query/render calendar weeks by tenant-local date boundaries. Workforce-leave fallback boundaries are converted from tenant-local midnight to UTC; buffer arithmetic uses elapsed-time milliseconds.
+- Gate 04 remains OPEN: other WP-7 scenarios remain PARTIAL/GAP, and WP-8 remains BLOCKED. No hosted database/history changes, merge, or production promotion occurred.
