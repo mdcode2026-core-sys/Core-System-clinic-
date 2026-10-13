@@ -258,6 +258,11 @@ try {
       v_buffer_after_event public.master_agenda_events%ROWTYPE;
       v_late_event public.master_agenda_events%ROWTYPE;
       v_overrun_event public.master_agenda_events%ROWTYPE;
+      v_workforce_event public.master_agenda_events%ROWTYPE;
+      v_workforce_planned_start timestamptz;
+      v_workforce_planned_end timestamptz;
+      v_workforce_event_count integer;
+      v_workforce_booking_rejected boolean := false;
       v_planned_start timestamptz;
       v_planned_end timestamptz;
       v_count integer;
@@ -518,6 +523,93 @@ try {
       END IF;
       IF v_status <> 'in_session' THEN
         RAISE EXCEPTION 'GATE04_OVERRUN_DID_NOT_REMAIN_IN_SINGLE_LIFECYCLE status=%', v_status;
+      END IF;
+
+      -- Scenario 22: an approved Workforce absence is a new availability constraint.
+      -- It must not silently delete, reschedule, or mutate an appointment already booked.
+      INSERT INTO public.workforce_employees (
+        id, tenant_id, user_id, first_name, last_name, status
+      ) VALUES (
+        'd4000000-0000-4000-8000-00000000000e',
+        v_tenant_id, v_clinic_user_id, 'Gate', 'Four Workforce Probe', 'active'
+      );
+
+      SELECT * INTO v_workforce_event
+      FROM public.agenda_create_appointment(
+        v_tenant_id, v_clinic_user_id, v_patient_resource_probe_id,
+        v_clinic_user_id, NULL, NULL, NULL, NULL,
+        now() + interval '15 days',
+        now() + interval '15 days 30 minutes',
+        now() + interval '15 days 30 minutes',
+        'gate04 scenario 22 existing appointment before workforce change'
+      );
+      IF v_workforce_event.id IS NULL OR v_workforce_event.status <> 'scheduled' THEN
+        RAISE EXCEPTION 'GATE04_WORKFORCE_EXISTING_APPOINTMENT_SETUP_FAILED';
+      END IF;
+      v_workforce_planned_start := v_workforce_event.scheduled_start;
+      v_workforce_planned_end := v_workforce_event.scheduled_end;
+
+      INSERT INTO public.workforce_unavailability_blocks (
+        tenant_id, employee_id, absence_type, starts_at, ends_at, reason, status, created_by
+      ) VALUES (
+        v_tenant_id, 'd4000000-0000-4000-8000-00000000000e',
+        'leave', v_workforce_planned_start - interval '5 minutes',
+        v_workforce_planned_end + interval '15 minutes',
+        'gate04 scenario 22 preserve existing appointment', 'approved', v_clinic_user_id
+      );
+
+      SELECT count(*) INTO v_workforce_event_count
+      FROM public.master_agenda_events
+      WHERE tenant_id = v_tenant_id
+        AND id = v_workforce_event.id
+        AND patient_id = v_patient_resource_probe_id;
+      IF v_workforce_event_count <> 1 THEN
+        RAISE EXCEPTION 'GATE04_WORKFORCE_CHANGE_DELETED_OR_DUPLICATED_EXISTING_APPOINTMENT count=%',
+          v_workforce_event_count;
+      END IF;
+
+      SELECT scheduled_start, scheduled_end, status
+      INTO v_workforce_planned_start, v_workforce_planned_end, v_status
+      FROM public.master_agenda_events
+      WHERE tenant_id = v_tenant_id AND id = v_workforce_event.id;
+      IF v_workforce_planned_start IS DISTINCT FROM v_workforce_event.scheduled_start
+        OR v_workforce_planned_end IS DISTINCT FROM v_workforce_event.scheduled_end
+        OR v_status <> 'scheduled' THEN
+        RAISE EXCEPTION 'GATE04_WORKFORCE_CHANGE_MUTATED_OR_REBOOKED_EXISTING_APPOINTMENT';
+      END IF;
+
+      -- New overlapping bookings must still respect the newly approved absence.
+      BEGIN
+        PERFORM public.agenda_create_appointment(
+          v_tenant_id, v_clinic_user_id, v_patient_doctor_probe_id,
+          v_clinic_user_id, NULL, NULL, NULL, NULL,
+          v_workforce_event.scheduled_start,
+          v_workforce_event.scheduled_end,
+          v_workforce_event.buffer_end,
+          'gate04 scenario 22 new booking during approved absence must fail'
+        );
+        RAISE EXCEPTION 'GATE04_WORKFORCE_UNAVAILABLE_BOOKING_WAS_ACCEPTED';
+      EXCEPTION WHEN OTHERS THEN
+        IF SQLERRM = 'GATE04_WORKFORCE_UNAVAILABLE_BOOKING_WAS_ACCEPTED' THEN
+          RAISE;
+        END IF;
+        IF SQLERRM NOT ILIKE '%unavailable%' THEN
+          RAISE EXCEPTION 'GATE04_WORKFORCE_REJECTION_WRONG_CAUSE: %', SQLERRM;
+        END IF;
+        v_workforce_booking_rejected := true;
+      END;
+      IF NOT v_workforce_booking_rejected THEN
+        RAISE EXCEPTION 'GATE04_WORKFORCE_UNAVAILABLE_BOOKING_WAS_ACCEPTED';
+      END IF;
+
+      SELECT count(*) INTO v_workforce_event_count
+      FROM public.master_agenda_events
+      WHERE tenant_id = v_tenant_id
+        AND patient_id = v_patient_doctor_probe_id
+        AND booking_notes = 'gate04 scenario 22 new booking during approved absence must fail';
+      IF v_workforce_event_count <> 0 THEN
+        RAISE EXCEPTION 'GATE04_WORKFORCE_REJECTED_BOOKING_WAS_PERSISTED count=%',
+          v_workforce_event_count;
       END IF;
 
       -- Complete the first appointment through the permitted lifecycle.
