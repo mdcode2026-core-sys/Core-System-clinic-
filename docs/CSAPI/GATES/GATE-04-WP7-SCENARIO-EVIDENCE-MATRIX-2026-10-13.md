@@ -95,3 +95,10 @@ The hosted Supabase project was queried read-only. No hosted schema, data, or mi
 - **WP-7 remains OPEN.** Exact-head CI is green, but the explicit scenario gaps above prevent integrated-verification closure.
 - **WP-8 remains BLOCKED.** Version/name inventory and selected schema observations are not a complete migration-lineage reconciliation.
 - PR #242 remains Draft/open/unmerged. No hosted migration application/history edits, merge, or production promotion is authorized by this checkpoint.
+
+
+## Latest scenario-15 evidence addendum — candidate a24f6e70c659d3996c4e9bb5f0352220f2dc5dbc
+
+Workstream #1004 and Governance #264 passed on this exact candidate. The isolated local DB verifier now drives an appointment through the complete active lifecycle to `completed`, verifies that an overlapping new appointment for the same patient is accepted, then verifies a second overlapping active appointment is rejected. It also checks all four canonical exclusion-constraint definitions for the lifecycle exclusions.
+
+**Updated classification:** scenario 15 is **PARTIAL**, not PASS: direct behavior is exercised for patient overlap, while doctor/room/resource completed-vs-active behavior is supported only by constraint-definition assertions, not separate dimension-specific competing-booking probes. All other matrix statuses remain as previously recorded against candidate `548f050c2f6e18122b9350e655e74ea5ab54090e` until new scenario-specific evidence changes them. WP-7 remains OPEN; WP-8 remains BLOCKED.

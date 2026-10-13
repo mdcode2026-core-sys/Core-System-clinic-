@@ -405,3 +405,16 @@ Next: group candidates by normalized intent and compare repository SQL bodies, h
 ## Gate 04 finding — completed appointment conflict policy (2026-10-13)
 
 Read-only source/schema comparison confirmed an inconsistency between the application conflict filter and hosted exclusion predicates for completed appointments (doctor/patient/room vs. resource). Repository migration definitions also do not fully match the live constraint set. This is a Gate 04 scenario-15 blocker and WP-8 lineage finding. No hosted change was made; a forward-only branch migration plus local active/completed conflict probes and read-only release preflight are required. Gate 04 remains open.
+
+
+## Exact-head verification checkpoint — 2026-10-13 (#1004 / #264)
+
+- Candidate SHA: `a24f6e70c659d3996c4e9bb5f0352220f2dc5dbc`.
+- [Workstream Verification #1004](https://github.com/mdcode2026-core-sys/Core-System-clinic-/actions/runs/38380111698): **PASS**; all required jobs completed successfully, including engineering, Gate 04 static, isolated local Gate 04 database, authenticated E2E, cross-domain runtime, Gate 03 regression lanes, i18n, presentation static/runtime, and final gate.
+- [Engineering Governance #264](https://github.com/mdcode2026-core-sys/Core-System-clinic-/actions/runs/38380111547): **PASS** on the same candidate.
+- The local database lane cleanly replayed the branch migrations and passed the new lifecycle probe: scheduled → confirmed → arrived → in_session → completed; a same-patient overlapping appointment was then accepted; a further overlapping active appointment was rejected. The test also checks that all four doctor/patient/room/resource exclusion predicates mention completed, cancelled and no_show.
+- This is direct evidence for the completed-appointment patient-conflict path and predicate consistency in the local schema. It does **not** yet independently prove completed-vs-active behavior for each doctor, room and resource dimension, nor does it close the other WP-7 scenarios.
+- WP-7 remains **OPEN**. The scenario matrix remains authoritative for the unproven provider, room/resource, workforce, tenant-local time/buffer, concurrency, permissions, audit-disclosure, and cross-domain scenarios. Do not infer coverage from green aggregate CI.
+- WP-8 remains **BLOCKED** pending evidence-backed repository/hosted migration-lineage reconciliation. The migration is branch-only; hosted Supabase schema/data/history are unchanged.
+- PR #242 remains OPEN / DRAFT / UNMERGED. No merge, hosted database mutation/history edit, or production promotion.
+- Next action: continue WP-7 scenario evidence work within the frozen Verification Plan, prioritizing direct, deterministic local database probes for the missing conflict/resource/provider/permission cases, while separately classifying WP-8 lineage discrepancies read-only. Do not add another broad implementation change until the next concrete gap and its root cause are established.

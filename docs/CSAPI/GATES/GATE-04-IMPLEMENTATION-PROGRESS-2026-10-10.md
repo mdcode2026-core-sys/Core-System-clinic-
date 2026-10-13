@@ -205,3 +205,16 @@ This does not close WP-7. The scenario evidence matrix `GATE-04-WP7-SCENARIO-EVI
 ## 2026-10-13 — Completed-appointment conflict predicate finding
 
 The latest exact-head documentation candidate `9bb87d9a338c99bcced0ac11b21f0740b2675de8` passed Workstream #1001 (12/12) and Governance #261. Subsequent read-only review confirmed the scenario-15 gap is a real schema/application mismatch: app conflict lookup excludes completed appointments, but hosted doctor/patient/room exclusion predicates do not; the resource predicate does. Repository patient migration and live definition differ, and the live room constraint is not represented in repo migration SQL. The detailed finding and repair plan are in `GATE-04-WP7-SCENARIO-EVIDENCE-MATRIX-2026-10-13.md`. Do not change hosted constraints; implement a forward-only branch migration and local probes, then reconcile WP-8 before any release. WP-7 remains open; WP-8 remains blocked.
+
+
+## Exact-head verification checkpoint — 2026-10-13 (#1004 / #264)
+
+- Candidate SHA: `a24f6e70c659d3996c4e9bb5f0352220f2dc5dbc`.
+- [Workstream Verification #1004](https://github.com/mdcode2026-core-sys/Core-System-clinic-/actions/runs/38380111698): **PASS**; all required jobs completed successfully, including engineering, Gate 04 static, isolated local Gate 04 database, authenticated E2E, cross-domain runtime, Gate 03 regression lanes, i18n, presentation static/runtime, and final gate.
+- [Engineering Governance #264](https://github.com/mdcode2026-core-sys/Core-System-clinic-/actions/runs/38380111547): **PASS** on the same candidate.
+- The local database lane cleanly replayed the branch migrations and passed the new lifecycle probe: scheduled → confirmed → arrived → in_session → completed; a same-patient overlapping appointment was then accepted; a further overlapping active appointment was rejected. The test also checks that all four doctor/patient/room/resource exclusion predicates mention completed, cancelled and no_show.
+- This is direct evidence for the completed-appointment patient-conflict path and predicate consistency in the local schema. It does **not** yet independently prove completed-vs-active behavior for each doctor, room and resource dimension, nor does it close the other WP-7 scenarios.
+- WP-7 remains **OPEN**. The scenario matrix remains authoritative for the unproven provider, room/resource, workforce, tenant-local time/buffer, concurrency, permissions, audit-disclosure, and cross-domain scenarios. Do not infer coverage from green aggregate CI.
+- WP-8 remains **BLOCKED** pending evidence-backed repository/hosted migration-lineage reconciliation. The migration is branch-only; hosted Supabase schema/data/history are unchanged.
+- PR #242 remains OPEN / DRAFT / UNMERGED. No merge, hosted database mutation/history edit, or production promotion.
+- Next action: continue WP-7 scenario evidence work within the frozen Verification Plan, prioritizing direct, deterministic local database probes for the missing conflict/resource/provider/permission cases, while separately classifying WP-8 lineage discrepancies read-only. Do not add another broad implementation change until the next concrete gap and its root cause are established.
