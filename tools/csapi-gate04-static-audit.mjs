@@ -187,10 +187,15 @@ check("offset-aware-datetime-remains-absolute",
 const availabilitySource = read("src/domain/agenda/availability.engine.ts");
 const availabilityJavaScript = ts.transpileModule(availabilitySource, {
   compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022 },
-}).outputText.replace(
-  'import { createClient } from "@/infrastructure/supabase/server";',
-  'const createClient = async () => { throw new Error("Unexpected default Supabase client in isolated verification"); };',
-);
+}).outputText
+  .replace(
+    'import { createClient } from "@/infrastructure/supabase/server";',
+    'const createClient = async () => { throw new Error("Unexpected default Supabase client in isolated verification"); };',
+  )
+  .replace(
+    'import { addCalendarDays, getTenantLocalDate, tenantLocalToUtc } from "@/shared/utils/dateTime";',
+    `const { addCalendarDays, getTenantLocalDate, tenantLocalToUtc } = await import("${dateTimeModuleUrl}");`,
+  );
 const availabilityModuleUrl = `data:text/javascript;base64,${Buffer.from(availabilityJavaScript).toString("base64")}`;
 const availabilityEngine = await import(availabilityModuleUrl);
 function createAvailabilityClient({ occupied = false, occupiedRoom = false, schedule = [{ day_of_week: 3, start_time: "09:00:00", end_time: "17:00:00", is_active: true }] } = {}) {
