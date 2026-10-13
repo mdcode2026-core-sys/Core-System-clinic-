@@ -245,6 +245,11 @@ try {
       v_clinic_user_id uuid := 'd4000000-0000-4000-8000-000000000003';
       v_patient_id uuid := 'd4000000-0000-4000-8000-000000000004';
       v_other_patient_id uuid := 'd4000000-0000-4000-8000-000000000008';
+      v_patient_doctor_probe_id uuid := 'd4000000-0000-4000-8000-000000000009';
+      v_patient_room_probe_id uuid := 'd4000000-0000-4000-8000-00000000000a';
+      v_patient_resource_probe_id uuid := 'd4000000-0000-4000-8000-00000000000b';
+      v_room_id uuid := 'd4000000-0000-4000-8000-00000000000c';
+      v_resource_id uuid := 'd4000000-0000-4000-8000-00000000000d';
       v_event public.master_agenda_events%ROWTYPE;
       v_count integer;
       v_status text;
