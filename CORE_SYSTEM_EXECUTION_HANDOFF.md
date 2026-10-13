@@ -783,3 +783,17 @@ Next: group candidates by normalized intent and compare repository SQL bodies, h
 - Read-only live schema checks confirmed current appointment exclusion constraints and Workforce capability/availability tables; the historical `clinic_procedure_resources` table is absent. Do not resurrect or bulk-apply old migrations.
 - Fresh exact-name migration triage counts differ from the earlier 82/80/82 note; record the method discrepancy as unresolved rather than treating candidate names as semantic equivalence. WP-8 remains **BLOCKED**.
 - PR #242 remains OPEN / DRAFT / NOT MERGED. No hosted Supabase schema/data/history changes, merge, or production promotion. The documentation commit that follows creates a new candidate and requires exact-head verification.
+
+
+## Constraint-policy finding — completed appointments vs. active conflicts (2026-10-13)
+
+Read-only comparison of `src/domain/agenda/conflict.engine.ts`, repository migrations, and hosted `pg_constraint` definitions identified a concrete mismatch relevant to Verification Plan scenario 15:
+
+- Application conflict queries exclude `cancelled`, `no_show`, and `completed`.
+- Hosted `no_doctor_overlap`, `no_patient_overlap`, and `no_room_overlap` exclude only `cancelled` and `no_show`; `no_resource_overlap` also excludes `completed`.
+- Repository migration `20260830030349_ajm_reality_audit_patient_overlap_constraint.sql` defines the patient predicate with `completed` excluded, unlike the hosted live definition.
+- No repository migration SQL defining the hosted `no_room_overlap` constraint was found in the current migration tree.
+
+**Classification:** Gate 04 scenario 15 is a confirmed application/schema policy mismatch, and the missing/different constraint definitions are additional WP-8 lineage evidence. The approved Verification Plan says completed appointments must not remain active conflicts; the frozen execution contract still prohibits silently weakening database integrity constraints.
+
+**Next technical action:** prepare a forward-only migration that aligns all four exclusion predicates with the approved active-conflict lifecycle, retains exclusivity for active appointments, and represents `no_room_overlap` in the repository migration chain. Add a local DB probe that marks an appointment completed and verifies an overlapping new booking succeeds, then verifies a competing active booking is rejected. First perform a read-only preflight for existing overlapping active rows. Do not alter hosted schema/history or promote release until WP-8 lineage reconciliation and release authorization are complete.

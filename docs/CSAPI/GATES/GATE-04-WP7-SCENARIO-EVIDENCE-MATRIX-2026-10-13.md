@@ -31,7 +31,7 @@
 | 12 | Normal cancellation | Protected cancel command, reason, actor, and CANCEL audit verified in isolated local DB. | PASS |
 | 13 | No-show | No direct no-show transition scenario. | GAP |
 | 14 | Arrival/status progression | Confirmation is tested; arrived → in_session → completed path is not. | PARTIAL |
-| 15 | Completed appointment no longer blocks active conflicts | No conflict-engine scenario for completed appointments. | GAP |
+| 15 | Completed appointment no longer blocks active conflicts | The app conflict engine excludes completed, but hosted DB constraints for doctor, patient, and room still include completed in their exclusion predicates; only resource excludes it. The repo patient migration expects a different predicate, and no repo migration definition for the live room constraint was found. | GAP — constraint/schema mismatch confirmed |
 | 16 | Tenant-local wall-clock values persist as correct UTC values | Test tenant uses Asia/Amman, but the DB probe passes UTC timestamps directly; conversion behavior is not tested. | GAP |
 | 17 | Buffer prevents adjacent conflicting booking | No adjacent-booking buffer probe. | GAP |
 | 18 | Late arrival does not mutate planned time | No late-arrival scenario. | GAP |
@@ -67,6 +67,17 @@
 | User lacking `agenda:create` / `agenda:update` is denied | Not directly tested with a user lacking each permission. | GAP |
 | Unauthorized audit-detail disclosure is blocked | No dedicated disclosure-level test. | GAP |
 | Two competing requests cannot both acquire an exclusive provider/room/resource | No concurrent competing-booking test. | GAP |
+
+## Confirmed completed-appointment constraint mismatch — 2026-10-13
+
+The application conflict query excludes `cancelled`, `no_show`, and `completed`. Read-only `pg_get_constraintdef` on hosted Supabase shows:
+
+- `no_doctor_overlap`: excludes only `cancelled` and `no_show`;
+- `no_patient_overlap`: excludes only `cancelled` and `no_show`, while repository migration `20260830030349_ajm_reality_audit_patient_overlap_constraint.sql` excludes `completed` too;
+- `no_room_overlap`: excludes only `cancelled` and `no_show`, and no matching constraint definition was found in the repository migration SQL;
+- `no_resource_overlap`: excludes `cancelled`, `no_show`, and `completed`.
+
+Therefore scenario 15 is not just untested: the live schema predicate is inconsistent with the application conflict rule, and the repository migration chain does not fully represent the live room constraint. This is a Gate 04 verification defect plus WP-8 lineage evidence. Do not silently alter the live constraints. The technical repair plan is a forward-only migration aligning all four exclusion predicates with the approved active-conflict lifecycle, plus clean-replay checks that completed appointments release conflicts while active appointments remain exclusive. Before release, run a read-only data preflight for overlapping active rows and finish migration-lineage reconciliation. No hosted change is authorized here.
 
 ## WP-8 read-only schema observations — 2026-10-13
 

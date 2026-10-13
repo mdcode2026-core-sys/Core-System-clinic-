@@ -400,3 +400,8 @@ Next: group candidates by normalized intent and compare repository SQL bodies, h
 - Gate 04 remains OPEN: scenario-level coverage is incomplete; see `docs/CSAPI/GATES/GATE-04-WP7-SCENARIO-EVIDENCE-MATRIX-2026-10-13.md`.
 - WP-8 remains BLOCKED: repository-vs-hosted migration lineage is unresolved. Read-only schema checks do not authorize hosted changes.
 - PR #242 stays Draft/unmerged; no production promotion or hosted Supabase mutation.
+
+
+## Gate 04 finding — completed appointment conflict policy (2026-10-13)
+
+Read-only source/schema comparison confirmed an inconsistency between the application conflict filter and hosted exclusion predicates for completed appointments (doctor/patient/room vs. resource). Repository migration definitions also do not fully match the live constraint set. This is a Gate 04 scenario-15 blocker and WP-8 lineage finding. No hosted change was made; a forward-only branch migration plus local active/completed conflict probes and read-only release preflight are required. Gate 04 remains open.

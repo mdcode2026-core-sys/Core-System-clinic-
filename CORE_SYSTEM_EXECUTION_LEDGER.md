@@ -554,3 +554,8 @@ Next: group candidates by normalized intent and compare repository SQL bodies, h
 ## 2026-10-13 — Gate 04 evidence checkpoint
 
 Verified candidate `548f050c2f6e18122b9350e655e74ea5ab54090e`: Workstream #1000 PASS (12/12) and Engineering Governance #260 PASS. Added local DB probes for cross-tenant patient rejection, normal update audit, and stale-state rejection. Exact scenario coverage and gaps are recorded in `docs/CSAPI/GATES/GATE-04-WP7-SCENARIO-EVIDENCE-MATRIX-2026-10-13.md`. Gate 04 is not closed; WP-7 remains open and WP-8 blocked. No hosted Supabase changes, merge, or production promotion.
+
+
+## 2026-10-13 — Gate 04 completed-appointment constraint mismatch
+
+Read-only comparison found the application conflict engine excludes completed appointments, while hosted doctor/patient/room exclusion predicates do not; resource exclusion does. The repo patient migration's predicate differs from hosted live definition, and the live room constraint is not represented in repo migration SQL. Classified as a confirmed Gate 04 scenario-15 mismatch plus WP-8 lineage evidence. No hosted changes. Next: forward-only migration + local completed-vs-active conflict probes + read-only data preflight; WP-8 remains a release blocker.
