@@ -12,7 +12,10 @@ const timeoutMs = Number(process.env.TEST_COMMAND_TIMEOUT_MS || 300000);
 const effectiveTimeoutMs = lane === "csapi-gate04-database" ? Math.max(timeoutMs, 900000) : timeoutMs;
 
 const commands = {
-  "csapi-gate04-static": [["gate04-agenda-static-contract", "node", ["tools/csapi-gate04-static-audit.mjs"]]],
+  "csapi-gate04-static": [
+    ["gate04-agenda-static-contract", "node", ["tools/csapi-gate04-static-audit.mjs"]],
+    ["gate04-agenda-timezone-behavior", "node", ["tools/csapi-gate04-timezone-verification.mjs"]],
+  ],
   "csapi-gate04-database": [["gate04-agenda-clean-local-database", "node", ["tools/csapi-gate04-database-verification.mjs"]]],
   engineering: [
     ["typecheck", "npx", ["tsc", "--noEmit"]],

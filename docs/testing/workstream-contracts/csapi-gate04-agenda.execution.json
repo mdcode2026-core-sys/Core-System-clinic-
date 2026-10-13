@@ -53,6 +53,12 @@
       "command": "node tools/csapi-gate04-database-verification.mjs",
       "required": true,
       "execution_owner": "workstream-verification"
+    },
+    {
+      "name": "gate04-agenda-timezone-behavior",
+      "command": "node tools/csapi-gate04-timezone-verification.mjs",
+      "required": true,
+      "execution_owner": "workstream-verification"
     }
   ],
   "suppress_workstreams_when_applicable": [
