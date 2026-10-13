@@ -37,6 +37,7 @@ const laneRegistry = {
 
 const commandToLane = new Map([
   ["node tools/csapi-gate04-static-audit.mjs", "csapi-gate04-static"],
+  ["node tools/csapi-gate04-timezone-verification.mjs", "csapi-gate04-static"],
   ["node tools/csapi-gate04-database-verification.mjs", "csapi-gate04-database"],
   ["npm run test:global-experience-presentation", "global-experience-presentation-static"],
   ["node tools/global-experience-presentation-runtime.spec.mjs", "global-experience-presentation-runtime"],

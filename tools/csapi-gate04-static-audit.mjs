@@ -68,7 +68,7 @@ check("main-agenda-form-uses-provider-requirements", agendaForm.includes("isProv
 check("main-agenda-form-rebooks-cancelled-appointment", agendaForm.includes('event.status==="cancelled"') && agendaForm.includes("shouldReschedule(event,date,startTime,endTime,tenantTimezone)"));
 check("provider-requirements-reach-all-agenda-form-entry-points", agendaPage.includes("provider_type: procedure.provider_type") && patientsPage.includes("provider_type: p.provider_type"));
 
-check("timezone-helper-defines-dst-gap-and-overlap-policy", dateTimeUtils.includes("Tenant-local datetime does not exist") && dateTimeUtils.includes("earlier instant is chosen consistently"));
+check("timezone-helper-defines-dst-gap-and-overlap-policy", dateTimeUtils.includes("Tenant-local datetime does not exist") && dateTimeUtils.includes("choose the earlier instant consistently"));
 check("quick-appointment-uses-wall-clock-duration", quick.includes("addMinutesToLocalDateTime(form.start_time, selectedProcedure!.standard_duration_minutes)") && !quick.includes("new Date(`${form.start_time}:00Z`)"));
 check("agenda-week-range-and-calendar-use-tenant-timezone", agendaPage.includes("getTenantWeekRangeUtc(currentDate, tenantTimezone)") && agendaCalendar.includes("getTenantLocalDate(currentDate, timeZone)") && agendaCalendar.includes("addCalendarDays(tenantToday"));
 check("agenda-command-client-is-server-only", commandClient.includes('import "server-only"') && commandClient.includes("SUPABASE_SERVICE_ROLE_KEY"));

@@ -3,7 +3,7 @@
 import { useI18n } from "@/core/i18n/I18nProvider";
 import { Button } from "@/shared/components/ui/button";
 import { ChevronLeft, ChevronRight, Calendar } from "lucide-react";
-import { addCalendarDays, formatTimeInTimeZone, getTenantLocalDate } from "@/shared/utils/dateTime";
+import { addCalendarDays, formatTimeInTimeZone, getTenantLocalDate, tenantLocalToUtc } from "@/shared/utils/dateTime";
 import type { AgendaEventWithRelations, AgendaEventStatusValue } from "@/domain/agenda/agenda.types";
 
 interface AgendaCalendarProps {
@@ -52,7 +52,7 @@ export function AgendaCalendar({ events, currentDate, timeZone = "UTC", onDateCh
   });
   const shiftWeek = (amount: number) => {
     const nextDate = addCalendarDays(tenantToday, amount * 7);
-    onDateChange(new Date(`${nextDate}T12:00:00Z`));
+    onDateChange(new Date(tenantLocalToUtc(`${nextDate}T12:00:00`, timeZone)));
   };
   const statusLabel = (status: AgendaEventStatusValue) => a.agenda[StatusLabelKey[status]];
   const formatTime = (event: AgendaEventWithRelations) => `${formatTimeInTimeZone(event.scheduled_start, locale, timeZone)} - ${formatTimeInTimeZone(event.scheduled_end, locale, timeZone)}`;
