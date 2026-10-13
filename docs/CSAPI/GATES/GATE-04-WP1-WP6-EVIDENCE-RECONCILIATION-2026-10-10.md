@@ -274,3 +274,20 @@ The latest exact candidate `534474015383716e6517a7b0d26cc205864a493f` passed Wor
 Independent source review (preliminary, not closure) found mutation identity/tenant derived by the server from the authenticated session; service-role-only RPC invocation; database validation of active tenant actor, effective permission, tenant-scoped references and expected status; and revoked ordinary client appointment writes. Pattern checks and these focused probes do not establish every contract scenario.
 
 **Remaining evidence gap:** Gate 04 Verification Plan explicitly calls for provider-required and provider-optional positive/negative cases, provider/room/resource/patient conflicts, time normalization and buffer behavior, concurrency/race probes, workforce availability interactions, full lifecycle negatives, and cross-domain cases. The current green lanes and focused DB flow do not individually prove all of these. Reconcile each scenario to an executable test/log or mark it unresolved; do not close WP7 on the aggregate green status alone. WP8 remains blocked pending fresh read-only repository-versus-hosted migration lineage evidence and an approved resolution plan. No hosted mutation/history edits, merge or production promotion.
+
+
+## WP-8 read-only migration-lineage inventory — 2026-10-13
+
+Snapshot artifact: `docs/CSAPI/GATES/GATE-04-WP8-MIGRATION-LINEAGE-SNAPSHOT-2026-10-13.json` captured against repository SHA `1ef5f0e86810c07e4de09989c140d13369d0b872` and hosted project `core-system-clinic` (ref `qaslsjyxjwvdoiczmhgq`). This is a read-only version-key inventory from the repository Git tree and Supabase migration-history listing; no hosted SQL, schema, data, or migration history was modified.
+
+Fresh counts:
+- Repository SQL migration files: **238** total; **233** with 14-digit migration versions and **5** shorter legacy-prefix files.
+- Hosted migration-history rows: **292**.
+- Shared exact 14-digit version keys: **121**.
+- Repository-only version keys: **112**.
+- Hosted-only version keys: **171**.
+- Shared version keys with different names: **12**.
+
+These counts supersede the older WP-8 headline counts in prior notes because the current snapshot is from the current branch head and explicitly separates 14-digit version keys from five shorter legacy filenames. They are **not semantic migration equivalence counts**: a version-key difference can reflect a rename/re-version/replay or an actually unrepresented change; only content/schema evidence can classify it. Matching version keys also do not prove file contents match what was applied. Therefore WP-8 remains **BLOCKED**.
+
+Next: group candidates by normalized intent and compare repository SQL bodies, hosted history names, and current schema/catalog evidence in read-only mode; classify each discrepancy as equivalent/renamed, repo-only not applied, hosted-only untracked, name-only mismatch, or unresolved. Produce an approved remediation plan before any hosted change. Do not bulk-apply migrations, edit hosted history, or infer a safe order from names alone.

@@ -1,0 +1,1361 @@
+{
+  "report_id": "CSAPI-GATE04-WP8-MIGRATION-LINEAGE-SNAPSHOT-2026-10-13",
+  "captured_at": "2026-10-13",
+  "repository": "mdcode2026-core-sys/Core-System-clinic-",
+  "repository_sha": "1ef5f0e86810c07e4de09989c140d13369d0b872",
+  "repository_branch": "csapi/gate04-agenda-implementation-2026-10-10",
+  "supabase_project": {
+    "name": "core-system-clinic",
+    "ref": "qaslsjyxjwvdoiczmhgq",
+    "region": "eu-central-1",
+    "postgres_version": "17.6.1.141"
+  },
+  "method": "Read-only comparison of migration version prefixes from the Git tree with versions/names returned by Supabase list_migrations. Only exactly 14-digit repository prefixes participate in version-key comparison; shorter legacy filename prefixes are listed separately. Matching version keys do not prove SQL equivalence, and missing version keys do not prove the corresponding schema change is absent.",
+  "counts": {
+    "repository_migration_sql_files": 238,
+    "repository_14_digit_migrations": 233,
+    "repository_non_14_digit_legacy_files": 5,
+    "hosted_migration_history_rows": 292,
+    "shared_version_keys": 121,
+    "repository_only_version_keys": 112,
+    "hosted_only_version_keys": 171,
+    "shared_version_name_mismatches": 12
+  },
+  "repository_only_version_keys": [
+    {
+      "version": "20260729120000",
+      "name": "add_file_number_to_clinic_patients",
+      "path": "supabase/migrations/20260729120000_add_file_number_to_clinic_patients.sql"
+    },
+    {
+      "version": "20260804000000",
+      "name": "inventory_items_and_ledger_fk",
+      "path": "supabase/migrations/20260804000000_inventory_items_and_ledger_fk.sql"
+    },
+    {
+      "version": "20260810000001",
+      "name": "m2_0_expand_clinic_user_roles",
+      "path": "supabase/migrations/20260810000001_m2_0_expand_clinic_user_roles.sql"
+    },
+    {
+      "version": "20260810000002",
+      "name": "m2_0_remove_clinic_rooms_name",
+      "path": "supabase/migrations/20260810000002_m2_0_remove_clinic_rooms_name.sql"
+    },
+    {
+      "version": "20260810000003",
+      "name": "m2_0_create_branches",
+      "path": "supabase/migrations/20260810000003_m2_0_create_branches.sql"
+    },
+    {
+      "version": "20260810000004",
+      "name": "m2_0_subscription_plans_read_policy",
+      "path": "supabase/migrations/20260810000004_m2_0_subscription_plans_read_policy.sql"
+    },
+    {
+      "version": "20260810000005",
+      "name": "m2_0_custom_roles_templates_foundation",
+      "path": "supabase/migrations/20260810000005_m2_0_custom_roles_templates_foundation.sql"
+    },
+    {
+      "version": "20260810000006",
+      "name": "m2_0_notification_preferences",
+      "path": "supabase/migrations/20260810000006_m2_0_notification_preferences.sql"
+    },
+    {
+      "version": "20260810000007",
+      "name": "m2_0_permissions",
+      "path": "supabase/migrations/20260810000007_m2_0_permissions.sql"
+    },
+    {
+      "version": "20260822070000",
+      "name": "restore_provider_availability_replay_prerequisite",
+      "path": "supabase/migrations/20260822070000_restore_provider_availability_replay_prerequisite.sql"
+    },
+    {
+      "version": "20260823100000",
+      "name": "pj_stage9_followup_work_management",
+      "path": "supabase/migrations/20260823100000_pj_stage9_followup_work_management.sql"
+    },
+    {
+      "version": "20260823101500",
+      "name": "pj_stage9_followup_backfill_existing_state",
+      "path": "supabase/migrations/20260823101500_pj_stage9_followup_backfill_existing_state.sql"
+    },
+    {
+      "version": "20260823110000",
+      "name": "pj_stage10_followup_automation_foundation",
+      "path": "supabase/migrations/20260823110000_pj_stage10_followup_automation_foundation.sql"
+    },
+    {
+      "version": "20260823111500",
+      "name": "pj_stage10_supabase_cron_executor",
+      "path": "supabase/migrations/20260823111500_pj_stage10_supabase_cron_executor.sql"
+    },
+    {
+      "version": "20260823112000",
+      "name": "pj_stage10_complete_time_rules",
+      "path": "supabase/migrations/20260823112000_pj_stage10_complete_time_rules.sql"
+    },
+    {
+      "version": "20260824001000",
+      "name": "pj_stage12_seed_current_license_entitlement",
+      "path": "supabase/migrations/20260824001000_pj_stage12_seed_current_license_entitlement.sql"
+    },
+    {
+      "version": "20260824073000",
+      "name": "pj_stage14_followup_automation_e2e_repairs",
+      "path": "supabase/migrations/20260824073000_pj_stage14_followup_automation_e2e_repairs.sql"
+    },
+    {
+      "version": "20260824140000",
+      "name": "i18n_global_language_defaults",
+      "path": "supabase/migrations/20260824140000_i18n_global_language_defaults.sql"
+    },
+    {
+      "version": "20260824153000",
+      "name": "i18n_global_currency_default",
+      "path": "supabase/migrations/20260824153000_i18n_global_currency_default.sql"
+    },
+    {
+      "version": "20260827145000",
+      "name": "ajm_2_permission_role_boundary_correction",
+      "path": "supabase/migrations/20260827145000_ajm_2_permission_role_boundary_correction.sql"
+    },
+    {
+      "version": "20260827145200",
+      "name": "ajm_2_financial_resources_audit_triggers",
+      "path": "supabase/migrations/20260827145200_ajm_2_financial_resources_audit_triggers.sql"
+    },
+    {
+      "version": "20260827153000",
+      "name": "ajm2_tenant_safe_installment_allocation",
+      "path": "supabase/migrations/20260827153000_ajm2_tenant_safe_installment_allocation.sql"
+    },
+    {
+      "version": "20260827160001",
+      "name": "ajm2_atomic_payment_installment_allocation",
+      "path": "supabase/migrations/20260827160001_ajm2_atomic_payment_installment_allocation.sql"
+    },
+    {
+      "version": "20260827160002",
+      "name": "ajm_2_post_reconciliation_integrity",
+      "path": "supabase/migrations/20260827160002_ajm_2_post_reconciliation_integrity.sql"
+    },
+    {
+      "version": "20260828000000",
+      "name": "ajm2_harden_feature_flag_rls_role_lookup",
+      "path": "supabase/migrations/20260828000000_ajm2_harden_feature_flag_rls_role_lookup.sql"
+    },
+    {
+      "version": "20260828020000",
+      "name": "ajm2_restore_clinic_admin_full_permissions",
+      "path": "supabase/migrations/20260828020000_ajm2_restore_clinic_admin_full_permissions.sql"
+    },
+    {
+      "version": "20260830140000",
+      "name": "ideal_scenario_commercial_service_package_offer_foundation",
+      "path": "supabase/migrations/20260830140000_ideal_scenario_commercial_service_package_offer_foundation.sql"
+    },
+    {
+      "version": "20260830141000",
+      "name": "ideal_scenario_skill_qualification_authorization_foundation",
+      "path": "supabase/migrations/20260830141000_ideal_scenario_skill_qualification_authorization_foundation.sql"
+    },
+    {
+      "version": "20260830142000",
+      "name": "ideal_scenario_operating_expense_supplier_obligation_commission_foundation",
+      "path": "supabase/migrations/20260830142000_ideal_scenario_operating_expense_supplier_obligation_commission_foundation.sql"
+    },
+    {
+      "version": "20260830143000",
+      "name": "ideal_scenario_treatment_next_action_idempotency",
+      "path": "supabase/migrations/20260830143000_ideal_scenario_treatment_next_action_idempotency.sql"
+    },
+    {
+      "version": "20260830143100",
+      "name": "ideal_scenario_treatment_next_action_idempotency_fix",
+      "path": "supabase/migrations/20260830143100_ideal_scenario_treatment_next_action_idempotency_fix.sql"
+    },
+    {
+      "version": "20260830170000",
+      "name": "ideal_scenario_atomic_receiving_supplier_obligation",
+      "path": "supabase/migrations/20260830170000_ideal_scenario_atomic_receiving_supplier_obligation.sql"
+    },
+    {
+      "version": "20260830171000",
+      "name": "ideal_scenario_supplier_payment_atomic",
+      "path": "supabase/migrations/20260830171000_ideal_scenario_supplier_payment_atomic.sql"
+    },
+    {
+      "version": "20260830172000",
+      "name": "ideal_scenario_unified_workforce_unavailability",
+      "path": "supabase/migrations/20260830172000_ideal_scenario_unified_workforce_unavailability.sql"
+    },
+    {
+      "version": "20260830180000",
+      "name": "ideal_scenario_commercial_sale_execution",
+      "path": "supabase/migrations/20260830180000_ideal_scenario_commercial_sale_execution.sql"
+    },
+    {
+      "version": "20260830181000",
+      "name": "ideal_scenario_claim_reconciliation",
+      "path": "supabase/migrations/20260830181000_ideal_scenario_claim_reconciliation.sql"
+    },
+    {
+      "version": "20260830182000",
+      "name": "ideal_scenario_domain_event_work_template",
+      "path": "supabase/migrations/20260830182000_ideal_scenario_domain_event_work_template.sql"
+    },
+    {
+      "version": "20260830183000",
+      "name": "ideal_scenario_procedure_consumption",
+      "path": "supabase/migrations/20260830183000_ideal_scenario_procedure_consumption.sql"
+    },
+    {
+      "version": "20260830184000",
+      "name": "ideal_scenario_resource_requirements",
+      "path": "supabase/migrations/20260830184000_ideal_scenario_resource_requirements.sql"
+    },
+    {
+      "version": "20260830185000",
+      "name": "ideal_scenario_resource_requirement_rpc",
+      "path": "supabase/migrations/20260830185000_ideal_scenario_resource_requirement_rpc.sql"
+    },
+    {
+      "version": "20260830190000",
+      "name": "ideal_scenario_sale_financial_linkage",
+      "path": "supabase/migrations/20260830190000_ideal_scenario_sale_financial_linkage.sql"
+    },
+    {
+      "version": "20260830191000",
+      "name": "ideal_scenario_resource_requirement_enforcement",
+      "path": "supabase/migrations/20260830191000_ideal_scenario_resource_requirement_enforcement.sql"
+    },
+    {
+      "version": "20260830192000",
+      "name": "ideal_scenario_consumption_idempotency",
+      "path": "supabase/migrations/20260830192000_ideal_scenario_consumption_idempotency.sql"
+    },
+    {
+      "version": "20260830193000",
+      "name": "ideal_scenario_work_ownership_integrity",
+      "path": "supabase/migrations/20260830193000_ideal_scenario_work_ownership_integrity.sql"
+    },
+    {
+      "version": "20260830194000",
+      "name": "ideal_scenario_sale_invoice_terms_fix",
+      "path": "supabase/migrations/20260830194000_ideal_scenario_sale_invoice_terms_fix.sql"
+    },
+    {
+      "version": "20260830195000",
+      "name": "ideal_scenario_commission_idempotency",
+      "path": "supabase/migrations/20260830195000_ideal_scenario_commission_idempotency.sql"
+    },
+    {
+      "version": "20260830200001",
+      "name": "ideal_scenario_domain_event_authorization",
+      "path": "supabase/migrations/20260830200001_ideal_scenario_domain_event_authorization.sql"
+    },
+    {
+      "version": "20260830200002",
+      "name": "revoke_anon_supplier_payment_execution",
+      "path": "supabase/migrations/20260830200002_revoke_anon_supplier_payment_execution.sql"
+    },
+    {
+      "version": "20260830201001",
+      "name": "ideal_scenario_domain_event_kind_alignment",
+      "path": "supabase/migrations/20260830201001_ideal_scenario_domain_event_kind_alignment.sql"
+    },
+    {
+      "version": "20260830201002",
+      "name": "revoke_anon_operational_rpc_execution",
+      "path": "supabase/migrations/20260830201002_revoke_anon_operational_rpc_execution.sql"
+    },
+    {
+      "version": "20260830202000",
+      "name": "ideal_scenario_consumption_type_alignment",
+      "path": "supabase/migrations/20260830202000_ideal_scenario_consumption_type_alignment.sql"
+    },
+    {
+      "version": "20260830203000",
+      "name": "ideal_scenario_claim_authorization_integrity",
+      "path": "supabase/migrations/20260830203000_ideal_scenario_claim_authorization_integrity.sql"
+    },
+    {
+      "version": "20260830204000",
+      "name": "ideal_scenario_claim_balance_model_fix",
+      "path": "supabase/migrations/20260830204000_ideal_scenario_claim_balance_model_fix.sql"
+    },
+    {
+      "version": "20260830205000",
+      "name": "ideal_scenario_claim_audit_schema_alignment",
+      "path": "supabase/migrations/20260830205000_ideal_scenario_claim_audit_schema_alignment.sql"
+    },
+    {
+      "version": "20260830206000",
+      "name": "ideal_scenario_followup_next_action_bridge",
+      "path": "supabase/migrations/20260830206000_ideal_scenario_followup_next_action_bridge.sql"
+    },
+    {
+      "version": "20260830210000",
+      "name": "ideal_scenario_trigger_rpc_exposure_hardening",
+      "path": "supabase/migrations/20260830210000_ideal_scenario_trigger_rpc_exposure_hardening.sql"
+    },
+    {
+      "version": "20260830211000",
+      "name": "ideal_scenario_sensitive_rpc_anon_revoke",
+      "path": "supabase/migrations/20260830211000_ideal_scenario_sensitive_rpc_anon_revoke.sql"
+    },
+    {
+      "version": "20260830212000",
+      "name": "ideal_scenario_sale_authorization_integrity",
+      "path": "supabase/migrations/20260830212000_ideal_scenario_sale_authorization_integrity.sql"
+    },
+    {
+      "version": "20260903093000",
+      "name": "restore_admin_direct_activation_safely",
+      "path": "supabase/migrations/20260903093000_restore_admin_direct_activation_safely.sql"
+    },
+    {
+      "version": "20260904143600",
+      "name": "add_workforce_procedure_capabilities",
+      "path": "supabase/migrations/20260904143600_add_workforce_procedure_capabilities.sql"
+    },
+    {
+      "version": "20260904193000",
+      "name": "financial_inventory_ux_business_entities",
+      "path": "supabase/migrations/20260904193000_financial_inventory_ux_business_entities.sql"
+    },
+    {
+      "version": "20260904193100",
+      "name": "financial_inventory_ux_expense_permission",
+      "path": "supabase/migrations/20260904193100_financial_inventory_ux_expense_permission.sql"
+    },
+    {
+      "version": "20260904193200",
+      "name": "financial_inventory_ux_supplier_bill_obligation_link",
+      "path": "supabase/migrations/20260904193200_financial_inventory_ux_supplier_bill_obligation_link.sql"
+    },
+    {
+      "version": "20260904193300",
+      "name": "financial_inventory_ux_supplier_bill_payable_trigger",
+      "path": "supabase/migrations/20260904193300_financial_inventory_ux_supplier_bill_payable_trigger.sql"
+    },
+    {
+      "version": "20260906000100",
+      "name": "harden_workforce_sensitive_rpc_execution",
+      "path": "supabase/migrations/20260906000100_harden_workforce_sensitive_rpc_execution.sql"
+    },
+    {
+      "version": "20260906010000",
+      "name": "workforce_operations_completion",
+      "path": "supabase/migrations/20260906010000_workforce_operations_completion.sql"
+    },
+    {
+      "version": "20260906103500",
+      "name": "workforce_payroll_advances_and_deductions",
+      "path": "supabase/migrations/20260906103500_workforce_payroll_advances_and_deductions.sql"
+    },
+    {
+      "version": "20260906104000",
+      "name": "restore_missing_workforce_payroll_core_objects",
+      "path": "supabase/migrations/20260906104000_restore_missing_workforce_payroll_core_objects.sql"
+    },
+    {
+      "version": "20260906230000",
+      "name": "workforce_payroll_commission_integration",
+      "path": "supabase/migrations/20260906230000_workforce_payroll_commission_integration.sql"
+    },
+    {
+      "version": "20260909160000",
+      "name": "stage16_inventory_canonical_path",
+      "path": "supabase/migrations/20260909160000_stage16_inventory_canonical_path.sql"
+    },
+    {
+      "version": "20260909170000",
+      "name": "stage17_subscription_permission_boundary",
+      "path": "supabase/migrations/20260909170000_stage17_subscription_permission_boundary.sql"
+    },
+    {
+      "version": "20260909173000",
+      "name": "stage23_reconcile_demo_provider_availability",
+      "path": "supabase/migrations/20260909173000_stage23_reconcile_demo_provider_availability.sql"
+    },
+    {
+      "version": "20260909180000",
+      "name": "stage27_reconcile_legacy_inventory_balances_and_audit_receipt",
+      "path": "supabase/migrations/20260909180000_stage27_reconcile_legacy_inventory_balances_and_audit_receipt.sql"
+    },
+    {
+      "version": "20260911200000",
+      "name": "workspace_assignment_authority_hardening",
+      "path": "supabase/migrations/20260911200000_workspace_assignment_authority_hardening.sql"
+    },
+    {
+      "version": "20260911220000",
+      "name": "communications_user_read_receipts",
+      "path": "supabase/migrations/20260911220000_communications_user_read_receipts.sql"
+    },
+    {
+      "version": "20260912010000",
+      "name": "retention_followups_tenant_patient_index",
+      "path": "supabase/migrations/20260912010000_retention_followups_tenant_patient_index.sql"
+    },
+    {
+      "version": "20260912150000",
+      "name": "communications_retire_legacy_portal_message_write_path",
+      "path": "supabase/migrations/20260912150000_communications_retire_legacy_portal_message_write_path.sql"
+    },
+    {
+      "version": "20260912160000",
+      "name": "communications_tenant_read_authority",
+      "path": "supabase/migrations/20260912160000_communications_tenant_read_authority.sql"
+    },
+    {
+      "version": "20260912161500",
+      "name": "communications_conversation_read_authority",
+      "path": "supabase/migrations/20260912161500_communications_conversation_read_authority.sql"
+    },
+    {
+      "version": "20260912200000",
+      "name": "notifications_personal_read_state",
+      "path": "supabase/migrations/20260912200000_notifications_personal_read_state.sql"
+    },
+    {
+      "version": "20260912201000",
+      "name": "harden_personal_notification_feed",
+      "path": "supabase/migrations/20260912201000_harden_personal_notification_feed.sql"
+    },
+    {
+      "version": "20260912202000",
+      "name": "restrict_personal_notification_feed_rpc",
+      "path": "supabase/migrations/20260912202000_restrict_personal_notification_feed_rpc.sql"
+    },
+    {
+      "version": "20260912203000",
+      "name": "notifications_test_data",
+      "path": "supabase/migrations/20260912203000_notifications_test_data.sql"
+    },
+    {
+      "version": "20260912210000",
+      "name": "communications_patient_portal_unification",
+      "path": "supabase/migrations/20260912210000_communications_patient_portal_unification.sql"
+    },
+    {
+      "version": "20260912211000",
+      "name": "communications_portal_message_legacy_bridge",
+      "path": "supabase/migrations/20260912211000_communications_portal_message_legacy_bridge.sql"
+    },
+    {
+      "version": "20260912212000",
+      "name": "communications_patient_conversation_visibility",
+      "path": "supabase/migrations/20260912212000_communications_patient_conversation_visibility.sql"
+    },
+    {
+      "version": "20260912220000",
+      "name": "communications_message_attachments",
+      "path": "supabase/migrations/20260912220000_communications_message_attachments.sql"
+    },
+    {
+      "version": "20260912223000",
+      "name": "communications_attachment_visibility_hardening",
+      "path": "supabase/migrations/20260912223000_communications_attachment_visibility_hardening.sql"
+    },
+    {
+      "version": "20260913090000",
+      "name": "header_notification_destination_contract",
+      "path": "supabase/migrations/20260913090000_header_notification_destination_contract.sql"
+    },
+    {
+      "version": "20260913213000",
+      "name": "fix_communications_chat_create_rls",
+      "path": "supabase/migrations/20260913213000_fix_communications_chat_create_rls.sql"
+    },
+    {
+      "version": "20260913230000",
+      "name": "fix_communications_conversation_creation_visibility",
+      "path": "supabase/migrations/20260913230000_fix_communications_conversation_creation_visibility.sql"
+    },
+    {
+      "version": "20260913231000",
+      "name": "revoke_doctor_communications_manage_override",
+      "path": "supabase/migrations/20260913231000_revoke_doctor_communications_manage_override.sql"
+    },
+    {
+      "version": "20260914010000",
+      "name": "chat_directory_permission_boundary",
+      "path": "supabase/migrations/20260914010000_chat_directory_permission_boundary.sql"
+    },
+    {
+      "version": "20260914200000",
+      "name": "global_chat_functional_repair",
+      "path": "supabase/migrations/20260914200000_global_chat_functional_repair.sql"
+    },
+    {
+      "version": "20260914233000",
+      "name": "chat_directory_realtime_latency",
+      "path": "supabase/migrations/20260914233000_chat_directory_realtime_latency.sql"
+    },
+    {
+      "version": "20260914235000",
+      "name": "fix_chat_directory_role_column",
+      "path": "supabase/migrations/20260914235000_fix_chat_directory_role_column.sql"
+    },
+    {
+      "version": "20260915001000",
+      "name": "fix_chat_directory_schema",
+      "path": "supabase/migrations/20260915001000_fix_chat_directory_schema.sql"
+    },
+    {
+      "version": "20260917192500",
+      "name": "csapi_gate01_patient_flow_d2_foundations",
+      "path": "supabase/migrations/20260917192500_csapi_gate01_patient_flow_d2_foundations.sql"
+    },
+    {
+      "version": "20260919085000",
+      "name": "csapi_prereq_permission_catalog_sessions_update_reconciliation",
+      "path": "supabase/migrations/20260919085000_csapi_prereq_permission_catalog_sessions_update_reconciliation.sql"
+    },
+    {
+      "version": "20260919090000",
+      "name": "csapi_gate01_d3_lifecycle_authority",
+      "path": "supabase/migrations/20260919090000_csapi_gate01_d3_lifecycle_authority.sql"
+    },
+    {
+      "version": "20260920101500",
+      "name": "csapi_gate01_d3_reconcile_zada_demo_patient_flow",
+      "path": "supabase/migrations/20260920101500_csapi_gate01_d3_reconcile_zada_demo_patient_flow.sql"
+    },
+    {
+      "version": "20260920214000",
+      "name": "csapi_gate01_d3_visit_lifecycle_guard",
+      "path": "supabase/migrations/20260920214000_csapi_gate01_d3_visit_lifecycle_guard.sql"
+    },
+    {
+      "version": "20260920230000",
+      "name": "csapi_gate01_d3_work_session_authority",
+      "path": "supabase/migrations/20260920230000_csapi_gate01_d3_work_session_authority.sql"
+    },
+    {
+      "version": "20260922190000",
+      "name": "csapi_gate03_execution_reconciliation",
+      "path": "supabase/migrations/20260922190000_csapi_gate03_execution_reconciliation.sql"
+    },
+    {
+      "version": "20260922191000",
+      "name": "csapi_gate03_review_resolution_authorization",
+      "path": "supabase/migrations/20260922191000_csapi_gate03_review_resolution_authorization.sql"
+    },
+    {
+      "version": "20260922192000",
+      "name": "csapi_gate03_identifier_registry_reconciliation",
+      "path": "supabase/migrations/20260922192000_csapi_gate03_identifier_registry_reconciliation.sql"
+    },
+    {
+      "version": "20260923130000",
+      "name": "csapi_gate02_next_action_agenda_link",
+      "path": "supabase/migrations/20260923130000_csapi_gate02_next_action_agenda_link.sql"
+    },
+    {
+      "version": "20260926110000",
+      "name": "csapi_gate03_live_canonical_reconciliation",
+      "path": "supabase/migrations/20260926110000_csapi_gate03_live_canonical_reconciliation.sql"
+    },
+    {
+      "version": "20261010100000",
+      "name": "csapi_gate04_agenda_command_boundary",
+      "path": "supabase/migrations/20261010100000_csapi_gate04_agenda_command_boundary.sql"
+    },
+    {
+      "version": "20261010110000",
+      "name": "csapi_gate04_agenda_audit_completion",
+      "path": "supabase/migrations/20261010110000_csapi_gate04_agenda_audit_completion.sql"
+    },
+    {
+      "version": "20261010120000",
+      "name": "csapi_gate04_agenda_write_acl_lockdown",
+      "path": "supabase/migrations/20261010120000_csapi_gate04_agenda_write_acl_lockdown.sql"
+    },
+    {
+      "version": "20261010130000",
+      "name": "csapi_gate04_agenda_permission_catalog_reconciliation",
+      "path": "supabase/migrations/20261010130000_csapi_gate04_agenda_permission_catalog_reconciliation.sql"
+    }
+  ],
+  "hosted_only_version_keys": [
+    {
+      "version": "20260809150855",
+      "name": "security_hardening_batch1_grants_and_search_path"
+    },
+    {
+      "version": "20260809150915",
+      "name": "security_hardening_batch1_fix_public_grant"
+    },
+    {
+      "version": "20260809193740",
+      "name": "normalize_feature_flags_lowercase_convention"
+    },
+    {
+      "version": "20260809194159",
+      "name": "security_hardening_batch2_search_path_and_dead_rpc"
+    },
+    {
+      "version": "20260809194224",
+      "name": "security_hardening_batch2_fix_set_tenant_id_direct_grant"
+    },
+    {
+      "version": "20260810200526",
+      "name": "m2_0_expand_clinic_user_roles"
+    },
+    {
+      "version": "20260810200530",
+      "name": "m2_0_remove_clinic_rooms_name"
+    },
+    {
+      "version": "20260810200547",
+      "name": "m2_0_create_branches"
+    },
+    {
+      "version": "20260810200553",
+      "name": "m2_0_subscription_plans_read_policy"
+    },
+    {
+      "version": "20260810200704",
+      "name": "m2_0_custom_roles_templates_foundation_v2"
+    },
+    {
+      "version": "20260810200712",
+      "name": "m2_0_notification_preferences"
+    },
+    {
+      "version": "20260810200801",
+      "name": "m2_0_permissions_v2"
+    },
+    {
+      "version": "20260811091425",
+      "name": "m2_1_fix_clinic_owner_settings_permissions"
+    },
+    {
+      "version": "20260811091438",
+      "name": "m2_1_fix_audit_changes_master_tenants"
+    },
+    {
+      "version": "20260811194559",
+      "name": "m2_2_grant_clinic_owner_roles_permissions"
+    },
+    {
+      "version": "20260812112435",
+      "name": "m2_3_grant_clinic_owner_users_permissions"
+    },
+    {
+      "version": "20260813010809",
+      "name": "m2_enforce_clinic_user_role_authorization"
+    },
+    {
+      "version": "20260813010902",
+      "name": "m2_lock_down_role_trigger_function_rpc_exposure"
+    },
+    {
+      "version": "20260813010952",
+      "name": "m2_perf_wrap_auth_uid_in_clinic_users_read_policy"
+    },
+    {
+      "version": "20260813074700",
+      "name": "m2_3_connect_clinic_users_to_existing_audit_trail"
+    },
+    {
+      "version": "20260813074808",
+      "name": "m2_3_remove_super_admin_from_audit_read_policy"
+    },
+    {
+      "version": "20260813131610",
+      "name": "20260813_m2_4_clinic_user_permission_overrides"
+    },
+    {
+      "version": "20260813131736",
+      "name": "m2_4_drop_legacy_clinic_user_permission_overrides_policies"
+    },
+    {
+      "version": "20260813195431",
+      "name": "m2_4_add_missing_updated_at_to_clinic_user_permission_overrides"
+    },
+    {
+      "version": "20260814211704",
+      "name": "20260814_m2_6_system_preferences"
+    },
+    {
+      "version": "20260814211714",
+      "name": "20260815_m2_6_add_timezone_currency"
+    },
+    {
+      "version": "20260815112842",
+      "name": "fix_get_current_tenant_id_remove_user_metadata_fallback"
+    },
+    {
+      "version": "20260815113117",
+      "name": "fix_fn_audit_changes_actor_id_fk"
+    },
+    {
+      "version": "20260815121146",
+      "name": "fix_subscription_change_trigger_audit_accuracy"
+    },
+    {
+      "version": "20260815210345",
+      "name": "m29_audit_trail_rls_security_fix"
+    },
+    {
+      "version": "20260821222835",
+      "name": "remove_legacy_tenant_user_dependencies"
+    },
+    {
+      "version": "20260821222935",
+      "name": "drop_legacy_tenants_users_tables"
+    },
+    {
+      "version": "20260822081235",
+      "name": "pj_stage4_provider_availability_and_room_conflict"
+    },
+    {
+      "version": "20260823071814",
+      "name": "pj_stage9_followup_work_management"
+    },
+    {
+      "version": "20260823072137",
+      "name": "pj_stage9_followup_backfill_existing_state"
+    },
+    {
+      "version": "20260823074418",
+      "name": "pj_stage10_followup_automation_foundation"
+    },
+    {
+      "version": "20260823074634",
+      "name": "pj_stage10_automation_executor_function"
+    },
+    {
+      "version": "20260823074640",
+      "name": "pj_stage10_enable_cron_scheduler"
+    },
+    {
+      "version": "20260823074852",
+      "name": "pj_stage10_allow_negative_schedule_offsets"
+    },
+    {
+      "version": "20260823074904",
+      "name": "pj_stage10_complete_time_rules"
+    },
+    {
+      "version": "20260823075136",
+      "name": "pj_stage10_runtime_scheduler_probe"
+    },
+    {
+      "version": "20260823075242",
+      "name": "pj_stage10_disable_runtime_probe"
+    },
+    {
+      "version": "20260823231421",
+      "name": "pj_stage12_seed_current_license_entitlement"
+    },
+    {
+      "version": "20260824071714",
+      "name": "pj_stage14_repair_followup_automation_seed"
+    },
+    {
+      "version": "20260824071831",
+      "name": "pj_stage14_followup_automation_e2e_repairs"
+    },
+    {
+      "version": "20260824133918",
+      "name": "i18n_global_language_defaults"
+    },
+    {
+      "version": "20260824140728",
+      "name": "20260824140000_i18n_global_language_defaults"
+    },
+    {
+      "version": "20260824142223",
+      "name": "20260824153000_i18n_global_currency_default"
+    },
+    {
+      "version": "20260824175911",
+      "name": "20260824140000_i18n_global_language_defaults"
+    },
+    {
+      "version": "20260827144852",
+      "name": "ajm_2_permission_role_boundary_correction"
+    },
+    {
+      "version": "20260827144911",
+      "name": "ajm_2_financial_resources_audit_triggers"
+    },
+    {
+      "version": "20260827145257",
+      "name": "ajm2_tenant_safe_installment_allocation"
+    },
+    {
+      "version": "20260827145424",
+      "name": "ajm2_atomic_payment_installment_allocation"
+    },
+    {
+      "version": "20260827150410",
+      "name": "ajm_2_atomic_financial_and_inventory_hardening"
+    },
+    {
+      "version": "20260827150636",
+      "name": "ajm_2_atomic_invoice_and_purchase_order"
+    },
+    {
+      "version": "20260827150904",
+      "name": "ajm_2_tenant_relationship_integrity"
+    },
+    {
+      "version": "20260827150916",
+      "name": "ajm_2_invoice_function_schema_reconciliation"
+    },
+    {
+      "version": "20260827155239",
+      "name": "ajm_2_fix_manual_invoice_generated_due"
+    },
+    {
+      "version": "20260827155318",
+      "name": "ajm_2_fix_manual_invoice_generated_totals"
+    },
+    {
+      "version": "20260827155357",
+      "name": "ajm_2_fix_payment_generated_due_updates"
+    },
+    {
+      "version": "20260827231800",
+      "name": "ajm2_harden_feature_flag_rls_role_lookup"
+    },
+    {
+      "version": "20260827233128",
+      "name": "ajm2_restore_clinic_admin_full_permissions"
+    },
+    {
+      "version": "20260828170047",
+      "name": "fix_role_and_tenant_function_grants"
+    },
+    {
+      "version": "20260828184431",
+      "name": "pj_stage6_patient_flow_permissions"
+    },
+    {
+      "version": "20260829091720",
+      "name": "restrict_anon_execute_sensitive_rpc"
+    },
+    {
+      "version": "20260829091736",
+      "name": "fix_public_execute_grant_leak"
+    },
+    {
+      "version": "20260829091848",
+      "name": "fix_rls_auth_initplan_performance"
+    },
+    {
+      "version": "20260829091928",
+      "name": "fix_feature_flags_rls_initplan"
+    },
+    {
+      "version": "20260829092108",
+      "name": "add_missing_fk_indexes"
+    },
+    {
+      "version": "20260829092115",
+      "name": "disable_orphan_runtime_probe_cron"
+    },
+    {
+      "version": "20260829092243",
+      "name": "restrict_anon_critical_privilege_functions"
+    },
+    {
+      "version": "20260830131304",
+      "name": "ideal_scenario_commercial_service_package_offer_foundation"
+    },
+    {
+      "version": "20260830131421",
+      "name": "ideal_scenario_skill_qualification_authorization_foundation"
+    },
+    {
+      "version": "20260830131525",
+      "name": "ideal_scenario_operating_expense_supplier_obligation_commission_foundation"
+    },
+    {
+      "version": "20260830135806",
+      "name": "ideal_scenario_supplier_obligation_atomic_receiving"
+    },
+    {
+      "version": "20260830135848",
+      "name": "ideal_scenario_supplier_payment_atomic"
+    },
+    {
+      "version": "20260830135931",
+      "name": "ideal_scenario_unified_workforce_unavailability"
+    },
+    {
+      "version": "20260830140748",
+      "name": "ideal_scenario_commercial_sale_execution"
+    },
+    {
+      "version": "20260830140800",
+      "name": "ideal_scenario_claim_reconciliation"
+    },
+    {
+      "version": "20260830140810",
+      "name": "ideal_scenario_domain_event_work_bridge"
+    },
+    {
+      "version": "20260830140822",
+      "name": "ideal_scenario_procedure_consumption"
+    },
+    {
+      "version": "20260830140832",
+      "name": "ideal_scenario_resource_requirements"
+    },
+    {
+      "version": "20260830141631",
+      "name": "ideal_scenario_sale_financial_linkage"
+    },
+    {
+      "version": "20260830141709",
+      "name": "ideal_scenario_resource_requirement_enforcement"
+    },
+    {
+      "version": "20260830141738",
+      "name": "ideal_scenario_consumption_idempotency"
+    },
+    {
+      "version": "20260830141805",
+      "name": "ideal_scenario_work_ownership_integrity"
+    },
+    {
+      "version": "20260830142304",
+      "name": "ideal_scenario_sale_invoice_terms_fix"
+    },
+    {
+      "version": "20260830142349",
+      "name": "ideal_scenario_commission_idempotency"
+    },
+    {
+      "version": "20260830142423",
+      "name": "ideal_scenario_domain_event_authorization"
+    },
+    {
+      "version": "20260830142459",
+      "name": "ideal_scenario_domain_event_kind_alignment"
+    },
+    {
+      "version": "20260830142643",
+      "name": "ideal_scenario_consumption_type_alignment"
+    },
+    {
+      "version": "20260830142805",
+      "name": "ideal_scenario_claim_authorization_integrity"
+    },
+    {
+      "version": "20260830142855",
+      "name": "ideal_scenario_claim_balance_model_fix"
+    },
+    {
+      "version": "20260830143101",
+      "name": "ideal_scenario_claim_audit_schema_alignment_retry"
+    },
+    {
+      "version": "20260830143330",
+      "name": "ideal_scenario_followup_next_action_bridge"
+    },
+    {
+      "version": "20260830143449",
+      "name": "ideal_scenario_trigger_rpc_exposure_hardening"
+    },
+    {
+      "version": "20260830143513",
+      "name": "ideal_scenario_sensitive_rpc_anon_revoke"
+    },
+    {
+      "version": "20260830153657",
+      "name": "revoke_anon_supplier_payment_execution"
+    },
+    {
+      "version": "20260830153733",
+      "name": "revoke_anon_operational_rpc_execution"
+    },
+    {
+      "version": "20260901075349",
+      "name": "reconcile_workspace_authorization_model"
+    },
+    {
+      "version": "20260901075438",
+      "name": "harden_workspace_assignment_rls"
+    },
+    {
+      "version": "20260901075602",
+      "name": "remove_user_workspace_preference_column"
+    },
+    {
+      "version": "20260901110624",
+      "name": "restore_pre_workspace_execution_state_20260901"
+    },
+    {
+      "version": "20260901111137",
+      "name": "restore_deleted_tables_and_policies"
+    },
+    {
+      "version": "20260901234352",
+      "name": "team_access_user_lifecycle_v1"
+    },
+    {
+      "version": "20260904113937",
+      "name": "add_workforce_procedure_capabilities"
+    },
+    {
+      "version": "20260904144049",
+      "name": "add_workforce_procedure_capabilities_adr013"
+    },
+    {
+      "version": "20260904163426",
+      "name": "financial_inventory_ux_business_entities"
+    },
+    {
+      "version": "20260904163537",
+      "name": "financial_inventory_ux_expense_permission"
+    },
+    {
+      "version": "20260904163850",
+      "name": "financial_inventory_ux_supplier_bill_obligation_link"
+    },
+    {
+      "version": "20260904164546",
+      "name": "financial_inventory_ux_supplier_bill_payable_trigger"
+    },
+    {
+      "version": "20260905232351",
+      "name": "harden_workforce_sensitive_rpc_execution"
+    },
+    {
+      "version": "20260906100032",
+      "name": "workforce_payroll_commission_integration"
+    },
+    {
+      "version": "20260906101317",
+      "name": "workforce_jordan_payroll_validation_fixture"
+    },
+    {
+      "version": "20260906101325",
+      "name": "workforce_jordan_payroll_validation_fixture_correction"
+    },
+    {
+      "version": "20260906101328",
+      "name": "workforce_jordan_commission_rule_normalization"
+    },
+    {
+      "version": "20260906103304",
+      "name": "workforce_payroll_advances_and_deductions"
+    },
+    {
+      "version": "20260906103333",
+      "name": "workforce_payroll_deduction_sum_fix"
+    },
+    {
+      "version": "20260906103431",
+      "name": "workforce_payroll_adjustment_rpc_security_fix"
+    },
+    {
+      "version": "20260906103715",
+      "name": "workforce_global_payroll_minimum_core"
+    },
+    {
+      "version": "20260906103729",
+      "name": "workforce_payroll_integrate_earnings_and_advance_allocation"
+    },
+    {
+      "version": "20260906103757",
+      "name": "workforce_payroll_country_rule_config"
+    },
+    {
+      "version": "20260906103803",
+      "name": "workforce_payroll_global_country_rules"
+    },
+    {
+      "version": "20260907141824",
+      "name": "security_revoke_anon_invoice_guard_trigger_execution"
+    },
+    {
+      "version": "20260907142008",
+      "name": "security_revoke_anon_trigger_function_execution"
+    },
+    {
+      "version": "20260907142058",
+      "name": "security_revoke_public_trigger_function_execution"
+    },
+    {
+      "version": "20260907142413",
+      "name": "security_revoke_authenticated_trigger_function_execution"
+    },
+    {
+      "version": "20260907143958",
+      "name": "security_revoke_authenticated_trigger_functions_complete"
+    },
+    {
+      "version": "20260908181428",
+      "name": "analytics_canonical_daily_snapshot_generator"
+    },
+    {
+      "version": "20260908181516",
+      "name": "analytics_snapshot_patient_semantics_correction"
+    },
+    {
+      "version": "20260908181547",
+      "name": "analytics_snapshot_function_execute_hardening"
+    },
+    {
+      "version": "20260909123811",
+      "name": "stage16_inventory_canonical_path"
+    },
+    {
+      "version": "20260909124807",
+      "name": "stage17_subscription_permission_boundary"
+    },
+    {
+      "version": "20260909125005",
+      "name": "stage23_reconcile_demo_provider_availability"
+    },
+    {
+      "version": "20260909125841",
+      "name": "stage27_reconcile_legacy_inventory_balances_and_audit_receipt"
+    },
+    {
+      "version": "20260909162447",
+      "name": "stage17_role_and_subscription_decision_alignment"
+    },
+    {
+      "version": "20260909162457",
+      "name": "stage18_treatment_plan_demo_data_reconciliation"
+    },
+    {
+      "version": "20260909162606",
+      "name": "stage23_lina_doctor_availability_alignment"
+    },
+    {
+      "version": "20260911210748",
+      "name": "notifications_personal_read_state"
+    },
+    {
+      "version": "20260911210802",
+      "name": "harden_personal_notification_feed"
+    },
+    {
+      "version": "20260911210829",
+      "name": "restrict_personal_notification_feed_rpc"
+    },
+    {
+      "version": "20260911211505",
+      "name": "align_personal_notification_feed_with_staff_recipient_contract"
+    },
+    {
+      "version": "20260911211509",
+      "name": "align_notification_read_receipts_staff_recipient_contract"
+    },
+    {
+      "version": "20260911211722",
+      "name": "notifications_test_data"
+    },
+    {
+      "version": "20260912000935",
+      "name": "communications_user_read_receipts_runtime_repair"
+    },
+    {
+      "version": "20260912000959",
+      "name": "communications_patient_portal_unification"
+    },
+    {
+      "version": "20260912001055",
+      "name": "communications_portal_message_legacy_bridge_v2"
+    },
+    {
+      "version": "20260912001114",
+      "name": "communications_patient_conversation_visibility"
+    },
+    {
+      "version": "20260912001528",
+      "name": "communications_message_tenant_key"
+    },
+    {
+      "version": "20260912001545",
+      "name": "communications_message_attachments"
+    },
+    {
+      "version": "20260912001718",
+      "name": "communications_attachment_visibility_hardening"
+    },
+    {
+      "version": "20260912004147",
+      "name": "communications_runtime_reconciliation_performance_20260912"
+    },
+    {
+      "version": "20260912122846",
+      "name": "communications_retire_legacy_portal_message_write_path"
+    },
+    {
+      "version": "20260912165546",
+      "name": "communications_tenant_read_authority"
+    },
+    {
+      "version": "20260912165639",
+      "name": "communications_conversation_read_authority"
+    },
+    {
+      "version": "20260913204348",
+      "name": "fix_communications_chat_create_rls_20260913213000"
+    },
+    {
+      "version": "20260913205825",
+      "name": "fix_communications_conversation_creation_visibility_20260913230000"
+    },
+    {
+      "version": "20260913210115",
+      "name": "revoke_doctor_communications_manage_override_20260913231000_v2"
+    },
+    {
+      "version": "20260913222414",
+      "name": "global_chat_functional_repair"
+    },
+    {
+      "version": "20260913233305",
+      "name": "chat_directory_realtime_latency_20260914202500"
+    },
+    {
+      "version": "20260913233327",
+      "name": "chat_realtime_publication_reconcile_20260914"
+    },
+    {
+      "version": "20260913235655",
+      "name": "repair_internal_chat_directory_role_lookup_20260914"
+    },
+    {
+      "version": "20260914002845",
+      "name": "fix_chat_directory_schema_20260914003000"
+    },
+    {
+      "version": "20260914010202",
+      "name": "restore_chat_directory_permission_boundary_20260914040500"
+    },
+    {
+      "version": "20260915151711",
+      "name": "optimize_clinic_patients_select_rls"
+    },
+    {
+      "version": "20260920220417",
+      "name": "csapi_gate01_patient_flow_d2_foundations"
+    },
+    {
+      "version": "20260920220432",
+      "name": "csapi_gate01_d3_lifecycle_authority"
+    },
+    {
+      "version": "20260926095135",
+      "name": "csapi_gate03_review_resolution_authorization"
+    },
+    {
+      "version": "20260926100304",
+      "name": "csapi_gate03_execution_reconciliation"
+    },
+    {
+      "version": "20260926100321",
+      "name": "csapi_gate03_execution_reconciliation_canonical_replay"
+    },
+    {
+      "version": "20260926105306",
+      "name": "csapi_gate03_restore_canonical_execution_reconciliation_20260926"
+    }
+  ],
+  "shared_version_name_mismatches": [
+    {
+      "version": "20260823212332",
+      "repository_name": "pj_stage12_patient_invitation_rls",
+      "hosted_name": "pj_stage12_patient_portal_invitation_patient_access"
+    },
+    {
+      "version": "20260823212423",
+      "repository_name": "pj_stage12_patient_row_access",
+      "hosted_name": "pj_stage12_patient_portal_patient_row_access"
+    },
+    {
+      "version": "20260829092150",
+      "repository_name": "restore_soft_delete_columns_phase1",
+      "hosted_name": "add_soft_delete_column_phase1"
+    },
+    {
+      "version": "20260830030004",
+      "repository_name": "ajm_reality_audit_rls_authenticated_boundary",
+      "hosted_name": "ajm_reality_audit_rls_authenticated_boundary_20260830"
+    },
+    {
+      "version": "20260830030048",
+      "repository_name": "ajm_reality_audit_restrict_internal_rpc_execution",
+      "hosted_name": "ajm_reality_audit_restrict_internal_rpc_execution_20260830"
+    },
+    {
+      "version": "20260830030108",
+      "repository_name": "ajm_reality_audit_restrict_internal_tenant_permission_rpc",
+      "hosted_name": "ajm_reality_audit_restrict_internal_tenant_permission_rpc_20260830"
+    },
+    {
+      "version": "20260830030349",
+      "repository_name": "ajm_reality_audit_patient_overlap_constraint",
+      "hosted_name": "ajm_reality_audit_patient_overlap_constraint_20260830"
+    },
+    {
+      "version": "20260830030458",
+      "repository_name": "reality_audit_test_clinic_enterprise_fixture",
+      "hosted_name": "reality_audit_test_clinic_enterprise_fixture_20260830"
+    },
+    {
+      "version": "20260830030534",
+      "repository_name": "ajm_reality_audit_clinical_resource_scheduling",
+      "hosted_name": "ajm_reality_audit_clinical_resource_scheduling_20260830"
+    },
+    {
+      "version": "20260830031851",
+      "repository_name": "ajm_reality_audit_restore_application_permission_rpcs",
+      "hosted_name": "ajm_reality_audit_restore_application_permission_rpcs_20260830"
+    },
+    {
+      "version": "20260830031902",
+      "repository_name": "ajm_reality_audit_harden_effective_permission_subject",
+      "hosted_name": "ajm_reality_audit_harden_effective_permission_subject_20260830"
+    },
+    {
+      "version": "20260909175027",
+      "repository_name": "restore_effective_permission_rpc_acl",
+      "hosted_name": "20260909204800_restore_effective_permission_rpc_acl"
+    }
+  ],
+  "repository_non_14_digit_legacy_files": [
+    {
+      "version": "20260803",
+      "name": "sync_inventory",
+      "path": "supabase/migrations/20260803_sync_inventory.sql"
+    },
+    {
+      "version": "20260804",
+      "name": "add_reports_read_permission",
+      "path": "supabase/migrations/20260804_add_reports_read_permission.sql"
+    },
+    {
+      "version": "20260808",
+      "name": "seed_analytics_reports_feature_flags",
+      "path": "supabase/migrations/20260808_seed_analytics_reports_feature_flags.sql"
+    },
+    {
+      "version": "20260813",
+      "name": "m2_4_clinic_user_permission_overrides",
+      "path": "supabase/migrations/20260813_m2_4_clinic_user_permission_overrides.sql"
+    },
+    {
+      "version": "20260814",
+      "name": "m2_6_system_preferences",
+      "path": "supabase/migrations/20260814_m2_6_system_preferences.sql"
+    }
+  ]
+}
