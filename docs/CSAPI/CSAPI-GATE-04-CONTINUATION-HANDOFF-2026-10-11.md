@@ -1,3 +1,11 @@
+> **Scenario 19 checkpoint — 2026-10-14:** Candidate `ec6b6572ed679c65f379f0b9d13a70ed263d4840` adds the direct overrun assertions in `tools/csapi-gate04-database-verification.mjs`. In Workstream Verification #1026, the isolated Gate 04 database lane passed, proving the past-ended appointment remains one `master_agenda_events` record in `in_session` with its planned times unchanged. The overall Workstream run is not yet PASS: the authenticated-E2E job remains in progress without available step/log evidence. Governance #286 passed on the candidate. WP-7 remains OPEN; WP-8 BLOCKED; PR #242 remains Draft/unmerged. No hosted DB/history mutation, merge, or production promotion.
+
+---
+
+**Next action:** obtain exact-head Workstream Verification for the documentation reconciliation. Then continue directly with frozen scenario 22 (Workforce change must not silently delete or rebook existing appointments). Do not return to timezone scenario 16 without new failing evidence.
+
+---
+
 > **Current verified checkpoint — 2026-10-13:** Branch head `36795c5ba406541e938b711d7a6532a4892d97b5` passed Workstream Verification #1024 and Engineering Governance #284. The current WP-7 matrix is the controlling scenario list. Existing isolated behavioral checks cover timezone boundaries, buffers, late arrival, Workforce schedule/approved leave, required/optional provider behavior, and Agenda lifecycle/conflict probes. A focused follow-on adds positive/negative configured Workforce procedure-capability assertions; it must pass exact-head CI before counting as verified. WP-7 remains OPEN for the explicitly listed remaining gaps; WP-8 remains BLOCKED pending complete migration-lineage reconciliation and release review. PR #242 remains Draft/open/unmerged; no hosted Supabase schema/data/history changes, merge, or production promotion.
 
 ---

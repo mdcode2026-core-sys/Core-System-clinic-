@@ -1,9 +1,9 @@
 # Gate 04 — WP-7 Scenario Evidence Matrix
 
-**Record date:** 2026-10-13  
-**Candidate verified:** `66a76b200d7871a5e4e1870727d9150b7fd5db4d`  
-**Workstream Verification:** [#1022 — PASS](https://github.com/mdcode2026-core-sys/Core-System-clinic-/actions/runs/38405509811)  
-**Engineering Governance:** [#282 — PASS](https://github.com/mdcode2026-core-sys/Core-System-clinic-/actions/runs/38405509614)  
+**Record date:** 2026-10-14  
+**Last fully verified candidate:** `66a76b200d7871a5e4e1870727d9150b7fd5db4d` — Workstream #1022 PASS / Governance #282 PASS.  
+**Latest scenario-specific candidate:** `ec6b6572ed679c65f379f0b9d13a70ed263d4840` — Gate 04 database lane PASS in Workstream #1026; the full Workstream run remains IN PROGRESS because authenticated E2E has not completed.  
+**Engineering Governance:** #286 — PASS on `ec6b6572ed679c65f379f0b9d13a70ed263d4840`.  
 **Gate status:** OPEN — this matrix is a coverage reconciliation, not a closure declaration.
 
 ## Evidence interpretation
@@ -35,7 +35,7 @@
 | 16 | Tenant-local wall-clock values persist as correct UTC values | Exact-head Gate 04 timezone lane passes 12 behavior groups: normal conversion/round-trip, non-hour UTC offset, explicit-offset preservation, invalid input/timezone rejection, DST spring-gap rejection, deterministic earlier instant during fall-back overlap, wall-clock duration across midnight, and a tenant-local week range spanning a 167-hour DST week. Static assertions also verify Quick Appointment/form duration calculations, tenant-local calendar bounds, and tenant-local workforce-leave fallback. | PASS — timezone boundary behavior verified |
 | 17 | Buffer prevents adjacent conflicting booking | Isolated clean-replay DB probe sets a 15-minute buffer: same-resource booking inside the buffer is rejected, and a booking after buffer end succeeds. | PASS |
 | 18 | Late arrival does not mutate planned time | Isolated clean-replay DB probe transitions `scheduled → confirmed → arrived` and asserts `scheduled_start` is unchanged. | PASS |
-| 19 | Overrun does not create a second scheduler state | No overrun scenario. | GAP |
+| 19 | Overrun does not create a second scheduler state | On candidate `ec6b6572ed679c65f379f0b9d13a70ed263d4840`, isolated clean local DB replay in Workstream Verification #1026 passed the direct overrun assertions: an appointment whose planned end is in the past transitions to `in_session`, remains one `master_agenda_events` row, preserves `scheduled_start`/`scheduled_end`, and remains in the same lifecycle. Hosted DB was not touched. | PASS — branch-local DB evidence |
 | 20 | Workforce working pattern permits booking | Behavioral assertion runs the actual availability engine with an active Workforce schedule and confirms a feasible slot is allowed. Isolated client double; not hosted integration. | PASS — isolated behavior |
 | 21 | Approved leave/unavailability blocks booking | Behavioral assertion runs the actual availability engine with an approved Workforce absence overlapping the requested interval and confirms the slot is blocked. Isolated client double; not hosted integration. | PASS — isolated behavior |
 | 22 | Workforce change does not silently delete/rebook existing appointments | No workforce-change preservation scenario. | GAP |
@@ -163,3 +163,10 @@ The clean local replay now verifies a 15-minute exclusive-resource buffer: an ov
 ### Verification boundary for Workforce/provider scenarios
 
 Scenarios 20, 21, 23, 24 and 25 are now directly exercised against the actual TypeScript availability/requirement implementations using a deterministic isolated Supabase-client double. They prove branch behavior, not live Workforce data correctness, end-to-end appointment submission, or hosted database integration. The remaining matrix gaps are unchanged unless separately evidenced. Exact-head Workstream Verification must pass before these updates count as verified.
+
+
+### Scenario 19 exact evidence update — 2026-10-14
+
+- Added an isolated local database scenario that creates a past-ended appointment, moves it through `scheduled → confirmed → arrived → in_session`, and asserts exactly one appointment record remains, planned start/end remain unchanged, and status remains `in_session`.
+- The `csapi-gate04-database` lane passed on candidate `ec6b6572ed679c65f379f0b9d13a70ed263d4840` in Workstream Verification #1026. This is direct scenario-level evidence; it does not certify the overall Workstream run because authenticated E2E remains in progress.
+- No hosted Supabase schema/data/history change, merge, or production promotion occurred. WP-7 remains OPEN for remaining gaps; WP-8 remains BLOCKED.

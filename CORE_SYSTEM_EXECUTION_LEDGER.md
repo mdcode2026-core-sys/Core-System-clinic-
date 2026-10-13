@@ -2,6 +2,7 @@
 
 | Date | Action | Evidence | Result | Decision | Next Action |
 |---|---|---|---|---|---|
+| 2026-10-14 | Gate 04 scenario 19 — overrun keeps one appointment state | Added past-ended appointment DB assertions; Workstream Verification #1026 Gate 04 DB lane PASS on `ec6b6572ed679c65f379f0b9d13a70ed263d4840`; Governance #286 PASS | Scenario 19 has direct branch-local DB evidence; overall Workstream #1026 remains IN PROGRESS because authenticated E2E has not completed | Scenario 19 may be marked PASS on branch-local DB evidence; WP-7 remains OPEN and WP-8 BLOCKED. No hosted DB changes, merge, or production promotion | Verify the documentation candidate at exact head, then proceed to scenario 22; do not revisit timezone absent a concrete failure |
 | 2026-09-09 03:16 +03 | Reconstructed resume point | Handoff/Ledger absent on `main`; inspected GitHub, Supabase, repository docs, CI, Vercel | Resume point reconstructed from live evidence | Baseline commit = `cdedb1937edc44bd93dafdceacfa52e70c19bbbb` | Continue DB↔docs reconciliation |
 | 2026-09-09 03:16 +03 | Git baseline | `main` = `cdedb193...`; no open PRs | Main state identified; local working tree not independently observable | Do not claim local clean/dirty | Use feature branch for changes |
 | 2026-09-09 03:16 +03 | Live DB baseline | Supabase project `qaslsjyxjwvdoiczmhgq`; latest migrations through `20260908181547` | Current schema/data observed read-only | Treat live DB as evidence | Complete domain/scenario classification |

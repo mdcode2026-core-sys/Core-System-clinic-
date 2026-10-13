@@ -1,3 +1,7 @@
+> **Scenario 19 checkpoint — 2026-10-14:** Candidate `ec6b6572ed679c65f379f0b9d13a70ed263d4840` adds the direct overrun assertions in `tools/csapi-gate04-database-verification.mjs`. In Workstream Verification #1026, the isolated Gate 04 database lane passed, proving the past-ended appointment remains one `master_agenda_events` record in `in_session` with its planned times unchanged. The overall Workstream run is not yet PASS: the authenticated-E2E job remains in progress without available step/log evidence. Governance #286 passed on the candidate. WP-7 remains OPEN; WP-8 BLOCKED; PR #242 remains Draft/unmerged. No hosted DB/history mutation, merge, or production promotion.
+
+---
+
 > **Latest CSAPI execution state — 2026-10-13:** Gate 04 candidate `66a76b200d7871a5e4e1870727d9150b7fd5db4d` passed Workstream Verification #1022 and Governance #282. Tenant-local timezone edge cases now have exact-head automated evidence (12 behavior groups, including DST, non-hour offsets, wall-clock duration, and tenant week boundaries); Gate 04 static and isolated database lanes passed. Continue with the WP-7 evidence matrix; do not close Gate 04 while remaining scenarios are PARTIAL/GAP. WP-8 remains BLOCKED. No hosted DB/history mutation, merge, or deployment.
 
 ---
