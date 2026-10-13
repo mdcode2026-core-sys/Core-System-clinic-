@@ -142,6 +142,11 @@ try {
       v_clinic_user_id uuid := 'd4000000-0000-4000-8000-000000000003';
       v_patient_id uuid := 'd4000000-0000-4000-8000-000000000004';
       v_role_id uuid := 'd4000000-0000-4000-8000-000000000005';
+      v_patient_doctor_probe_id uuid := 'd4000000-0000-4000-8000-000000000009';
+      v_patient_room_probe_id uuid := 'd4000000-0000-4000-8000-00000000000a';
+      v_patient_resource_probe_id uuid := 'd4000000-0000-4000-8000-00000000000b';
+      v_room_id uuid := 'd4000000-0000-4000-8000-00000000000c';
+      v_resource_id uuid := 'd4000000-0000-4000-8000-00000000000d';
       v_plan_id uuid := 'd4000000-0000-4000-8000-000000000006';
       v_permission_id uuid;
       v_suffix text := replace(gen_random_uuid()::text, '-', '');
@@ -173,6 +178,17 @@ try {
       VALUES ('d4000000-0000-4000-8000-000000000008',
         'd4000000-0000-4000-8000-000000000007', 'Other', 'Tenant',
         '+96278' || lpad((random() * 9999999)::integer::text, 7, '0'));
+
+      -- Dedicated patients keep dimension-specific conflicts independent of patient overlap.
+      INSERT INTO public.clinic_patients (id, tenant_id, first_name, last_name, phone_primary)
+      VALUES
+        ('d4000000-0000-4000-8000-000000000009', v_tenant_id, 'Doctor', 'Probe', '+96279' || lpad((random() * 9999999)::integer::text, 7, '0')),
+        ('d4000000-0000-4000-8000-00000000000a', v_tenant_id, 'Room', 'Probe', '+96279' || lpad((random() * 9999999)::integer::text, 7, '0')),
+        ('d4000000-0000-4000-8000-00000000000b', v_tenant_id, 'Resource', 'Probe', '+96279' || lpad((random() * 9999999)::integer::text, 7, '0'));
+      INSERT INTO public.clinic_rooms (id, tenant_id, room_name, room_type, floor_number, capacity, is_active)
+      VALUES (v_room_id, v_tenant_id, 'Gate 04 conflict probe room', 'procedure', 1, 1, true);
+      INSERT INTO public.clinic_resources (id, tenant_id, resource_name, resource_type, status)
+      VALUES (v_resource_id, v_tenant_id, 'Gate 04 conflict probe device', 'laser_device', 'active');
 
       SELECT id INTO v_permission_id FROM public.permissions
         WHERE permission_key = 'agenda:create' AND deleted_at IS NULL LIMIT 1;
@@ -383,6 +399,75 @@ try {
         RAISE EXCEPTION 'GATE04_ACTIVE_PATIENT_CONFLICT_WAS_ACCEPTED';
       EXCEPTION WHEN exclusion_violation THEN
         NULL;
+      END;
+
+      -- Provider dimension: completed releases provider capacity; active overlaps remain forbidden.
+      SELECT * INTO v_event FROM public.agenda_create_appointment(
+        v_tenant_id, v_clinic_user_id, v_patient_id, v_clinic_user_id, NULL, NULL, NULL, NULL,
+        now() + interval '4 days', now() + interval '4 days 30 minutes', now() + interval '4 days 30 minutes',
+        'gate04 completed provider interval');
+      PERFORM public.agenda_transition_appointment(v_tenant_id, v_clinic_user_id, v_event.id, 'scheduled', 'confirmed');
+      PERFORM public.agenda_transition_appointment(v_tenant_id, v_clinic_user_id, v_event.id, 'confirmed', 'arrived');
+      PERFORM public.agenda_transition_appointment(v_tenant_id, v_clinic_user_id, v_event.id, 'arrived', 'in_session');
+      PERFORM public.agenda_transition_appointment(v_tenant_id, v_clinic_user_id, v_event.id, 'in_session', 'completed');
+      SELECT * INTO v_event FROM public.agenda_create_appointment(
+        v_tenant_id, v_clinic_user_id, v_patient_doctor_probe_id, v_clinic_user_id, NULL, NULL, NULL, NULL,
+        now() + interval '4 days 5 minutes', now() + interval '4 days 35 minutes', now() + interval '4 days 35 minutes',
+        'gate04 provider released after completion');
+      IF v_event.id IS NULL THEN RAISE EXCEPTION 'GATE04_COMPLETED_PROVIDER_STILL_BLOCKS'; END IF;
+      BEGIN
+        PERFORM public.agenda_create_appointment(
+          v_tenant_id, v_clinic_user_id, v_patient_room_probe_id, v_clinic_user_id, NULL, NULL, NULL, NULL,
+          now() + interval '4 days 10 minutes', now() + interval '4 days 40 minutes', now() + interval '4 days 40 minutes',
+          'gate04 active competing provider interval');
+        RAISE EXCEPTION 'GATE04_ACTIVE_PROVIDER_CONFLICT_WAS_ACCEPTED';
+      EXCEPTION WHEN exclusion_violation THEN NULL;
+      END;
+
+      -- Room dimension: completed releases the room; active overlaps remain forbidden.
+      SELECT * INTO v_event FROM public.agenda_create_appointment(
+        v_tenant_id, v_clinic_user_id, v_patient_id, NULL, v_room_id, NULL, NULL, NULL,
+        now() + interval '5 days', now() + interval '5 days 30 minutes', now() + interval '5 days 30 minutes',
+        'gate04 completed room interval');
+      PERFORM public.agenda_transition_appointment(v_tenant_id, v_clinic_user_id, v_event.id, 'scheduled', 'confirmed');
+      PERFORM public.agenda_transition_appointment(v_tenant_id, v_clinic_user_id, v_event.id, 'confirmed', 'arrived');
+      PERFORM public.agenda_transition_appointment(v_tenant_id, v_clinic_user_id, v_event.id, 'arrived', 'in_session');
+      PERFORM public.agenda_transition_appointment(v_tenant_id, v_clinic_user_id, v_event.id, 'in_session', 'completed');
+      SELECT * INTO v_event FROM public.agenda_create_appointment(
+        v_tenant_id, v_clinic_user_id, v_patient_room_probe_id, NULL, v_room_id, NULL, NULL, NULL,
+        now() + interval '5 days 5 minutes', now() + interval '5 days 35 minutes', now() + interval '5 days 35 minutes',
+        'gate04 room released after completion');
+      IF v_event.id IS NULL THEN RAISE EXCEPTION 'GATE04_COMPLETED_ROOM_STILL_BLOCKS'; END IF;
+      BEGIN
+        PERFORM public.agenda_create_appointment(
+          v_tenant_id, v_clinic_user_id, v_patient_resource_probe_id, NULL, v_room_id, NULL, NULL, NULL,
+          now() + interval '5 days 10 minutes', now() + interval '5 days 40 minutes', now() + interval '5 days 40 minutes',
+          'gate04 active competing room interval');
+        RAISE EXCEPTION 'GATE04_ACTIVE_ROOM_CONFLICT_WAS_ACCEPTED';
+      EXCEPTION WHEN exclusion_violation THEN NULL;
+      END;
+
+      -- Resource/device dimension: completed releases the resource; active overlaps remain forbidden.
+      SELECT * INTO v_event FROM public.agenda_create_appointment(
+        v_tenant_id, v_clinic_user_id, v_patient_id, NULL, NULL, v_resource_id, NULL, NULL,
+        now() + interval '6 days', now() + interval '6 days 30 minutes', now() + interval '6 days 30 minutes',
+        'gate04 completed resource interval');
+      PERFORM public.agenda_transition_appointment(v_tenant_id, v_clinic_user_id, v_event.id, 'scheduled', 'confirmed');
+      PERFORM public.agenda_transition_appointment(v_tenant_id, v_clinic_user_id, v_event.id, 'confirmed', 'arrived');
+      PERFORM public.agenda_transition_appointment(v_tenant_id, v_clinic_user_id, v_event.id, 'arrived', 'in_session');
+      PERFORM public.agenda_transition_appointment(v_tenant_id, v_clinic_user_id, v_event.id, 'in_session', 'completed');
+      SELECT * INTO v_event FROM public.agenda_create_appointment(
+        v_tenant_id, v_clinic_user_id, v_patient_resource_probe_id, NULL, NULL, v_resource_id, NULL, NULL,
+        now() + interval '6 days 5 minutes', now() + interval '6 days 35 minutes', now() + interval '6 days 35 minutes',
+        'gate04 resource released after completion');
+      IF v_event.id IS NULL THEN RAISE EXCEPTION 'GATE04_COMPLETED_RESOURCE_STILL_BLOCKS'; END IF;
+      BEGIN
+        PERFORM public.agenda_create_appointment(
+          v_tenant_id, v_clinic_user_id, v_patient_doctor_probe_id, NULL, NULL, v_resource_id, NULL, NULL,
+          now() + interval '6 days 10 minutes', now() + interval '6 days 40 minutes', now() + interval '6 days 40 minutes',
+          'gate04 active competing resource interval');
+        RAISE EXCEPTION 'GATE04_ACTIVE_RESOURCE_CONFLICT_WAS_ACCEPTED';
+      EXCEPTION WHEN exclusion_violation THEN NULL;
       END;
 
       -- All four canonical database conflict predicates must agree on lifecycle.

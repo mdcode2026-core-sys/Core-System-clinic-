@@ -440,3 +440,11 @@ This file is append-only for material CSAPI events. Historical entries remain ev
 - Implementation consequence: Keep the migration branch-only. No hosted Supabase change, migration-history edit, merge or production promotion.
 - Verification evidence: Local replay and conflict-policy verifier passed. Direct runtime behavior is proven for patient overlap; doctor/room/resource dimension-specific probes remain required before scenario 15 is fully PASS.
 - Status: IMPLEMENTED / EXACT-HEAD CI PASS / WP-7 OPEN / WP-8 BLOCKED
+
+
+### CSAPI-2026-10-13-G04-WP7-DIMENSION-PROBES
+- Gate: Gate 04 — Agenda & Scheduling; WP-7.
+- Finding: scenario 15 previously had direct completed-lifecycle behavior only for patient overlap. Provider/room/resource behavior was not independently exercised.
+- Action: add isolated local DB probes for completed appointment release and active-overlap rejection for provider, room, and resource/device, with distinct same-tenant patients to prevent cross-dimension masking.
+- Evidence status: IMPLEMENTED IN CANDIDATE; exact-head Workstream Verification pending. Do not classify as PASS before the database lane succeeds on the same SHA.
+- Guardrails: branch-only migration/test changes; no hosted schema/data/history mutation, merge, or production promotion. WP-7 remains OPEN; WP-8 remains BLOCKED.
