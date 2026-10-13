@@ -36,12 +36,12 @@
 | 17 | Buffer prevents adjacent conflicting booking | Isolated clean-replay DB probe sets a 15-minute buffer: same-resource booking inside the buffer is rejected, and a booking after buffer end succeeds. | PASS |
 | 18 | Late arrival does not mutate planned time | Isolated clean-replay DB probe transitions `scheduled → confirmed → arrived` and asserts `scheduled_start` is unchanged. | PASS |
 | 19 | Overrun does not create a second scheduler state | No overrun scenario. | GAP |
-| 20 | Workforce working pattern permits booking | No positive schedule/availability integration probe. | GAP |
-| 21 | Approved leave/unavailability blocks booking | No direct leave/unavailability scenario. | GAP |
+| 20 | Workforce working pattern permits booking | Behavioral assertion runs the actual availability engine with an active Workforce schedule and confirms a feasible slot is allowed. Isolated client double; not hosted integration. | PASS — isolated behavior |
+| 21 | Approved leave/unavailability blocks booking | Behavioral assertion runs the actual availability engine with an approved Workforce absence overlapping the requested interval and confirms the slot is blocked. Isolated client double; not hosted integration. | PASS — isolated behavior |
 | 22 | Workforce change does not silently delete/rebook existing appointments | No workforce-change preservation scenario. | GAP |
-| 23 | Provider-required procedure rejects missing provider | No scenario with a procedure explicitly requiring a provider. | GAP |
-| 24 | Provider-optional procedure permits null provider | Null-provider command succeeds with no procedure selected; this does not prove the explicit optional-procedure case. | PARTIAL |
-| 25 | Provider eligibility uses explicit Workforce capability | Live capability table exists and source code consults it; configured allowed/denied provider cases are not tested. | PARTIAL |
+| 23 | Provider-required procedure rejects missing provider | Actual Service/Procedure requirement adapter resolves `provider_type=doctor`; the availability engine rejects a missing provider with `AGENDA_PROVIDER_REQUIRED`. Isolated client double. | PASS — isolated behavior |
+| 24 | Provider-optional procedure permits null provider | Actual Service/Procedure adapter resolves `provider_type=optional`; the availability engine allows providerless feasibility. Isolated client double; no full booking submission. | PASS — isolated behavior |
+| 25 | Provider eligibility uses explicit Workforce capability | New behavioral assertions exercise the actual availability engine with a configured capability: an eligible Workforce provider is allowed, an ineligible provider is rejected, and no configured capability retains the existing fallback. Isolated client double; not hosted integration. | PASS — isolated behavior |
 | 26 | Required resource unavailable rejects booking | No configured required-resource scenario; historical resource requirement table is not active. | GAP |
 | 27 | Optional resource does not create a hard block | No optional-resource scenario. | GAP |
 | 28 | Default exclusive resource cannot overlap | Isolated clean-replay resource/device probe confirms active overlapping requests are rejected; no capacity engine is introduced. | PASS |
@@ -158,3 +158,8 @@ The clean local replay now verifies a 15-minute exclusive-resource buffer: an ov
 - The dedicated timezone verifier reports `GATE04_TIMEZONE_CHECK=PASS cases=12`; the Gate 04 static lane and isolated local database lane also pass on this exact SHA.
 - Corrected behaviors: reject nonexistent DST-gap wall times, select the earlier instant consistently for repeated fall-back wall times, preserve explicit-offset instants, handle non-hour offsets, calculate durations as tenant wall-clock arithmetic rather than browser-local time, and query/render calendar weeks by tenant-local date boundaries. Workforce-leave fallback boundaries are converted from tenant-local midnight to UTC; buffer arithmetic uses elapsed-time milliseconds.
 - Gate 04 remains OPEN: other WP-7 scenarios remain PARTIAL/GAP, and WP-8 remains BLOCKED. No hosted database/history changes, merge, or production promotion occurred.
+
+
+### Verification boundary for Workforce/provider scenarios
+
+Scenarios 20, 21, 23, 24 and 25 are now directly exercised against the actual TypeScript availability/requirement implementations using a deterministic isolated Supabase-client double. They prove branch behavior, not live Workforce data correctness, end-to-end appointment submission, or hosted database integration. The remaining matrix gaps are unchanged unless separately evidenced. Exact-head Workstream Verification must pass before these updates count as verified.

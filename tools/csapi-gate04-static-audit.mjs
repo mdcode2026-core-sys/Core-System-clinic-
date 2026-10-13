@@ -198,11 +198,12 @@ const availabilityJavaScript = ts.transpileModule(availabilitySource, {
   );
 const availabilityModuleUrl = `data:text/javascript;base64,${Buffer.from(availabilityJavaScript).toString("base64")}`;
 const availabilityEngine = await import(availabilityModuleUrl);
-function createAvailabilityClient({ occupied = false, occupiedRoom = false, schedule = [{ day_of_week: 3, start_time: "09:00:00", end_time: "17:00:00", is_active: true }], workforceEmployee = false, workforceSchedule = null, workforceLeave = null } = {}) {
+function createAvailabilityClient({ occupied = false, occupiedRoom = false, schedule = [{ day_of_week: 3, start_time: "09:00:00", end_time: "17:00:00", is_active: true }], workforceEmployee = false, workforceSchedule = null, workforceLeave = null, capabilityCount = 0, eligibleCapability = false } = {}) {
   function resultFor(table, state) {
     if (table === "master_tenants") return { data: { timezone: "Asia/Amman" }, error: null };
     if (table === "workforce_employees") return { data: workforceEmployee ? { id: "workforce-employee-1", status: "active" } : null, error: null };
     if (table === "workforce_staff_schedules") return { data: workforceSchedule ? [workforceSchedule] : [], error: null };
+    if (table === "workforce_procedure_capabilities") return { data: eligibleCapability ? { id: "capability-1" } : null, count: capabilityCount, error: null };
     if (table === "clinic_provider_availability") return { data: schedule, error: null };
     if (table === "master_agenda_events") {
       const bookingConflictQuery = state.operations.includes("lt") && state.operations.includes("gt");
@@ -216,7 +217,7 @@ function createAvailabilityClient({ occupied = false, occupiedRoom = false, sche
     from(table) {
       const state = { filters: {}, operations: [] };
       const query = {
-        select() { return this; },
+        select(_columns, options) { state.countRequested = options?.count === "exact"; return this; },
         eq(key, value) { state.filters[key] = value; return this; },
         is(key, value) { state.filters[key] = value; return this; },
         neq(key, value) { state.filters[key] = value; return this; },
@@ -327,6 +328,25 @@ check("explicit-optional-procedure-allows-providerless-availability",
   JSON.stringify({ requirement: explicitOptional.provider, result: explicitOptionalBooking }));
 check("mutation-service-guards-required-provider-before-command",
   mutationService.includes('if (bookingRequirements.provider.required && !normalized.doctorId) return { error: "AGENDA_PROVIDER_REQUIRED" };'));
+
+const eligibleProviderResult = await availabilityEngine.checkAvailability({
+  ...availabilityInput, procedureId: "procedure-1",
+}, createAvailabilityClient({ workforceEmployee: true, capabilityCount: 1, eligibleCapability: true }));
+check("configured-workforce-procedure-capability-allows-eligible-provider",
+  eligibleProviderResult.isAvailable && eligibleProviderResult.details.providerEligible,
+  JSON.stringify(eligibleProviderResult));
+const ineligibleProviderResult = await availabilityEngine.checkAvailability({
+  ...availabilityInput, procedureId: "procedure-1",
+}, createAvailabilityClient({ workforceEmployee: true, capabilityCount: 1, eligibleCapability: false }));
+check("configured-workforce-procedure-capability-rejects-ineligible-provider",
+  !ineligibleProviderResult.isAvailable && !ineligibleProviderResult.details.providerEligible,
+  JSON.stringify(ineligibleProviderResult));
+const unconfiguredCapabilityResult = await availabilityEngine.checkAvailability({
+  ...availabilityInput, procedureId: "procedure-1",
+}, createAvailabilityClient({ workforceEmployee: true, capabilityCount: 0 }));
+check("unconfigured-workforce-procedure-capability-preserves-current-fallback",
+  unconfiguredCapabilityResult.isAvailable && unconfiguredCapabilityResult.details.providerEligible,
+  JSON.stringify(unconfiguredCapabilityResult));
 
 // Exercise the actual conflict engine with deterministic overlapping event rows.
 // This remains isolated: no hosted database or appointment mutation is invoked.

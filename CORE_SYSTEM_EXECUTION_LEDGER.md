@@ -612,3 +612,6 @@ Read-only comparison found the application conflict engine excludes completed ap
 
 
 | 2026-10-13 | Verify tenant-local timezone boundary behavior | `66a76b200d7871a5e4e1870727d9150b7fd5db4d`; Workstream #1022 PASS, Governance #282 PASS; timezone verifier `GATE04_TIMEZONE_CHECK=PASS cases=12`; Gate 04 static and isolated database lanes PASS | Scenario 16 upgraded from normal-time-only evidence to DST gap/overlap, non-hour offsets, explicit offset, wall-clock duration, tenant week bounds and tenant-local leave fallback | WP-7 remains OPEN; WP-8 remains BLOCKED; no hosted DB/history changes | Continue the next uncovered WP-7 scenarios without reopening verified timezone behavior unless new evidence fails |
+
+
+| 2026-10-13 | Close evidence gap for explicit Workforce provider eligibility | Added isolated behavioral assertions for configured capability allow/deny and current no-capability fallback in `tools/csapi-gate04-static-audit.mjs`; refreshed WP-7 rows 20, 21, 23, 24, 25 to reflect already-executable actual-engine/adapter probes | Implementation added after head `36795c5b` passed #1024/#284; new exact-head CI pending | Does not claim hosted integration or end-to-end booking; WP-7 remains OPEN; WP-8 BLOCKED | Verify exact head, then work only on remaining scenario gaps; no time-zone/audit-path re-investigation absent a concrete failure |
