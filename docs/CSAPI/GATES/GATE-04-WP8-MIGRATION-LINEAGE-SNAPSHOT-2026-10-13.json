@@ -2,7 +2,7 @@
   "report_id": "CSAPI-GATE04-WP8-MIGRATION-LINEAGE-SNAPSHOT-2026-10-13",
   "captured_at": "2026-10-13",
   "repository": "mdcode2026-core-sys/Core-System-clinic-",
-  "repository_sha": "1ef5f0e86810c07e4de09989c140d13369d0b872",
+  "repository_sha": "25bbb3c27f00f662ae438d2f9cbdcc1d8f2cebc6",
   "repository_branch": "csapi/gate04-agenda-implementation-2026-10-10",
   "supabase_project": {
     "name": "core-system-clinic",
@@ -10,16 +10,22 @@
     "region": "eu-central-1",
     "postgres_version": "17.6.1.141"
   },
-  "method": "Read-only comparison of migration version prefixes from the Git tree with versions/names returned by Supabase list_migrations. Only exactly 14-digit repository prefixes participate in version-key comparison; shorter legacy filename prefixes are listed separately. Matching version keys do not prove SQL equivalence, and missing version keys do not prove the corresponding schema change is absent.",
+  "method": "Read-only comparison of canonical 14-digit version prefixes in the Git tree at repository_sha against version/name rows returned by Supabase list_migrations for the hosted project. SQL files without a 14-digit prefix are listed separately. Exact-name comparisons are candidate correlations only, not proof of same SQL content or schema effect. Shared version keys with different names are flagged separately. No hosted schema, data, or migration-history writes were performed.",
   "counts": {
-    "repository_migration_sql_files": 238,
-    "repository_14_digit_migrations": 233,
-    "repository_non_14_digit_legacy_files": 5,
+    "repository_migration_sql_files": 240,
+    "repository_14_digit_migrations": 234,
+    "repository_non_14_digit_legacy_files": 6,
     "hosted_migration_history_rows": 292,
     "shared_version_keys": 121,
-    "repository_only_version_keys": 112,
+    "repository_only_version_keys": 113,
     "hosted_only_version_keys": 171,
-    "shared_version_name_mismatches": 12
+    "shared_version_name_mismatches": 12,
+    "repository_only_versions_with_exact_name_candidate": 71,
+    "hosted_rows_with_exact_name_candidate": 71,
+    "hosted_only_versions_with_exact_name_candidate": 72,
+    "repository_versions_matching_hosted_only_names": 72,
+    "repository_only_versions_without_exact_name_candidate": 42,
+    "hosted_only_rows_without_exact_name_candidate": 99
   },
   "repository_only_version_keys": [
     {
@@ -581,6 +587,11 @@
       "version": "20261010130000",
       "name": "csapi_gate04_agenda_permission_catalog_reconciliation",
       "path": "supabase/migrations/20261010130000_csapi_gate04_agenda_permission_catalog_reconciliation.sql"
+    },
+    {
+      "version": "20261013100000",
+      "name": "csapi_gate04_completed_appointment_conflict_policy",
+      "path": "supabase/migrations/20261013100000_csapi_gate04_completed_appointment_conflict_policy.sql"
     }
   ],
   "hosted_only_version_keys": [
@@ -1333,29 +1344,55 @@
   ],
   "repository_non_14_digit_legacy_files": [
     {
-      "version": "20260803",
-      "name": "sync_inventory",
+      "name": "20260803_sync_inventory",
       "path": "supabase/migrations/20260803_sync_inventory.sql"
     },
     {
-      "version": "20260804",
-      "name": "add_reports_read_permission",
+      "name": "20260804_add_reports_read_permission",
       "path": "supabase/migrations/20260804_add_reports_read_permission.sql"
     },
     {
-      "version": "20260808",
-      "name": "seed_analytics_reports_feature_flags",
+      "name": "20260808_seed_analytics_reports_feature_flags",
       "path": "supabase/migrations/20260808_seed_analytics_reports_feature_flags.sql"
     },
     {
-      "version": "20260813",
-      "name": "m2_4_clinic_user_permission_overrides",
+      "name": "20260813_m2_4_clinic_user_permission_overrides",
       "path": "supabase/migrations/20260813_m2_4_clinic_user_permission_overrides.sql"
     },
     {
-      "version": "20260814",
-      "name": "m2_6_system_preferences",
+      "name": "20260814_m2_6_system_preferences",
       "path": "supabase/migrations/20260814_m2_6_system_preferences.sql"
+    },
+    {
+      "name": "seed_feature_flags",
+      "path": "supabase/migrations/seed_feature_flags.sql"
+    }
+  ],
+  "branch_only_candidate_migrations": [
+    {
+      "version": "20261010100000",
+      "name": "csapi_gate04_agenda_command_boundary",
+      "path": "supabase/migrations/20261010100000_csapi_gate04_agenda_command_boundary.sql"
+    },
+    {
+      "version": "20261010110000",
+      "name": "csapi_gate04_agenda_audit_completion",
+      "path": "supabase/migrations/20261010110000_csapi_gate04_agenda_audit_completion.sql"
+    },
+    {
+      "version": "20261010120000",
+      "name": "csapi_gate04_agenda_write_acl_lockdown",
+      "path": "supabase/migrations/20261010120000_csapi_gate04_agenda_write_acl_lockdown.sql"
+    },
+    {
+      "version": "20261010130000",
+      "name": "csapi_gate04_agenda_permission_catalog_reconciliation",
+      "path": "supabase/migrations/20261010130000_csapi_gate04_agenda_permission_catalog_reconciliation.sql"
+    },
+    {
+      "version": "20261013100000",
+      "name": "csapi_gate04_completed_appointment_conflict_policy",
+      "path": "supabase/migrations/20261013100000_csapi_gate04_completed_appointment_conflict_policy.sql"
     }
   ]
 }
