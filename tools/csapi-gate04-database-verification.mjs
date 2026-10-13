@@ -257,7 +257,9 @@ try {
       v_buffer_event public.master_agenda_events%ROWTYPE;
       v_buffer_after_event public.master_agenda_events%ROWTYPE;
       v_late_event public.master_agenda_events%ROWTYPE;
+      v_overrun_event public.master_agenda_events%ROWTYPE;
       v_planned_start timestamptz;
+      v_planned_end timestamptz;
       v_count integer;
       v_status text;
     BEGIN
@@ -477,6 +479,45 @@ try {
       WHERE id = v_late_event.id AND tenant_id = v_tenant_id;
       IF v_planned_start IS DISTINCT FROM v_late_event.scheduled_start THEN
         RAISE EXCEPTION 'GATE04_LATE_ARRIVAL_CHANGED_PLANNED_TIME';
+      END IF;
+
+      -- Scenario 19: an appointment that is still in session after its planned end
+      -- remains the same Agenda record; overrun does not create a second scheduler state.
+      SELECT * INTO v_overrun_event FROM public.agenda_create_appointment(
+        v_tenant_id, v_clinic_user_id, v_patient_resource_probe_id, NULL, NULL, NULL, NULL, NULL,
+        now() - interval '60 minutes',
+        now() - interval '30 minutes',
+        now() - interval '30 minutes',
+        'gate04 scenario 19 overrun preserves one planned appointment');
+      IF v_overrun_event.id IS NULL OR v_overrun_event.status <> 'scheduled' THEN
+        RAISE EXCEPTION 'GATE04_OVERRUN_SETUP_FAILED';
+      END IF;
+      v_planned_start := v_overrun_event.scheduled_start;
+      v_planned_end := v_overrun_event.scheduled_end;
+      PERFORM public.agenda_transition_appointment(
+        v_tenant_id, v_clinic_user_id, v_overrun_event.id, 'scheduled', 'confirmed');
+      PERFORM public.agenda_transition_appointment(
+        v_tenant_id, v_clinic_user_id, v_overrun_event.id, 'confirmed', 'arrived');
+      PERFORM public.agenda_transition_appointment(
+        v_tenant_id, v_clinic_user_id, v_overrun_event.id, 'arrived', 'in_session');
+      SELECT count(*) INTO v_count
+      FROM public.master_agenda_events
+      WHERE tenant_id = v_tenant_id
+        AND id = v_overrun_event.id
+        AND patient_id = v_patient_resource_probe_id;
+      IF v_count <> 1 THEN
+        RAISE EXCEPTION 'GATE04_OVERRUN_CREATED_DUPLICATE_APPOINTMENT count=%', v_count;
+      END IF;
+      SELECT scheduled_start, scheduled_end, status
+      INTO v_planned_start, v_planned_end, v_status
+      FROM public.master_agenda_events
+      WHERE tenant_id = v_tenant_id AND id = v_overrun_event.id;
+      IF v_planned_start IS DISTINCT FROM v_overrun_event.scheduled_start
+        OR v_planned_end IS DISTINCT FROM v_overrun_event.scheduled_end THEN
+        RAISE EXCEPTION 'GATE04_OVERRUN_MUTATED_PLANNED_TIME';
+      END IF;
+      IF v_status <> 'in_session' THEN
+        RAISE EXCEPTION 'GATE04_OVERRUN_DID_NOT_REMAIN_IN_SINGLE_LIFECYCLE status=%', v_status;
       END IF;
 
       -- Complete the first appointment through the permitted lifecycle.
