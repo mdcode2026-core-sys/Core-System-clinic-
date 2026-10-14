@@ -1,3 +1,7 @@
+> **Provider-isolation probe added — verification pending (2026-10-14):** Candidate `ab778c7248c17a02c352df41467898d8351b17f7` seeds an actual active clinic user under the second tenant and adds a negative `agenda_create_appointment` probe expecting `AGENDA_PROVIDER_NOT_FOUND_IN_TENANT`. Workstream Verification #1036 has been created for this exact candidate but has not started executing jobs yet; do not classify the provider probe as PASS until the isolated database lane and final gate complete. The previously verified room/resource probes remain PASS on `a1f7a0aeba14d9a892849fd19e0ea0ff2be7b4e2`.
+
+---
+
 > **Exact-head verification update — 2026-10-14:** Candidate `a1f7a0aeba14d9a892849fd19e0ea0ff2be7b4e2` completed Workstream Verification #1031 **PASS** (all applicable lanes and final gate) and Engineering Governance #291 **PASS**. Direct probes on clean local migration replay rejected real room and resource rows owned by another tenant with `AGENDA_ROOM_NOT_AVAILABLE` and `AGENDA_RESOURCE_UNAVAILABLE`. Hosted Supabase was not changed. This documentation update requires exact-head verification before being treated as fully verified.
 
 ---
@@ -70,7 +74,7 @@
 | Ordinary authenticated role cannot invoke protected RPC or directly write appointment rows | Negative authenticated RPC/table-write probes passed in local DB. | PASS |
 | Anonymous role has no protected RPC execution or direct table-write privilege | Privilege/catalog assertions passed; a separate anonymous-session mutation attempt is not part of the probe. | PARTIAL |
 | Cross-tenant patient reference is rejected | New local DB negative probe passed. | PASS |
-| Cross-tenant provider, room, and resource references are rejected | Candidate `a1f7a0aeba14d9a892849fd19e0ea0ff2be7b4e2` directly rejects real cross-tenant room/resource rows with `AGENDA_ROOM_NOT_AVAILABLE` and `AGENDA_RESOURCE_UNAVAILABLE`. A direct cross-tenant provider negative probe remains missing. | PARTIAL — room/resource verified; provider probe missing |
+| Cross-tenant provider, room, and resource references are rejected | Candidate `a1f7a0aeba14d9a892849fd19e0ea0ff2be7b4e2` directly rejects real cross-tenant room/resource rows with `AGENDA_ROOM_NOT_AVAILABLE` and `AGENDA_RESOURCE_UNAVAILABLE`. Candidate `ab778c7248c17a02c352df41467898d8351b17f7` adds a real cross-tenant provider negative probe; exact-head database verification is pending. | PARTIAL — room/resource verified; provider probe pending |
 | Normal UPDATE is reconstructible with actor/reason | New local DB update and UPDATE-audit assertion passed. | PASS |
 | Stale expected appointment status cannot override persisted status | New local DB stale-status negative probe passed. | PASS |
 | CREATE, STATUS_CHANGE, CANCEL, and cancelled → scheduled RESCHEDULE audit | Direct isolated local DB assertions passed. | PASS |
