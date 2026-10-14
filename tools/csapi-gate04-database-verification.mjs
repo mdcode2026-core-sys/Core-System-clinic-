@@ -179,6 +179,23 @@ try {
         'd4000000-0000-4000-8000-000000000007', 'Other', 'Tenant',
         '+96278' || lpad((random() * 9999999)::integer::text, 7, '0'));
 
+      -- Real room/resource references in the other tenant exercise tenant guards,
+      -- rather than relying on random UUIDs that do not exist anywhere.
+      INSERT INTO public.clinic_rooms (
+        id, tenant_id, room_name, room_type, floor_number, capacity, is_active
+      ) VALUES (
+        'd4000000-0000-4000-8000-000000000010',
+        'd4000000-0000-4000-8000-000000000007',
+        'Gate 04 other-tenant room', 'procedure', 1, 1, true
+      );
+      INSERT INTO public.clinic_resources (
+        id, tenant_id, resource_name, resource_type, status
+      ) VALUES (
+        'd4000000-0000-4000-8000-000000000011',
+        'd4000000-0000-4000-8000-000000000007',
+        'Gate 04 other-tenant device', 'laser_device', 'active'
+      );
+
       -- Dedicated patients keep dimension-specific conflicts independent of patient overlap.
       INSERT INTO public.clinic_patients (id, tenant_id, first_name, last_name, phone_primary)
       VALUES
@@ -282,6 +299,37 @@ try {
       EXCEPTION WHEN OTHERS THEN
         IF SQLERRM = 'GATE04_CROSS_TENANT_PATIENT_WAS_ACCEPTED' THEN RAISE; END IF;
         IF SQLERRM NOT LIKE '%AGENDA_PATIENT_NOT_FOUND_IN_TENANT%' THEN RAISE; END IF;
+      END;
+
+      -- Existing references from another tenant must be rejected even when they are real active rows.
+      BEGIN
+        PERFORM public.agenda_create_appointment(
+          v_tenant_id, v_clinic_user_id, v_patient_id,
+          NULL, 'd4000000-0000-4000-8000-000000000010', NULL, NULL, NULL,
+          now() + interval '4 days',
+          now() + interval '4 days 30 minutes',
+          now() + interval '4 days 30 minutes',
+          'gate04 cross-tenant room probe'
+        );
+        RAISE EXCEPTION 'GATE04_CROSS_TENANT_ROOM_WAS_ACCEPTED';
+      EXCEPTION WHEN OTHERS THEN
+        IF SQLERRM = 'GATE04_CROSS_TENANT_ROOM_WAS_ACCEPTED' THEN RAISE; END IF;
+        IF SQLERRM NOT LIKE '%AGENDA_ROOM_NOT_AVAILABLE%' THEN RAISE; END IF;
+      END;
+
+      BEGIN
+        PERFORM public.agenda_create_appointment(
+          v_tenant_id, v_clinic_user_id, v_patient_id,
+          NULL, NULL, 'd4000000-0000-4000-8000-000000000011', NULL, NULL,
+          now() + interval '5 days',
+          now() + interval '5 days 30 minutes',
+          now() + interval '5 days 30 minutes',
+          'gate04 cross-tenant resource probe'
+        );
+        RAISE EXCEPTION 'GATE04_CROSS_TENANT_RESOURCE_WAS_ACCEPTED';
+      EXCEPTION WHEN OTHERS THEN
+        IF SQLERRM = 'GATE04_CROSS_TENANT_RESOURCE_WAS_ACCEPTED' THEN RAISE; END IF;
+        IF SQLERRM NOT LIKE '%AGENDA_RESOURCE_UNAVAILABLE%' THEN RAISE; END IF;
       END;
 
       SELECT * INTO v_event
