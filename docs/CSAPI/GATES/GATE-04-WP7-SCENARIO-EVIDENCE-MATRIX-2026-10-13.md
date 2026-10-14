@@ -9,10 +9,11 @@
 # Gate 04 — WP-7 Scenario Evidence Matrix
 
 **Record date:** 2026-10-14  
-**Latest fully verified candidate:** `f3f3675855eb4e748064ebb7c10676fb2f4c4650` — Workstream Verification #1029 PASS (all required jobs + final gate) and Engineering Governance #289 PASS.  
+**Latest verified code candidate:** `a1f7a0aeba14d9a892849fd19e0ea0ff2be7b4e2` — Workstream Verification #1031 PASS (all applicable jobs + final gate) and Engineering Governance #291 PASS.  
 **Scenario 19:** PASS on direct branch-local DB evidence at `ec6b6572ed679c65f379f0b9d13a70ed263d4840`.  
 **Scenario 22:** PASS on direct branch-local DB evidence at `f3f3675855eb4e748064ebb7c10676fb2f4c4650`.  
-**Engineering Governance:** #289 — PASS on `f3f3675855eb4e748064ebb7c10676fb2f4c4650`.  
+**Cross-tenant room/resource references:** PASS on direct isolated local DB evidence at `a1f7a0aeba14d9a892849fd19e0ea0ff2be7b4e2`.  
+**Engineering Governance:** #291 — PASS on `a1f7a0aeba14d9a892849fd19e0ea0ff2be7b4e2`.  
 **Gate status:** OPEN — this matrix is a coverage reconciliation, not a closure declaration.
 
 ## Evidence interpretation
@@ -69,7 +70,7 @@
 | Ordinary authenticated role cannot invoke protected RPC or directly write appointment rows | Negative authenticated RPC/table-write probes passed in local DB. | PASS |
 | Anonymous role has no protected RPC execution or direct table-write privilege | Privilege/catalog assertions passed; a separate anonymous-session mutation attempt is not part of the probe. | PARTIAL |
 | Cross-tenant patient reference is rejected | New local DB negative probe passed. | PASS |
-| Cross-tenant provider, room, and resource references are rejected | SQL guards and tenant-safe FK structures are present; dynamic negative probes are missing. | PARTIAL |
+| Cross-tenant provider, room, and resource references are rejected | Candidate `a1f7a0aeba14d9a892849fd19e0ea0ff2be7b4e2` directly rejects real cross-tenant room/resource rows with `AGENDA_ROOM_NOT_AVAILABLE` and `AGENDA_RESOURCE_UNAVAILABLE`. A direct cross-tenant provider negative probe remains missing. | PARTIAL — room/resource verified; provider probe missing |
 | Normal UPDATE is reconstructible with actor/reason | New local DB update and UPDATE-audit assertion passed. | PASS |
 | Stale expected appointment status cannot override persisted status | New local DB stale-status negative probe passed. | PASS |
 | CREATE, STATUS_CHANGE, CANCEL, and cancelled → scheduled RESCHEDULE audit | Direct isolated local DB assertions passed. | PASS |
