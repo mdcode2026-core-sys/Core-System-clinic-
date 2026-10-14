@@ -179,6 +179,26 @@ try {
         'd4000000-0000-4000-8000-000000000007', 'Other', 'Tenant',
         '+96278' || lpad((random() * 9999999)::integer::text, 7, '0'));
 
+      -- A real active clinic user in the other tenant makes the provider-isolation
+      -- negative probe independent of missing/random identifiers.
+      INSERT INTO auth.users (id, aud, role, email, created_at, updated_at)
+      VALUES ('d4000000-0000-4000-8000-000000000012', 'authenticated', 'authenticated',
+        'gate04-other-provider-' || v_suffix || '@example.test', now(), now());
+      INSERT INTO public.roles (id, role_key, role_name, tenant_id, is_system_role)
+      VALUES ('d4000000-0000-4000-8000-000000000014',
+        'gate04_other_ci_' || v_suffix, 'Gate 04 other tenant role',
+        'd4000000-0000-4000-8000-000000000007', false);
+      INSERT INTO public.clinic_users (
+        id, tenant_id, full_name, role, employee_code, pin_code, role_id, auth_user_id, is_active
+      ) VALUES (
+        'd4000000-0000-4000-8000-000000000013',
+        'd4000000-0000-4000-8000-000000000007',
+        'Gate 04 other tenant provider', 'gate04_other_ci',
+        'G4O-' || substr(v_suffix, 1, 12), '1234',
+        'd4000000-0000-4000-8000-000000000014',
+        'd4000000-0000-4000-8000-000000000012', true
+      );
+
       -- Real room/resource references in the other tenant exercise tenant guards,
       -- rather than relying on random UUIDs that do not exist anywhere.
       INSERT INTO public.clinic_rooms (
@@ -299,6 +319,22 @@ try {
       EXCEPTION WHEN OTHERS THEN
         IF SQLERRM = 'GATE04_CROSS_TENANT_PATIENT_WAS_ACCEPTED' THEN RAISE; END IF;
         IF SQLERRM NOT LIKE '%AGENDA_PATIENT_NOT_FOUND_IN_TENANT%' THEN RAISE; END IF;
+      END;
+
+      -- An active provider belonging to another tenant must not be accepted.
+      BEGIN
+        PERFORM public.agenda_create_appointment(
+          v_tenant_id, v_clinic_user_id, v_patient_id,
+          'd4000000-0000-4000-8000-000000000013', NULL, NULL, NULL, NULL,
+          now() + interval '3 days',
+          now() + interval '3 days 30 minutes',
+          now() + interval '3 days 30 minutes',
+          'gate04 cross-tenant provider probe'
+        );
+        RAISE EXCEPTION 'GATE04_CROSS_TENANT_PROVIDER_WAS_ACCEPTED';
+      EXCEPTION WHEN OTHERS THEN
+        IF SQLERRM = 'GATE04_CROSS_TENANT_PROVIDER_WAS_ACCEPTED' THEN RAISE; END IF;
+        IF SQLERRM NOT LIKE '%AGENDA_PROVIDER_NOT_FOUND_IN_TENANT%' THEN RAISE; END IF;
       END;
 
       -- Existing references from another tenant must be rejected even when they are real active rows.
