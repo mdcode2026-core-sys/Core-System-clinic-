@@ -98,7 +98,9 @@ Negative:
 31. Treatment Plan Next Action produces a booking request that results in an Agenda-owned Appointment.
 32. Appointment reference returns to the requesting cross-domain context without Agenda taking clinical ownership.
 33. Pre-booked appointment reaches Patient Flow/Visit without Queue becoming a scheduler.
-34. Follow-up request can create an appointment while Follow-up remains continuity owner.
+34. An active Follow-up appointment request opens the canonical Agenda form with the same tenant-scoped patient and request context; Follow-up retains continuity ownership and Agenda alone owns appointment creation.
+
+**Scenario 34 scope note:** the Gate 04 acceptance boundary is the authenticated handoff into Agenda with the same patient/request context. It does not require a new `retention_followups.agenda_event_id` link, a Follow-up lifecycle mutation, or a second appointment-reference store. A durable post-booking Follow-up return-reference path remains Gate 11 / later explicitly approved scope.
 
 ## 8. Audit verification
 For each of create, update, status change, cancel and reschedule verify:
