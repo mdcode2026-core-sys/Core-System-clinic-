@@ -1,3 +1,7 @@
+> **Documentation reconciliation batch — 2026-10-15:** The authoritative PR/release decision and scenario-22 resume point have been copied to this handoff, the WP-7 evidence matrix, `CORE_SYSTEM_EXECUTION_HANDOFF.md`, and `CORE_SYSTEM_EXECUTION_LEDGER.md`. PR #241 remains open until Gate 04 closes. The batch is not verified until Workstream Verification and Engineering Governance complete on the final commit SHA; do not use a green run from an earlier commit in this documentation batch as proof for the final head.
+>
+> ---
+>
 > **AUTHORITATIVE SESSION STATE — 2026-10-15 (reconciled after repository/PR/release review):**
 > - Gate 04 PR #242 remains OPEN / DRAFT / UNMERGED. Gate 05 documentation PR #241 must remain OPEN and untouched until Gate 04 is formally closed; do not merge #241 early.
 > - Current pre-documentation candidate: `eb7dd86243635c05d918207b46e249e98e20751d`. Workstream Verification [#38731736783](https://github.com/mdcode2026-core-sys/Core-System-clinic-/actions/runs/38731736783) completed PASS on retry attempt 2; all jobs and Final gate succeeded. Engineering Governance [#38731736701](https://github.com/mdcode2026-core-sys/Core-System-clinic-/actions/runs/38731736701) passed on that candidate. These results do **not** automatically verify the documentation commit created by this reconciliation; require exact-head Workstream Verification and Governance for the new head.
