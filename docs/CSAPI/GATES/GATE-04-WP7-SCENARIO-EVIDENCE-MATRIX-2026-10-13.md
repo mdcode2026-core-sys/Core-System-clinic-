@@ -1,4 +1,4 @@
-> **Session close / latest exact-head verification — 2026-10-15:** Branch candidate `f165f19cb7e32aa5bb62cf219cf34a63607d9bb2` completed Workstream Verification [#1039 — PASS](https://github.com/mdcode2026-core-sys/Core-System-clinic-/actions/runs/38528404638), including the isolated `csapi-gate04-database` lane and final gate; Engineering Governance [#299 — PASS](https://github.com/mdcode2026-core-sys/Core-System-clinic-/actions/runs/38528404594) also passed on the same SHA. The actual cross-tenant provider negative probe now has exact-head verification: the protected booking command rejects the active provider belonging to another tenant with `AGENDA_PROVIDER_NOT_FOUND_IN_TENANT`. Cross-tenant room/resource probes remain PASS. Scenario 19 and scenario 22 remain PASS on their scenario-specific evidence. Gate 04 is NOT closed: WP-7 remains OPEN and WP-8 BLOCKED. PR #242 remains Draft/open/unmerged; no hosted Supabase mutation, merge, deployment, or production promotion occurred. The documentation changes in this session require their own exact-head verification before this documentation revision is treated as verified.
+> **Latest exact-head verification — 2026-10-15:** Candidate `5dae0de8d98738ea56ac1d05d8deeff1270a64dd` passed Workstream Verification [#1045](https://github.com/mdcode2026-core-sys/Core-System-clinic-/actions/runs/38714788115) with all 12 jobs, including isolated Gate 04 database verification and the final gate. Engineering Governance [#305](https://github.com/mdcode2026-core-sys/Core-System-clinic-/actions/runs/38714788101) also passed on the same SHA. The branch-only migration `20261015100000_csapi_gate04_audit_read_policy_lockdown.sql` separates the audit SELECT policy from the old broad `rls_breaches_isolation FOR ALL` policy. Clean local migration replay passed the policy structure check and direct negative probes for missing `agenda:create`, missing `agenda:update`, and same-tenant audit-row disclosure to a limited authenticated user. This is local branch evidence only; hosted Supabase schema/data/migration history were not changed. Gate 04 remains OPEN: WP-7 has other scenario gaps, WP-8 remains BLOCKED, and PR #242 remains Draft/open/unmerged.
 
 ---
 
@@ -12,8 +12,8 @@
 
 # Gate 04 — WP-7 Scenario Evidence Matrix
 
-**Record date:** 2026-10-14  
-**Latest exact-head verified code candidate before this documentation refresh:** `f165f19cb7e32aa5bb62cf219cf34a63607d9bb2` — Workstream Verification #1039 PASS (all applicable jobs + final gate) and Engineering Governance #299 PASS.  
+**Record date:** 2026-10-15  
+**Latest exact-head verified code candidate before this documentation refresh:** `5dae0de8d98738ea56ac1d05d8deeff1270a64dd` — Workstream Verification #1045 PASS (all 12 jobs + final gate) and Engineering Governance #305 PASS.  
 **Scenario 19:** PASS on direct branch-local DB evidence at `ec6b6572ed679c65f379f0b9d13a70ed263d4840`.  
 **Scenario 22:** PASS on direct branch-local DB evidence at `f3f3675855eb4e748064ebb7c10676fb2f4c4650`.  
 **Cross-tenant provider/room/resource references:** PASS on direct isolated local DB evidence; provider probe verified on `f165f19cb7e32aa5bb62cf219cf34a63607d9bb2` by Workstream #1039, with expected `AGENDA_PROVIDER_NOT_FOUND_IN_TENANT`; room/resource probes verified on `a1f7a0aeba14d9a892849fd19e0ea0ff2be7b4e2`.  
@@ -29,7 +29,7 @@
 
 ## Frozen Verification Plan — scenarios 1–34
 
-| # | Required scenario | Current evidence on `548f050c2f6e18122b9350e655e74ea5ab54090e` | Status |
+| # | Required scenario | Current evidence / referenced candidate | Status |
 |---:|---|---|---|
 | 1 | Standard appointment booking | Local protected command creates a scheduled appointment, but no full UI submission scenario is exercised. | PARTIAL |
 | 2 | Booking within provider availability | Isolated behavioral check executes the actual availability engine and confirms a feasible 09:00 Asia/Amman slot is available within configured provider hours; it does not submit a full appointment command/UI booking. | PARTIAL |
@@ -78,8 +78,8 @@
 | Normal UPDATE is reconstructible with actor/reason | New local DB update and UPDATE-audit assertion passed. | PASS |
 | Stale expected appointment status cannot override persisted status | New local DB stale-status negative probe passed. | PASS |
 | CREATE, STATUS_CHANGE, CANCEL, and cancelled → scheduled RESCHEDULE audit | Direct isolated local DB assertions passed. | PASS |
-| User lacking `agenda:create` / `agenda:update` is denied | Not directly tested with a user lacking each permission. | GAP |
-| Unauthorized audit-detail disclosure is blocked | No dedicated disclosure-level test. | GAP |
+| User lacking `agenda:create` / `agenda:update` is denied | Clean local DB replay on exact candidate `5dae0de8d98738ea56ac1d05d8deeff1270a64dd`: seeded a valid same-tenant clinic user with no effective Agenda grants; canonical create and update commands both rejected with `AGENDA_PERMISSION_DENIED`. | PASS — branch-local DB evidence |
+| Unauthorized audit-detail disclosure is blocked | Clean local DB replay on exact candidate `5dae0de8d98738ea56ac1d05d8deeff1270a64dd`: a same-tenant authenticated user without audit-read rights queried `audit_trail` and observed zero rows; static checks confirmed the broad `rls_breaches_isolation FOR ALL` policy is absent and dedicated operation-scoped policies exist. | PASS — branch-local DB evidence |
 | Two competing requests cannot both acquire an exclusive provider/room/resource | No concurrent competing-booking test. | GAP |
 
 ## Completed-appointment conflict policy — branch verification result
@@ -184,3 +184,12 @@ Scenarios 20, 21, 23, 24 and 25 are now directly exercised against the actual Ty
 - Added an isolated local database scenario that creates a past-ended appointment, moves it through `scheduled → confirmed → arrived → in_session`, and asserts exactly one appointment record remains, planned start/end remain unchanged, and status remains `in_session`.
 - The `csapi-gate04-database` lane passed on candidate `ec6b6572ed679c65f379f0b9d13a70ed263d4840` in Workstream Verification #1026. This is direct scenario-level evidence; Workstream Verification #1026 subsequently completed PASS across all 11 lanes and the final gate.
 - No hosted Supabase schema/data/history change, merge, or production promotion occurred. WP-7 remains OPEN for remaining gaps; WP-8 remains BLOCKED.
+
+
+## 2026-10-15 exact-head security evidence
+
+- Workstream Verification #1045 and Engineering Governance #305 both passed on `5dae0de8d98738ea56ac1d05d8deeff1270a64dd`.
+- The new audit read-policy migration and the three negative checks above passed the isolated `csapi-gate04-database` lane after clean local migration replay. This evidence is not hosted-Supabase verification.
+- The frozen 2026-10-13 WP-8 inventory remains a historical read-only snapshot (240 repository SQL files / 234 canonical files at that snapshot). The branch now has one additional branch-only canonical migration, `20261015100000_csapi_gate04_audit_read_policy_lockdown.sql`; do not interpret the old inventory as current branch counts or as refreshed hosted history.
+- Remaining WP-7 gaps are unchanged except for the two authorization/audit rows marked PASS: concurrent competing bookings; scenarios 26, 27, 29 and 30 pending canonical resource contracts; scenarios 31–33; and scenario 34 remains PARTIAL because booking submission/result reference are not proven.
+
