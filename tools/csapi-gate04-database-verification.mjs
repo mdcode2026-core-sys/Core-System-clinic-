@@ -111,6 +111,34 @@ try {
           AND event_manipulation = 'UPDATE'
       ) AS ok
     ),
+    audit_read_policy_check AS (
+      SELECT
+        NOT EXISTS (
+          SELECT 1 FROM pg_policies
+          WHERE schemaname = 'public' AND tablename = 'audit_trail'
+            AND policyname = 'rls_breaches_isolation' AND cmd = 'ALL'
+        )
+        AND EXISTS (
+          SELECT 1 FROM pg_policies
+          WHERE schemaname = 'public' AND tablename = 'audit_trail'
+            AND policyname = 'rls_audit_read' AND cmd = 'SELECT'
+        )
+        AND EXISTS (
+          SELECT 1 FROM pg_policies
+          WHERE schemaname = 'public' AND tablename = 'audit_trail'
+            AND policyname = 'rls_audit_insert_isolation' AND cmd = 'INSERT'
+        )
+        AND EXISTS (
+          SELECT 1 FROM pg_policies
+          WHERE schemaname = 'public' AND tablename = 'audit_trail'
+            AND policyname = 'rls_audit_update_isolation' AND cmd = 'UPDATE'
+        )
+        AND EXISTS (
+          SELECT 1 FROM pg_policies
+          WHERE schemaname = 'public' AND tablename = 'audit_trail'
+            AND policyname = 'rls_audit_delete_isolation' AND cmd = 'DELETE'
+        ) AS ok
+    ),
     rls_check AS (
       SELECT c.relrowsecurity AS ok
       FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
@@ -120,6 +148,7 @@ try {
       'command_boundary', (SELECT ok FROM function_check),
       'table_write_acl', (SELECT ok FROM acl_check),
       'agenda_audit_trigger', (SELECT ok FROM audit_check),
+      'audit_read_policy_boundary', (SELECT ok FROM audit_read_policy_check),
       'agenda_rls_enabled', (SELECT ok FROM rls_check)
     )::text;
   `;
@@ -148,6 +177,9 @@ try {
       v_room_id uuid := 'd4000000-0000-4000-8000-00000000000c';
       v_resource_id uuid := 'd4000000-0000-4000-8000-00000000000d';
       v_plan_id uuid := 'd4000000-0000-4000-8000-000000000006';
+      v_limited_auth_user_id uuid := 'd4000000-0000-4000-8000-000000000015';
+      v_limited_clinic_user_id uuid := 'd4000000-0000-4000-8000-000000000016';
+      v_limited_role_id uuid := 'd4000000-0000-4000-8000-000000000017';
       v_permission_id uuid;
       v_suffix text := replace(gen_random_uuid()::text, '-', '');
     BEGIN
@@ -166,6 +198,21 @@ try {
         id, tenant_id, full_name, role, employee_code, pin_code, role_id, auth_user_id, is_active
       ) VALUES (v_clinic_user_id, v_tenant_id, 'Gate 04 local test actor', 'gate04_ci',
         'G4-' || substr(v_suffix, 1, 12), '1234', v_role_id, v_auth_user_id, true);
+
+      -- This valid in-tenant actor deliberately has no role/direct/override grants.
+      INSERT INTO auth.users (id, aud, role, email, created_at, updated_at)
+      VALUES (v_limited_auth_user_id, 'authenticated', 'authenticated',
+        'gate04-limited-' || v_suffix || '@example.test', now(), now());
+      INSERT INTO public.roles (id, role_key, role_name, tenant_id, is_system_role)
+      VALUES (v_limited_role_id, 'gate04_limited_' || v_suffix,
+        'Gate 04 limited test role', v_tenant_id, false);
+      INSERT INTO public.clinic_users (
+        id, tenant_id, full_name, role, employee_code, pin_code, role_id, auth_user_id, is_active
+      ) VALUES (
+        v_limited_clinic_user_id, v_tenant_id, 'Gate 04 limited test actor', 'gate04_limited',
+        'G4L-' || substr(v_suffix, 1, 12), '1234', v_limited_role_id, v_limited_auth_user_id, true
+      );
+
       INSERT INTO public.clinic_patients (id, tenant_id, first_name, last_name, phone_primary)
       VALUES (v_patient_id, v_tenant_id, 'Gate', 'Four',
         '+96279' || lpad((random() * 9999999)::integer::text, 7, '0'));
@@ -287,6 +334,8 @@ try {
       v_patient_resource_probe_id uuid := 'd4000000-0000-4000-8000-00000000000b';
       v_room_id uuid := 'd4000000-0000-4000-8000-00000000000c';
       v_resource_id uuid := 'd4000000-0000-4000-8000-00000000000d';
+      v_limited_auth_user_id uuid := 'd4000000-0000-4000-8000-000000000015';
+      v_limited_clinic_user_id uuid := 'd4000000-0000-4000-8000-000000000016';
       v_event public.master_agenda_events%ROWTYPE;
       v_no_show_event public.master_agenda_events%ROWTYPE;
       v_no_show_overlap public.master_agenda_events%ROWTYPE;
@@ -380,6 +429,40 @@ try {
       IF v_event.id IS NULL OR v_event.status <> 'scheduled' THEN
         RAISE EXCEPTION 'GATE04_CREATE_COMMAND_FAILED';
       END IF;
+
+      -- A valid tenant member without agenda:create must be rejected by the canonical command.
+      BEGIN
+        PERFORM public.agenda_create_appointment(
+          v_tenant_id, v_limited_clinic_user_id, v_patient_id,
+          NULL, NULL, NULL, NULL, NULL,
+          now() + interval '2 days',
+          now() + interval '2 days 30 minutes',
+          now() + interval '2 days 30 minutes',
+          'gate04 denied create probe'
+        );
+        RAISE EXCEPTION 'GATE04_CREATE_WITHOUT_PERMISSION_WAS_ALLOWED';
+      EXCEPTION WHEN OTHERS THEN
+        IF SQLERRM = 'GATE04_CREATE_WITHOUT_PERMISSION_WAS_ALLOWED' THEN RAISE; END IF;
+        IF SQLERRM NOT LIKE '%AGENDA_PERMISSION_DENIED%' THEN
+          RAISE EXCEPTION 'GATE04_CREATE_PERMISSION_DENIAL_UNEXPECTED_ERROR=%', SQLERRM;
+        END IF;
+      END;
+
+      -- The same unprivileged actor must not update an existing appointment without agenda:update.
+      BEGIN
+        PERFORM public.agenda_update_appointment(
+          v_tenant_id, v_limited_clinic_user_id, v_event.id, 'scheduled',
+          v_patient_id, NULL, NULL, NULL, NULL,
+          v_event.scheduled_start, v_event.scheduled_end, v_event.buffer_end,
+          v_event.booking_notes, false
+        );
+        RAISE EXCEPTION 'GATE04_UPDATE_WITHOUT_PERMISSION_WAS_ALLOWED';
+      EXCEPTION WHEN OTHERS THEN
+        IF SQLERRM = 'GATE04_UPDATE_WITHOUT_PERMISSION_WAS_ALLOWED' THEN RAISE; END IF;
+        IF SQLERRM NOT LIKE '%AGENDA_PERMISSION_DENIED%' THEN
+          RAISE EXCEPTION 'GATE04_UPDATE_PERMISSION_DENIAL_UNEXPECTED_ERROR=%', SQLERRM;
+        END IF;
+      END;
 
       SELECT count(*) INTO v_count
       FROM public.audit_trail
@@ -822,7 +905,27 @@ try {
     END;
     $gate04_flow$;
 
+    -- Exercise audit row visibility as a real same-tenant authenticated member without audit rights.
     RESET ROLE;
+    SELECT set_config('request.jwt.claim.role', 'authenticated', true);
+    SELECT set_config('request.jwt.claim.sub', 'd4000000-0000-4000-8000-000000000015', true);
+    SELECT set_config('request.jwt.claims',
+      '{"sub":"d4000000-0000-4000-8000-000000000015","role":"authenticated","aud":"authenticated","user_role":"gate04_limited","user_metadata":{"tenant_id":"d4000000-0000-4000-8000-000000000001","user_role":"gate04_limited"}}',
+      true);
+    SET LOCAL ROLE authenticated;
+    DO $gate04_audit_confidentiality$
+    DECLARE
+      v_visible_rows integer;
+    BEGIN
+      SELECT count(*) INTO v_visible_rows
+      FROM public.audit_trail
+      WHERE tenant_id = 'd4000000-0000-4000-8000-000000000001';
+      IF v_visible_rows <> 0 THEN
+        RAISE EXCEPTION 'GATE04_UNAUTHORIZED_AUDIT_DETAIL_VISIBLE count=%', v_visible_rows;
+      END IF;
+    END;
+    $gate04_audit_confidentiality$;
+
     ROLLBACK;
   `;
   requireSuccess("authenticated-agenda-command-audit-flow", "psql", [
