@@ -214,6 +214,7 @@ try {
       v_limited_clinic_user_id uuid := 'd4000000-0000-4000-8000-000000000016';
       v_limited_role_id uuid := 'd4000000-0000-4000-8000-000000000017';
       v_permission_id uuid;
+      v_permission_key text;
       v_suffix text := replace(gen_random_uuid()::text, '-', '');
     BEGIN
       INSERT INTO auth.users (id, aud, role, email, created_at, updated_at)
@@ -318,6 +319,23 @@ try {
       IF v_permission_id IS NULL THEN RAISE EXCEPTION 'GATE04_TEST_PERMISSION_MISSING=agenda:update'; END IF;
       INSERT INTO public.clinic_user_permission_overrides (tenant_id, user_id, permission_id, granted)
       VALUES (v_tenant_id, v_clinic_user_id, v_permission_id, true);
+
+      -- Grant only the existing Visit/Patient Flow permissions needed to prove
+      -- Agenda-owned booking -> Visit reference -> D3 Patient Flow arrival.
+      -- This is a local rollback-only fixture; no role catalogue or policy changes.
+      FOR v_permission_key IN
+        SELECT unnest(ARRAY['agenda:read','sessions:read','sessions:create','sessions:update','patient_flow:operations']::text[])
+      LOOP
+        SELECT id INTO v_permission_id
+        FROM public.permissions
+        WHERE permission_key = v_permission_key AND deleted_at IS NULL
+        LIMIT 1;
+        IF v_permission_id IS NULL THEN
+          RAISE EXCEPTION 'GATE04_TEST_PERMISSION_MISSING=%', v_permission_key;
+        END IF;
+        INSERT INTO public.clinic_user_permission_overrides (tenant_id, user_id, permission_id, granted)
+        VALUES (v_tenant_id, v_clinic_user_id, v_permission_id, true);
+      END LOOP;
     END;
     $gate04_seed$;
 
@@ -938,6 +956,121 @@ try {
     END;
     $gate04_flow$;
 
+    -- Gate 04 scenario 33: a pre-booked Agenda event enters Visit/Patient Flow
+    -- through the existing Reception adapter and canonical D3 authority. This is
+    -- deliberately local-only; it does not run the broad Gate 02 E2E suite.
+    RESET ROLE;
+    SELECT set_config('request.jwt.claim.role', 'service_role', true);
+    SELECT set_config('request.jwt.claim.sub', 'd4000000-0000-4000-8000-000000000002', true);
+    SELECT set_config('request.jwt.claims',
+      '{"sub":"d4000000-0000-4000-8000-000000000002","role":"service_role","aud":"service_role"}', true);
+    SET LOCAL ROLE service_role;
+
+    DO $gate04_seed_pf_agenda$
+    DECLARE
+      v_event public.master_agenda_events%ROWTYPE;
+    BEGIN
+      SELECT * INTO v_event
+      FROM public.agenda_create_appointment(
+        'd4000000-0000-4000-8000-000000000001',
+        'd4000000-0000-4000-8000-000000000003',
+        'd4000000-0000-4000-8000-000000000004',
+        'd4000000-0000-4000-8000-000000000003',
+        NULL, NULL, NULL, NULL,
+        now() + interval '8 days',
+        now() + interval '8 days 30 minutes',
+        now() + interval '8 days 30 minutes',
+        'GATE04-PF-BRIDGE'
+      );
+      IF v_event.id IS NULL OR v_event.status <> 'scheduled'
+         OR v_event.patient_id <> 'd4000000-0000-4000-8000-000000000004' THEN
+        RAISE EXCEPTION 'GATE04_PATIENT_FLOW_AGENDA_SEED_FAILED';
+      END IF;
+    END;
+    $gate04_seed_pf_agenda$;
+
+    RESET ROLE;
+    SELECT set_config('request.jwt.claim.role', 'authenticated', true);
+    SELECT set_config('request.jwt.claim.sub', 'd4000000-0000-4000-8000-000000000002', true);
+    SELECT set_config('request.jwt.claims',
+      '{"sub":"d4000000-0000-4000-8000-000000000002","role":"authenticated","aud":"authenticated","user_role":"gate04_ci","user_metadata":{"tenant_id":"d4000000-0000-4000-8000-000000000001","user_role":"gate04_ci"}}',
+      true);
+    SET LOCAL ROLE authenticated;
+
+    DO $gate04_patient_flow_agenda_bridge$
+    DECLARE
+      v_tenant_id uuid := 'd4000000-0000-4000-8000-000000000001';
+      v_clinic_user_id uuid := 'd4000000-0000-4000-8000-000000000003';
+      v_agenda public.master_agenda_events%ROWTYPE;
+      v_visit_id uuid;
+      v_result jsonb;
+      v_count integer;
+    BEGIN
+      SELECT * INTO v_agenda
+      FROM public.master_agenda_events
+      WHERE tenant_id = v_tenant_id AND booking_notes = 'GATE04-PF-BRIDGE';
+      IF NOT FOUND OR v_agenda.status <> 'scheduled' THEN
+        RAISE EXCEPTION 'GATE04_PATIENT_FLOW_AGENDA_EVENT_NOT_FOUND';
+      END IF;
+
+      INSERT INTO public.clinic_visit_sessions (
+        tenant_id, patient_id, doctor_id, room_id, agenda_event_id,
+        initialized_by_receptionist, session_status, created_at, updated_at
+      ) VALUES (
+        v_tenant_id, v_agenda.patient_id, v_agenda.doctor_id, v_agenda.room_id, v_agenda.id,
+        v_clinic_user_id, 'waiting', now(), now()
+      )
+      RETURNING id INTO v_visit_id;
+
+      v_result := public.csapi_d3_enter_waiting(
+        v_visit_id, 'general', 'normal', 'arrival', NULL, gen_random_uuid()
+      );
+      IF v_result->>'command' IS DISTINCT FROM 'csapi_d3_enter_waiting'
+         OR v_result->>'visit_id' IS DISTINCT FROM v_visit_id::text
+         OR NULLIF(v_result->>'queue_entry_id','') IS NULL
+         OR NULLIF(v_result->>'event_id','') IS NULL THEN
+        RAISE EXCEPTION 'GATE04_PATIENT_FLOW_D3_RESULT_INVALID result=%', v_result;
+      END IF;
+
+      SELECT count(*) INTO v_count
+      FROM public.patient_flow_queue_entries q
+      JOIN public.clinic_visit_sessions v
+        ON v.tenant_id = q.tenant_id AND v.id = q.visit_id
+      JOIN public.master_agenda_events a
+        ON a.tenant_id = v.tenant_id AND a.id = v.agenda_event_id
+      JOIN public.patient_flow_events e
+        ON e.tenant_id = q.tenant_id
+       AND e.visit_id = q.visit_id
+       AND e.queue_entry_id = q.id
+      WHERE q.tenant_id = v_tenant_id
+        AND q.id = (v_result->>'queue_entry_id')::uuid
+        AND q.exited_at IS NULL
+        AND e.id = (v_result->>'event_id')::uuid
+        AND e.event_type = 'waiting_entered'
+        AND e.correlation_id = (v_result->>'correlation_id')::uuid
+        AND v.id = v_visit_id
+        AND v.session_status = 'waiting'
+        AND v.arrived_at IS NOT NULL
+        AND v.patient_id = a.patient_id
+        AND v.doctor_id IS NOT DISTINCT FROM a.doctor_id
+        AND v.room_id IS NOT DISTINCT FROM a.room_id
+        AND a.id = v_agenda.id
+        AND a.status = 'scheduled'
+        AND a.booking_notes = 'GATE04-PF-BRIDGE';
+      IF v_count <> 1 THEN
+        RAISE EXCEPTION 'GATE04_PATIENT_FLOW_AGENDA_BRIDGE_NOT_RECONSTRUCTIBLE count=%', v_count;
+      END IF;
+
+      SELECT count(*) INTO v_count
+      FROM public.master_agenda_events
+      WHERE tenant_id = v_tenant_id AND booking_notes = 'GATE04-PF-BRIDGE';
+      IF v_count <> 1 THEN
+        RAISE EXCEPTION 'GATE04_PATIENT_FLOW_MUST_NOT_CREATE_OR_DUPLICATE_APPOINTMENT count=%', v_count;
+      END IF;
+    END;
+    $gate04_patient_flow_agenda_bridge$;
+    SELECT 'GATE04_PATIENT_FLOW_AGENDA_BRIDGE=PASS';
+
     -- Exercise audit row visibility as a real same-tenant authenticated member without audit rights.
     RESET ROLE;
     SELECT set_config('request.jwt.claim.role', 'authenticated', true);
@@ -961,11 +1094,16 @@ try {
 
     ROLLBACK;
   `;
-  requireSuccess("authenticated-agenda-command-audit-flow", "psql", [
+  const commandFlowResult = requireSuccess("authenticated-agenda-command-audit-flow", "psql", [
     "postgresql://postgres:postgres@127.0.0.1:54322/postgres",
     "-v", "ON_ERROR_STOP=1", "-c", commandFlowSql,
   ], { capture: true });
   log("authenticated-agenda-command-audit-flow", "PASS");
+  if (!(commandFlowResult.stdout || "").includes("GATE04_PATIENT_FLOW_AGENDA_BRIDGE=PASS")) {
+    throw new Error("GATE04_PATIENT_FLOW_AGENDA_BRIDGE_MARKER_MISSING");
+  }
+  log("agenda-to-patient-flow-visit-bridge", "PASS",
+    "pre-booked Agenda event persisted into the same-tenant Visit; canonical D3 created one waiting Queue Entry/event; Agenda appointment remained scheduled and was not duplicated");
 
   // Run two independent authenticated command transactions concurrently against
   // one exclusive resource. A winner keeps the uncommitted range lock briefly;

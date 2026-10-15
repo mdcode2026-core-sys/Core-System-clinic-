@@ -42,6 +42,9 @@ const apiRequiredBlock = apiRoute.slice(apiRoute.indexOf("function required("), 
 const agendaForm = read("src/features/agenda/agenda-event-form.tsx");
 const agendaPage = read("src/app/(dashboard)/agenda/page.tsx");
 const patientsPage = read("src/app/(dashboard)/patients/page.tsx");
+const patientFlowArrival = read("src/domain/queue/workspace.actions.ts");
+const patientFlowLifecycle = read("src/domain/queue/d3.actions.ts");
+const crossDomainTenantIntegrity = read("supabase/migrations/20260910102722_cross_domain_tenant_integrity_hardening.sql");
 const patientForm = read("src/features/patients/patient-form.tsx");
 
 const requiredCommands = [
@@ -158,6 +161,21 @@ check("agenda-opens-booking-form-from-followup-request",
 check("followup-agenda-entry-keeps-owning-domain-context",
   agendaPage.includes("followupRequestId ? t.followupRequest") &&
   agendaPage.includes('next.delete("followupRequestId")'));
+
+check("agenda-to-patient-flow-arrival-resolves-same-tenant-booking",
+  patientFlowArrival.includes('if (data.agenda_event_id)') &&
+  patientFlowArrival.includes('.eq("id", data.agenda_event_id)') &&
+  patientFlowArrival.includes('.eq("tenant_id", tenantId)') &&
+  patientFlowArrival.includes("patientId = agenda.patient_id") &&
+  patientFlowArrival.includes("doctorId = agenda.doctor_id") &&
+  patientFlowArrival.includes("roomId = agenda.room_id") &&
+  patientFlowArrival.includes("agendaEventId = agenda.id") &&
+  patientFlowArrival.includes("agenda_event_id: agendaEventId") &&
+  patientFlowArrival.includes("d3EnterWaiting({") &&
+  patientFlowLifecycle.includes('supabase.rpc("csapi_d3_enter_waiting"') &&
+  crossDomainTenantIntegrity.includes("fk_cdi_visit_agenda_same_tenant"));
+check("patient-flow-arrival-does-not-write-or-create-agenda-appointments",
+  !/\.from\(\s*["'`]master_agenda_events["'`]\s*\)\s*\.\s*(?:insert|update|delete|upsert)\s*\(/s.test(patientFlowArrival));
 
 // Execute the actual tenant-local datetime helpers from the TypeScript source in an isolated module.
 // This validates behavior, not just the presence of the conversion call in Agenda's mutation path.
