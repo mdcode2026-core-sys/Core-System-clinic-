@@ -1100,7 +1100,7 @@ try {
     ], { capture: true });
     concurrentFixtureSeeded = true;
 
-    const makeRaceSql = (patientId, bookingLabel) => `
+    const makeRaceSql = (patientId, bookingLabel, preInsertDelaySeconds, holdAfterInsertSeconds) => `
       SELECT set_config('request.jwt.claim.role', 'service_role', false);
       SELECT set_config('request.jwt.claim.sub', '${concurrentAuthUser}', false);
       SELECT set_config('request.jwt.claims',
@@ -1110,9 +1110,10 @@ try {
       DECLARE
         v_event_id uuid;
       BEGIN
-        -- Align both sessions at the race boundary; the winner retains its
-        -- exclusion-index lock through the short pre-commit pause.
-        PERFORM pg_catalog.pg_sleep(1.0);
+        -- A starts first and holds the uncommitted resource range; B starts shortly
+        -- afterward so only B waits on A, avoiding a mutual-insert deadlock while
+        -- still exercising two overlapping database transactions.
+        PERFORM pg_catalog.pg_sleep(${preInsertDelaySeconds});
         BEGIN
           SELECT id INTO v_event_id
           FROM public.agenda_create_appointment(
@@ -1123,7 +1124,7 @@ try {
             now() + interval '7 days 30 minutes',
             'GATE04-RACE-${bookingLabel}'
           );
-          PERFORM pg_catalog.pg_sleep(1.0);
+          PERFORM pg_catalog.pg_sleep(${holdAfterInsertSeconds});
           RAISE NOTICE 'GATE04_RACE_WINNER=${bookingLabel} event_id=%', v_event_id;
         EXCEPTION WHEN exclusion_violation THEN
           RAISE NOTICE 'GATE04_RACE_CONFLICT=${bookingLabel}';
@@ -1135,11 +1136,11 @@ try {
     const concurrentResults = await Promise.all([
       runAsync("psql", [
         "postgresql://postgres:postgres@127.0.0.1:54322/postgres",
-        "-v", "ON_ERROR_STOP=1", "-At", "-c", makeRaceSql(concurrentPatientA, "A"),
+        "-v", "ON_ERROR_STOP=1", "-At", "-c", makeRaceSql(concurrentPatientA, "A", 0, 3.0),
       ], { timeoutMs: 60000 }),
       runAsync("psql", [
         "postgresql://postgres:postgres@127.0.0.1:54322/postgres",
-        "-v", "ON_ERROR_STOP=1", "-At", "-c", makeRaceSql(concurrentPatientB, "B"),
+        "-v", "ON_ERROR_STOP=1", "-At", "-c", makeRaceSql(concurrentPatientB, "B", 0.5, 0),
       ], { timeoutMs: 60000 }),
     ]);
 
