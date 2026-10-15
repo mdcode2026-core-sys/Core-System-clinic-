@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { spawnSync } from "node:child_process";
+import { spawn, spawnSync } from "node:child_process";
 import { existsSync, readFileSync, unlinkSync, writeFileSync } from "node:fs";
 
 const timeout = Number(process.env.GATE04_DATABASE_TIMEOUT_MS || 900000);
@@ -33,6 +33,39 @@ function requireSuccess(name, command, args, options = {}) {
   }
   log(name, "PASS");
   return result;
+}
+
+function runAsync(command, args, { timeoutMs = timeout } = {}) {
+  return new Promise((resolve) => {
+    const child = spawn(command, args, {
+      shell: false,
+      env: { ...process.env, SUPABASE_TELEMETRY_DISABLED: "1" },
+      stdio: ["ignore", "pipe", "pipe"],
+    });
+    let stdout = "";
+    let stderr = "";
+    let settled = false;
+    const finish = (result) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      resolve({ ...result, stdout, stderr });
+    };
+    const timer = setTimeout(() => {
+      stderr += "\\nGATE04_CONCURRENCY_CHILD_TIMEOUT";
+      child.kill("SIGTERM");
+    }, timeoutMs);
+    child.stdout.setEncoding("utf8");
+    child.stderr.setEncoding("utf8");
+    child.stdout.on("data", (chunk) => { stdout += chunk; });
+    child.stderr.on("data", (chunk) => { stderr += chunk; });
+    child.on("error", (error) => finish({ status: null, error: error.message }));
+    child.on("close", (code, signal) => finish({
+      status: code,
+      signal,
+      error: code === null ? `child terminated by ${signal || "unknown signal"}` : undefined,
+    }));
+  });
 }
 
 try {
@@ -933,6 +966,209 @@ try {
     "-v", "ON_ERROR_STOP=1", "-c", commandFlowSql,
   ], { capture: true });
   log("authenticated-agenda-command-audit-flow", "PASS");
+
+  // Run two independent authenticated command transactions concurrently against
+  // one exclusive resource. A winner keeps the uncommitted range lock briefly;
+  // the competing transaction must then receive the canonical exclusion conflict.
+  const concurrentTenant = "d7000000-0000-4000-8000-000000000001";
+  const concurrentAuthUser = "d7000000-0000-4000-8000-000000000002";
+  const concurrentActor = "d7000000-0000-4000-8000-000000000003";
+  const concurrentRole = "d7000000-0000-4000-8000-000000000004";
+  const concurrentPlan = "d7000000-0000-4000-8000-000000000005";
+  const concurrentPatientA = "d7000000-0000-4000-8000-000000000006";
+  const concurrentPatientB = "d7000000-0000-4000-8000-000000000007";
+  const concurrentResource = "d7000000-0000-4000-8000-000000000008";
+  let concurrentFixtureSeeded = false;
+  const concurrentSeedSql = `
+    DO $gate04_concurrent_seed$
+    DECLARE
+      v_suffix text := replace(gen_random_uuid()::text, '-', '');
+      v_permission_id uuid;
+    BEGIN
+      INSERT INTO public.master_tenants (id, clinic_name, license_key, timezone)
+      VALUES ('${concurrentTenant}', 'Gate04 concurrency ' || v_suffix,
+        'GATE04-CONCURRENT-' || v_suffix, 'Asia/Amman');
+
+      INSERT INTO auth.users (id, aud, role, email, created_at, updated_at)
+      VALUES ('${concurrentAuthUser}', 'authenticated', 'authenticated',
+        'gate04-concurrent-' || v_suffix || '@example.test', now(), now());
+
+      INSERT INTO public.roles (id, role_key, role_name, tenant_id, is_system_role)
+      VALUES ('${concurrentRole}', 'gate04_concurrent_' || v_suffix,
+        'Gate04 concurrency test role', '${concurrentTenant}', false);
+
+      INSERT INTO public.subscription_plans (id, plan_key, plan_name, modules, is_active)
+      VALUES ('${concurrentPlan}', 'gate04-concurrent-' || v_suffix,
+        'Gate04 concurrency test plan', '["basic"]'::jsonb, true);
+
+      INSERT INTO public.subscriptions (tenant_id, plan_id, status, started_at)
+      VALUES ('${concurrentTenant}', '${concurrentPlan}', 'active', now());
+
+      INSERT INTO public.clinic_users (
+        id, tenant_id, full_name, role, employee_code, pin_code, role_id, auth_user_id, is_active
+      ) VALUES (
+        '${concurrentActor}', '${concurrentTenant}', 'Gate04 concurrency actor',
+        'gate04_concurrent', 'G4C-' || substr(v_suffix, 1, 12), '1234',
+        '${concurrentRole}', '${concurrentAuthUser}', true
+      );
+
+      INSERT INTO public.clinic_patients (id, tenant_id, first_name, last_name, phone_primary)
+      VALUES
+        ('${concurrentPatientA}', '${concurrentTenant}', 'Race', 'A',
+          '+96279' || lpad((random() * 9999999)::integer::text, 7, '0')),
+        ('${concurrentPatientB}', '${concurrentTenant}', 'Race', 'B',
+          '+96278' || lpad((random() * 9999999)::integer::text, 7, '0'));
+
+      INSERT INTO public.clinic_resources (id, tenant_id, resource_name, resource_type, status)
+      VALUES ('${concurrentResource}', '${concurrentTenant}',
+        'Gate04 concurrent exclusive device', 'laser_device', 'active');
+
+      SELECT id INTO v_permission_id FROM public.permissions
+      WHERE permission_key = 'agenda:create' AND deleted_at IS NULL LIMIT 1;
+      IF v_permission_id IS NULL THEN
+        RAISE EXCEPTION 'GATE04_CONCURRENT_PERMISSION_MISSING=agenda:create';
+      END IF;
+      INSERT INTO public.clinic_user_permission_overrides (tenant_id, user_id, permission_id, granted)
+      VALUES ('${concurrentTenant}', '${concurrentActor}', v_permission_id, true);
+
+      SELECT id INTO v_permission_id FROM public.permissions
+      WHERE permission_key = 'agenda:update' AND deleted_at IS NULL LIMIT 1;
+      IF v_permission_id IS NULL THEN
+        RAISE EXCEPTION 'GATE04_CONCURRENT_PERMISSION_MISSING=agenda:update';
+      END IF;
+      INSERT INTO public.clinic_user_permission_overrides (tenant_id, user_id, permission_id, granted)
+      VALUES ('${concurrentTenant}', '${concurrentActor}', v_permission_id, true);
+    END;
+    $gate04_concurrent_seed$;
+  `;
+
+  const concurrentCleanupSql = `
+    BEGIN;
+    SELECT set_config('request.jwt.claim.role', 'service_role', true);
+    SELECT set_config('request.jwt.claim.sub', '${concurrentAuthUser}', true);
+    SELECT set_config('request.jwt.claims',
+      '{"sub":"${concurrentAuthUser}","role":"service_role","aud":"service_role"}', true);
+    SET LOCAL ROLE service_role;
+    DO $gate04_concurrent_cancel$
+    DECLARE
+      v_event record;
+    BEGIN
+      FOR v_event IN
+        SELECT id, status
+        FROM public.master_agenda_events
+        WHERE tenant_id = '${concurrentTenant}'
+          AND booking_notes IN ('GATE04-RACE-A', 'GATE04-RACE-B')
+          AND status NOT IN ('cancelled', 'completed', 'no_show')
+      LOOP
+        PERFORM public.agenda_cancel_appointment(
+          '${concurrentTenant}', '${concurrentActor}', v_event.id, v_event.status,
+          'Gate 04 local concurrency verifier cleanup'
+        );
+      END LOOP;
+    END;
+    $gate04_concurrent_cancel$;
+    RESET ROLE;
+    DELETE FROM public.audit_trail WHERE tenant_id = '${concurrentTenant}';
+    DELETE FROM public.master_agenda_events WHERE tenant_id = '${concurrentTenant}';
+    DELETE FROM public.clinic_user_permission_overrides WHERE tenant_id = '${concurrentTenant}';
+    DELETE FROM public.clinic_patients WHERE tenant_id = '${concurrentTenant}';
+    DELETE FROM public.clinic_resources WHERE tenant_id = '${concurrentTenant}';
+    DELETE FROM public.subscriptions WHERE tenant_id = '${concurrentTenant}';
+    DELETE FROM public.clinic_users WHERE id = '${concurrentActor}';
+    DELETE FROM public.roles WHERE id = '${concurrentRole}';
+    DELETE FROM public.subscription_plans WHERE id = '${concurrentPlan}';
+    DELETE FROM public.master_tenants WHERE id = '${concurrentTenant}';
+    DELETE FROM auth.users WHERE id = '${concurrentAuthUser}';
+    COMMIT;
+  `;
+
+  try {
+    requireSuccess("seed-concurrent-booking-fixture", "psql", [
+      "postgresql://postgres:postgres@127.0.0.1:54322/postgres",
+      "-v", "ON_ERROR_STOP=1", "-c", concurrentSeedSql,
+    ], { capture: true });
+    concurrentFixtureSeeded = true;
+
+    const makeRaceSql = (patientId, bookingLabel) => `
+      SELECT set_config('request.jwt.claim.role', 'service_role', false);
+      SELECT set_config('request.jwt.claim.sub', '${concurrentAuthUser}', false);
+      SELECT set_config('request.jwt.claims',
+        '{"sub":"${concurrentAuthUser}","role":"service_role","aud":"service_role"}', false);
+      SET ROLE service_role;
+      DO $gate04_concurrent_race$
+      DECLARE
+        v_event_id uuid;
+      BEGIN
+        -- Align both sessions at the race boundary; the winner retains its
+        -- exclusion-index lock through the short pre-commit pause.
+        PERFORM pg_catalog.pg_sleep(1.0);
+        BEGIN
+          SELECT id INTO v_event_id
+          FROM public.agenda_create_appointment(
+            '${concurrentTenant}', '${concurrentActor}', '${patientId}',
+            NULL, NULL, '${concurrentResource}', NULL, NULL,
+            now() + interval '7 days',
+            now() + interval '7 days 30 minutes',
+            now() + interval '7 days 30 minutes',
+            'GATE04-RACE-${bookingLabel}'
+          );
+          PERFORM pg_catalog.pg_sleep(1.0);
+          RAISE NOTICE 'GATE04_RACE_WINNER=${bookingLabel} event_id=%', v_event_id;
+        EXCEPTION WHEN exclusion_violation THEN
+          RAISE NOTICE 'GATE04_RACE_CONFLICT=${bookingLabel}';
+        END;
+      END;
+      $gate04_concurrent_race$;
+    `;
+
+    const concurrentResults = await Promise.all([
+      runAsync("psql", [
+        "postgresql://postgres:postgres@127.0.0.1:54322/postgres",
+        "-v", "ON_ERROR_STOP=1", "-At", "-c", makeRaceSql(concurrentPatientA, "A"),
+      ], { timeoutMs: 60000 }),
+      runAsync("psql", [
+        "postgresql://postgres:postgres@127.0.0.1:54322/postgres",
+        "-v", "ON_ERROR_STOP=1", "-At", "-c", makeRaceSql(concurrentPatientB, "B"),
+      ], { timeoutMs: 60000 }),
+    ]);
+
+    if (concurrentResults.some((result) => result.status !== 0)) {
+      const details = concurrentResults.map((result, index) =>
+        `session${index + 1}: exit=${result.status}; ${(result.stderr || result.stdout || result.error || "").slice(-900)}`
+      ).join(" | ");
+      throw new Error(`GATE04_CONCURRENT_BOOKING_SESSION_FAILED ${details}`);
+    }
+
+    const combinedOutput = concurrentResults.map(result => result.stdout + "\\n" + result.stderr).join("\\n");
+    const winners = (combinedOutput.match(/GATE04_RACE_WINNER=/g) || []).length;
+    const conflicts = (combinedOutput.match(/GATE04_RACE_CONFLICT=/g) || []).length;
+    if (winners !== 1 || conflicts !== 1) {
+      throw new Error(`GATE04_CONCURRENT_BOOKING_EXPECTED_ONE_WINNER_ONE_CONFLICT winners=${winners} conflicts=${conflicts} output=${combinedOutput.slice(-1800)}`);
+    }
+
+    const persisted = requireSuccess("verify-concurrent-booking-single-persisted-row", "psql", [
+      "postgresql://postgres:postgres@127.0.0.1:54322/postgres",
+      "-v", "ON_ERROR_STOP=1", "-At", "-c",
+      `SELECT count(*) FROM public.master_agenda_events WHERE tenant_id = '${concurrentTenant}' AND booking_notes IN ('GATE04-RACE-A', 'GATE04-RACE-B');`,
+    ], { capture: true });
+    const persistedCount = (persisted.stdout || "").trim().split("\\n").at(-1);
+    if (persistedCount !== "1") {
+      throw new Error(`GATE04_CONCURRENT_BOOKING_PERSISTED_ROW_COUNT=${persistedCount || "missing"}`);
+    }
+    log("concurrent-exclusive-resource-booking", "PASS",
+      "two independent service-role command sessions: one winner, one exclusion conflict, exactly one persisted appointment");
+  } catch (error) {
+    log("concurrent-exclusive-resource-booking", "FAIL",
+      error instanceof Error ? error.message : String(error));
+    throw error;
+  } finally {
+    if (concurrentFixtureSeeded) {
+      requireSuccess("cleanup-concurrent-booking-fixture", "psql", [
+        "postgresql://postgres:postgres@127.0.0.1:54322/postgres",
+        "-v", "ON_ERROR_STOP=1", "-c", concurrentCleanupSql,
+      ], { capture: true });
+    }
+  }
 
 } catch (error) {
   log("database-verifier", "FAIL", error instanceof Error ? error.message : String(error));
