@@ -22,7 +22,8 @@
   ],
   "planned_suites": [
     "csapi-gate04-static",
-    "csapi-gate04-database"
+    "csapi-gate04-database",
+    "csapi-gate04-next-action-agenda-e2e"
   ],
   "required_suites": [
     "engineering",
@@ -39,7 +40,8 @@
     "provider-optional and provider-required booking requirements",
     "resource policy defaults to exclusive without activating a capacity engine",
     "tenant-local wall-clock semantics",
-    "clean local database migration replay"
+    "clean local database migration replay",
+    "local authenticated Work Center → Agenda handoff creates one Agenda-owned appointment and records the result against its originating Next Action"
   ],
   "workstream_checks": [
     {
@@ -57,6 +59,12 @@
     {
       "name": "gate04-agenda-timezone-behavior",
       "command": "node tools/csapi-gate04-timezone-verification.mjs",
+      "required": true,
+      "execution_owner": "workstream-verification"
+    },
+    {
+      "name": "gate04-next-action-agenda-local-e2e",
+      "command": "node tools/csapi-gate04-next-action-agenda-e2e.mjs",
       "required": true,
       "execution_owner": "workstream-verification"
     }
