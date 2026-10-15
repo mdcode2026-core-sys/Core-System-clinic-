@@ -1,4 +1,6 @@
-> **Latest exact-head verification — 2026-10-15:** Candidate `5dae0de8d98738ea56ac1d05d8deeff1270a64dd` passed Workstream Verification [#1045](https://github.com/mdcode2026-core-sys/Core-System-clinic-/actions/runs/38714788115) with all 12 jobs, including isolated Gate 04 database verification and the final gate. Engineering Governance [#305](https://github.com/mdcode2026-core-sys/Core-System-clinic-/actions/runs/38714788101) also passed on the same SHA. The branch-only migration `20261015100000_csapi_gate04_audit_read_policy_lockdown.sql` separates the audit SELECT policy from the old broad `rls_breaches_isolation FOR ALL` policy. Clean local migration replay passed the policy structure check and direct negative probes for missing `agenda:create`, missing `agenda:update`, and same-tenant audit-row disclosure to a limited authenticated user. This is local branch evidence only; hosted Supabase schema/data/migration history were not changed. Gate 04 remains OPEN: WP-7 has other scenario gaps, WP-8 remains BLOCKED, and PR #242 remains Draft/open/unmerged.
+> **Latest exact-head code verification — 2026-10-15:** Code candidate `2e786c4d11a9aa0f19ed58ea7ab0f3661332df72` passed Workstream Verification [#1049](https://github.com/mdcode2026-core-sys/Core-System-clinic-/actions/runs/38717477642) — all 12 jobs, including the isolated Gate 04 database lane and Final gate — and Engineering Governance [#309](https://github.com/mdcode2026-core-sys/Core-System-clinic-/actions/runs/38717477719). In clean local Supabase replay, two independent `psql` sessions attempted protected bookings for the same exclusive device: one transaction won, the competing transaction received the exclusion conflict, exactly one appointment row persisted, and fixture cleanup passed. This is branch-local test evidence, not hosted-database proof. The branch-only audit-read lockdown and the negative permission/audit tests also remain verified. No hosted Supabase schema, data, or migration history was changed. Gate 04 remains OPEN: other WP-7 scenario gaps remain, WP-8 is BLOCKED, and PR #242 is Draft/open/unmerged. The documentation refresh itself requires a new exact-head CI run.
+
+---
 
 ---
 
@@ -13,7 +15,7 @@
 # Gate 04 — WP-7 Scenario Evidence Matrix
 
 **Record date:** 2026-10-15  
-**Latest exact-head verified code candidate before this documentation refresh:** `5dae0de8d98738ea56ac1d05d8deeff1270a64dd` — Workstream Verification #1045 PASS (all 12 jobs + final gate) and Engineering Governance #305 PASS.  
+**Latest exact-head verified code candidate before this documentation refresh:** `2e786c4d11a9aa0f19ed58ea7ab0f3661332df72` — Workstream Verification #1049 PASS (all 12 jobs + Final gate) and Engineering Governance #309 PASS.  
 **Scenario 19:** PASS on direct branch-local DB evidence at `ec6b6572ed679c65f379f0b9d13a70ed263d4840`.  
 **Scenario 22:** PASS on direct branch-local DB evidence at `f3f3675855eb4e748064ebb7c10676fb2f4c4650`.  
 **Cross-tenant provider/room/resource references:** PASS on direct isolated local DB evidence; provider probe verified on `f165f19cb7e32aa5bb62cf219cf34a63607d9bb2` by Workstream #1039, with expected `AGENDA_PROVIDER_NOT_FOUND_IN_TENANT`; room/resource probes verified on `a1f7a0aeba14d9a892849fd19e0ea0ff2be7b4e2`.  
@@ -80,7 +82,7 @@
 | CREATE, STATUS_CHANGE, CANCEL, and cancelled → scheduled RESCHEDULE audit | Direct isolated local DB assertions passed. | PASS |
 | User lacking `agenda:create` / `agenda:update` is denied | Clean local DB replay on exact candidate `5dae0de8d98738ea56ac1d05d8deeff1270a64dd`: seeded a valid same-tenant clinic user with no effective Agenda grants; canonical create and update commands both rejected with `AGENDA_PERMISSION_DENIED`. | PASS — branch-local DB evidence |
 | Unauthorized audit-detail disclosure is blocked | Clean local DB replay on exact candidate `5dae0de8d98738ea56ac1d05d8deeff1270a64dd`: a same-tenant authenticated user without audit-read rights queried `audit_trail` and observed zero rows; static checks confirmed the broad `rls_breaches_isolation FOR ALL` policy is absent and dedicated operation-scoped policies exist. | PASS — branch-local DB evidence |
-| Two competing requests cannot both acquire an exclusive provider/room/resource | No concurrent competing-booking test. | GAP |
+| Two competing requests cannot both acquire an exclusive provider/room/resource | Workstream #1049 on exact candidate `2e786c4d11a9aa0f19ed58ea7ab0f3661332df72`, clean local DB replay: two separate `psql` sessions called protected `agenda_create_appointment` against the same exclusive device while the first transaction remained open; one winner, one exclusion conflict, exactly one persisted appointment, fixture cleanup PASS. This does not verify hosted Supabase. | PASS — branch-local concurrency evidence |
 
 ## Completed-appointment conflict policy — branch verification result
 
@@ -94,7 +96,7 @@ On candidate `972786d6569e5e596a6974a8c2e5fde155a6f727`, Workstream Verification
 - `clinic_procedure_resources` is absent from live schema. The approved Gate 04 contract prohibits resurrecting that historical model merely by replaying old migration files.
 - Fresh inventory at repository SHA `25bbb3c27f00f662ae438d2f9cbdcc1d8f2cebc6`: 240 repository SQL files, 234 canonical 14-digit migration files, 6 noncanonical legacy files, 292 hosted migration-history rows, 121 shared version keys, 113 repository-only version keys, 171 hosted-only rows, and 12 shared version keys with different names.
 - Exact-name triage identified 71 repository-only version keys with same-name hosted candidates and 72 hosted-only rows with same-name repository candidates. 42 repository-only versions and 99 hosted-only rows have no exact-name candidate. Name matching is correlation only, not proof of identical SQL or effects.
-- Five canonical Gate 04 migrations are branch-only and must be accounted for separately; no hosted history row was inserted or rewritten.
+- The 2026-10-13 inventory recorded five branch-only canonical Gate 04 migrations at that snapshot. The later audit-read lockdown migration `20261015100000_csapi_gate04_audit_read_policy_lockdown.sql` is an additional branch-only migration and must also be reconciled during WP-8; no hosted history row was inserted or rewritten.
 
 ## Exit disposition
 
@@ -193,3 +195,10 @@ Scenarios 20, 21, 23, 24 and 25 are now directly exercised against the actual Ty
 - The frozen 2026-10-13 WP-8 inventory remains a historical read-only snapshot (240 repository SQL files / 234 canonical files at that snapshot). The branch now has one additional branch-only canonical migration, `20261015100000_csapi_gate04_audit_read_policy_lockdown.sql`; do not interpret the old inventory as current branch counts or as refreshed hosted history.
 - Remaining WP-7 gaps are unchanged except for the two authorization/audit rows marked PASS: concurrent competing bookings; scenarios 26, 27, 29 and 30 pending canonical resource contracts; scenarios 31–33; and scenario 34 remains PARTIAL because booking submission/result reference are not proven.
 
+
+
+## 2026-10-15 concurrency verification addendum
+
+- Exact code candidate `2e786c4d11a9aa0f19ed58ea7ab0f3661332df72` passed Workstream Verification #1049 and Engineering Governance #309.
+- The Gate 04 isolated database lane ran a controlled two-session booking conflict. The first session retained an uncommitted exclusive-resource booking while the competing session attempted the same resource; verification observed one winner, one exclusion conflict, exactly one stored appointment, and successful cleanup.
+- Scenario concurrency is PASS on branch-local evidence only. Do not infer that hosted constraints or hosted migration history have changed. WP-7 remains OPEN; WP-8 remains BLOCKED; PR #242 remains Draft/open/unmerged.
