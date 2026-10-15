@@ -38,6 +38,9 @@ const appointmentNote = "GATE04_SCENARIO31_LOCAL_ONLY:" + stamp;
 const planTitle = "Gate 04 scenario 31 fixture " + stamp;
 const workTitle = "Gate 04 next action " + stamp;
 
+let localTenantCreated = false;
+let localPlanId = null;
+let localSubscriptionId = null;
 let authUserId = null;
 let clinicUserId = null;
 let patientId = null;
@@ -54,11 +57,65 @@ function dataOrThrow(result, label) {
 }
 
 async function seedLocalFixture() {
-  const tenant = dataOrThrow(
-    await admin.from("master_tenants").select("id,is_active").eq("id", tenantId).single(),
-    "LOCAL_TENANT_LOOKUP",
-  );
-  if (!tenant.is_active) throw new Error("LOCAL_ZADA_TENANT_INACTIVE");
+  let tenantLookup = await admin.from("master_tenants")
+    .select("id,clinic_name,subscription_tier,is_active").eq("id", tenantId).maybeSingle();
+  if (tenantLookup.error) throw new Error("LOCAL_TENANT_LOOKUP: " + tenantLookup.error.message);
+  if (!tenantLookup.data) {
+    tenantLookup = await admin.from("master_tenants").insert({
+      id: tenantId, clinic_name: "Zada Clinic", clinic_name_ar: "عيادة زادا",
+      license_key: "G04-LOCAL-" + randomUUID(), subscription_tier: "enterprise",
+      max_devices: 20, is_active: true, currency: "JOD", country_code: "JO",
+      timezone: "Asia/Amman", language: "en", direction: "ltr",
+    }).select("id,clinic_name,subscription_tier,is_active").single();
+    if (tenantLookup.error || !tenantLookup.data) {
+      throw new Error("LOCAL_TENANT_CREATE: " + (tenantLookup.error?.message || "missing result"));
+    }
+    localTenantCreated = true;
+  }
+  const tenant = tenantLookup.data;
+  if (!tenant.is_active || tenant.subscription_tier !== "enterprise") {
+    throw new Error("LOCAL_TENANT_NOT_ACTIVE_ENTERPRISE " + JSON.stringify({
+      active: tenant.is_active, tier: tenant.subscription_tier,
+    }));
+  }
+
+  let subscription = await admin.from("subscriptions")
+    .select("id,status,plan_id,subscription_plans!inner(plan_key,modules,is_active)")
+    .eq("tenant_id", tenantId).eq("status", "active").limit(1).maybeSingle();
+  if (subscription.error) throw new Error("LOCAL_SUBSCRIPTION_LOOKUP: " + subscription.error.message);
+  if (!subscription.data) {
+    let plan = await admin.from("subscription_plans")
+      .select("id,plan_key,modules,is_active").eq("plan_key", "enterprise")
+      .eq("is_active", true).is("deleted_at", null).maybeSingle();
+    if (plan.error) throw new Error("LOCAL_ENTERPRISE_PLAN_LOOKUP: " + plan.error.message);
+    if (!plan.data) {
+      plan = await admin.from("subscription_plans").insert({
+        id: randomUUID(), plan_key: "enterprise", plan_name: "Enterprise",
+        plan_name_ar: "Enterprise", max_users: 999, max_devices: 999, max_branches: 999,
+        modules: ["all"], ai_limits: {}, storage_gb: 1000, api_rate_limit: 10000, is_active: true,
+      }).select("id,plan_key,modules,is_active").single();
+      if (plan.error || !plan.data) {
+        throw new Error("LOCAL_ENTERPRISE_PLAN_CREATE: " + (plan.error?.message || "missing result"));
+      }
+      localPlanId = plan.data.id;
+    }
+    if (plan.data.plan_key !== "enterprise" || JSON.stringify(plan.data.modules) !== JSON.stringify(["all"]) || !plan.data.is_active) {
+      throw new Error("LOCAL_ENTERPRISE_PLAN_CONTRACT_MISMATCH");
+    }
+    subscription = await admin.from("subscriptions").insert({
+      id: randomUUID(), tenant_id: tenantId, plan_id: plan.data.id,
+      status: "active", started_at: new Date().toISOString(), auto_renew: true,
+    }).select("id,status,plan_id,subscription_plans!inner(plan_key,modules,is_active)").single();
+    if (subscription.error || !subscription.data) {
+      throw new Error("LOCAL_SUBSCRIPTION_CREATE: " + (subscription.error?.message || "missing result"));
+    }
+    localSubscriptionId = subscription.data.id;
+  }
+  const activePlan = subscription.data.subscription_plans;
+  if (!activePlan || activePlan.plan_key !== "enterprise" ||
+      JSON.stringify(activePlan.modules) !== JSON.stringify(["all"]) || !activePlan.is_active) {
+    throw new Error("LOCAL_SUBSCRIPTION_NOT_ENTERPRISE_ALL");
+  }
 
   const role = dataOrThrow(
     await admin.from("roles").select("id").eq("role_key", "receptionist")
@@ -240,6 +297,36 @@ try {
   console.error("GATE04_SCENARIO31_LOCAL_E2E=FAIL|" + (error instanceof Error ? error.stack || error.message : String(error)));
   process.exitCode = 1;
 } finally {
+  if (workItemId) {
+    const result = await admin.from("operational_work_items").delete().eq("tenant_id", tenantId).eq("id", workItemId);
+    if (result.error) console.error("LOCAL_CLEANUP_WARNING=work-item " + result.error.message);
+  }
+  if (planId) {
+    const result = await admin.from("clinic_treatment_plans").delete().eq("tenant_id", tenantId).eq("id", planId);
+    if (result.error) console.error("LOCAL_CLEANUP_WARNING=treatment-plan " + result.error.message);
+  }
+  if (clinicUserId) {
+    for (const table of ["clinic_user_permissions", "clinic_user_permission_overrides"]) {
+      const result = await admin.from(table).delete().eq("tenant_id", tenantId).eq("user_id", clinicUserId);
+      if (result.error) console.error("LOCAL_CLEANUP_WARNING=" + table + " " + result.error.message);
+    }
+  }
+  if (localSubscriptionId) {
+    const result = await admin.from("subscriptions").delete().eq("id", localSubscriptionId).eq("tenant_id", tenantId);
+    if (result.error) console.error("LOCAL_CLEANUP_WARNING=subscription " + result.error.message);
+  }
+  if (localPlanId) {
+    const result = await admin.from("subscription_plans").delete().eq("id", localPlanId).eq("plan_key", "enterprise");
+    if (result.error) console.error("LOCAL_CLEANUP_WARNING=subscription-plan " + result.error.message);
+  }
+  if (localTenantCreated) {
+    const result = await admin.from("master_tenants").delete().eq("id", tenantId);
+    if (result.error) console.error("LOCAL_CLEANUP_WARNING=local-tenant " + result.error.message);
+  }
+  if (authUserId) {
+    const result = await admin.auth.admin.deleteUser(authUserId);
+    if (result.error) console.error("LOCAL_CLEANUP_WARNING=auth-user " + result.error.message);
+  }
   if (context) await context.close().catch(() => {});
   if (browser) await browser.close().catch(() => {});
 }
