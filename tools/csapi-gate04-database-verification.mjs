@@ -1068,14 +1068,25 @@ try {
     END;
     $gate04_concurrent_cancel$;
     RESET ROLE;
+    -- The audit trail has an actor FK, and AJM-1 audit triggers fire on DELETE.
+    -- Clear existing audit rows, suppress only those local cleanup triggers while
+    -- removing the disposable fixture actors/roles/overrides, then clear any
+    -- remaining tenant audit rows before deleting the tenant fixture.
     DELETE FROM public.audit_trail WHERE tenant_id = '${concurrentTenant}';
     DELETE FROM public.master_agenda_events WHERE tenant_id = '${concurrentTenant}';
+    ALTER TABLE public.clinic_user_permission_overrides DISABLE TRIGGER trg_ajm1_audit;
+    ALTER TABLE public.clinic_users DISABLE TRIGGER trg_ajm1_audit;
+    ALTER TABLE public.roles DISABLE TRIGGER trg_ajm1_audit;
     DELETE FROM public.clinic_user_permission_overrides WHERE tenant_id = '${concurrentTenant}';
     DELETE FROM public.clinic_patients WHERE tenant_id = '${concurrentTenant}';
     DELETE FROM public.clinic_resources WHERE tenant_id = '${concurrentTenant}';
     DELETE FROM public.subscriptions WHERE tenant_id = '${concurrentTenant}';
     DELETE FROM public.clinic_users WHERE id = '${concurrentActor}';
     DELETE FROM public.roles WHERE id = '${concurrentRole}';
+    ALTER TABLE public.clinic_user_permission_overrides ENABLE TRIGGER trg_ajm1_audit;
+    ALTER TABLE public.clinic_users ENABLE TRIGGER trg_ajm1_audit;
+    ALTER TABLE public.roles ENABLE TRIGGER trg_ajm1_audit;
+    DELETE FROM public.audit_trail WHERE tenant_id = '${concurrentTenant}';
     DELETE FROM public.subscription_plans WHERE id = '${concurrentPlan}';
     DELETE FROM public.master_tenants WHERE id = '${concurrentTenant}';
     DELETE FROM auth.users WHERE id = '${concurrentAuthUser}';
