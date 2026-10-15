@@ -197,6 +197,24 @@ try {
   }
   const commandFlowSql = `
     BEGIN;
+    -- Clean migration replay does not guarantee that all legacy canonical
+    -- session permission rows are seeded. Establish the minimal catalogue
+    -- fixture inside this rollback-only verifier transaction; never a migration.
+    INSERT INTO public.permissions
+      (permission_key, permission_name, description, resource, action)
+    VALUES
+      ('agenda:read', 'Read Agenda', 'View agenda appointments', 'agenda', 'read'),
+      ('sessions:read', 'Read Sessions', 'View visit sessions and queue state', 'sessions', 'read'),
+      ('sessions:create', 'Create Sessions', 'Create visit sessions and queue intake records', 'sessions', 'create'),
+      ('sessions:update', 'Update Sessions', 'Update visit sessions and queue state', 'sessions', 'update'),
+      ('patient_flow:operations', 'Access Patient Flow — Operations', 'Explicitly enable the Operations view of Patient Flow', 'patient_flow', 'operations')
+    ON CONFLICT (permission_key) DO UPDATE
+      SET deleted_at = NULL,
+          permission_name = EXCLUDED.permission_name,
+          description = EXCLUDED.description,
+          resource = EXCLUDED.resource,
+          action = EXCLUDED.action;
+
     DO $gate04_seed$
     DECLARE
       v_tenant_id uuid := 'd4000000-0000-4000-8000-000000000001';
