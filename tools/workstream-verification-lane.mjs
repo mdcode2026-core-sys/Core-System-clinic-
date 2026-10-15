@@ -7,17 +7,24 @@ import { join } from "node:path";
 const lane = process.env.VERIFICATION_LANE;
 if (!lane) throw new Error("VERIFICATION_LANE is required");
 
-const baseUrl = process.env.CORE_SYSTEM_PRODUCTION_URL || "http://127.0.0.1:3000";
+const baseUrl = lane === "csapi-gate04-next-action-agenda-e2e" ? "http://127.0.0.1:3000" : process.env.CORE_SYSTEM_PRODUCTION_URL || "http://127.0.0.1:3000";
 const timeoutMs = Number(process.env.TEST_COMMAND_TIMEOUT_MS || 300000);
+const effectiveTimeoutMs = lane === "csapi-gate04-database" || lane === "csapi-gate04-next-action-agenda-e2e" ? Math.max(timeoutMs, 900000) : timeoutMs;
 
 const commands = {
+  "csapi-gate04-static": [
+    ["gate04-agenda-static-contract", "node", ["tools/csapi-gate04-static-audit.mjs"]],
+    ["gate04-agenda-timezone-behavior", "node", ["tools/csapi-gate04-timezone-verification.mjs"]],
+  ],
+  "csapi-gate04-database": [["gate04-agenda-clean-local-database", "node", ["tools/csapi-gate04-database-verification.mjs"]]],
+  "csapi-gate04-next-action-agenda-e2e": [["next-action-agenda-handoff-local-e2e", "node", ["tools/csapi-gate04-next-action-agenda-e2e.mjs"]]],
   engineering: [
     ["typecheck", "npx", ["tsc", "--noEmit"]],
     ["lint", "npm", ["run", "lint"]],
     ["build", "npm", ["run", "build"]],
   ],
   i18n: [
-    ["i18n-audit", "npm", ["run", "i18n:audit"]],
+    ["i18n-audit-changed-source-files", "npm", ["run", "i18n:audit", "--", "--changed-files"]],
     ["i18n-parity", "npm", ["run", "i18n:parity"]],
   ],
   "authenticated-e2e": [[
@@ -50,6 +57,7 @@ const runtimeLanes = new Set([
   "procurement-inventory-finance",
   "global-experience-presentation-runtime",
   "csapi-gate01-d3-runtime",
+  "csapi-gate04-next-action-agenda-e2e",
   "gate03_identity_e2e",
 ]);
 
@@ -58,7 +66,7 @@ function run(command, args) {
     stdio: "inherit",
     env: process.env,
     shell: false,
-    timeout: timeoutMs,
+    timeout: effectiveTimeoutMs,
     killSignal: "SIGTERM",
   });
   if (result.error) {
@@ -239,6 +247,7 @@ try {
     lane === "patient-journey" ||
     lane === "global-experience-presentation-runtime" ||
     lane === "csapi-gate01-d3-runtime" ||
+    lane === "csapi-gate04-next-action-agenda-e2e" ||
     lane === "gate03_identity_e2e";
 
   if (needsPlaywright) {
@@ -250,7 +259,7 @@ try {
     }
   }
 
-  if (lane === "csapi-gate01-d3-runtime") {
+  if (lane === "csapi-gate01-d3-runtime" || lane === "csapi-gate04-next-action-agenda-e2e") {
     prepareD3RuntimeEnvironment();
   }
 
@@ -356,7 +365,7 @@ try {
     server.kill("SIGTERM");
     server = null;
   }
-  if (lane === "csapi-gate01-d3-runtime") {
+  if (lane === "csapi-gate01-d3-runtime" || lane === "csapi-gate04-next-action-agenda-e2e") {
     cleanupD3RuntimeEnvironment();
   }
 }

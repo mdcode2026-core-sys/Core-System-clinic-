@@ -15,6 +15,7 @@ import { usePatients } from "@/domain/patients/patients.queries";
 import { AuthContext } from "@/core/auth/AuthContext";
 import { createClient } from "@/infrastructure/supabase/client";
 import type { AgendaEventWithRelations, CalendarRange } from "@/domain/agenda/agenda.types";
+import { getTenantWeekRangeUtc } from "@/shared/utils/dateTime";
 import type { Patient } from "@/domain/patients/patients.types";
 
 export default function AgendaPage() {
@@ -26,8 +27,9 @@ export default function AgendaPage() {
   const patientId = searchParams.get("patientId");
   const doctorId = searchParams.get("doctorId");
   const bookingWorkItemId = searchParams.get("bookingWorkItemId");
+  const followupRequestId = searchParams.get("followupRequestId");
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [isFormOpen, setIsFormOpen] = useState(Boolean(bookingWorkItemId));
+  const [isFormOpen, setIsFormOpen] = useState(Boolean(bookingWorkItemId || followupRequestId));
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<AgendaEventWithRelations | null>(null);
   const [formDefaultDate, setFormDefaultDate] = useState("");
@@ -45,17 +47,7 @@ export default function AgendaPage() {
     return () => { cancelled = true; };
   }, [tenantId]);
 
-  const calendarRange = useMemo<CalendarRange>(() => {
-    const start = new Date(currentDate);
-    const day = start.getDay();
-    start.setDate(start.getDate() - day);
-    start.setHours(0, 0, 0, 0);
-    const end = new Date(start);
-    end.setDate(start.getDate() + 6);
-    end.setHours(23, 59, 59, 999);
-    return { start: start.toISOString(), end: end.toISOString() };
-  }, [currentDate]);
-
+  const calendarRange = useMemo<CalendarRange>(() => getTenantWeekRangeUtc(currentDate, tenantTimezone), [currentDate, tenantTimezone]);
   const { data: events = [], isLoading: eventsLoading } = useAgendaEventsWithRelations(tenantId, calendarRange);
   const { data: patientsData = [], isLoading: patientsLoading } = usePatients(tenantId);
   const { data: doctorsData = [], isLoading: doctorsLoading } = useDoctors(tenantId);
@@ -70,7 +62,7 @@ export default function AgendaPage() {
   const doctorOptions = doctorsData.map((doctor) => ({ id: doctor.id, name: doctor.full_name, specialization: doctor.specialization }));
   const roomOptions = roomsData.map((room) => ({ id: room.id, name: room.room_name }));
   const resourceOptions = resourcesData.map((resource) => ({ id: resource.id, name: resource.resource_name, type: resource.resource_type }));
-  const procedureOptions = proceduresData.map((procedure) => ({ id: procedure.id, name: procedure.procedure_name, duration: procedure.standard_duration_minutes }));
+  const procedureOptions = proceduresData.map((procedure) => ({ id: procedure.id, name: procedure.procedure_name, duration: procedure.standard_duration_minutes, provider_type: procedure.provider_type }));
 
   const handleEventClick = useCallback((event: AgendaEventWithRelations) => { setSelectedEvent(event); setIsDetailOpen(true); }, []);
   const handleTimeSlotClick = useCallback((date: string) => { setSelectedEvent(null); setFormDefaultDate(date); setIsFormOpen(true); }, []);
@@ -81,6 +73,7 @@ export default function AgendaPage() {
     next.delete("patientId");
     next.delete("doctorId");
     next.delete("bookingWorkItemId");
+    next.delete("followupRequestId");
     next.delete("treatmentPlanItemId");
     router.push(next.toString() ? `/agenda?${next.toString()}` : "/agenda");
   }, [router, searchParams]);
@@ -93,7 +86,7 @@ export default function AgendaPage() {
         <Button onClick={() => { setSelectedEvent(null); setFormDefaultDate(""); setIsFormOpen(true); }} className="bg-[var(--cs-azure-600)] text-white hover:bg-[var(--cs-azure-700)]"><Plus className="me-2 h-4 w-4" />{t.newAppointment}</Button>
       </div>
 
-      {(contextPatient || contextDoctor || bookingWorkItemId) && <div className="flex flex-wrap items-center gap-2 rounded-lg border border-[var(--cs-slate-200)] bg-[var(--cs-slate-100)] p-3"><Badge variant="secondary">{bookingWorkItemId ? (locale === "ar" ? "حجز من الإجراء التالي" : "Next-action booking") : contextPatient ? t.patientFilter : locale === "ar" ? "سياق الطبيب" : "Doctor context"}</Badge><span className="text-sm font-medium text-[var(--cs-ink-950)]">{contextPatient ? `${contextPatient.first_name} ${contextPatient.last_name}` : locale === "ar" ? contextDoctor?.full_name_ar || contextDoctor?.full_name : contextDoctor?.full_name}</span><Button variant="ghost" size="sm" className="ms-auto" onClick={clearContext}><X className="me-1 h-4 w-4" />{t.clearPatientFilter}</Button></div>}
+      {(contextPatient || contextDoctor || bookingWorkItemId || followupRequestId) && <div className="flex flex-wrap items-center gap-2 rounded-lg border border-[var(--cs-slate-200)] bg-[var(--cs-slate-100)] p-3"><Badge variant="secondary">{followupRequestId ? t.followupRequest : bookingWorkItemId ? (locale === "ar" ? "حجز من الإجراء التالي" : "Next-action booking") : contextPatient ? t.patientFilter : locale === "ar" ? "سياق الطبيب" : "Doctor context"}</Badge><span className="text-sm font-medium text-[var(--cs-ink-950)]">{contextPatient ? `${contextPatient.first_name} ${contextPatient.last_name}` : locale === "ar" ? contextDoctor?.full_name_ar || contextDoctor?.full_name : contextDoctor?.full_name}</span><Button variant="ghost" size="sm" className="ms-auto" onClick={clearContext}><X className="me-1 h-4 w-4" />{t.clearPatientFilter}</Button></div>}
 
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4"><Stat value={visibleEvents.filter((event) => event.status === "scheduled").length} label={t.scheduled} /><Stat value={visibleEvents.filter((event) => event.status === "confirmed").length} label={t.confirmed} /><Stat value={visibleEvents.filter((event) => event.status === "in_session").length} label={t.inSession} /><Stat value={visibleEvents.filter((event) => event.status === "completed").length} label={t.completed} /></div>
 

@@ -103,6 +103,12 @@ Before ending a session or when context is becoming too large, update the approp
 
 The handoff must make the next action explicit.
 
+
+ 
+## CSAPI continuation precedence
+
+When the entry command is `CSAPI`, treat the current repository state—not historical prompt examples or chat memory—as authoritative. Read `docs/CSAPI/CSAPI-GATE-04-CONTINUATION-HANDOFF-2026-10-11.md` when Gate 04 is the active continuation, then reconcile its exact branch/PR/SHA and latest CI evidence before action. The current handoff overrides older stale current-gate labels but never overrides the binding workstream contract or actual executable evidence. Continue from its explicit next action; do not restart a closed gate or repeat a Product Owner decision already recorded as approved. If a new exact-head run or commit supersedes the recorded candidate, update the handoff and current-state records before ending the session.
+
 ## Final rule
 
 You are always the Leader.

@@ -1,0 +1,93 @@
+{
+  "contract_version": "1.0",
+  "contract_type": "workstream",
+  "workstream_id": "csapi-gate04-agenda",
+  "status": "binding",
+  "contract_path": "docs/CSAPI/GATES/GATE-04-AGENDA-EXECUTION-CONTRACT-2026-09-29.md",
+  "applicability": {
+    "match_any": [
+      "^src/domain/agenda/.*\\.ts$",
+      "^src/features/workspace/widgets/agenda/.*\\.tsx$",
+      "^src/infrastructure/supabase/agenda-command\\.ts$",
+      "^supabase/migrations/.*csapi_gate04_agenda.*\\.sql$",
+      "^tools/csapi-gate04-.*\\.mjs$",
+      "^docs/CSAPI/GATES/GATE-04-.*\\.md$"
+    ]
+  },
+  "regression_level": "R3",
+  "required_engineering": [
+    "typecheck",
+    "lint",
+    "build"
+  ],
+  "planned_suites": [
+    "csapi-gate04-static",
+    "csapi-gate04-database",
+    "csapi-gate04-next-action-agenda-e2e"
+  ],
+  "required_suites": [
+    "engineering",
+    "csapi-gate04-static",
+    "csapi-gate04-database",
+    "authenticated-e2e",
+    "cross-domain"
+  ],
+  "required_evidence": [
+    "canonical mutation and protected command convergence",
+    "tenant-scoped actor and appointment validation",
+    "direct table writes denied to browser and service-role clients",
+    "CREATE/UPDATE/status/cancel/reschedule audit reconstruction",
+    "provider-optional and provider-required booking requirements",
+    "resource policy defaults to exclusive without activating a capacity engine",
+    "tenant-local wall-clock semantics",
+    "clean local database migration replay",
+    "local authenticated Work Center → Agenda handoff creates one Agenda-owned appointment and records the result against its originating Next Action"
+  ],
+  "workstream_checks": [
+    {
+      "name": "gate04-agenda-static-contract",
+      "command": "node tools/csapi-gate04-static-audit.mjs",
+      "required": true,
+      "execution_owner": "workstream-verification"
+    },
+    {
+      "name": "gate04-agenda-local-database",
+      "command": "node tools/csapi-gate04-database-verification.mjs",
+      "required": true,
+      "execution_owner": "workstream-verification"
+    },
+    {
+      "name": "gate04-agenda-timezone-behavior",
+      "command": "node tools/csapi-gate04-timezone-verification.mjs",
+      "required": true,
+      "execution_owner": "workstream-verification"
+    },
+    {
+      "name": "gate04-next-action-agenda-local-e2e",
+      "command": "node tools/csapi-gate04-next-action-agenda-e2e.mjs",
+      "required": true,
+      "execution_owner": "workstream-verification"
+    }
+  ],
+  "suppress_workstreams_when_applicable": [
+    "csapi-gate02-patient-journey"
+  ],
+  "suppression_rationale": "Gate 02 is closed. Its broad legacy path matcher includes Agenda files and triggers a separate, credential-backed longitudinal E2E lane. Gate 04 has its own local-only database/static verification contract; do not reopen or run Gate 02's mutation-capable runtime suite as incidental coverage. Re-run Gate 02 only if direct evidence demonstrates a regression and the owning gate authorizes that verification.",
+  "suppression_bypass_patterns": {
+    "csapi-gate02-patient-journey": [
+      "^src/domain/treatment-plan/",
+      "^src/features/treatment-plans/",
+      "^src/domain/followup/",
+      "^src/features/followup/(?!followup-list-view\\.tsx$|followup-scheduled-view\\.tsx$)",
+      "^src/domain/journey-coordination/",
+      "^src/app/\\\\(dashboard\\\\)/work-center/",
+      "^supabase/migrations/20260829",
+      "^supabase/migrations/20260830",
+      "^supabase/migrations/20260923",
+      "^tools/clinic-admin-real-world-e2e-v2\\\\.mjs$",
+      "^tools/csapi-gate02-clean-db\\\\.mjs$",
+      "^docs/CSAPI/GATES/GATE-0[12]-",
+      "^docs/testing/workstream-contracts/csapi-gate02-patient-journey\\\\.execution\\\\.json$"
+    ]
+  }
+}

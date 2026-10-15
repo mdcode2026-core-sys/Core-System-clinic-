@@ -6,7 +6,7 @@ const CONFLICT_RULES: ConflictRuleValue[] = ["doctor", "room", "resource", "pati
 
 export async function checkConflicts(supabase: SupabaseServerClient, input: ConflictCheckInput): Promise<ConflictResult> {
   const { tenantId, doctorId, roomId, resourceId, patientId, scheduledStart, scheduledEnd, bufferEnd, excludeEventId } = input;
-  if (!tenantId || !doctorId || !patientId || !scheduledStart || !scheduledEnd) return { hasConflict: false, rule: null, conflictingEventId: null, message: "" };
+  if (!tenantId || !patientId || !scheduledStart || !scheduledEnd) return { hasConflict: false, rule: null, conflictingEventId: null, message: "" };
   const overlappingEvents = await getOverlappingEvents(supabase, tenantId, scheduledStart, bufferEnd || scheduledEnd, excludeEventId);
   if (!overlappingEvents?.length) return { hasConflict: false, rule: null, conflictingEventId: null, message: "" };
   for (const rule of CONFLICT_RULES) {
@@ -42,10 +42,10 @@ async function getOverlappingEvents(
 function findConflict(
   events: AgendaEventRow[],
   rule: ConflictRuleValue,
-  ids: { doctorId: string; roomId: string | null; resourceId: string | null; patientId: string },
+  ids: { doctorId: string | null; roomId: string | null; resourceId: string | null; patientId: string },
 ): AgendaEventRow | null {
   for (const event of events) {
-    if (rule === "doctor" && event.doctor_id === ids.doctorId) return event;
+    if (rule === "doctor" && ids.doctorId && event.doctor_id === ids.doctorId) return event;
     if (rule === "room" && ids.roomId && event.room_id === ids.roomId) return event;
     if (rule === "resource" && ids.resourceId && event.resource_id === ids.resourceId) return event;
     if (rule === "patient" && event.patient_id === ids.patientId) return event;

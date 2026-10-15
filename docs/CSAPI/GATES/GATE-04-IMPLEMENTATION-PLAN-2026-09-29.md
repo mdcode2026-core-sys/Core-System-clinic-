@@ -125,7 +125,7 @@ Gate 04 explicitly excludes:
 - Patient Flow rebuild;
 - Patient Identity rebuild;
 - Treatment Plan redesign;
-- Follow-up implementation;
+- Follow-up lifecycle implementation/redesign; the minimum appointment-request handoff to Agenda is included as a Gate 04 cross-domain integration.
 - Inventory stock/consumption engine;
 - Workforce cleanup;
 - second Scheduler/Calendar engine;

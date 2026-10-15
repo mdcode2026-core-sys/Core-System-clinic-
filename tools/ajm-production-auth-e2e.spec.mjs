@@ -77,3 +77,41 @@ test("Clinic Admin local production shell remains usable at mobile viewport", as
   const dir = await page.locator("html").getAttribute("dir");
   expect(dir).toMatch(/^(rtl|ltr)$/);
 });
+
+async function verifyFollowupBookingAction(page, context, view) {
+  await login(page, context);
+  await page.goto(`${baseUrl}/follow-up`, { waitUntil: "domcontentloaded", timeout: 60000 });
+  await expect(page).not.toHaveURL(/\/login(?:[/?#]|$)/i);
+  await expect(page.locator("body")).toContainText(/Follow-up|المتابعة/i, { timeout: 15000 });
+
+  if (view === "scheduled") {
+    await page.getByRole("button", { name: /Scheduled|المجدولة/i }).click();
+  }
+
+  const bookingLink = page.getByRole("link", { name: /Book appointment|حجز موعد/i }).first();
+  await expect(bookingLink).toBeVisible({ timeout: 15000 });
+  const href = await bookingLink.getAttribute("href");
+  expect(href).toBeTruthy();
+  const target = new URL(href, baseUrl);
+  expect(target.pathname).toBe("/agenda");
+  const patientId = target.searchParams.get("patientId");
+  const followupRequestId = target.searchParams.get("followupRequestId");
+  expect(patientId).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i);
+  expect(followupRequestId).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i);
+
+  await bookingLink.click();
+  await expect(page).toHaveURL(/\/agenda\?patientId=.*followupRequestId=/);
+  await expect(page).not.toHaveURL(/\/login(?:[/?#]|$)/i);
+  const dialog = page.getByRole("dialog");
+  await expect(dialog).toBeVisible({ timeout: 15000 });
+  await expect(dialog).toContainText(/New Appointment|موعد جديد/i);
+  await expect(page.locator("body")).toContainText(/Appointment requested from Follow-up|طلب موعد من المتابعة/i);
+}
+
+test("Follow-up work view opens Agenda with the same patient and request context", async ({ page, context }) => {
+  await verifyFollowupBookingAction(page, context, "work");
+});
+
+test("Follow-up scheduled view opens Agenda with the same patient and request context", async ({ page, context }) => {
+  await verifyFollowupBookingAction(page, context, "scheduled");
+});

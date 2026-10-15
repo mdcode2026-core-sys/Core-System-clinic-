@@ -181,3 +181,14 @@ Binding artifacts:
 The next gate, Gate 05, may begin its decision/design/planning work while Gate 04 implementation is transferred. Gate 05 implementation must not modify Gate 04 or a later gate before Gate 04 is closed unless an explicit CSAPI dependency requires it.
 
 No gate after Gate 04 is considered implementation-authorized merely because its planning has started. Each gate must reach Implementation-Ready first, then be implemented and closed in sequence.
+
+
+ 
+## Current Gate 04 continuation override — 2026-10-12
+
+The active gate is **Gate 04 — Agenda & Scheduling**. Any older "current gate" labels retained for historical chronology are superseded by the latest Gate 04 continuation handoff and current repository/Actions evidence.
+
+Canonical resume record: `docs/CSAPI/CSAPI-GATE-04-CONTINUATION-HANDOFF-2026-10-11.md`.
+
+Owner decision recorded 2026-10-11: minimum Follow-up appointment-request → canonical Agenda booking handoff is required for Gate 04 closure. This is approved; Gate 11 remains separate. Current candidate `fe4f4d2b34b546540236102cd469946dcab4a59d`, PR #242 Draft, Workstream Verification #984 FAIL. Gate 04 remains OPEN. The next action is the narrow descriptor/planner correction documented in the handoff §5, followed by exact-head CI and root-cause analysis of the remaining global presentation runtime timeout. WP-8 remains blocked by repository/hosted migration-lineage reconciliation.
+

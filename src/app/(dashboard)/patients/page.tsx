@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useTenantId } from "@/core/auth/useTenantId";
 import { PatientList } from "@/features/patients/patient-list";
 import { PatientForm } from "@/features/patients/patient-form";
@@ -13,7 +14,10 @@ import { usePermissions } from "@/core/permissions/usePermissions";
 import { useI18n } from "@/core/i18n/I18nProvider";
 
 export default function PatientsPage() {
-  const [isFormOpen, setIsFormOpen] = useState(false);
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const registerForBooking = searchParams.get("registerForBooking") === "1";
+  const [isFormOpen, setIsFormOpen] = useState(registerForBooking);
   const [isAgendaOpen, setIsAgendaOpen] = useState(false);
   const [agendaPatientId, setAgendaPatientId] = useState<string | null>(null);
   const { hasPermission, isLoading: permsLoading } = usePermissions();
@@ -27,7 +31,7 @@ export default function PatientsPage() {
   const { data: patients = [] } = usePatients(tenantId);
   const doctorOptions = doctors.map((d) => ({ id: d.id, name: d.full_name, specialization: d.specialization }));
   const roomOptions = rooms.map((r) => ({ id: r.id, name: r.room_name }));
-  const procedureOptions = procedures.map((p) => ({ id: p.id, name: p.procedure_name, duration: p.standard_duration_minutes }));
+  const procedureOptions = procedures.map((p) => ({ id: p.id, name: p.procedure_name, duration: p.standard_duration_minutes, provider_type: p.provider_type }));
   const patientOptions = patients.map((p) => ({ id: p.id, name: `${p.first_name} ${p.last_name}`, phone: p.phone_primary }));
   function handleBookAppointment(patientId: string) { setAgendaPatientId(patientId); setIsAgendaOpen(true); }
 
@@ -37,7 +41,7 @@ export default function PatientsPage() {
       {!permsLoading && hasPermission("patients:create") && <Button onClick={() => setIsFormOpen(true)} className="w-full sm:w-auto"><UserPlus className="w-4 h-4 ml-2" />{t.add}</Button>}
     </div>
     <PatientList onBookAppointment={handleBookAppointment} />
-    {isFormOpen && <PatientForm isOpen={true} onClose={() => setIsFormOpen(false)} onSuccess={() => setIsFormOpen(false)} />}
+    {isFormOpen && <PatientForm isOpen={true} onClose={() => setIsFormOpen(false)} onSuccess={(patientId) => { setIsFormOpen(false); if (registerForBooking && patientId) { setAgendaPatientId(patientId); setIsAgendaOpen(true); const next = new URLSearchParams(searchParams.toString()); next.delete("registerForBooking"); router.replace(next.toString() ? `/patients?${next.toString()}` : "/patients"); } }} />}
     <AgendaEventForm isOpen={isAgendaOpen} onClose={() => { setIsAgendaOpen(false); setAgendaPatientId(null); }} tenantId={tenantId || ""} userId={userId || ""} patients={patientOptions} doctors={doctorOptions} rooms={roomOptions} procedures={procedureOptions} defaultPatientId={agendaPatientId || undefined} />
   </div>;
 }

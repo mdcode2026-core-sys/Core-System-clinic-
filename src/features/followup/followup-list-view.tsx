@@ -4,6 +4,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { updateFollowup, completeFollowup } from "@/domain/followup/followup.queries";
 import type { FollowupRecord, FollowupStatus } from "@/domain/followup/followup.types";
 import { useI18n } from "@/core/i18n/I18nProvider";
@@ -113,6 +114,7 @@ export function FollowupListView({ records, canUpdate, onStatusUpdate, isPending
             </div>
 
             {canUpdate && (record.status === "open" || record.status === "in_progress") && <div className="flex shrink-0 flex-wrap gap-2">
+              {record.action_type === "appointment" && <Link href={`/agenda?patientId=${encodeURIComponent(record.patient_id)}&followupRequestId=${encodeURIComponent(record.id)}`} className="rounded-md border px-3 py-1.5 text-sm">{t.bookAppointment}</Link>}
               {record.status === "open" && <button type="button" disabled={updatingId === record.id || isPending} onClick={() => void setStatus(record.id, "in_progress")} className="rounded-md border px-3 py-1.5 text-sm disabled:opacity-50">{t.start}</button>}
               <button type="button" disabled={updatingId === record.id || isPending} onClick={() => openResult(record)} className="rounded-md bg-primary px-3 py-1.5 text-sm text-primary-foreground disabled:opacity-50">{t.recordResult}</button>
               <button type="button" disabled={updatingId === record.id || isPending} onClick={() => void setStatus(record.id, "cancelled")} className="rounded-md border px-3 py-1.5 text-sm disabled:opacity-50">{t.cancel}</button>

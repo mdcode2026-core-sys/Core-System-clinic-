@@ -41,3 +41,16 @@ Every gate follows:
 Study → Verify → Reconcile → Decision Report → Product Owner Approval → Implement → Validate → Document → Close
 
 No implementation begins from an unapproved proposal.
+
+
+ 
+## Active continuation — Gate 04
+
+**Current authority:** Gate 04 — Agenda & Scheduling is OPEN and not closed. Older Gate 03 status text above is historical and must not govern current execution.
+
+Before resuming, read `CSAPI-GATE-04-CONTINUATION-HANDOFF-2026-10-11.md`, then `CSAPI-MASTER-STATE.md`, `CSAPI-GATES-PLAN.md`, the AI Engineering Master Prompt, the binding Gate 04 execution contract, Verification Plan, descriptor, progress/evidence records, and execution handoff/ledger.
+
+Current branch: `csapi/gate04-agenda-implementation-2026-10-10`; PR #242 remains Draft and unmerged. Latest candidate recorded in the handoff: `fe4f4d2b34b546540236102cd469946dcab4a59d`; Workstream Verification #984 failed. Continue from the exact failure and next action in the handoff, not from stale status summaries.
+
+The Product Owner has approved minimum Follow-up appointment-request → Agenda handoff as required Gate 04 scope. Do not ask for this decision again. Gate 11 remains separate and its lifecycle is out of scope.
+

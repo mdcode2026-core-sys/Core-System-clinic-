@@ -1,0 +1,26 @@
+#!/usr/bin/env node
+import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import vm from "node:vm";
+import ts from "typescript";
+const source=readFileSync("src/shared/utils/dateTime.ts","utf8");
+const compiled=ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
+const sandbox={exports:{},Intl,Date,Error,Object,Number,String,RegExp,Math,Set};
+vm.runInNewContext(compiled,sandbox,{filename:"dateTime.ts"});
+const api=sandbox.exports;
+assert.equal(api.tenantLocalToUtc("2026-01-15T09:30:00","America/New_York"),"2026-01-15T14:30:00.000Z");
+assert.equal(api.tenantLocalToUtc("2026-03-08T03:30:00","America/New_York"),"2026-03-08T07:30:00.000Z");
+assert.throws(()=>api.tenantLocalToUtc("2026-03-08T02:30:00","America/New_York"),/does not exist/);
+assert.equal(api.tenantLocalToUtc("2026-11-01T01:30:00","America/New_York"),"2026-11-01T05:30:00.000Z");
+assert.equal(api.tenantLocalToUtc("2026-01-15T09:30:00","Asia/Kathmandu"),"2026-01-15T03:45:00.000Z");
+assert.equal(api.tenantLocalToUtc("2026-01-15T09:30:00+05:45","America/New_York"),"2026-01-15T03:45:00.000Z");
+assert.throws(()=>api.tenantLocalToUtc("2026-02-30T09:30:00","UTC"),/Invalid tenant-local datetime/);
+assert.throws(()=>api.tenantLocalToUtc("2026-01-15T09:30:00","Invalid/Timezone"),/time zone|timezone/i);
+assert.deepEqual(JSON.parse(JSON.stringify(api.utcToTenantInput("2026-01-15T14:30:00.000Z","America/New_York"))),{date:"2026-01-15",time:"09:30"});
+assert.equal(api.addMinutesToLocalDateTime("2026-01-15T23:45",30),"2026-01-16T00:15");
+assert.equal(api.addMinutesToLocalDateTime("2026-03-08T01:30",60),"2026-03-08T02:30");
+const dstWeek=api.getTenantWeekRangeUtc(new Date("2026-03-08T16:00:00.000Z"),"America/New_York");
+assert.equal(dstWeek.start,"2026-03-08T05:00:00.000Z");
+assert.equal(dstWeek.end,"2026-03-15T03:59:59.999Z");
+assert.equal(new Date(dstWeek.end).getTime()-new Date(dstWeek.start).getTime()+1,167*3600000);
+console.log("GATE04_TIMEZONE_CHECK=PASS cases=12");

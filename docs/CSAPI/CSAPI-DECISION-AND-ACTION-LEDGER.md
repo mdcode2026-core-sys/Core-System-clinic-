@@ -413,3 +413,38 @@ This file is append-only for material CSAPI events. Historical entries remain ev
 - Implementation consequence: Gate 05 planning may begin in a new conversation; Gate 05 implementation remains blocked by Gate 04 until Gate 04 closure or an explicit dependency decision.
 - Verification evidence: Recorded in the current handoff and Gate Plan.
 - Status: FROZEN / BINDING
+
+
+ 
+### CSAPI-2026-10-11-G04-FOLLOWUP-AGENDA-MINIMUM
+- Date: 2026-10-11
+- Gate: Gate 04 — Agenda & Scheduling (with Gate 11 boundary preserved)
+- Type: Product Owner Decision / Scope Approval
+- Source(s): Explicit Product Owner instruction in the CSAPI Gate 04 continuation conversation; binding Gate 04 execution contract §21; Gate 04 Verification Plan cross-domain scenarios.
+- Statement: Minimum integration between Follow-up appointment requests and Agenda is required for Gate 04 closure.
+- Evidence: An active Follow-up with appointment action must expose a localized booking action in the operational and scheduled views; it opens the canonical Agenda form with the same tenant patient and request context. Agenda remains the sole appointment persistence authority.
+- Product Owner decision: APPROVED. Do not ask this scope question again.
+- Implementation consequence: Include and verify the minimum UI handoff in Gate 04. Do not add a second appointment store, a new durable relation without contract evidence, or Follow-up lifecycle/state redesign. Gate 11 remains a separate gate.
+- Verification evidence: On candidate `fe4f4d2b34b546540236102cd469946dcab4a59d`, static/authenticated route and other core Gate 04 lanes passed, but Workstream Verification #984 failed due to the legacy closed Gate 02 patient-journey lane redirecting to login and a separate global presentation runtime TimeoutError. Therefore the decision is approved, but Gate 04 is not closed.
+- Status: APPROVED / IMPLEMENTATION PRESENT / INTEGRATED VERIFICATION OPEN
+
+
+### CSAPI-2026-10-13-G04-CONFLICT-POLICY-EXACT-HEAD-VERIFY
+- Date: 2026-10-13
+- Gate: Gate 04 — Agenda & Scheduling
+- Type: Implementation / Verification / Finding
+- Source(s): Branch migration `20261013100000_csapi_gate04_completed_appointment_conflict_policy.sql`; `tools/csapi-gate04-database-verification.mjs`; Workstream Verification #1004; Engineering Governance #264; Gate 04 Verification Plan scenario 15.
+- Statement: A forward-only branch migration aligns the doctor, patient, room and resource exclusion-constraint lifecycle predicates so completed appointments do not reserve active conflict capacity. The isolated local database verifier now exercises completed appointment → overlapping same-patient booking succeeds → another active overlap is rejected.
+- Evidence: Candidate `a24f6e70c659d3996c4e9bb5f0352220f2dc5dbc`; [Workstream #1004 PASS](https://github.com/mdcode2026-core-sys/Core-System-clinic-/actions/runs/38380111698); [Governance #264 PASS](https://github.com/mdcode2026-core-sys/Core-System-clinic-/actions/runs/38380111547).
+- Product Owner decision: No new product decision required; behavior follows frozen Gate 04 Verification Plan scenario 15 and existing application conflict semantics.
+- Implementation consequence: Keep the migration branch-only. No hosted Supabase change, migration-history edit, merge or production promotion.
+- Verification evidence: Local replay and conflict-policy verifier passed. Direct runtime behavior is proven for patient overlap; doctor/room/resource dimension-specific probes remain required before scenario 15 is fully PASS.
+- Status: IMPLEMENTED / EXACT-HEAD CI PASS / WP-7 OPEN / WP-8 BLOCKED
+
+
+### CSAPI-2026-10-13-G04-WP7-DIMENSION-PROBES
+- Gate: Gate 04 — Agenda & Scheduling; WP-7.
+- Finding: scenario 15 previously had direct completed-lifecycle behavior only for patient overlap. Provider/room/resource behavior was not independently exercised.
+- Action: add isolated local DB probes for completed appointment release and active-overlap rejection for provider, room, and resource/device, with distinct same-tenant patients to prevent cross-dimension masking.
+- Evidence status: IMPLEMENTED IN CANDIDATE; exact-head Workstream Verification pending. Do not classify as PASS before the database lane succeeds on the same SHA.
+- Guardrails: branch-only migration/test changes; no hosted schema/data/history mutation, merge, or production promotion. WP-7 remains OPEN; WP-8 remains BLOCKED.

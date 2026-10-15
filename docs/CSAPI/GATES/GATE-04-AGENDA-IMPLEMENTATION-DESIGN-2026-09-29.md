@@ -249,7 +249,7 @@ Patient Identity supplies the canonical patient reference; Agenda owns the appoi
 Agenda appointment state may be consumed by arrival/visit workflows; Queue/Visit owns actual clinic-day movement.
 
 ### Follow-up → Agenda
-Follow-up may request an appointment, but Gate 11 owns follow-up continuity. Agenda only creates the appointment.
+Follow-up may request an appointment, but Gate 11 owns follow-up continuity. The Gate 04 minimum bridge is a booking action on an active appointment-type Follow-up record that opens the canonical Agenda form with the tenant patient and request context. Agenda alone creates the appointment; this does not implement or redefine Follow-up lifecycle/state.
 
 ## 17. Deferred cases
 

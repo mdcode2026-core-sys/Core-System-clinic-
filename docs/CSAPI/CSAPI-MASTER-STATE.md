@@ -7,6 +7,14 @@ Current Gate: Gate 04 — Agenda & Scheduling — OPEN / IMPLEMENTATION-READY / 
 Previous Gate: Gate 03 — Patient & Identity — CLOSED / VERIFIED / PRODUCTION VERIFIED
 Execution mode: Gate 04 planning is complete and frozen; implementation is transferred as a controlled workstream. Gates 01–03 remain CLOSED / VERIFIED / PRODUCTION VERIFIED.
 
+
+> **Current execution override — 2026-10-14:** Gate 04 implementation is active on branch `csapi/gate04-agenda-implementation-2026-10-10`, PR #242 Draft/open/unmerged. Scenario 19 has direct local-DB evidence on candidate `ec6b6572ed679c65f379f0b9d13a70ed263d4840`: Workstream #1026 Gate 04 database lane PASS and Governance #286 PASS. Overall Workstream #1026 remains in progress because the authenticated-E2E job has not completed; do not claim the full run passed. WP-7 remains OPEN; WP-8 BLOCKED. No hosted Supabase mutation/history edits, merge, or production promotion. Continue exact-head verification of the documentation reconciliation, then scenario 22. Do not return to timezone scenario 16 without new failing evidence.
+
+
+> **Verification result correction — 2026-10-14:** Workstream Verification #1026 on candidate `ec6b6572ed679c65f379f0b9d13a70ed263d4840` subsequently completed **PASS**: all 11 verification lanes and the final gate succeeded. Engineering Governance #286 also passed on that candidate. Scenario 19 is therefore PASS on direct branch-local DB evidence and the exact implementation candidate is fully verified. The later documentation-only candidate `369278b00dcbfb25f0f78e8925b1edb91f5fb3e0` started Workstream Verification #1027, but that run is superseded by this status correction; the new documentation candidate created by this correction requires its own exact-head verification. Do not report the current documentation head as verified until its run completes.
+
+---
+
 ## 1. Purpose
 
 CSAPI is the independent CORE SYSTEM architecture/product-integration decision path used to reconcile what the product is, what actually exists, what differs, what must be decided, and what should be implemented next.
@@ -338,3 +346,83 @@ Gate 05 may now begin its own decision/design/planning work. Gate 05 implementat
 
 ### Transfer rule
 The implementation owner may execute Gate 04 from the frozen artifacts. Any discovered contradiction must be classified as: Gate 04 implementation defect; later-gate issue; regression of a closed gate; or genuine architecture/product decision requiring escalation. No silent reinterpretation of frozen decisions is permitted.
+
+
+ 
+## Current operational continuation — Gate 04 / 2026-10-12
+
+**This section supersedes older current-gate labels earlier in this file where they conflict with the active Gate 04 evidence.** Historical entries remain historical.
+
+- Active gate: Gate 04 — Agenda & Scheduling — **OPEN / implementation in progress / not closed**.
+- Operational handoff: `docs/CSAPI/CSAPI-GATE-04-CONTINUATION-HANDOFF-2026-10-11.md`.
+- Active branch: `csapi/gate04-agenda-implementation-2026-10-10`.
+- PR #242: OPEN / DRAFT / NOT MERGED.
+- Latest verified candidate at this checkpoint: `fe4f4d2b34b546540236102cd469946dcab4a59d`.
+- Latest Engineering Governance #244: PASS.
+- Latest Workstream Verification #984: FAIL. Engineering, Gate 04 static, Gate 04 local DB, authenticated route E2E, Gate 03 identity and identity E2E, cross-domain read-only runtime, changed-source i18n/catalogue parity, and global presentation static passed. The patient-journey lane failed by redirecting to login from `/patients`; global presentation runtime failed with a Playwright TimeoutError. Final gate therefore correctly failed.
+- Product Owner decision, 2026-10-11: the minimum Follow-up appointment-request → Agenda handoff is REQUIRED for Gate 04 closure. This is approved and must not be re-asked. Gate 11 remains separate; no Follow-up lifecycle redesign.
+- Immediate next action: fix the narrow workstream-planner/descriptor classification that inadvertently invokes the closed Gate 02 mutation-capable E2E when Gate 04 changes `src/features/followup/`. Keep Gate 02 closed and preserve Gate 04's own static/authenticated E2E evidence. Then rerun exact-head CI and investigate the independent global presentation runtime timeout.
+- WP-7 OPEN. WP-8 BLOCKED by unreconciled repository/hosted migration lineage.
+- No merge, hosted Supabase schema/data/history changes, or Vercel promotion.
+- On a new conversation beginning with `CSAPI`, read the operational handoff above and verify the current PR/head/Actions before work. Continue from the stated next action; do not restart design or repeat owner decisions.
+
+
+
+## Current Gate 04 verification override — 2026-10-12
+
+- Last verified candidate before this documentation update: `60940355af233c9023e4e06ea0ca4e5192226c79`.
+- Workstream Verification #996: PASS, all 12 jobs; Engineering Governance #256: PASS on the same SHA.
+- Follow-up → Agenda handoff static assertions and authenticated E2E passed; the global presentation runtime lane passed on this candidate. The closed Gate 02 legacy patient-journey lane was not selected; Gate 02 remains closed.
+- Gate 04 is still **OPEN / implementation verification and independent review in progress**. WP-8 remains blocked by migration-lineage reconciliation. PR #242 remains OPEN/DRAFT/unmerged.
+- Next: independent diff/contract review, evidence-based WP1–WP8 reconciliation, then exact-head CI after this documentation update. No merge, hosted Supabase schema/data/history changes, or Vercel promotion.
+
+## Current Gate 04 exact-head override — 2026-10-12 / Workstream #997
+
+- Candidate `534474015383716e6517a7b0d26cc205864a493f`: Workstream Verification #997 PASS (12/12 jobs); Engineering Governance #257 PASS.
+- Direct evidence: Gate 04 static 59/59; isolated local DB replay/ACL/RLS and create/status/cancel/rebook audit probes pass; authenticated route E2E 3/3 including Follow-up → Agenda patient/request context; all other lanes and final gate pass.
+- Preliminary source review: server-derived actor/tenant, service-role-only command client, DB permission/tenant/reference/state checks, and no ordinary client write path.
+- Closure remains blocked pending explicit scenario-level reconciliation for provider-required/optional, conflict/time/workforce, concurrency, lifecycle and cross-domain Verification Plan cases. WP7 OPEN; WP8 BLOCKED by unreconciled migration lineage.
+- PR #242 remains OPEN/DRAFT/unmerged. No hosted DB/history changes or Vercel promotion. This documentation checkpoint needs fresh exact-head CI.
+
+
+## WP-8 read-only migration-lineage inventory — 2026-10-13
+
+Snapshot artifact: `docs/CSAPI/GATES/GATE-04-WP8-MIGRATION-LINEAGE-SNAPSHOT-2026-10-13.json` captured against repository SHA `1ef5f0e86810c07e4de09989c140d13369d0b872` and hosted project `core-system-clinic` (ref `qaslsjyxjwvdoiczmhgq`). This is a read-only version-key inventory from the repository Git tree and Supabase migration-history listing; no hosted SQL, schema, data, or migration history was modified.
+
+Fresh counts:
+- Repository SQL migration files: **238** total; **233** with 14-digit migration versions and **5** shorter legacy-prefix files.
+- Hosted migration-history rows: **292**.
+- Shared exact 14-digit version keys: **121**.
+- Repository-only version keys: **112**.
+- Hosted-only version keys: **171**.
+- Shared version keys with different names: **12**.
+
+These counts supersede the older WP-8 headline counts in prior notes because the current snapshot is from the current branch head and explicitly separates 14-digit version keys from five shorter legacy filenames. They are **not semantic migration equivalence counts**: a version-key difference can reflect a rename/re-version/replay or an actually unrepresented change; only content/schema evidence can classify it. Matching version keys also do not prove file contents match what was applied. Therefore WP-8 remains **BLOCKED**.
+
+Next: group candidates by normalized intent and compare repository SQL bodies, hosted history names, and current schema/catalog evidence in read-only mode; classify each discrepancy as equivalent/renamed, repo-only not applied, hosted-only untracked, name-only mismatch, or unresolved. Produce an approved remediation plan before any hosted change. Do not bulk-apply migrations, edit hosted history, or infer a safe order from names alone.
+
+
+## Gate 04 current checkpoint — 2026-10-13
+
+- Current verified candidate: `548f050c2f6e18122b9350e655e74ea5ab54090e`; Workstream #1000 PASS (12/12) and Governance #260 PASS.
+- Gate 04 remains OPEN: scenario-level coverage is incomplete; see `docs/CSAPI/GATES/GATE-04-WP7-SCENARIO-EVIDENCE-MATRIX-2026-10-13.md`.
+- WP-8 remains BLOCKED: repository-vs-hosted migration lineage is unresolved. Read-only schema checks do not authorize hosted changes.
+- PR #242 stays Draft/unmerged; no production promotion or hosted Supabase mutation.
+
+
+## Gate 04 finding — completed appointment conflict policy (2026-10-13)
+
+Read-only source/schema comparison confirmed an inconsistency between the application conflict filter and hosted exclusion predicates for completed appointments (doctor/patient/room vs. resource). Repository migration definitions also do not fully match the live constraint set. This is a Gate 04 scenario-15 blocker and WP-8 lineage finding. No hosted change was made; a forward-only branch migration plus local active/completed conflict probes and read-only release preflight are required. Gate 04 remains open.
+
+
+## Exact-head verification checkpoint — 2026-10-13 (#1004 / #264)
+
+- Candidate SHA: `a24f6e70c659d3996c4e9bb5f0352220f2dc5dbc`.
+- [Workstream Verification #1004](https://github.com/mdcode2026-core-sys/Core-System-clinic-/actions/runs/38380111698): **PASS**; all required jobs completed successfully, including engineering, Gate 04 static, isolated local Gate 04 database, authenticated E2E, cross-domain runtime, Gate 03 regression lanes, i18n, presentation static/runtime, and final gate.
+- [Engineering Governance #264](https://github.com/mdcode2026-core-sys/Core-System-clinic-/actions/runs/38380111547): **PASS** on the same candidate.
+- The local database lane cleanly replayed the branch migrations and passed the new lifecycle probe: scheduled → confirmed → arrived → in_session → completed; a same-patient overlapping appointment was then accepted; a further overlapping active appointment was rejected. The test also checks that all four doctor/patient/room/resource exclusion predicates mention completed, cancelled and no_show.
+- This is direct evidence for the completed-appointment patient-conflict path and predicate consistency in the local schema. It does **not** yet independently prove completed-vs-active behavior for each doctor, room and resource dimension, nor does it close the other WP-7 scenarios.
+- WP-7 remains **OPEN**. The scenario matrix remains authoritative for the unproven provider, room/resource, workforce, tenant-local time/buffer, concurrency, permissions, audit-disclosure, and cross-domain scenarios. Do not infer coverage from green aggregate CI.
+- WP-8 remains **BLOCKED** pending evidence-backed repository/hosted migration-lineage reconciliation. The migration is branch-only; hosted Supabase schema/data/history are unchanged.
+- PR #242 remains OPEN / DRAFT / UNMERGED. No merge, hosted database mutation/history edit, or production promotion.
+- Next action: continue WP-7 scenario evidence work within the frozen Verification Plan, prioritizing direct, deterministic local database probes for the missing conflict/resource/provider/permission cases, while separately classifying WP-8 lineage discrepancies read-only. Do not add another broad implementation change until the next concrete gap and its root cause are established.

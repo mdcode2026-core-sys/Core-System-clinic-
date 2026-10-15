@@ -13,9 +13,10 @@ import { useInvalidatePatients } from "@/domain/patients/patients.queries";
 import type { Patient } from "@/domain/patients/patients.types";
 import { useI18n } from "@/core/i18n/I18nProvider";
 
-interface PatientFormProps { patient?: Patient | null; isOpen: boolean; onClose: () => void; onSuccess?: () => void; }
+interface PatientFormProps { patient?: Patient | null; isOpen: boolean; onClose: () => void; onSuccess?: (patientId?: string) => void; }
 interface PatientApiResult {
   data?: { id: string };
+  patient_id?: string;
   error?: string;
   outcome?: "EXACT_MATCH" | "REVIEW_REQUIRED" | "NO_MATCH";
   score?: number;
@@ -73,7 +74,7 @@ export function PatientForm({ patient, isOpen, onClose, onSuccess }: PatientForm
         return;
       }
       setReviewCandidate(undefined);
-      onSuccess?.();
+      onSuccess?.(result.data?.id ?? result.patient_id);
       onClose();
       invalidateAll();
     } catch {
@@ -115,7 +116,7 @@ export function PatientForm({ patient, isOpen, onClose, onSuccess }: PatientForm
         setServerError(localizeServerError(result.error || "PATIENT_DATABASE_ERROR"));
         return;
       }
-      onSuccess?.();
+      onSuccess?.(result.data?.id ?? result.patient_id);
       onClose();
       invalidateAll(tenantId);
     } catch {
