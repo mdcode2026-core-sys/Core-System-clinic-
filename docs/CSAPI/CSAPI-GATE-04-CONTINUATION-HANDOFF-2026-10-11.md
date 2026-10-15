@@ -334,3 +334,16 @@ Read-only comparison of `src/domain/agenda/conflict.engine.ts`, repository migra
 - A verifier-only permissions fixture repair was included in the preceding implementation commit: required standard permission keys are restored inside the local rollback-only verification transaction. This is not a schema migration or persistent hosted database change.
 - These results are branch/local-candidate evidence only. They do not reconcile repository-vs-hosted migration lineage or prove the hosted database was changed. No hosted Supabase mutation, PR merge, or production promotion occurred. PR #242 remains OPEN / DRAFT / UNMERGED.
 - Gate 04 remains OPEN: WP-7 scenario gaps remain as classified in this matrix; WP-8 remains BLOCKED pending read-only, evidence-backed migration-lineage reconciliation. Do not infer closure from the green aggregate workflow.
+
+
+## WP-8 read-only refresh — 2026-10-15 (candidate `bd362b46ceb8d89393808cf9896ad47701ef9336`)
+
+**Method:** Re-read the repository Git tree at the stated candidate and the hosted Supabase migration-history listing for project ref `qaslsjyxjwvdoiczmhgq`. Then ran read-only `SELECT` against `pg_constraint` to inspect live exclusion-constraint definitions. No hosted DDL, data, or migration-history changes were made.
+
+**Fresh inventory:** 241 repository SQL files; 235 filenames with canonical 14-digit version prefixes; 6 legacy/noncanonical SQL filenames; 292 hosted migration-history rows; 121 shared exact version keys; 114 repository-only version keys; 171 hosted-only version keys; 12 shared version keys with different names. Exact-name matches across differing version keys are candidate correlations only (71 repository-only names and 72 hosted-only names have a counterpart); they are not evidence of equivalent SQL or effects. These figures supersede the older inventory counts for this candidate, not the older candidate's immutable snapshot artifact.
+
+**Confirmed live Gate 04 lineage boundary:** the newest canonical repository migration is `20261015100000_csapi_gate04_audit_read_policy_lockdown`; the newest hosted migration-history version returned is `20260926105306`. Thus the repository's Gate 04 forward migrations dated 2026-10-10, 2026-10-13, and 2026-10-15 are not recorded as applied in the hosted history. Do not apply them or edit hosted history as part of this read-only reconciliation.
+
+**Live schema mismatch re-confirmed:** `no_doctor_overlap`, `no_patient_overlap`, and `no_room_overlap` exclude only `cancelled` and `no_show`; `no_resource_overlap` also excludes `completed`. This differs from repository migration `20261013100000_csapi_gate04_completed_appointment_conflict_policy.sql`, which excludes `completed` for all four dimensions. Therefore local candidate PASS for scenario 15 does not establish hosted parity. The live definitions are evidence for WP-8 remediation planning, not authorization to change the hosted database.
+
+**Disposition:** WP-8 remains **BLOCKED** pending semantic classification of the 114 repository-only keys, 171 hosted-only keys, 12 same-version name mismatches, and relevant live schema drift. No bulk migration, history repair, merge, or production promotion is authorized by this inventory. Gate 04 remains OPEN. The documentation commit requires fresh exact-head Workstream Verification and Engineering Governance.
