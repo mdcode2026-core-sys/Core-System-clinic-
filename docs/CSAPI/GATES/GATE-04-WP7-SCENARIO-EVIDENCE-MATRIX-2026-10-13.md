@@ -1,4 +1,4 @@
-> **Provider-isolation probe added — verification pending (2026-10-14):** Candidate `ab778c7248c17a02c352df41467898d8351b17f7` seeds an actual active clinic user under the second tenant and adds a negative `agenda_create_appointment` probe expecting `AGENDA_PROVIDER_NOT_FOUND_IN_TENANT`. Workstream Verification #1036 has been created for this exact candidate but has not started executing jobs yet; do not classify the provider probe as PASS until the isolated database lane and final gate complete. The previously verified room/resource probes remain PASS on `a1f7a0aeba14d9a892849fd19e0ea0ff2be7b4e2`.
+> **Session close / latest exact-head verification — 2026-10-15:** Branch candidate `f165f19cb7e32aa5bb62cf219cf34a63607d9bb2` completed Workstream Verification [#1039 — PASS](https://github.com/mdcode2026-core-sys/Core-System-clinic-/actions/runs/38528404638), including the isolated `csapi-gate04-database` lane and final gate; Engineering Governance [#299 — PASS](https://github.com/mdcode2026-core-sys/Core-System-clinic-/actions/runs/38528404594) also passed on the same SHA. The actual cross-tenant provider negative probe now has exact-head verification: the protected booking command rejects the active provider belonging to another tenant with `AGENDA_PROVIDER_NOT_FOUND_IN_TENANT`. Cross-tenant room/resource probes remain PASS. Scenario 19 and scenario 22 remain PASS on their scenario-specific evidence. Gate 04 is NOT closed: WP-7 remains OPEN and WP-8 BLOCKED. PR #242 remains Draft/open/unmerged; no hosted Supabase mutation, merge, deployment, or production promotion occurred. The documentation changes in this session require their own exact-head verification before this documentation revision is treated as verified.
 
 ---
 
@@ -13,11 +13,11 @@
 # Gate 04 — WP-7 Scenario Evidence Matrix
 
 **Record date:** 2026-10-14  
-**Latest verified code candidate:** `a1f7a0aeba14d9a892849fd19e0ea0ff2be7b4e2` — Workstream Verification #1031 PASS (all applicable jobs + final gate) and Engineering Governance #291 PASS.  
+**Latest exact-head verified code candidate before this documentation refresh:** `f165f19cb7e32aa5bb62cf219cf34a63607d9bb2` — Workstream Verification #1039 PASS (all applicable jobs + final gate) and Engineering Governance #299 PASS.  
 **Scenario 19:** PASS on direct branch-local DB evidence at `ec6b6572ed679c65f379f0b9d13a70ed263d4840`.  
 **Scenario 22:** PASS on direct branch-local DB evidence at `f3f3675855eb4e748064ebb7c10676fb2f4c4650`.  
-**Cross-tenant room/resource references:** PASS on direct isolated local DB evidence at `a1f7a0aeba14d9a892849fd19e0ea0ff2be7b4e2`.  
-**Engineering Governance:** #291 — PASS on `a1f7a0aeba14d9a892849fd19e0ea0ff2be7b4e2`.  
+**Cross-tenant provider/room/resource references:** PASS on direct isolated local DB evidence; provider probe verified on `f165f19cb7e32aa5bb62cf219cf34a63607d9bb2` by Workstream #1039, with expected `AGENDA_PROVIDER_NOT_FOUND_IN_TENANT`; room/resource probes verified on `a1f7a0aeba14d9a892849fd19e0ea0ff2be7b4e2`.  
+**Engineering Governance:** #299 — PASS on `f165f19cb7e32aa5bb62cf219cf34a63607d9bb2`.  
 **Gate status:** OPEN — this matrix is a coverage reconciliation, not a closure declaration.
 
 ## Evidence interpretation
@@ -74,7 +74,7 @@
 | Ordinary authenticated role cannot invoke protected RPC or directly write appointment rows | Negative authenticated RPC/table-write probes passed in local DB. | PASS |
 | Anonymous role has no protected RPC execution or direct table-write privilege | Privilege/catalog assertions passed; a separate anonymous-session mutation attempt is not part of the probe. | PARTIAL |
 | Cross-tenant patient reference is rejected | New local DB negative probe passed. | PASS |
-| Cross-tenant provider, room, and resource references are rejected | Candidate `a1f7a0aeba14d9a892849fd19e0ea0ff2be7b4e2` directly rejects real cross-tenant room/resource rows with `AGENDA_ROOM_NOT_AVAILABLE` and `AGENDA_RESOURCE_UNAVAILABLE`. Candidate `ab778c7248c17a02c352df41467898d8351b17f7` adds a real cross-tenant provider negative probe; exact-head database verification is pending. | PARTIAL — room/resource verified; provider probe pending |
+| Cross-tenant provider, room, and resource references are rejected | Workstream #1039 PASS on exact head `f165f19cb7e32aa5bb62cf219cf34a63607d9bb2` verifies the real cross-tenant provider is rejected with `AGENDA_PROVIDER_NOT_FOUND_IN_TENANT`; clean local replay previously rejected real cross-tenant room/resource rows with `AGENDA_ROOM_NOT_AVAILABLE` and `AGENDA_RESOURCE_UNAVAILABLE` on `a1f7a0aeba14d9a892849fd19e0ea0ff2be7b4e2`. | PASS — provider/room/resource negative probes verified in isolated local DB |
 | Normal UPDATE is reconstructible with actor/reason | New local DB update and UPDATE-audit assertion passed. | PASS |
 | Stale expected appointment status cannot override persisted status | New local DB stale-status negative probe passed. | PASS |
 | CREATE, STATUS_CHANGE, CANCEL, and cancelled → scheduled RESCHEDULE audit | Direct isolated local DB assertions passed. | PASS |
